@@ -617,21 +617,19 @@ function generateClockSVG(hour: number, minute: number): string {
 }
 
 function benzersizYanlislar(correct: number, adaylar: number[], minVal = 0): number[] {
-  // İlkokul müfredatında eksi sayı kavramı yoktur: adaylar ve sonuçlar daima pozitif olmalıdır!
-  const safeMin = Math.max(0, minVal);
   const sonuc: number[] = [];
   const gorulen = new Set<number>([correct]);
   for (const aday of adaylar) {
     if (sonuc.length === 3) break;
-    if (!gorulen.has(aday) && aday >= safeMin) {
+    if (!gorulen.has(aday) && aday >= minVal) {
       gorulen.add(aday);
       sonuc.push(aday);
     }
   }
   let ek = 1;
   while (sonuc.length < 3) {
-    const aday = Math.max(safeMin, correct) + 10 + ek;
-    if (!gorulen.has(aday) && aday >= safeMin) {
+    const aday = correct + 10 + ek;
+    if (!gorulen.has(aday) && aday >= minVal) {
       gorulen.add(aday);
       sonuc.push(aday);
     }
@@ -5627,7 +5625,7 @@ export default function App() {
               return (
                 <div
                   key={p.id}
-                  className={`relative flex-1 flex flex-col justify-between p-1 sm:p-2 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-slate-950/15 backdrop-blur-sm shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${playerCountMode === 2 ? 'max-w-[460px]' : 'max-w-none'} mx-auto h-full`}
+                  className={`relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-slate-950/15 backdrop-blur-sm shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${playerCountMode === 2 ? 'max-w-[420px]' : 'max-w-[360px]'} mx-auto h-full`}
                 >
                   {/* PLAYER HEADER BAR */}
                   <div className="flex items-center justify-between z-10 shrink-0 w-full mb-0.5 sm:mb-1">
@@ -5670,8 +5668,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* QUESTION GLASS CONTAINER FOR THIS PLAYER - USES UP TO THE FRAME LINES */}
-                  <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/35 backdrop-blur-xl border-2 border-cyan-200/40 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.45),0_0_20px_rgba(6,182,212,0.2)] ${playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1'} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
+                  {/* QUESTION GLASS CONTAINER FOR THIS PLAYER */}
+                  <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/35 backdrop-blur-xl border-2 border-cyan-200/40 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.45),0_0_20px_rgba(6,182,212,0.2)] p-2 sm:p-3 my-1 flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full">
                     {/* Top glare effect */}
                     <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
@@ -6307,7 +6305,6 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          soundEnabled={soundEnabled}
         />
       )}
 

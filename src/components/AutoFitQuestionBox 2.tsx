@@ -28,91 +28,61 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
 
     if (availWidth <= 0 || availHeight <= 0) return;
 
-    const currentScale = scale > 0 ? scale : 1;
+    // Measure natural (unscaled) content dimensions
+    const naturalWidth = measureEl.scrollWidth || measureEl.offsetWidth;
+    const naturalHeight = measureEl.scrollHeight || measureEl.offsetHeight;
 
-    // Measure natural (unscaled) content dimensions across measureEl and its descendants
-    let trueNaturalWidth = measureEl.scrollWidth || measureEl.offsetWidth;
-    let trueNaturalHeight = measureEl.scrollHeight || measureEl.offsetHeight;
+    if (naturalWidth <= 0 || naturalHeight <= 0) return;
 
-    // Check all child elements to detect any wide formula banners, sequence rows, or tables
-    const allChildren = measureEl.querySelectorAll('*');
-    allChildren.forEach((child) => {
-      const el = child as HTMLElement;
-      const scrollW = el.scrollWidth || 0;
-      const offsetW = el.offsetWidth || 0;
-      const rect = el.getBoundingClientRect();
-      const unscaledW = rect.width / currentScale;
-      const unscaledH = rect.height / currentScale;
-
-      const w = Math.max(scrollW, offsetW, unscaledW);
-      if (w > trueNaturalWidth) {
-        trueNaturalWidth = w;
-      }
-
-      const scrollH = el.scrollHeight || 0;
-      const offsetH = el.offsetHeight || 0;
-      const h = Math.max(scrollH, offsetH, unscaledH);
-      if (h > trueNaturalHeight) {
-        trueNaturalHeight = h;
-      }
-    });
-
-    if (trueNaturalWidth <= 0 || trueNaturalHeight <= 0) return;
-
-    // Margins based on user instruction:
-    // Mode 3: Use right up to the frame borders ("çerçevelerin çizgisine kadar kullan")
-    const marginX = mode === 3 ? 2 : mode === 2 ? 6 : 10;
-    const marginY = mode === 3 ? 2 : mode === 2 ? 4 : 8;
+    // Add safe breathing margin depending on player mode
+    const marginX = mode === 3 ? 8 : mode === 2 ? 12 : 16;
+    const marginY = mode === 3 ? 4 : mode === 2 ? 8 : 12;
 
     const targetAvailW = Math.max(10, availWidth - marginX);
     const targetAvailH = Math.max(10, availHeight - marginY);
 
-    const scaleX = targetAvailW / trueNaturalWidth;
-    const scaleY = targetAvailH / trueNaturalHeight;
+    const scaleX = targetAvailW / naturalWidth;
+    const scaleY = targetAvailH / naturalHeight;
 
-    // Scale required so that neither width nor height overflows the card frame
+    // Minimum scale required so that neither width nor height overflows
     let computedScale = Math.min(scaleX, scaleY);
 
-    // User directive: In multiplayer (mode 2 & 3), keep font size consistent across player groups
-    // Avoid wildly enlarging simple questions while shrinking adjacent players
-    const maxEnlargeScale = mode === 1 ? 1.35 : mode === 2 ? 1.1 : 1.05;
-    const minShrinkScale = mode === 3 ? 0.6 : mode === 2 ? 0.55 : 0.6;
+    // If it fits and there is surplus space, allow enlarging (so small items aren't tiny)
+    // Max scale ceiling per player mode to prevent pixelation:
+    const maxEnlargeScale = mode === 1 ? 1.5 : mode === 2 ? 1.35 : 1.25;
+    const minShrinkScale = mode === 3 ? 0.5 : mode === 2 ? 0.55 : 0.6;
 
-    if (computedScale > 1.02) {
-      // Content has surplus room: gently enlarge if allowed, but keep player groups consistent
+    if (computedScale > 1) {
       computedScale = Math.min(computedScale, maxEnlargeScale);
-    } else if (computedScale >= 0.88) {
-      // Comfortably fits natural size: do NOT shrink! Keep at 100% for uniform readability
-      computedScale = 1;
     } else {
-      // Content overflows the frame: shrink gracefully down to minShrinkScale
-      computedScale = Math.max(minShrinkScale, computedScale * 0.985);
+      // It's overflowing: shrink as much as needed, down to minShrinkScale
+      computedScale = Math.max(minShrinkScale, computedScale * 0.97);
     }
 
-    // Round to 3 decimals to avoid subpixel fluttering
+    // Round to 3 decimals to prevent micro-oscillations
     const rounded = Math.round(computedScale * 1000) / 1000;
     setScale(rounded);
     setIsReady(true);
-  }, [mode, scale]);
+  }, [mode]);
 
-  // Recalculate whenever question, mode, or layout changes
+  // Recalculate whenever question, mode, or resize happens
   useLayoutEffect(() => {
     calculateScale();
-  }, [questionHTML, questionText, mode]);
+  }, [questionHTML, questionText, mode, calculateScale]);
 
   useEffect(() => {
     const container = containerRef.current;
     const measureEl = measureRef.current;
     if (!container) return;
 
-    // ResizeObserver on container and content
+    // ResizeObserver on container to adapt smoothly to screen or split changes
     const ro = new ResizeObserver(() => {
       calculateScale();
     });
     ro.observe(container);
     if (measureEl) ro.observe(measureEl);
 
-    // Watch for images loading
+    // Watch for image loads inside questionHTML to recalculate once image sizes are known
     if (measureEl) {
       const imgs = measureEl.querySelectorAll('img');
       imgs.forEach((img) => {
@@ -123,7 +93,8 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
       });
     }
 
-    const timer = setTimeout(calculateScale, 50);
+    // Extra fallback delay for SVGs/fonts/tables rendering
+    const timer = setTimeout(calculateScale, 60);
 
     return () => {
       ro.disconnect();
@@ -131,7 +102,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     };
   }, [calculateScale, questionHTML, questionText]);
 
-  // Responsive font size baseline based on mode
+  // Responsive font size baseline based on mode (scaled smoothly by AutoFitQuestionBox)
   const fontClass = mode === 1
     ? 'text-lg xs:text-xl sm:text-2xl md:text-3xl'
     : mode === 2
