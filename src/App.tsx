@@ -5737,15 +5737,26 @@ export default function App() {
 
                 {/* DİKEY BASKETBOL PARKURU (TAM ORTADA) */}
                 <div className="h-full flex items-center justify-center shrink-0">
-                  <BasketballRaceTrack
-                    players={players}
-                    playerCountMode={2}
-                    targetScore={10}
-                    orientation="vertical"
-                    showKaplanVictoryVideo={kaplanVictoryVideoActive}
-                    onVictoryVideoEnd={handleKaplanVideoComplete}
-                    soundEnabled={soundEnabled}
-                  />
+                  {(() => {
+                    const winCfg = getWinnerVideoConfig(duelWinnerIndex);
+                    return (
+                      <BasketballRaceTrack
+                        players={players}
+                        playerCountMode={2}
+                        targetScore={10}
+                        orientation="vertical"
+                        showVictoryVideo={trackVictoryVideoActive}
+                        victoryVideoSrc={winCfg.videoSrc}
+                        winnerTitle={winCfg.title}
+                        winnerImg={winCfg.img}
+                        winnerBadgeBg={winCfg.badgeBg}
+                        winnerBorderColor={winCfg.borderColor}
+                        winnerGlowColor={winCfg.glowColor}
+                        onVictoryVideoEnd={handleTrackVideoComplete}
+                        soundEnabled={soundEnabled}
+                      />
+                    );
+                  })()}
                 </div>
 
                 {/* 2. GRUP (SAĞDA) */}
@@ -5756,15 +5767,26 @@ export default function App() {
               <div className="flex-1 flex flex-row items-stretch justify-center gap-1.5 sm:gap-2.5 w-full min-h-0 overflow-hidden">
                 {/* DİKEY BASKETBOL PARKURU (EN SOLDA) */}
                 <div className="h-full flex items-center justify-center shrink-0">
-                  <BasketballRaceTrack
-                    players={players}
-                    playerCountMode={3}
-                    targetScore={10}
-                    orientation="vertical"
-                    showKaplanVictoryVideo={kaplanVictoryVideoActive}
-                    onVictoryVideoEnd={handleKaplanVideoComplete}
-                    soundEnabled={soundEnabled}
-                  />
+                  {(() => {
+                    const winCfg = getWinnerVideoConfig(duelWinnerIndex);
+                    return (
+                      <BasketballRaceTrack
+                        players={players}
+                        playerCountMode={3}
+                        targetScore={10}
+                        orientation="vertical"
+                        showVictoryVideo={trackVictoryVideoActive}
+                        victoryVideoSrc={winCfg.videoSrc}
+                        winnerTitle={winCfg.title}
+                        winnerImg={winCfg.img}
+                        winnerBadgeBg={winCfg.badgeBg}
+                        winnerBorderColor={winCfg.borderColor}
+                        winnerGlowColor={winCfg.glowColor}
+                        onVictoryVideoEnd={handleTrackVideoComplete}
+                        soundEnabled={soundEnabled}
+                      />
+                    );
+                  })()}
                 </div>
 
                 {/* 3 OYUNCU KARTLARI (SAĞDA YAN YANA) */}
@@ -5936,12 +5958,12 @@ export default function App() {
                     />
                   </button>
 
-                  {/* REPLAY VICTORY VIDEO BUTTON (IF KAPLAN WON) */}
-                  {duelWinnerIndex === 0 && (
+                  {/* REPLAY VICTORY VIDEO BUTTON (IF ANY GROUP WON IN MULTIPLAYER) */}
+                  {duelWinnerIndex !== null && (
                     <button
                       onClick={() => setShowPodiumVideoModal(true)}
                       title="Şampiyonluk Videosunu İzle"
-                      className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 rounded-2xl border-2 border-cyan-300 shadow-xl"
+                      className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0 bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 hover:brightness-110 rounded-2xl border-2 border-yellow-200 shadow-xl"
                     >
                       <span className="text-xl sm:text-2xl filter drop-shadow">🎬</span>
                     </button>
@@ -6330,8 +6352,8 @@ export default function App() {
         </div>
       )}
 
-      {/* REPLAY CHAMPIONSHIP VIDEO MODAL (sog.mp4) */}
-      {showPodiumVideoModal && (
+      {/* REPLAY CHAMPIONSHIP VIDEO MODAL */}
+      {showPodiumVideoModal && duelWinnerIndex !== null && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm select-none"
           onClick={() => setShowPodiumVideoModal(false)}
@@ -6341,21 +6363,30 @@ export default function App() {
             style={{ aspectRatio: '720 / 1280' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.9)] border-2 border-cyan-400 bg-black flex items-center justify-center">
-              <video
-                src="/sog.mp4"
-                autoPlay
-                controls
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setShowPodiumVideoModal(false)}
-                className="absolute top-3 right-3 bg-black/70 hover:bg-black text-white px-3 py-1 rounded-full text-xs font-bold border border-white/40 shadow-lg cursor-pointer z-30 flex items-center gap-1"
-              >
-                ✕ Kapat
-              </button>
-            </div>
+            {(() => {
+              const winCfg = getWinnerVideoConfig(duelWinnerIndex);
+              return (
+                <div className={`relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.9)] border-2 ${winCfg.borderColor} bg-black flex items-center justify-center`}>
+                  <video
+                    src={winCfg.videoSrc}
+                    autoPlay
+                    controls
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  <div className={`absolute top-3 left-3 bg-gradient-to-r ${winCfg.badgeBg} text-white px-3 py-1 rounded-full text-xs font-black shadow-lg flex items-center gap-1.5 pointer-events-none border border-white/60`}>
+                    <img src={winCfg.img} alt="" className="w-4 h-4 object-contain" />
+                    <span>{winCfg.title}</span>
+                  </div>
+                  <button
+                    onClick={() => setShowPodiumVideoModal(false)}
+                    className="absolute top-3 right-3 bg-black/70 hover:bg-black text-white px-3 py-1 rounded-full text-xs font-bold border border-white/40 shadow-lg cursor-pointer z-30 flex items-center gap-1"
+                  >
+                    ✕ Kapat
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

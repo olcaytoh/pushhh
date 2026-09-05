@@ -1,0 +1,8 @@
+{
+  "name": "1-2-3-4 SINIF MATEMATIK",
+  "description": "1.-2.-3.-4.sınıf öğrencileri için interaktif 1-2 ve 3 oyunculu yarışmalı matematik oyunu",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
