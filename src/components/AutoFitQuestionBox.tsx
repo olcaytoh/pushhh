@@ -57,12 +57,31 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
       }
     });
 
+    // Check horizontal flex containers or multi-child rows for true physical span
+    const flexContainers = measureEl.querySelectorAll('.flex-nowrap, [class*="flex-nowrap"], .flex');
+    flexContainers.forEach((containerEl) => {
+      const children = Array.from(containerEl.children).filter(
+        c => (c as HTMLElement).offsetWidth > 0 || (c as HTMLElement).getBoundingClientRect().width > 0
+      );
+      if (children.length > 1) {
+        const firstRect = children[0].getBoundingClientRect();
+        const lastRect = children[children.length - 1].getBoundingClientRect();
+        const rowSpan = (lastRect.right - firstRect.left) / currentScale;
+        if (rowSpan > trueNaturalWidth) {
+          trueNaturalWidth = rowSpan;
+        }
+      }
+    });
+
     if (trueNaturalWidth <= 0 || trueNaturalHeight <= 0) return;
+
+    // Detect if content has full-width image container (such as uzamsal iliskiler)
+    const hasFullWidthImage = !!measureEl.querySelector('[data-full-width="true"], .uzamsal-soru-container');
 
     // Margins based on user instruction:
     // Mode 3: Use right up to the frame borders ("çerçevelerin çizgisine kadar kullan")
-    const marginX = mode === 3 ? 2 : mode === 2 ? 6 : 10;
-    const marginY = mode === 3 ? 2 : mode === 2 ? 4 : 8;
+    const marginX = hasFullWidthImage ? 0 : (mode === 3 ? 2 : mode === 2 ? 6 : 10);
+    const marginY = hasFullWidthImage ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
 
     const targetAvailW = Math.max(10, availWidth - marginX);
     const targetAvailH = Math.max(10, availHeight - marginY);
@@ -70,22 +89,29 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     const scaleX = targetAvailW / trueNaturalWidth;
     const scaleY = targetAvailH / trueNaturalHeight;
 
+    // For full-width image questions, let flexbox naturally fill 100% height and width
+    if (hasFullWidthImage) {
+      setScale(1);
+      setIsReady(true);
+      return;
+    }
+
     // Scale required so that neither width nor height overflows the card frame
     let computedScale = Math.min(scaleX, scaleY);
 
     // User directive: In multiplayer (mode 2 & 3), keep font size consistent across player groups
     // Avoid wildly enlarging simple questions while shrinking adjacent players
     const maxEnlargeScale = mode === 1 ? 1.35 : mode === 2 ? 1.1 : 1.05;
-    const minShrinkScale = mode === 3 ? 0.6 : mode === 2 ? 0.55 : 0.6;
+    const minShrinkScale = mode === 3 ? 0.45 : mode === 2 ? 0.5 : 0.55;
 
     if (computedScale > 1.02) {
       // Content has surplus room: gently enlarge if allowed, but keep player groups consistent
       computedScale = Math.min(computedScale, maxEnlargeScale);
-    } else if (computedScale >= 0.88) {
-      // Comfortably fits natural size: do NOT shrink! Keep at 100% for uniform readability
+    } else if (computedScale >= 0.99) {
+      // Fits natural size comfortably without any overflow: keep at 100% natural size
       computedScale = 1;
     } else {
-      // Content overflows the frame: shrink gracefully down to minShrinkScale
+      // Content overflows the frame (computedScale < 0.99): shrink gracefully so it never spills past borders
       computedScale = Math.max(minShrinkScale, computedScale * 0.985);
     }
 
@@ -138,24 +164,29 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     ? 'text-base xs:text-lg sm:text-xl'
     : 'text-sm xs:text-base sm:text-lg';
 
+  // Detect if question contains a full-width/full-height visual container (like uzamsal iliskiler)
+  const isFullImageQuestion = Boolean(
+    questionHTML && (questionHTML.includes('uzamsal-soru-container') || questionHTML.includes('data-full-width="true"'))
+  );
+
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center overflow-hidden min-h-0 relative select-none"
+      className={`w-full h-full flex ${isFullImageQuestion ? 'flex-col justify-between' : 'items-center justify-center'} overflow-hidden min-h-0 relative select-none`}
     >
       <div
         ref={measureRef}
         style={{
-          transform: `scale(${scale})`,
+          transform: isFullImageQuestion ? 'none' : `scale(${scale})`,
           transformOrigin: 'center center',
           opacity: isReady ? 1 : 0.95,
         }}
-        className={`w-full max-w-full flex flex-col items-center justify-center text-center transition-transform duration-100 ease-out will-change-transform ${className}`}
+        className={`w-full max-w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} text-center transition-transform duration-100 ease-out will-change-transform ${className}`}
       >
         {questionHTML ? (
           <div
             dangerouslySetInnerHTML={{ __html: questionHTML }}
-            className={`question-visual-box multi-player-${mode} w-full flex flex-col items-center justify-center font-black tracking-wide leading-snug drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:0_2px_4px_#000] text-white ${fontClass}`}
+            className={`question-visual-box multi-player-${mode} w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} font-black tracking-wide leading-snug drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:0_2px_4px_#000] text-white ${fontClass}`}
           />
         ) : (
           <div
