@@ -31,32 +31,32 @@ function benzersizYanlislar(correct: number, adaylar: number[], minVal = 0): num
 }
 
 const renderHalatQuestionHTML = (islemStr: string, islemTuru: string, aciklama: string, renk: string) => `
-  <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1 text-center">
-    <div class="flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-amber-400/60 text-amber-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md">
+  <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center select-none">
+    <div class="flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-amber-400/60 text-amber-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md whitespace-nowrap" style="white-space: nowrap !important; text-wrap: nowrap !important;">
       <span>🪢 HALAT ÇEKME DÜELLOSU</span>
       <span class="text-white/70">|</span>
       <span>${islemTuru}</span>
     </div>
-    <div class="px-5 py-2.5 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-2xl sm:text-4xl md:text-5xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg">
+    <div class="halat-islem-box px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-xl xs:text-2xl sm:text-3xl md:text-4xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg shrink-0 inline-flex items-center justify-center" style="white-space: nowrap !important; text-wrap: nowrap !important; word-break: keep-all !important;">
       ${islemStr} = ?
     </div>
-    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
+    <div class="text-xs xs:text-sm sm:text-base md:text-lg font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 whitespace-nowrap" style="white-space: nowrap !important; text-wrap: nowrap !important;">
       ${aciklama}
     </div>
   </div>
 `;
 
 const renderSureliQuestionHTML = (islemStr: string, islemTuru: string, aciklama: string, renk: string) => `
-  <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1 text-center">
-    <div class="flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-rose-400/60 text-rose-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md animate-pulse">
+  <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center select-none">
+    <div class="flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900/80 border border-rose-400/60 text-rose-300 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md animate-pulse whitespace-nowrap" style="white-space: nowrap !important; text-wrap: nowrap !important;">
       <span>⚡ SÜRELİ İŞLEM YARIŞI</span>
       <span class="text-white/70">|</span>
       <span>${islemTuru}</span>
     </div>
-    <div class="px-5 py-2.5 sm:px-8 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-2xl sm:text-4xl md:text-5xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg">
+    <div class="halat-islem-box px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-xl xs:text-2xl sm:text-3xl md:text-4xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg shrink-0 inline-flex items-center justify-center" style="white-space: nowrap !important; text-wrap: nowrap !important; word-break: keep-all !important;">
       ${islemStr} = ?
     </div>
-    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
+    <div class="text-xs xs:text-sm sm:text-base md:text-lg font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 whitespace-nowrap" style="white-space: nowrap !important; text-wrap: nowrap !important;">
       ${aciklama}
     </div>
   </div>

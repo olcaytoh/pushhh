@@ -62,8 +62,6 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
   // Kaplumbağa yenilirse (P2 Ejderha kazandı) -> hakapyen.mp4
   // Ejderha yenilirse (P1 Kaplumbağa kazandı) -> haejyen.mp4
   const defeatVideoSrc = isP2Won ? '/hakapyen.mp4' : isP1Won ? '/haejyen.mp4' : null;
-  const defeatTitle = isP2Won ? 'KAPLUMBAĞA YENİLDİ!' : isP1Won ? 'EJDERHA YENİLDİ!' : '';
-  const winnerTitle = isP2Won ? '🏆 2. GRUP (EJDERHA) KAZANDI!' : isP1Won ? '🏆 1. GRUP (KAPLUMBAĞA) KAZANDI!' : '';
 
   // Reset dismissal if game resets or winner changes
   useEffect(() => {
@@ -95,6 +93,31 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
     >
       {/* BACKGROUND FIELD DECORATION */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:16px_16px]" />
+
+      {/* FULL-FRAME DEFEAT VIDEO: YAZISIZ VE MESAJSIZ TÜM ÇERÇEVEYİ KAPLAYAN VİDEO EKRANI */}
+      {defeatVideoSrc && !isDefeatDismissed && (
+        <div className="absolute inset-0 z-50 rounded-2xl sm:rounded-3xl overflow-hidden bg-black flex items-center justify-center pointer-events-auto animate-in fade-in duration-300">
+          <video
+            ref={defeatVideoRef}
+            src={defeatVideoSrc}
+            autoPlay
+            loop
+            playsInline
+            muted={!soundEnabled}
+            className="w-full h-full object-cover"
+          />
+          {/* Subtle translucent close icon */}
+          <button
+            type="button"
+            onClick={() => setIsDefeatDismissed(true)}
+            className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center text-xs font-bold border border-white/30 shadow-lg backdrop-blur-xs transition-colors cursor-pointer"
+            title="Kapat"
+            aria-label="Kapat"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       
       {/* TOP: HALAT ÇEKME TITLE CAPSULE */}
       <div className="relative z-10 w-full flex flex-col items-center gap-0.5 shrink-0">
@@ -208,58 +231,17 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/35 rounded-full pointer-events-none" />
           </div>
 
-          {/* CENTER BASKETBALL MARKER: Hem yatayda hem dikeyde tam ortalanmış (-translate-x-1/2 & -translate-y-1/2) - Oyun bitip yenilgi videosu oynarken gizlenir */}
-          {(!defeatVideoSrc || isDefeatDismissed) && (
-            <div
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-500 ease-out z-40 flex items-center justify-center pointer-events-none"
-              style={{ left: `${ribbonCenterPercent}%` }}
-            >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                <span className="text-2xl sm:text-3xl select-none leading-none">
-                  🏀
-                </span>
-              </div>
+          {/* CENTER BASKETBALL MARKER: Hem yatayda hem dikeyde tam ortalanmış (-translate-x-1/2 & -translate-y-1/2) */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-500 ease-out z-40 flex items-center justify-center pointer-events-none"
+            style={{ left: `${ribbonCenterPercent}%` }}
+          >
+            <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+              <span className="text-2xl sm:text-3xl select-none leading-none">
+                🏀
+              </span>
             </div>
-          )}
-
-          {/* CENTER DEFEAT VIDEO CUTSCENE: Kaplumbağa yenilirse hakapyen.mp4, Ejderha yenilirse haejyen.mp4 ortada oynatılır */}
-          {defeatVideoSrc && !isDefeatDismissed && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-[2px] p-1.5 animate-in fade-in zoom-in-95 duration-300 pointer-events-auto">
-              {/* Close / Dismiss Button */}
-              <button
-                type="button"
-                onClick={() => setIsDefeatDismissed(true)}
-                className="absolute top-1.5 right-1.5 z-20 w-6 h-6 rounded-full bg-slate-800/90 hover:bg-slate-700 text-white flex items-center justify-center text-xs font-bold border border-white/40 shadow transition-colors cursor-pointer"
-                title="Kapat ve Sahayı Gör"
-              >
-                ✕
-              </button>
-
-              {/* Defeat Badge Header */}
-              <div className="mb-1 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10.5px] font-black tracking-wider uppercase shadow-lg flex items-center gap-1 border border-white/50 animate-pulse bg-gradient-to-r from-red-600 via-rose-500 to-red-600 text-white">
-                <span>💥</span>
-                <span>{defeatTitle}</span>
-              </div>
-
-              {/* Video Player Card (Ortada, 9:16 oranında tam çerçeveli) */}
-              <div className="relative h-[140px] xs:h-[160px] sm:h-[185px] md:h-[205px] aspect-[9/16] rounded-2xl overflow-hidden border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.85)] bg-black flex items-center justify-center">
-                <video
-                  ref={defeatVideoRef}
-                  src={defeatVideoSrc}
-                  autoPlay
-                  loop
-                  playsInline
-                  muted={!soundEnabled}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Winner Subtitle Below Video */}
-              <div className="mt-1 px-2 py-0.5 rounded-lg bg-slate-950/90 border border-amber-400/60 text-amber-300 font-extrabold text-[8.5px] sm:text-[9.5px] tracking-wide text-center shadow">
-                {winnerTitle}
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* LEFT MASCOT: KAPLUMBAĞA (hakap.mp4 VİDEO - ELİ TAM HALATIN ÜZERİNDE) */}
           <div

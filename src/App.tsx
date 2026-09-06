@@ -1502,8 +1502,12 @@ const CATEGORY_MAP = [
     shortName: "Diğer Oyunlar",
     icon: "/MENUIKON/grid_icon_17.png",
     keys: [
-      "sureli_toplama_cikarma",
-      "sureli_carpma_bolme",
+      "halat_toplama_1", "halat_cikarma_1",
+      "halat_toplama_2", "halat_cikarma_2", "halat_carpma_2", "halat_bolme_2",
+      "halat_toplama_3", "halat_cikarma_3", "halat_carpma_3", "halat_bolme_3",
+      "halat_toplama_4", "halat_cikarma_4", "halat_carpma_4", "halat_bolme_4",
+      "sureli_toplama_cikarma", "sureli_on_tamamlama", "sureli_carpma_bolme",
+      "sureli_carpma_3", "sureli_bolme_3", "sureli_carpma_4", "sureli_bolme_4",
       "balon_patlatma_mat",
       "matematik_hafiza",
       "hizli_islem_carki",
@@ -1685,12 +1689,15 @@ const getTopicIconVisual = (key: string) => {
 const getTopicEmoji = (key: string) => getTopicIconVisual(key).emoji;
 
 const getCategoryIdForTopic = (topicKey: string): string => {
+  if (topicKey.startsWith('halat_') || topicKey.startsWith('sureli_')) {
+    return 'diger_oyunlar';
+  }
   for (const cat of CATEGORY_MAP) {
     if (cat.keys.includes(topicKey)) {
       return cat.id;
     }
   }
-  return 'geometri';
+  return 'diger_oyunlar';
 };
 
 const getGradeIconForTopic = (topicKey: string, currentGrade: number | null): string => {
@@ -3245,6 +3252,17 @@ export default function App() {
 
     // 4. If in category view and topic modal not open
     if (!showTopicModal && !show3DLab && !showGeoboard && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && wordGameType === null) {
+      if (selectedCategoryId === 'diger_oyunlar') {
+        const firstGame = selectedGrade === 1 
+          ? 'halat_toplama_1' 
+          : selectedGrade === 2 
+          ? 'halat_toplama_2' 
+          : selectedGrade === 3 
+          ? 'halat_toplama_3' 
+          : 'halat_toplama_4';
+        selectTopicAndStart(firstGame, (selectedGrade || 2) as 1 | 2 | 3 | 4);
+        return;
+      }
       setShowTopicModal(true);
       return;
     }
@@ -3273,19 +3291,61 @@ export default function App() {
       categoryLabel: string;
     }> = [];
 
-    // 1. Sınıf Matematik Etkinlikleri
+    const resolveTitle = (key: string, grade?: number): string => {
+      if (halatCekmeTopics[key]?.title) return halatCekmeTopics[key].title;
+      if (sureliExtraTopics[key]?.title) return sureliExtraTopics[key].title;
+      if (grade === 1 && topics1stGrade[key]?.title) return topics1stGrade[key].title;
+      if (grade === 2 && topics2ndGrade[key]?.title) return topics2ndGrade[key].title;
+      if (grade === 3 && topics3rdGrade[key]?.title) return topics3rdGrade[key].title;
+      if (grade === 4 && topics4thGrade[key]?.title) return topics4thGrade[key].title;
+      if (topics1stGrade[key]?.title) return topics1stGrade[key].title;
+      if (topics2ndGrade[key]?.title) return topics2ndGrade[key].title;
+      if (topics3rdGrade[key]?.title) return topics3rdGrade[key].title;
+      if (topics4thGrade[key]?.title) return topics4thGrade[key].title;
+      return key;
+    };
+
+    // 1. SINIF: Müfredat Konuları + 5. Diğer Oyunlar
+    const g1ExcludedFromCore = new Set([
+      'sureli_toplama_cikarma',
+      'sureli_on_tamamlama',
+      'balon_patlatma_mat',
+      'matematik_hafiza',
+      'hizli_islem_carki',
+      'sayi_dedektifi',
+      'ritim_labirent',
+      'geometri_eslestirme'
+    ]);
     Object.entries(topics1stGrade).forEach(([key, val]) => {
+      if (!g1ExcludedFromCore.has(key)) {
+        list.push({
+          id: `g1_${key}`,
+          type: 'grade_topic',
+          grade: 1,
+          topicKey: key,
+          title: val.title,
+          categoryLabel: '1. Sınıf'
+        });
+      }
+    });
+    // 1. Sınıf 5. Diğer Oyunlar (Halat Çekme, Süreli, Zeka Oyunları)
+    const g1OtherGames = [
+      'halat_toplama_1', 'halat_cikarma_1',
+      'sureli_toplama_cikarma', 'sureli_on_tamamlama',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+    g1OtherGames.forEach(key => {
       list.push({
         id: `g1_${key}`,
         type: 'grade_topic',
         grade: 1,
         topicKey: key,
-        title: val.title,
-        categoryLabel: '1. Sınıf'
+        title: resolveTitle(key, 1),
+        categoryLabel: '1. Sınıf Diğer Oyunlar'
       });
     });
 
-    // 2. Sınıf Matematik Etkinlikleri
+    // 2. SINIF: Müfredat Konuları + 5. Diğer Oyunlar + 6. 3D Geometri Labı
     Object.entries(topics2ndGrade).forEach(([key, val]) => {
       list.push({
         id: `g2_${key}`,
@@ -3296,8 +3356,32 @@ export default function App() {
         categoryLabel: '2. Sınıf'
       });
     });
+    // 2. Sınıf 5. Diğer Oyunlar (Halat Çekme, Süreli, Zeka Oyunları)
+    const g2OtherGames = [
+      'halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2',
+      'sureli_toplama_cikarma', 'sureli_carpma_bolme',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+    g2OtherGames.forEach(key => {
+      list.push({
+        id: `g2_${key}`,
+        type: 'grade_topic',
+        grade: 2,
+        topicKey: key,
+        title: resolveTitle(key, 2),
+        categoryLabel: '2. Sınıf Diğer Oyunlar'
+      });
+    });
+    // 2. Sınıf 6. Kart: 3D Geometri Laboratuvarı
+    list.push({
+      id: 'g2_other_3dlab',
+      type: '3d_lab',
+      grade: 2,
+      title: '3D Geometri Laboratuvarı',
+      categoryLabel: '2. Sınıf'
+    });
 
-    // 3. Sınıf Matematik Etkinlikleri
+    // 3. SINIF: Müfredat Konuları + 5. Diğer Oyunlar
     Object.entries(topics3rdGrade).forEach(([key, val]) => {
       list.push({
         id: `g3_${key}`,
@@ -3308,8 +3392,24 @@ export default function App() {
         categoryLabel: '3. Sınıf'
       });
     });
+    // 3. Sınıf 5. Diğer Oyunlar
+    const g3OtherGames = [
+      'halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3',
+      'sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+    g3OtherGames.forEach(key => {
+      list.push({
+        id: `g3_${key}`,
+        type: 'grade_topic',
+        grade: 3,
+        topicKey: key,
+        title: resolveTitle(key, 3),
+        categoryLabel: '3. Sınıf Diğer Oyunlar'
+      });
+    });
 
-    // 4. Sınıf Matematik Etkinlikleri
+    // 4. SINIF: Müfredat Konuları + 5. Diğer Oyunlar
     Object.entries(topics4thGrade).forEach(([key, val]) => {
       list.push({
         id: `g4_${key}`,
@@ -3320,14 +3420,24 @@ export default function App() {
         categoryLabel: '4. Sınıf'
       });
     });
-
-    // 5. Diğer Oyunlar
-    list.push({
-      id: 'other_3dlab',
-      type: '3d_lab',
-      title: '3D Geometri Laboratuvarı',
-      categoryLabel: 'Diğer Oyunlar'
+    // 4. Sınıf 5. Diğer Oyunlar
+    const g4OtherGames = [
+      'halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4',
+      'sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+    g4OtherGames.forEach(key => {
+      list.push({
+        id: `g4_${key}`,
+        type: 'grade_topic',
+        grade: 4,
+        topicKey: key,
+        title: resolveTitle(key, 4),
+        categoryLabel: '4. Sınıf Diğer Oyunlar'
+      });
     });
+
+    // GENEL DİĞER OYUNLAR & İNGİLİZCE
     list.push({
       id: 'other_xox',
       type: 'xox',
@@ -3348,8 +3458,6 @@ export default function App() {
       title: 'Eş Anlamlı Kelimeler',
       categoryLabel: 'Diğer Oyunlar'
     });
-
-    // 6. İngilizce Oyunlar
     list.push({
       id: 'other_ingilizce',
       type: 'word_game',
@@ -3384,6 +3492,10 @@ export default function App() {
       }
       selectTopicAndStart(entry.topicKey, entry.grade);
     } else if (entry.type === '3d_lab') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
       setGameState('welcome');
       setShow3DLab(true);
     } else if (entry.type === 'xox') {
@@ -3405,7 +3517,13 @@ export default function App() {
     if (wordGameType === 'es_anlam') return allActivitiesList.findIndex(a => a.wordGameType === 'es_anlam' || a.id === 'other_es_anlam');
     if (wordGameType === 'zit_anlam') return allActivitiesList.findIndex(a => a.wordGameType === 'zit_anlam' || a.id === 'other_zit_anlam');
     if (showXOXGame) return allActivitiesList.findIndex(a => a.id === 'other_xox');
-    if (show3DLab) return allActivitiesList.findIndex(a => a.id === 'other_3dlab');
+    if (show3DLab) {
+      if (selectedGrade === 2) {
+        const g2Lab = allActivitiesList.findIndex(a => a.id === 'g2_other_3dlab');
+        if (g2Lab !== -1) return g2Lab;
+      }
+      return allActivitiesList.findIndex(a => a.id === 'g2_other_3dlab' || a.id === 'other_3dlab' || a.type === '3d_lab');
+    }
     if (showGeoboard) {
       if (selectedGrade === 1) return allActivitiesList.findIndex(a => a.id === 'g1_geometri_tahtasi');
       return allActivitiesList.findIndex(a => a.id === 'g2_geometri_tahtasi');
@@ -3424,8 +3542,22 @@ export default function App() {
       );
       if (topicIdx !== -1) return topicIdx;
     }
-    // 3. Fallback when on welcome or category screens: find first activity of the selected grade
+    // 3. Fallback when on welcome, category, or topic modal screens
     if (selectedGrade !== null) {
+      if (selectedCategoryId === 'diger_oyunlar') {
+        const firstOtherIdx = allActivitiesList.findIndex(
+          a => a.grade === selectedGrade && (a.categoryLabel?.includes('Diğer Oyunlar') || a.topicKey?.startsWith('halat_'))
+        );
+        if (firstOtherIdx !== -1) return firstOtherIdx;
+      } else if (selectedCategoryId !== null) {
+        const catObj = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
+        if (catObj) {
+          const catFirstIdx = allActivitiesList.findIndex(
+            a => a.grade === selectedGrade && a.topicKey && catObj.keys.includes(a.topicKey)
+          );
+          if (catFirstIdx !== -1) return catFirstIdx;
+        }
+      }
       const gradeStartIdx = allActivitiesList.findIndex(a => a.grade === selectedGrade);
       if (gradeStartIdx !== -1) return gradeStartIdx;
     }

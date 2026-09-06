@@ -337,13 +337,42 @@
 }
 
 /* Formula & Math Banner auto-fit across multi-player modes */
+.whitespace-nowrap,
+[class*="whitespace-nowrap"],
+.halat-islem-box,
+[class*="halat-islem-box"],
+.formula-box,
+[class*="formula-box"] {
+  white-space: nowrap !important;
+  text-wrap: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  flex-shrink: 0 !important;
+}
+
 .question-visual-box .formula-box,
 .question-visual-box.multi-player-2 .formula-box,
-.question-visual-box.multi-player-3 .formula-box {
-  width: 95% !important;
-  max-width: 95% !important;
+.question-visual-box.multi-player-3 .formula-box,
+.question-visual-box .halat-islem-box,
+.question-visual-box.multi-player-2 .halat-islem-box,
+.question-visual-box.multi-player-3 .halat-islem-box {
+  white-space: nowrap !important;
+  text-wrap: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  max-width: 98% !important;
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+.question-visual-box.multi-player-2 .halat-islem-box,
+.question-visual-box.multi-player-3 .halat-islem-box {
+  font-size: clamp(1.2rem, 3.2vw, 2.2rem) !important;
+  line-height: 1.15 !important;
 }
 
 .question-visual-box.multi-player-3 [class*="text-7xl"],
@@ -478,9 +507,9 @@
   flex-shrink: 0 !important;
 }
 
-/* Ensure questions with single-sentence text don't wrap single words onto new lines when space exists */
-.question-visual-box.multi-player-2 p,
-.question-visual-box.multi-player-2 div {
+/* Ensure questions with single-sentence text don't wrap single words onto new lines when space exists, but never wrap formula or nowrap elements */
+.question-visual-box.multi-player-2 p:not(.whitespace-nowrap):not([class*="whitespace-nowrap"]),
+.question-visual-box.multi-player-2 div:not(.whitespace-nowrap):not([class*="whitespace-nowrap"]):not(.halat-islem-box):not(.formula-box):not([class*="halat-islem-box"]) {
   text-wrap: pretty;
 }
 

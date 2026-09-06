@@ -73,6 +73,20 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
       }
     });
 
+    // Explicitly measure nowrap banners, halat boxes, and formula items to guarantee accurate span
+    const nowrapElements = measureEl.querySelectorAll('.halat-islem-box, .formula-box, .whitespace-nowrap, [class*="whitespace-nowrap"], [style*="nowrap"]');
+    nowrapElements.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      const scrollW = htmlEl.scrollWidth || 0;
+      const offsetW = htmlEl.offsetWidth || 0;
+      const rect = htmlEl.getBoundingClientRect();
+      const unscaledW = rect.width / currentScale;
+      const trueW = Math.max(scrollW, offsetW, unscaledW);
+      if (trueW > trueNaturalWidth) {
+        trueNaturalWidth = trueW;
+      }
+    });
+
     if (trueNaturalWidth <= 0 || trueNaturalHeight <= 0) return;
 
     // Detect if content has full-width image container (such as uzamsal iliskiler)
