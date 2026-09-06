@@ -5443,7 +5443,7 @@ export default function App() {
 
       {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - ŞEFFAF GLASSMORPHISM TASARIM) */}
       {gameState === 'playing' && playerCountMode === 1 && (
-        <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[400px] sm:max-w-[440px]' : 'max-w-[360px] sm:max-w-[390px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
+        <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[500px] sm:max-w-[560px] md:max-w-[620px]' : 'max-w-[360px] sm:max-w-[390px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
           {/* TOP BAR: GLASS CAPSULES */}
           <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full">
             {/* LEFT: GROUP BADGE & TOPIC */}
@@ -5555,7 +5555,7 @@ export default function App() {
                     key={idx}
                     onClick={() => handleAnswer(opt)}
                     disabled={feedbackState !== 'none'}
-                    className={`relative group w-full py-3.5 sm:py-4.5 px-3 min-h-[56px] sm:min-h-[70px] rounded-2xl border-2 backdrop-blur-xl transition-all duration-200 flex items-center justify-center text-center leading-tight break-words cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 ${feedbackClasses}`}
+                    className={`relative group w-full ${currentTopic === 'uzamsal_iliskiler' ? 'py-2 sm:py-2.5 px-2.5 min-h-[44px] sm:min-h-[52px]' : 'py-3.5 sm:py-4.5 px-3 min-h-[56px] sm:min-h-[70px]'} rounded-2xl border-2 backdrop-blur-xl transition-all duration-200 flex items-center justify-center text-center leading-tight break-words cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 ${feedbackClasses}`}
                   >
                     {/* Subtle top glare in button */}
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 via-white/10 to-transparent pointer-events-none rounded-t-2xl" />
@@ -5636,16 +5636,16 @@ export default function App() {
               const uniformOptFontClass = getDynamicOptionFontClass(p.shuffledOptions, playerCountMode);
               const optHeightClasses = playerCountMode === 3
                 ? "py-1.5 px-1.5 min-h-[38px] sm:min-h-[46px]"
-                : "py-2 sm:py-2.5 px-2 min-h-[46px] sm:min-h-[58px]";
+                : (currentTopic === 'uzamsal_iliskiler' ? "py-1.5 sm:py-2 px-2 min-h-[38px] sm:min-h-[46px]" : "py-2 sm:py-2.5 px-2 min-h-[46px] sm:min-h-[58px]");
 
               const cardAlignment = playerCountMode === 2
-                ? (pIdx === 0 ? 'mr-auto ml-0' : 'ml-auto mr-0')
+                ? (currentTopic === 'uzamsal_iliskiler' ? 'mx-auto' : (pIdx === 0 ? 'mr-auto ml-0' : 'ml-auto mr-0'))
                 : 'mx-auto';
               const cardMaxWidth = playerCountMode === 2
-                ? (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[400px] sm:max-w-[430px] lg:max-w-[460px]' : 'max-w-[480px] lg:max-w-[520px]')
+                ? (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[460px] lg:max-w-[520px] xl:max-w-[560px]' : 'max-w-[480px] lg:max-w-[520px]')
                 : 'max-w-none';
               const optionsMaxWidth = playerCountMode === 2
-                ? 'max-w-[320px] sm:max-w-[360px] md:max-w-[380px]'
+                ? (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[360px] sm:max-w-[420px]' : 'max-w-[320px] sm:max-w-[360px] md:max-w-[380px]')
                 : (playerCountMode === 3 ? 'max-w-[280px] sm:max-w-[320px] md:max-w-[360px]' : 'max-w-[300px] sm:max-w-[340px]');
 
               const containerClasses = isWinnerGroup
@@ -5837,9 +5837,9 @@ export default function App() {
 
             return playerCountMode === 2 ? (
               /* 2 OYUNCU MODU: 1. OYUNCU (SOL) - DİKEY BASKETBOL PARKURU (ORTA) - 2. OYUNCU (SAĞ) */
-              <div className="flex-1 flex flex-row items-stretch justify-between gap-2 sm:gap-4 w-full min-h-0 overflow-hidden">
-                {/* 1. GRUP (SOLDA - SOL BOŞLUĞUN YARISI KADAR SOLA KAYDIRILDI) */}
-                <div className="flex-1 flex items-center justify-start h-full min-h-0 min-w-0">
+              <div className={`flex-1 flex flex-row items-stretch ${currentTopic === 'uzamsal_iliskiler' ? 'justify-center gap-3 sm:gap-6' : 'justify-between gap-2 sm:gap-4'} w-full min-h-0 overflow-hidden`}>
+                {/* 1. GRUP */}
+                <div className={`flex-1 flex items-center ${currentTopic === 'uzamsal_iliskiler' ? 'justify-center' : 'justify-start'} h-full min-h-0 min-w-0`}>
                   {renderPlayerCard(players[0], 0)}
                 </div>
 
@@ -5854,8 +5854,8 @@ export default function App() {
                   />
                 </div>
 
-                {/* 2. GRUP (SAĞDA - SAĞ BOŞLUĞUN YARISI KADAR SAĞA KAYDIRILDI) */}
-                <div className="flex-1 flex items-center justify-end h-full min-h-0 min-w-0">
+                {/* 2. GRUP */}
+                <div className={`flex-1 flex items-center ${currentTopic === 'uzamsal_iliskiler' ? 'justify-center' : 'justify-end'} h-full min-h-0 min-w-0`}>
                   {renderPlayerCard(players[1], 1)}
                 </div>
               </div>

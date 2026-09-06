@@ -517,7 +517,7 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
 
       const questionHTML = `
         <div data-full-width="true" class="uzamsal-soru-container flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0">
-          <div class="uzamsal-soru-frame relative overflow-hidden rounded-xl sm:rounded-2xl border-2 border-amber-300/80 shadow-lg flex items-center justify-center">
+          <div class="uzamsal-soru-frame relative flex items-center justify-center w-full flex-1 min-h-0">
             <img 
               src="${secilenSoru.img}" 
               alt="Uzamsal İlişki Görseli" 
@@ -525,7 +525,7 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
               referrerpolicy="no-referrer"
             />
           </div>
-          <div class="uzamsal-soru-text w-full text-center font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] shrink-0">
+          <div class="uzamsal-soru-text w-full text-center font-black text-white leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] shrink-0 z-10">
             ${secilenSoru.soru}
           </div>
         </div>

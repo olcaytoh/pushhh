@@ -67,92 +67,37 @@
 }
 
 /* AUTOMATIC RESPONSIVE IMAGE & SVG SIZING IN QUESTIONS (GUARANTEED NO OVERFLOW) */
+/* Çerçeve (.question-visual-box): sabit piksel yok, sadece width: 100% (mevcut kutunun tam genişliği neyse onu alır) */
 .question-visual-box {
-  width: 100%;
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-/* 1-Player generous natural dimensions (AutoFitQuestionBox scales down smoothly if needed) */
+.question-visual-box.multi-player-2 {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.question-visual-box.multi-player-3 {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Görsel: width: 100% + height: auto + object-fit: contain → görsel her zaman kutunun tam genişliğine yayılır, hiçbir kenar kırpılmaz, yüksekliği kendi oranına göre otomatik ayarlanır */
 .question-visual-box img,
-.question-visual-box svg {
-  max-height: clamp(85px, 28vh, 195px) !important;
-  max-width: min(94%, 300px) !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: block !important;
-  flex-shrink: 1 !important;
-}
-
+.question-visual-box svg,
 .question-visual-box .geo-cisim-img {
-  max-height: clamp(90px, 30vh, 205px) !important;
-  max-width: min(94%, 300px) !important;
-  width: auto !important;
+  width: 100% !important;
   height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
   object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
   display: block !important;
-  flex-shrink: 1 !important;
-}
-
-/* 2-PLAYER OPTIMIZED SIZING */
-.question-visual-box.multi-player-2 img,
-.question-visual-box.multi-player-2 svg {
-  max-height: clamp(80px, 24vh, 175px) !important;
-  max-width: min(96%, 260px) !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: block !important;
-  flex-shrink: 1 !important;
-}
-
-.question-visual-box.multi-player-2 .geo-cisim-img {
-  max-height: clamp(85px, 26vh, 185px) !important;
-  max-width: min(96%, 260px) !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: block !important;
-  flex-shrink: 1 !important;
-}
-
-/* 3-PLAYER PROPORTIONAL COMPACT SIZING - FULL FRAME USAGE */
-.question-visual-box.multi-player-3 img,
-.question-visual-box.multi-player-3 svg {
-  max-height: clamp(75px, 22vh, 150px) !important;
-  max-width: 98% !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: block !important;
-  flex-shrink: 1 !important;
-}
-
-.question-visual-box.multi-player-3 .geo-cisim-img {
-  max-height: clamp(80px, 24vh, 160px) !important;
-  max-width: 98% !important;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: block !important;
-  flex-shrink: 1 !important;
+  margin: 0 auto !important;
 }
 
 /* ==========================================================================
@@ -181,9 +126,13 @@
 
 /* --------------------------------------------------------------------------
    1) 3 KİŞİLİK MOD (multi-player-3):
-   Dar sütunlar için çerçeveyi tamamen kenardan kenara dolduran tam ekran görsel
+   Kullanıcının beğendiği tam çerçeve, kenardan kenara dolduran büyük görsel
    -------------------------------------------------------------------------- */
 .question-visual-box.multi-player-3 .uzamsal-soru-container {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
   justify-content: space-between !important;
   padding: 0 !important;
 }
@@ -193,15 +142,16 @@
   flex: 1 1 0% !important;
   min-height: 0 !important;
   border-radius: 12px !important;
-  border: 2px solid rgba(252, 211, 77, 0.85) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  border: 2px solid rgba(252, 211, 77, 0.9) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
 }
 
 .question-visual-box.multi-player-3 .uzamsal-soru-img {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
-  max-height: none !important;
+  max-height: 100% !important;
   object-fit: cover !important;
   object-position: center center !important;
   display: block !important;
@@ -220,9 +170,13 @@
 
 /* --------------------------------------------------------------------------
    2) 2 KİŞİLİK MOD (multi-player-2):
-   2 oyunculu ekranda çerçeveyi tamamen dolduran, sağ-sol-üst boşlukları yok eden otomatik boyut
+   Çerçeve ölçüleri görselle birebir aynı - kenarlarda siyah boşluk oluşmaz
    -------------------------------------------------------------------------- */
 .question-visual-box.multi-player-2 .uzamsal-soru-container {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
   justify-content: space-between !important;
   padding: 0 !important;
 }
@@ -232,25 +186,31 @@
   flex: 1 1 0% !important;
   min-height: 0 !important;
   max-height: none !important;
-  border-radius: 14px !important;
-  border: 2px solid rgba(252, 211, 77, 0.85) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  overflow: visible !important;
 }
 
 .question-visual-box.multi-player-2 .uzamsal-soru-img {
-  width: 100% !important;
-  height: 100% !important;
   max-width: 100% !important;
-  max-height: none !important;
-  object-fit: cover !important;
-  object-position: center center !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
   display: block !important;
-  flex-shrink: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 14px !important;
+  border: 2px solid rgba(252, 211, 77, 0.9) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55) !important;
 }
 
 .question-visual-box.multi-player-2 .uzamsal-soru-text {
   width: 100% !important;
-  font-size: clamp(0.86rem, 1.8vw, 1.08rem) !important;
+  font-size: clamp(0.88rem, 1.8vw, 1.08rem) !important;
   line-height: 1.2 !important;
   padding: 3px 6px !important;
   margin-top: 4px !important;
@@ -260,10 +220,14 @@
 
 /* --------------------------------------------------------------------------
    3) TEK KİŞİLİK MOD (multi-player-1 / varsayılan):
-   Tek oyunculu ekranda çerçeveyi tamamen kenardan kenara dolduran otomatik boyut
+   Çerçeve ölçüleri görselle birebir aynı - kenarlarda siyah boşluk oluşmaz
    -------------------------------------------------------------------------- */
 .question-visual-box.multi-player-1 .uzamsal-soru-container,
 .question-visual-box:not(.multi-player-2):not(.multi-player-3) .uzamsal-soru-container {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
   justify-content: space-between !important;
   padding: 0 !important;
 }
@@ -274,21 +238,27 @@
   flex: 1 1 0% !important;
   min-height: 0 !important;
   max-height: none !important;
-  border-radius: 16px !important;
-  border: 2.5px solid rgba(252, 211, 77, 0.9) !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6) !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  overflow: visible !important;
 }
 
 .question-visual-box.multi-player-1 .uzamsal-soru-img,
 .question-visual-box:not(.multi-player-2):not(.multi-player-3) .uzamsal-soru-img {
-  width: 100% !important;
-  height: 100% !important;
   max-width: 100% !important;
-  max-height: none !important;
-  object-fit: cover !important;
-  object-position: center center !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
   display: block !important;
-  flex-shrink: 0 !important;
+  margin: 0 auto !important;
+  border-radius: 16px !important;
+  border: 2.5px solid rgba(252, 211, 77, 0.95) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6) !important;
 }
 
 .question-visual-box.multi-player-1 .uzamsal-soru-text,

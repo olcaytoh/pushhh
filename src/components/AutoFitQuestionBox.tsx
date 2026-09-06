@@ -81,7 +81,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     // Margins based on user instruction:
     // Mode 3: Use right up to the frame borders ("çerçevelerin çizgisine kadar kullan")
     const marginX = hasFullWidthImage ? 0 : (mode === 3 ? 2 : mode === 2 ? 6 : 10);
-    const marginY = hasFullWidthImage ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
+    const marginY = hasFullWidthImage ? 0 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
 
     const targetAvailW = Math.max(10, availWidth - marginX);
     const targetAvailH = Math.max(10, availHeight - marginY);
