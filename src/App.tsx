@@ -220,6 +220,39 @@ function getDynamicOptionFontClass(
   return "text-[10px] sm:text-[11px] md:text-xs font-bold";
 }
 
+// KULLANICI KURALI: Şıkta hem yazı hem görsel olmasın; hangisi yeterliyse o olsun.
+export function cleanOptionForDisplay(opt: string | number): string | number {
+  if (typeof opt !== 'string' || !opt.includes('<')) {
+    return opt;
+  }
+  const hasImgOrSvg = opt.includes('<img') || opt.includes('<svg');
+  if (!hasImgOrSvg) {
+    return opt;
+  }
+
+  // HTML etiketlerini ayıklayarak saf metin var mı bakalım
+  const textContent = opt.replace(/<[^>]*>/g, '').trim();
+  if (!textContent) {
+    // Sadece görsel var, yazı yok -> görsel tek başına yeterlidir
+    return opt;
+  }
+
+  // Hem görsel hem yazı var: Hangisi yeterliyse o kalmalı!
+  // Eğer soru bir sıra / derece / numara sorusu ise (örn: "1.", "1. (Birinci)", "Birinci", "2. Sıra"):
+  // Cevap sıra yazısıdır, nesne görseli fuzulidir -> sadece metin yeterlidir:
+  if (/(\d+\.|\b(birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu|sıra)\b)/i.test(textContent)) {
+    return textContent;
+  }
+
+  // Eğer nesne/şekil sorusu ise nesnenin görseli tek başına yeterlidir, yanındaki isim metni fuzulidir -> sadece görsel:
+  const imgMatch = opt.match(/<img[^>]*>|<svg[\s\S]*?<\/svg>/i);
+  if (imgMatch) {
+    return imgMatch[0];
+  }
+
+  return opt;
+}
+
 const CISIM_SVG: Record<string, string> = {
   kup: '<img src="/geos/kups.png" alt="Küp" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
   kure: '<img src="/geos/kures.png" alt="Küre" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
@@ -2294,25 +2327,15 @@ export default function App() {
   } | null>(null);
   const [showPodiumVideoModal, setShowPodiumVideoModal] = useState(false);
 
-  // 4K Akıllı Tahta Optimizasyonu ve Tam Ekran Durumu
-  const [isSmartboard4K, setIsSmartboard4K] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('smartboard_4k_mode');
-      if (saved !== null) return saved === 'true';
-      return typeof window !== 'undefined' && (window.innerWidth >= 2100 || (window.screen && window.screen.width >= 2560));
-    } catch {
-      return false;
-    }
-  });
-
+  // Tam Ekran Durumu
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     try {
-      document.documentElement.classList.toggle('smartboard-4k-active', isSmartboard4K);
-      localStorage.setItem('smartboard_4k_mode', String(isSmartboard4K));
+      document.documentElement.classList.remove('smartboard-4k-active');
+      localStorage.removeItem('smartboard_4k_mode');
     } catch {}
-  }, [isSmartboard4K]);
+  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -3979,10 +4002,10 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - 3D CARTOON GAME UI STYLE WITH ALL BUTTONS GROUPED AND CENTERED (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-white/95 dark:bg-[#0B132B]/95 backdrop-blur-md border-b-3 border-yellow-400 dark:border-yellow-500/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 shadow-lg z-[100] relative shrink-0 w-full max-w-full overflow-x-auto no-scrollbar">
+        <header className="bg-white dark:bg-[#0B132B] border-b-3 border-yellow-400 dark:border-yellow-500/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 shadow-lg z-[100] relative shrink-0 w-full max-w-full overflow-x-auto no-scrollbar">
         {/* SINIF BELİRTEN BUTONLAR (1, 2, 3, 4. SINIF) - 1. BUTONUN (ANA SAYFA) SOL TARAFI */}
         {selectedGrade !== null && (
-          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-md rounded-xl sm:rounded-2xl border-2 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)] shrink-0 mr-0.5 sm:mr-1">
+          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-slate-900 dark:bg-slate-950 rounded-xl sm:rounded-2xl border-2 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)] shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4].map((g) => {
               const isSelected = selectedGrade === g;
               const iconSrc = g === 1 ? '/icon_1.png' : g === 2 ? '/icon_2.png' : g === 3 ? '/icon_3.png' : '/icon_4.png';
@@ -4331,7 +4354,7 @@ export default function App() {
         <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
 
         {/* GEÇİCİ ETKİNLİKLER ARASI GEÇİŞ BUTONLARI (DİĞER BUTONLARLA AYNI GENİŞLİK VE BOYUTTA) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950/80 backdrop-blur-md p-0.5 sm:p-1 rounded-2xl border-2 border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.35)] shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950 p-0.5 sm:p-1 rounded-2xl border-2 border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.35)] shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
@@ -4359,39 +4382,15 @@ export default function App() {
         {/* AYIRICI ÇİZGİ */}
         <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
 
-        {/* 4K AKILLI TAHTA MODU VE TAM EKRAN KONTROLLERİ (4K.png & FH.png KOMPAKT GÖRSEL BUTONLAR) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950/80 backdrop-blur-md p-0.5 sm:p-1 rounded-2xl border-2 border-cyan-400/80 shadow-[0_0_18px_rgba(6,182,212,0.35)] shrink-0">
-          <button
-            onClick={() => {
-              playMp3('/op.mp3');
-              const nextVal = !isSmartboard4K;
-              setIsSmartboard4K(nextVal);
-              setActivityToast(nextVal ? '📺 4K Akıllı Tahta Modu Açıldı (Büyük & Net)' : '🖥️ Standart Ekran Modu');
-              setTimeout(() => setActivityToast(null), 2500);
-            }}
-            title={isSmartboard4K ? "4K Tahta Modu Açık (Normale dönmek için tıkla)" : "4K Akıllı Tahta Modu (Büyük ve Net Yazılar/Ögeler)"}
-            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
-              isSmartboard4K
-                ? 'bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 border-white ring-2 ring-cyan-400 brightness-110 shadow-[0_0_12px_rgba(6,182,212,0.8)]'
-                : 'bg-slate-800/80 hover:bg-slate-700/90 border-white/30 opacity-80 hover:opacity-100'
-            }`}
-          >
-            <img 
-              src="/4K.png" 
-              alt="4K Modu" 
-              className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
-            />
-            {isSmartboard4K && (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
-            )}
-          </button>
-
+        {/* TAM EKRAN KONTROLÜ (FH.png GÖRSEL BUTON) */}
+        <div className="flex items-center bg-slate-950 p-0.5 sm:p-1 rounded-2xl border-2 border-cyan-400/80 shadow-[0_0_18px_rgba(6,182,212,0.35)] shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
               toggleFullscreen();
             }}
             title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap (Akıllı Tahtaya Tam Yay)"}
+            aria-label="Tam Ekran"
             className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
               isFullscreen
                 ? 'bg-gradient-to-br from-amber-500 via-orange-600 to-amber-600 border-white ring-2 ring-amber-400 brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.8)]'
@@ -5925,23 +5924,23 @@ export default function App() {
               const OPTION_COLOR_THEMES = [
                 {
                   border: 'border-cyan-400',
-                  bg: 'bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 active:from-blue-700 active:to-indigo-800',
-                  shadow: 'shadow-[0_4px_16px_rgba(37,99,235,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                  bg: 'bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 active:from-blue-700 active:to-indigo-800 text-white',
+                  shadow: 'shadow-md active:shadow-xs',
                 },
                 {
                   border: 'border-pink-400',
-                  bg: 'bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 hover:from-rose-500 hover:to-pink-500 active:from-rose-700 active:to-rose-800',
-                  shadow: 'shadow-[0_4px_16px_rgba(225,29,72,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                  bg: 'bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 active:from-rose-700 active:to-rose-800 text-white',
+                  shadow: 'shadow-md active:shadow-xs',
                 },
                 {
                   border: 'border-emerald-400',
-                  bg: 'bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-green-800',
-                  shadow: 'shadow-[0_4px_16px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                  bg: 'bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 active:from-emerald-700 active:to-green-800 text-white',
+                  shadow: 'shadow-md active:shadow-xs',
                 },
                 {
                   border: 'border-amber-300',
-                  bg: 'bg-gradient-to-b from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 active:from-amber-700 active:to-amber-800',
-                  shadow: 'shadow-[0_4px_16px_rgba(245,158,11,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                  bg: 'bg-gradient-to-b from-amber-600 via-orange-600 to-amber-700 active:from-amber-700 active:to-amber-800 text-white',
+                  shadow: 'shadow-md active:shadow-xs',
                 }
               ];
 
@@ -5952,9 +5951,9 @@ export default function App() {
 
                 let feedbackClasses = `${theme.border} ${theme.bg} ${theme.shadow}`;
                 if (isCorrect) {
-                  feedbackClasses = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-700 shadow-[0_0_30px_rgba(16,185,129,0.9),inset_0_1px_2px_rgba(255,255,255,0.7)] scale-105 animate-pulse";
+                  feedbackClasses = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-600 shadow-lg scale-102 text-white";
                 } else if (isWrong) {
-                  feedbackClasses = "ring-4 ring-rose-500 border-rose-400 bg-rose-900/90 shadow-[0_0_30px_rgba(244,63,94,0.9),inset_0_1px_2px_rgba(255,255,255,0.3)] scale-95 opacity-85";
+                  feedbackClasses = "ring-4 ring-rose-500 border-rose-400 bg-rose-800 shadow-md scale-95 opacity-80 text-white";
                 }
 
                 return (
@@ -5962,20 +5961,23 @@ export default function App() {
                     key={idx}
                     onClick={() => handleAnswer(opt)}
                     disabled={feedbackState !== 'none'}
-                    className={`relative group w-full ${currentTopic === 'uzamsal_iliskiler' ? 'py-2 sm:py-2.5 px-2.5 min-h-[44px] sm:min-h-[52px]' : 'py-3.5 sm:py-4.5 px-3 min-h-[56px] sm:min-h-[70px]'} rounded-2xl border-2 backdrop-blur-xl transition-all duration-200 flex items-center justify-center text-center leading-tight break-words cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 ${feedbackClasses}`}
+                    className={`fast-quiz-btn relative w-full ${currentTopic === 'uzamsal_iliskiler' ? 'py-2 sm:py-2.5 px-2.5 min-h-[44px] sm:min-h-[52px]' : 'py-3.5 sm:py-4.5 px-3 min-h-[56px] sm:min-h-[70px]'} rounded-2xl border-2 transition-transform duration-75 flex items-center justify-center text-center leading-tight break-words cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 ${feedbackClasses}`}
                   >
                     {/* Subtle top glare in button */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 via-white/10 to-transparent pointer-events-none rounded-t-2xl" />
-                    {typeof opt === 'string' && opt.includes('<') ? (
-                      <span
-                        className="relative z-10 w-full h-full flex items-center justify-center px-1 pointer-events-none text-white font-black"
-                        dangerouslySetInnerHTML={{ __html: opt }}
-                      />
-                    ) : (
-                      <span className={`relative z-10 px-2 flex items-center justify-center text-center pointer-events-none ${uniformOptFontClass} text-white font-black [text-shadow:_0_2px_4px_#000,_0_4px_10px_rgba(0,0,0,0.9)]`}>
-                        {opt}
-                      </span>
-                    )}
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-t-2xl" />
+                    {(() => {
+                      const displayOpt = cleanOptionForDisplay(opt);
+                      return typeof displayOpt === 'string' && displayOpt.includes('<') ? (
+                        <span
+                          className="relative z-10 w-full h-full flex items-center justify-center px-1 pointer-events-none text-white font-black"
+                          dangerouslySetInnerHTML={{ __html: displayOpt }}
+                        />
+                      ) : (
+                        <span className={`relative z-10 px-2 flex items-center justify-center text-center pointer-events-none ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
+                          {displayOpt}
+                        </span>
+                      );
+                    })()}
                   </button>
                 );
               });
@@ -6018,7 +6020,7 @@ export default function App() {
                     badgeBorder: "border-cyan-300",
                     badgeShadow: "shadow-[0_0_16px_rgba(6,182,212,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
                     containerBorder: "border-cyan-400",
-                    buttonDefault: "border-cyan-400 bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 active:from-blue-700 active:to-indigo-800 text-white shadow-[0_4px_14px_rgba(37,99,235,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+                    buttonDefault: "border-cyan-400 bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 active:from-blue-700 active:to-indigo-800 text-white shadow-md active:shadow-xs",
                   }
                 : pIdx === 1
                 ? {
@@ -6026,14 +6028,14 @@ export default function App() {
                     badgeBorder: "border-pink-300",
                     badgeShadow: "shadow-[0_0_16px_rgba(244,63,94,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
                     containerBorder: "border-pink-400",
-                    buttonDefault: "border-pink-400 bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 hover:from-rose-500 hover:to-pink-500 active:from-rose-700 active:to-rose-800 text-white shadow-[0_4px_14px_rgba(225,29,72,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+                    buttonDefault: "border-pink-400 bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 active:from-rose-700 active:to-rose-800 text-white shadow-md active:shadow-xs",
                   }
                 : {
                     badgeBg: "from-emerald-700 via-teal-800 to-emerald-950",
                     badgeBorder: "border-emerald-300",
                     badgeShadow: "shadow-[0_0_16px_rgba(52,211,153,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
                     containerBorder: "border-emerald-400",
-                    buttonDefault: "border-emerald-400 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-green-800 text-white shadow-[0_4px_14px_rgba(16,185,129,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+                    buttonDefault: "border-emerald-400 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 active:from-emerald-700 active:to-green-800 text-white shadow-md active:shadow-xs",
                   };
 
               // Halat çekmede kazanan videosu SADECE ortadaki alanda gösterilir; oyuncu kartında ekstra video açılmaz
@@ -6209,9 +6211,9 @@ export default function App() {
 
                             let btnClass = groupTheme.buttonDefault;
                             if (isCorrect) {
-                              btnClass = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-950/80 shadow-[0_0_25px_rgba(16,185,129,0.9),inset_0_1px_2px_rgba(255,255,255,0.4)] scale-105 animate-pulse";
+                              btnClass = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-600 shadow-lg scale-102 text-white";
                             } else if (isWrong) {
-                              btnClass = "ring-4 ring-rose-500 border-rose-400 bg-rose-950/80 shadow-[0_0_25px_rgba(244,63,94,0.9),inset_0_1px_2px_rgba(255,255,255,0.2)] scale-95 opacity-80";
+                              btnClass = "ring-4 ring-rose-500 border-rose-400 bg-rose-800 shadow-md scale-95 opacity-80 text-white";
                             }
 
                             return (
@@ -6219,20 +6221,23 @@ export default function App() {
                                 key={oIdx}
                                 onClick={() => handlePlayerAnswer(pIdx, opt)}
                                 disabled={p.feedbackState !== 'none'}
-                                className={`relative group w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 backdrop-blur-xl transition-all duration-150 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-95 ${btnClass}`}
+                                className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-transform duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-95 ${btnClass}`}
                               >
                                 {/* Inner top glare */}
                                 <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-t-xl sm:rounded-t-2xl" />
-                                {typeof opt === 'string' && opt.includes('<') ? (
-                                  <span
-                                    className="relative z-10 w-full h-full flex items-center justify-center px-1 pointer-events-none text-white font-black"
-                                    dangerouslySetInnerHTML={{ __html: opt }}
-                                  />
-                                ) : (
-                                  <span className={`relative z-10 px-1 leading-tight flex items-center justify-center text-center ${uniformOptFontClass} text-white [text-shadow:_0_2px_4px_#000,_0_4px_8px_rgba(0,0,0,0.9)]`}>
-                                    {opt}
-                                  </span>
-                                )}
+                                {(() => {
+                                  const displayOpt = cleanOptionForDisplay(opt);
+                                  return typeof displayOpt === 'string' && displayOpt.includes('<') ? (
+                                    <span
+                                      className="relative z-10 w-full h-full flex items-center justify-center px-1 pointer-events-none text-white font-black"
+                                      dangerouslySetInnerHTML={{ __html: displayOpt }}
+                                    />
+                                  ) : (
+                                    <span className={`relative z-10 px-1 leading-tight flex items-center justify-center text-center ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
+                                      {displayOpt}
+                                    </span>
+                                  );
+                                })()}
                               </button>
                             );
                           })}
@@ -6333,7 +6338,7 @@ export default function App() {
 
 
       {/* GLOBAL FOOTER WITH COPYRIGHT TEXT */}
-      <footer className="mt-auto z-30 shrink-0 bg-slate-950/90 dark:bg-[#070D1E]/95 backdrop-blur-md border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2.5 sm:py-3.5 px-4 flex items-center justify-center shadow-xl w-full">
+      <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2.5 sm:py-3.5 px-4 flex items-center justify-center shadow-xl w-full">
         <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm">
           © 2026 OLCİCO Tüm hakları saklıdır.
         </p>

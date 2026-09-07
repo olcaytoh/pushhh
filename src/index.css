@@ -758,6 +758,19 @@ html.smartboard-4k-active #tug-of-war-arena {
   }
 }
 
+/* ==========================================================================
+   AKILLI TAHTA VE DÜŞÜK DONANIM İÇİN ŞIK BUTONLARI HIZLANDIRMA (ZERO-LAG)
+   ========================================================================== */
+.fast-quiz-btn {
+  contain: layout paint style;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+  touch-action: manipulation;
+}
+
 
 
 
