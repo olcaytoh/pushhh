@@ -728,7 +728,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       {/* 1. BACKGROUND IMAGE & STAGE LIGHTING OVERLAYS */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/intro2.png" 
+          src="/dere3.jpg" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105"

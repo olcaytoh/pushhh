@@ -2294,6 +2294,44 @@ export default function App() {
   } | null>(null);
   const [showPodiumVideoModal, setShowPodiumVideoModal] = useState(false);
 
+  // 4K Akıllı Tahta Optimizasyonu ve Tam Ekran Durumu
+  const [isSmartboard4K, setIsSmartboard4K] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('smartboard_4k_mode');
+      if (saved !== null) return saved === 'true';
+      return typeof window !== 'undefined' && (window.innerWidth >= 2100 || (window.screen && window.screen.width >= 2560));
+    } catch {
+      return false;
+    }
+  });
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    try {
+      document.documentElement.classList.toggle('smartboard-4k-active', isSmartboard4K);
+      localStorage.setItem('smartboard_4k_mode', String(isSmartboard4K));
+    } catch {}
+  }, [isSmartboard4K]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    try {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    } catch {}
+  };
+
   // Winner specific celebration video config:
   // kap.png (1. GRUP, idx 0) -> kap.mp4
   // ejd.png (2. GRUP, idx 1) -> ejd.mp4
@@ -3932,7 +3970,7 @@ export default function App() {
       {/* ORIGINAL POSITIVE CRISP BACKGROUND IMAGE OVERLAY */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/intro2.png" 
+          src="/dere3.jpg" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 transition-all duration-300"
@@ -4292,19 +4330,18 @@ export default function App() {
         {/* AYIRICI ÇİZGİ */}
         <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
 
-        {/* GEÇİCİ ETKİNLİKLER ARASI GEÇİŞ BUTONLARI (1. SINIFTAN 6. İNGİLİZCEYE KADAR) */}
-        <div className="flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl border-2 border-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.35)] shrink-0">
+        {/* GEÇİCİ ETKİNLİKLER ARASI GEÇİŞ BUTONLARI (DİĞER BUTONLARLA AYNI GENİŞLİK VE BOYUTTA) */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950/80 backdrop-blur-md p-0.5 sm:p-1 rounded-2xl border-2 border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.35)] shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
               handlePrevActivity();
             }}
             title="Önceki Etkinliğe Geç (1. Sınıftan 6. İngilizceye)"
-            className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500 via-orange-600 to-amber-600 hover:brightness-110 active:scale-95 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md transition-all cursor-pointer border border-white/50"
+            aria-label="Önceki Etkinlik"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl bg-gradient-to-br from-amber-500 via-orange-600 to-amber-600 hover:brightness-110 active:scale-95 text-white font-black flex items-center justify-center shadow-md transition-all cursor-pointer border border-white/50 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
           >
-            <span className="text-sm sm:text-base">⏮️</span>
-            <span className="hidden sm:inline tracking-wide uppercase">Önceki Etkinlik</span>
-            <span className="sm:hidden tracking-wide uppercase">Önceki</span>
+            <span className="text-sm sm:text-base select-none pointer-events-none">⏮️</span>
           </button>
           <button
             onClick={() => {
@@ -4312,11 +4349,63 @@ export default function App() {
               handleNextActivity();
             }}
             title="Sonraki Etkinliğe Geç (1. Sınıftan 6. İngilizceye)"
-            className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 hover:brightness-110 active:scale-95 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md transition-all cursor-pointer border border-white/50"
+            aria-label="Sonraki Etkinlik"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-600 hover:brightness-110 active:scale-95 text-white font-black flex items-center justify-center shadow-md transition-all cursor-pointer border border-white/50 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
           >
-            <span className="hidden sm:inline tracking-wide uppercase">Sonraki Etkinlik</span>
-            <span className="sm:hidden tracking-wide uppercase">Sonraki</span>
-            <span className="text-sm sm:text-base">⏭️</span>
+            <span className="text-sm sm:text-base select-none pointer-events-none">⏭️</span>
+          </button>
+        </div>
+
+        {/* AYIRICI ÇİZGİ */}
+        <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
+
+        {/* 4K AKILLI TAHTA MODU VE TAM EKRAN KONTROLLERİ (4K.png & FH.png KOMPAKT GÖRSEL BUTONLAR) */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950/80 backdrop-blur-md p-0.5 sm:p-1 rounded-2xl border-2 border-cyan-400/80 shadow-[0_0_18px_rgba(6,182,212,0.35)] shrink-0">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              const nextVal = !isSmartboard4K;
+              setIsSmartboard4K(nextVal);
+              setActivityToast(nextVal ? '📺 4K Akıllı Tahta Modu Açıldı (Büyük & Net)' : '🖥️ Standart Ekran Modu');
+              setTimeout(() => setActivityToast(null), 2500);
+            }}
+            title={isSmartboard4K ? "4K Tahta Modu Açık (Normale dönmek için tıkla)" : "4K Akıllı Tahta Modu (Büyük ve Net Yazılar/Ögeler)"}
+            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
+              isSmartboard4K
+                ? 'bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 border-white ring-2 ring-cyan-400 brightness-110 shadow-[0_0_12px_rgba(6,182,212,0.8)]'
+                : 'bg-slate-800/80 hover:bg-slate-700/90 border-white/30 opacity-80 hover:opacity-100'
+            }`}
+          >
+            <img 
+              src="/4K.png" 
+              alt="4K Modu" 
+              className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
+            />
+            {isSmartboard4K && (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_8px_#67e8f9]" />
+            )}
+          </button>
+
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              toggleFullscreen();
+            }}
+            title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap (Akıllı Tahtaya Tam Yay)"}
+            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
+              isFullscreen
+                ? 'bg-gradient-to-br from-amber-500 via-orange-600 to-amber-600 border-white ring-2 ring-amber-400 brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.8)]'
+                : 'bg-slate-800/80 hover:bg-slate-700/90 border-white/30 opacity-80 hover:opacity-100'
+            }`}
+          >
+            <img 
+              src="/FH.png" 
+              alt="Tam Ekran" 
+              className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
+            />
+            {isFullscreen && (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_8px_#fcd34d]" />
+            )}
           </button>
         </div>
       </header>
@@ -5759,17 +5848,17 @@ export default function App() {
         </div>
       )}
 
-      {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - ŞEFFAF GLASSMORPHISM TASARIM) */}
+      {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - OPAK VE NET ARKA PLAN) */}
       {gameState === 'playing' && playerCountMode === 1 && (
-        <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[500px] sm:max-w-[560px] md:max-w-[620px]' : 'max-w-[360px] sm:max-w-[390px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
-          {/* TOP BAR: GLASS CAPSULES */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full">
+        <div className={`flex-1 flex flex-col p-2 sm:p-3 my-0.5 sm:my-1 bg-[#0a0f1d] border-2 border-cyan-400/40 rounded-2xl sm:rounded-3xl shadow-2xl ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[520px] sm:max-w-[580px] md:max-w-[640px]' : 'max-w-[380px] sm:max-w-[420px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
+          {/* TOP BAR: OPAQUE CAPSULES */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 shrink-0 w-full">
             {/* LEFT: GROUP BADGE & TOPIC */}
             <div className="flex items-center gap-1.5 min-w-0">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-950 border-2 border-purple-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-[0_0_16px_rgba(192,132,252,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)] shrink-0">
                 1
               </div>
-              <div className="bg-slate-950/70 backdrop-blur-xl border border-cyan-400/40 rounded-xl px-2.5 sm:px-3 py-1 flex items-center justify-between gap-1.5 min-w-0 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_15px_rgba(6,182,212,0.2)]">
+              <div className="bg-[#0b1329] border border-cyan-400/50 rounded-xl px-2.5 sm:px-3 py-1 flex items-center justify-between gap-1.5 min-w-0 shadow-[0_4px_16px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.2)]">
                 <div className="flex flex-col min-w-0">
                   <span className="font-black text-[11px] sm:text-xs text-slate-100 uppercase tracking-wide truncate">
                     1. GRUP
@@ -5788,10 +5877,10 @@ export default function App() {
 
             {/* CENTER: COUNTDOWN TIMER BADGE IF TIMED TOPIC (SINGLE PLAYER) */}
             {isTimedTopic(currentTopic) && (
-              <div className={`backdrop-blur-xl border rounded-xl px-2 sm:px-2.5 py-1 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+              <div className={`border rounded-xl px-2 sm:px-2.5 py-1 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
                 questionTimeLeft <= 3 
-                  ? 'bg-rose-950/95 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]' 
-                  : 'bg-slate-950/85 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
+                  ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]' 
+                  : 'bg-[#0b1329] border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
               }`}>
                 <span className={`text-xs ${questionTimeLeft <= 3 ? 'animate-bounce text-rose-400' : ''}`}>⏱️</span>
                 <span>{questionTimeLeft}s</span>
@@ -5800,7 +5889,7 @@ export default function App() {
 
             {/* RIGHT: SCORE & LIVES */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <div className="bg-slate-950/70 backdrop-blur-xl border border-cyan-400/40 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_15px_rgba(6,182,212,0.2)]">
+              <div className="bg-[#0b1329] border border-cyan-400/50 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 shadow-[0_4px_16px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.2)]">
                 <span className="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs px-2 py-0.5 rounded-lg shadow-md uppercase tracking-wider">
                   PUAN: {score} / 10
                 </span>
@@ -5815,10 +5904,10 @@ export default function App() {
             </div>
           </div>
 
-          {/* CENTER: CRYSTAL CLEAR GLASS QUESTION CONTAINER WITH AUTO-FIT SCALING */}
-          <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/40 backdrop-blur-xl border-2 border-cyan-200/40 shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_2px_rgba(255,255,255,0.45),0_0_25px_rgba(6,182,212,0.25)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1 sm:p-1.5' : 'p-2 sm:p-3'} my-1 sm:my-1.5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
-            {/* Glossy top-light reflection */}
-            <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+          {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER (ARKA PLAN ASLA KARIŞMAZ) */}
+          <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0b1329] border-2 border-cyan-300/60 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.15)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2.5 sm:p-3.5'} my-1 sm:my-1.5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
+            {/* Subtle top inner gradient */}
+            <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
             <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
               <AutoFitQuestionBox
@@ -5898,13 +5987,13 @@ export default function App() {
       {/* MULTI-PLAYER SPLIT SCREEN DÜELLO ALANI (2 VE 3 OYUNCU - ŞEFFAF GLASSMORPHISM) */}
       {gameState === 'playing' && playerCountMode > 1 && (
         <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 w-full h-full overflow-hidden min-h-0 relative z-10 ${playerCountMode === 2 ? 'max-w-[clamp(1024px,calc(512px+50vw),1800px)]' : 'max-w-[clamp(1200px,calc(500px+70vw),2200px)] w-full'} mx-auto`}>
-          {/* COMMON TOP BAR: SLEEK COMPACT GLASS CAPSULES */}
+          {/* COMMON TOP BAR: SOLID COMPACT CAPSULES */}
           <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 shrink-0">
-            <span className="px-2.5 sm:px-3 py-1 bg-slate-950/75 backdrop-blur-xl border border-cyan-400/40 text-cyan-200 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(6,182,212,0.25)] uppercase tracking-wider shrink-0">
+            <span className="px-2.5 sm:px-3 py-1 bg-[#0b1329] border border-cyan-400/50 text-cyan-200 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(6,182,212,0.25)] uppercase tracking-wider shrink-0">
               ⚔️ {playerCountMode} OYUNCU DÜELLO
             </span>
             <div className="flex-1 min-w-0 text-center px-1.5 flex items-center justify-center gap-1.5">
-              <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-slate-950/85 backdrop-blur-xl border border-cyan-400/50 rounded-xl px-3 sm:px-6 py-1 shadow-[0_0_16px_rgba(6,182,212,0.3)]">
+              <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-[#0b1329] border border-cyan-400/60 rounded-xl px-3 sm:px-6 py-1 shadow-[0_0_16px_rgba(6,182,212,0.3)]">
                 <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
                   {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || ''}
                 </h2>
@@ -5915,7 +6004,7 @@ export default function App() {
                 />
               </div>
             </div>
-            <span className="px-2.5 sm:px-3 py-1 bg-slate-950/75 backdrop-blur-xl border border-cyan-400/40 text-amber-300 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(245,158,11,0.25)] uppercase tracking-wider shrink-0">
+            <span className="px-2.5 sm:px-3 py-1 bg-[#0b1329] border border-cyan-400/50 text-amber-300 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(245,158,11,0.25)] uppercase tracking-wider shrink-0">
               🎯 HEDEF: 10 PUAN
             </span>
           </div>
@@ -5947,7 +6036,8 @@ export default function App() {
                     buttonDefault: "border-emerald-400 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-green-800 text-white shadow-[0_4px_14px_rgba(16,185,129,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
                   };
 
-              const isWinnerGroup = trackVictoryVideoActive && duelWinnerIndex === pIdx;
+              // Halat çekmede kazanan videosu SADECE ortadaki alanda gösterilir; oyuncu kartında ekstra video açılmaz
+              const isWinnerGroup = trackVictoryVideoActive && duelWinnerIndex === pIdx && !isHalatCekmeTopic(currentTopic);
               const isOtherGroup = trackVictoryVideoActive && duelWinnerIndex !== null && duelWinnerIndex !== pIdx;
               const winCfg = getWinnerVideoConfig(duelWinnerIndex);
 
@@ -5966,11 +6056,12 @@ export default function App() {
                 ? (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[360px] sm:max-w-[420px]' : 'max-w-[320px] sm:max-w-[360px] md:max-w-[380px]')
                 : (playerCountMode === 3 ? 'max-w-[280px] sm:max-w-[320px] md:max-w-[360px]' : 'max-w-[300px] sm:max-w-[340px]');
 
+              // SORU GRUBU SÜTUNU: 100% OPAK KATI ZEMİN (ARKA PLANLA KARIŞMAYI TAMAMEN ÖNLER)
               const containerClasses = isWinnerGroup
-                ? `relative flex-1 flex flex-col justify-between p-1 sm:p-2 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-slate-950/90 shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0a0f1d] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
                 : isOtherGroup
-                ? `relative flex-1 flex flex-col justify-between p-1 sm:p-2 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-slate-950/40 opacity-60 backdrop-blur-sm shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
-                : `relative flex-1 flex flex-col justify-between p-1 sm:p-2 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-slate-950/15 backdrop-blur-sm shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`;
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0a0f1d] opacity-65 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                : `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0a0f1d] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`;
 
               return (
                 <div
@@ -6002,8 +6093,8 @@ export default function App() {
                         {pIdx + 1}
                       </div>
 
-                      {/* CONNECTED GLASS CAPSULE FOR GROUP NAME, INDIVIDUAL TIMER & SCORE */}
-                      <div className="flex-1 ml-1.5 sm:ml-2 bg-slate-950/50 backdrop-blur-lg border border-cyan-400/30 rounded-xl px-2 sm:px-2.5 py-1 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.3)] gap-1 sm:gap-1.5">
+                      {/* CONNECTED SOLID CAPSULE FOR GROUP NAME, INDIVIDUAL TIMER & SCORE */}
+                      <div className="flex-1 ml-1.5 sm:ml-2 bg-[#0f172a] border border-cyan-400/40 rounded-xl px-2 sm:px-2.5 py-1 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.6)] gap-1 sm:gap-1.5">
                         <span className="font-black text-[11px] sm:text-xs text-slate-100 uppercase tracking-wide truncate">
                           {pIdx + 1}. GRUP
                         </span>
@@ -6012,8 +6103,8 @@ export default function App() {
                         {!isOtherGroup && isTimedTopic(currentTopic) && p.lives > 0 && (
                           <div className={`px-1.5 sm:px-2 py-0.5 rounded-lg border font-mono font-black text-[11px] sm:text-xs flex items-center gap-1 shrink-0 transition-all ${
                             (p.timeLeft ?? 10) <= 3
-                              ? 'bg-rose-950/95 border-rose-500 text-rose-300 ring-2 ring-rose-500/80 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]'
-                              : 'bg-slate-900/90 border-amber-400/80 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                              ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-500/80 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]'
+                              : 'bg-slate-900 border-amber-400/80 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
                           }`}>
                             <span className={`text-[11px] sm:text-xs ${(p.timeLeft ?? 10) <= 3 ? 'animate-bounce text-rose-400' : ''}`}>⏱️</span>
                             <span>{p.timeLeft ?? 10}s</span>
@@ -6022,7 +6113,7 @@ export default function App() {
 
                         {/* RIGHT: SCORE & HEARTS */}
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="bg-white/15 text-white font-black text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-lg shadow-sm">
+                          <span className="bg-white/20 text-white font-black text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-lg shadow-sm">
                             {p.score} / 10
                           </span>
                           <div className="flex items-center gap-0.5">
@@ -6071,22 +6162,22 @@ export default function App() {
                     </div>
                   ) : isOtherGroup ? (
                     /* OTHER GROUPS IN DUEL COMPLETED STATE */
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/40 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-center p-3 my-0.5 min-h-0 w-full">
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border border-white/20 flex flex-col items-center justify-center text-center p-3 my-0.5 min-h-0 w-full">
                       <div className="text-2xl sm:text-3xl mb-1 filter drop-shadow">🏁</div>
                       <div className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wide">
                         YARIŞMA TAMAMLANDI
                       </div>
-                      <div className="text-[11px] text-amber-300/90 font-bold mt-0.5">
+                      <div className="text-[11px] text-amber-300 font-bold mt-0.5">
                         Final Skoru: {p.score} / 10
                       </div>
                     </div>
                   ) : (
                     /* NORMAL GAME PLAYING VIEW */
                     <>
-                      {/* QUESTION GLASS CONTAINER FOR THIS PLAYER - USES UP TO THE FRAME LINES */}
-                      <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/35 backdrop-blur-xl border-2 border-cyan-200/40 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_2px_rgba(255,255,255,0.45),0_0_20px_rgba(6,182,212,0.25)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1 sm:p-1.5' : (playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1')} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
-                        {/* Top glare effect */}
-                        <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                      {/* QUESTION SOLID CONTAINER FOR THIS PLAYER - 100% OPAQUE (ARKA PLANLA KARIŞMAZ) */}
+                      <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-cyan-300/60 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1 sm:p-1.5' : (playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1')} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
+                        {/* Subtle top inner gradient */}
+                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
                         {p.lives <= 0 ? (
                           <div className="relative z-20 flex flex-col items-center justify-center gap-1 p-2">
@@ -6169,6 +6260,7 @@ export default function App() {
                       targetScore={10}
                       duelWinnerIndex={duelWinnerIndex}
                       soundEnabled={soundEnabled}
+                      onVideoComplete={handleTrackVideoComplete}
                     />
                   ) : (
                     <BasketballRaceTrack
@@ -6464,46 +6556,32 @@ export default function App() {
                   )}
                 </div>
 
-                {/* 2. MIDDLE SECTION: VIDEO */}
+                {/* 2. MIDDLE SECTION: VISUAL OR CUSTOM VIDEO */}
                 <div className="relative w-full my-auto flex items-center justify-center overflow-visible pointer-events-none z-30 py-1 sm:py-2">
                   {gameResult.reason === 'puan' ? (
-                    <div className="h-28 sm:h-36 aspect-[9/16] flex items-center justify-center relative">
-                      <ChromaKeyVideo
-                        key={customWinVideo || 'default-win-video'}
-                        src={customWinVideo || "/3s.mp4"}
-                        autoPlay={true}
-                        loop={true}
-                        muted={true}
-                        enableChromaKey={true}
-                        showControls={false}
-                        className="w-full h-full object-contain scale-110 sm:scale-120 relative z-30 pointer-events-none"
-                      />
-
-                      {/* OVERLAY mcomp.mp4 (GÖREV TAMAMLANDI) DIRECTLY ON ASLAN'S BELLY IF WIN */}
-                      <div className="absolute inset-x-0 top-[38%] -translate-y-1/2 z-40 pointer-events-none flex items-center justify-center overflow-visible">
+                    customWinVideo ? (
+                      <div className="h-28 sm:h-36 aspect-[9/16] flex items-center justify-center relative">
                         <ChromaKeyVideo
-                          src="/mcomp.mp4"
+                          key={customWinVideo}
+                          src={customWinVideo}
                           autoPlay={true}
                           loop={true}
                           muted={true}
                           enableChromaKey={true}
                           showControls={false}
-                          className="w-full h-20 sm:h-24 object-contain scale-[1.5] origin-center pointer-events-none"
+                          className="w-full h-full object-contain scale-110 sm:scale-120 relative z-30 pointer-events-none"
                         />
                       </div>
-                    </div>
+                    ) : (
+                      <div className="h-24 sm:h-32 flex flex-col items-center justify-center relative select-none">
+                        <div className="text-4xl sm:text-5xl animate-bounce">🏆</div>
+                        <div className="text-amber-300 font-black text-sm sm:text-base mt-1 drop-shadow-md">Tebrikler!</div>
+                      </div>
+                    )
                   ) : (
-                    <div className="h-28 sm:h-36 aspect-video w-full flex items-center justify-center relative">
-                      <ChromaKeyVideo
-                        key="trytry2-defeat-video"
-                        src="/trytry2.mp4"
-                        autoPlay={true}
-                        loop={true}
-                        muted={true}
-                        enableChromaKey={true}
-                        showControls={false}
-                        className="w-full h-full object-contain scale-110 sm:scale-120 relative z-30 pointer-events-none"
-                      />
+                    <div className="h-24 sm:h-32 flex flex-col items-center justify-center relative select-none">
+                      <div className="text-4xl sm:text-5xl animate-pulse">💪</div>
+                      <div className="text-amber-200 font-black text-sm sm:text-base mt-1 drop-shadow-md">Harika Bir Denemeydi!</div>
                     </div>
                   )}
                 </div>
@@ -6756,7 +6834,7 @@ export default function App() {
           <video
             ref={introVideoRef}
             src="/introh.mp4"
-            poster="/intro2.png"
+            poster="/dere3.jpg"
             autoPlay
             loop
             muted
