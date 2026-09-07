@@ -242,7 +242,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         text: pair.word,
         isFlipped: false,
         isMatched: false,
-        emoji: pair.emoji?.split(' ')[0]
+        emoji: isIng ? undefined : pair.emoji?.split(' ')[0]
       });
       generatedCards.push({
         id: `pair-${index}-b`,
@@ -250,7 +250,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         text: pair.match,
         isFlipped: false,
         isMatched: false,
-        emoji: pair.emoji?.split(' ')[1] || pair.emoji
+        emoji: isIng ? undefined : (pair.emoji?.split(' ')[1] || pair.emoji)
       });
     });
 
@@ -766,7 +766,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
               {/* TARGET WORD DISPLAY */}
               <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-xs xs:text-sm sm:text-base md:text-lg tracking-wide uppercase shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-2 border-white flex items-center justify-center gap-1.5 max-w-full truncate">
-                {p.currentQuestion.emoji && <span className="text-base sm:text-lg shrink-0">{p.currentQuestion.emoji}</span>}
+                {!isIng && p.currentQuestion.emoji && <span className="text-base sm:text-lg shrink-0">{p.currentQuestion.emoji}</span>}
                 <span className="truncate">{p.currentQuestion.word}</span>
               </div>
             </div>
@@ -1173,7 +1173,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                     </span>
                     
                     <div className="px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl tracking-wide uppercase shadow-[0_8px_24px_rgba(245,158,11,0.5)] border-3 border-white flex items-center gap-2.5 my-1 transform hover:scale-105 transition-transform">
-                      {quizQuestion.emoji && <span className="text-2xl sm:text-3xl filter drop-shadow-md">{quizQuestion.emoji}</span>}
+                      {!isIng && quizQuestion.emoji && <span className="text-2xl sm:text-3xl filter drop-shadow-md">{quizQuestion.emoji}</span>}
                       <span className="[text-shadow:_0_1px_2px_rgba(255,255,255,0.8)]">{quizQuestion.word}</span>
                     </div>
                   </div>
@@ -1285,7 +1285,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                       >
                         {isFlipped ? (
                           <div className="flex flex-col items-center justify-center gap-0.5">
-                            {card.emoji && <span className="text-base sm:text-lg">{card.emoji}</span>}
+                            {!isIng && card.emoji && <span className="text-base sm:text-lg">{card.emoji}</span>}
                             <span className="font-black text-xs sm:text-sm uppercase tracking-wide leading-tight">
                               {card.text}
                             </span>
