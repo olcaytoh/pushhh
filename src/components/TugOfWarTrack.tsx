@@ -66,7 +66,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
   const winnerVideoSrc = isP1Won ? '/kap.mp4' : isP2Won ? '/ejd.mp4' : null;
   const winnerTitle = isP1Won ? '1. GRUP (KAPLUMBAĞA) KAZANDI! 🏆' : isP2Won ? '2. GRUP (EJDERHA) KAZANDI! 🏆' : '';
   const winnerBadgeBg = isP1Won ? 'from-blue-600 via-cyan-500 to-indigo-600' : 'from-rose-600 via-pink-500 to-red-600';
-  const winnerImg = isP1Won ? '/kap.png' : '/ejd.png';
+  const winnerImg = isP1Won ? '/kap1.png' : '/ejd1.png';
 
   // Reset dismissal if game resets or winner changes
   useEffect(() => {
@@ -94,7 +94,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
   return (
     <div
       id="tug-of-war-arena"
-      className={`relative flex flex-col items-center justify-between h-full w-[200px] xs:w-[225px] sm:w-[260px] md:w-[295px] lg:w-[325px] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-900/95 backdrop-blur-md border-2 border-amber-400/60 shadow-[0_0_35px_rgba(245,158,11,0.3),inset_0_1px_2px_rgba(255,255,255,0.2)] p-2 sm:p-2.5 overflow-hidden select-none ${className}`}
+      className={`relative flex flex-col items-center justify-between h-full w-[200px] xs:w-[225px] sm:w-[260px] md:w-[295px] lg:w-[325px] rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#0b1329] via-[#070c1b] to-[#0b1329] border-2 border-amber-400/60 shadow-[0_0_35px_rgba(245,158,11,0.3),inset_0_1px_2px_rgba(255,255,255,0.2)] p-2 sm:p-2.5 overflow-hidden select-none ${className}`}
     >
       {/* BACKGROUND FIELD DECORATION */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -304,10 +304,10 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             <div className="relative w-[64px] h-[114px] sm:w-[76px] sm:h-[135px] md:w-[84px] md:h-[150px] flex items-center justify-center">
               <TransparentVideo
                 src="/hakap.mp4"
-                fallbackImg="/kap.png"
+                fallbackImg="/kap1.png"
                 alt="1. Grup Kaplumbağa"
                 isPaused={isGameOver}
-                className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(6,182,212,0.85)]"
+                className="w-full h-full object-contain"
               />
 
               {/* Strain / pull dust clouds on Kaplumbağa */}
@@ -349,10 +349,10 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             <div className="relative w-[64px] h-[114px] sm:w-[76px] sm:h-[135px] md:w-[84px] md:h-[150px] flex items-center justify-center">
               <TransparentVideo
                 src="/haej.mp4"
-                fallbackImg="/ejd.png"
+                fallbackImg="/ejd1.png"
                 alt="2. Grup Ejderha"
                 isPaused={isGameOver}
-                className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(244,63,94,0.85)]"
+                className="w-full h-full object-contain"
               />
 
               {/* Strain / pull dust clouds on Ejderha */}

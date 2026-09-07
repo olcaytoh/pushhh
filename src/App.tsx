@@ -4412,7 +4412,7 @@ export default function App() {
 
       {/* FLOATING ACTIVITY TOAST NOTIFICATION */}
       {activityToast && (
-        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 backdrop-blur-xl text-amber-300 font-black px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border-2 border-amber-400 shadow-[0_10px_35px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-2 text-xs sm:text-sm md:text-base animate-bounce">
+        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-950 text-amber-300 font-black px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border-2 border-amber-400 shadow-[0_10px_35px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-2 text-xs sm:text-sm md:text-base animate-bounce">
           <span className="text-base sm:text-lg">✨</span>
           <span className="tracking-wide text-white drop-shadow-md">{activityToast}</span>
         </div>
@@ -4435,7 +4435,7 @@ export default function App() {
               {/* VIBRANT PROFESSIONAL COLORFUL TITLE FRAME */}
               <div className="w-full flex items-center justify-center mb-2 sm:mb-3 px-2 shrink-0">
                 <div className="relative group p-0.5 sm:p-1 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-400 via-rose-500 to-cyan-400 shadow-[0_4px_20px_rgba(245,158,11,0.35),0_0_15px_rgba(6,182,212,0.25)]">
-                  <div className="flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-1.5 sm:py-2.5 rounded-[14px] sm:rounded-[22px] bg-slate-950/85 backdrop-blur-xl border border-white/25 shadow-inner">
+                  <div className="flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-1.5 sm:py-2.5 rounded-[14px] sm:rounded-[22px] bg-slate-950 border border-white/25 shadow-inner">
                     <Sparkles size={16} className="text-amber-400 shrink-0 animate-pulse" />
                     <h2 className="font-black text-xs sm:text-base md:text-lg bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent uppercase tracking-wider drop-shadow-sm">
                       Sınıfını Seç ve Başla
@@ -5254,7 +5254,7 @@ export default function App() {
                     </div>
 
                     {/* Ritmik Saymalar Group Section */}
-                    <div className="bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
                       <div className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 text-blue-950 font-black text-sm sm:text-base px-3.5 py-2 rounded-xl border border-amber-500 shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_23.png" alt="Ritmik" className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1.5" />
@@ -5288,7 +5288,7 @@ export default function App() {
 
                     {/* Saati Okuma Group Section (Sadece 2. Sınıf) */}
                     {selectedGrade === 2 && (
-                      <div className="bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                      <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
                         <div className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 text-blue-950 font-black text-sm sm:text-base px-3.5 py-2 rounded-xl border border-amber-500 shadow-sm flex items-center justify-between gap-2.5 mb-3">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <img src="/MENUIKON/grid_icon_12.png" alt="Saati Okuma" className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1.5" />
@@ -5342,7 +5342,7 @@ export default function App() {
                 {selectedCategoryId === 'islemler' && (
                   <div className="space-y-5">
                     {/* Toplama İşlemi Group */}
-                    <div className="bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
                       <div className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 text-blue-950 font-black text-sm sm:text-base px-3.5 py-2 rounded-xl border border-amber-500 shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_22.png" alt="Toplama" className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1.5" />
@@ -5375,7 +5375,7 @@ export default function App() {
                     </div>
 
                     {/* Çıkarma İşlemi Group */}
-                    <div className="bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
                       <div className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 text-blue-950 font-black text-sm sm:text-base px-3.5 py-2 rounded-xl border border-amber-500 shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_30.png" alt="Çıkarma" className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1.5" />
@@ -5468,7 +5468,7 @@ export default function App() {
                 {selectedCategoryId === 'diger_oyunlar' && (
                   <div className="space-y-4 sm:space-y-5">
                     {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
-                    <div className="bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
                       <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-xs sm:text-sm md:text-base px-3.5 py-2 rounded-xl border border-white shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_32.png" alt="Halat Çekme" className="w-10 h-10 sm:w-12 sm:h-12 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1" />
@@ -5505,7 +5505,7 @@ export default function App() {
                     </div>
 
                     {/* BÖLÜM 2: ⚡ SÜRELİ MATEMATİK YARIŞLARI (1, 2 VE 3 KİŞİLİK) */}
-                    <div className="bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md border-2 border-rose-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-rose-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
                       <div className="bg-gradient-to-r from-rose-500 via-red-500 to-amber-500 text-white font-black text-xs sm:text-sm md:text-base px-3.5 py-2 rounded-xl border border-white shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_22.png" alt="Süreli İşlemler" className="w-10 h-10 sm:w-12 sm:h-12 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1" />
@@ -5542,7 +5542,7 @@ export default function App() {
                     </div>
 
                     {/* BÖLÜM 3: 🎮 MATEMATİK VE ZEKA OYUNLARI */}
-                    <div className="bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md border-2 border-indigo-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-indigo-400 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
                       <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-black text-xs sm:text-sm md:text-base px-3.5 py-2 rounded-xl border border-white shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_17.png" alt="Zeka Oyunları" className="w-10 h-10 sm:w-12 sm:h-12 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1" />
@@ -5604,7 +5604,7 @@ export default function App() {
                     </div>
 
                     {/* Ritmik Saymalar Alt Başlığı & Konuları */}
-                    <div className="bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-sm border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-slate-900/90 dark:bg-slate-950 border-2 border-amber-400 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
                       <div className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-400 text-blue-950 font-black text-sm sm:text-base px-3.5 py-2 rounded-xl border border-amber-500 shadow-sm flex items-center justify-between gap-2.5 mb-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img src="/MENUIKON/grid_icon_23.png" alt="Ritmik Saymalar" className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] shrink-0 -my-1.5" />
@@ -6632,7 +6632,7 @@ export default function App() {
       {newlyUnlockedBadge && (
         <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[99999] animate-bounce px-4 w-full max-w-md pointer-events-none">
           <div className={`p-4 rounded-3xl bg-gradient-to-r ${newlyUnlockedBadge.badgeColor} border-4 ${newlyUnlockedBadge.borderColor} shadow-[0_12px_30px_rgba(0,0,0,0.6)] text-white flex items-center gap-3.5`}>
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl shrink-0 shadow-inner overflow-hidden p-1">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner overflow-hidden p-1">
               {newlyUnlockedBadge.imageSrc ? (
                 <img src={newlyUnlockedBadge.imageSrc} alt={newlyUnlockedBadge.title} className="w-full h-full object-contain drop-shadow-md" />
               ) : (
@@ -6879,7 +6879,7 @@ export default function App() {
       {/* REPLAY CHAMPIONSHIP VIDEO MODAL */}
       {showPodiumVideoModal && duelWinnerIndex !== null && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm select-none"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 select-none"
           onClick={() => setShowPodiumVideoModal(false)}
         >
           <div 
