@@ -15,6 +15,7 @@ interface WordGameModalProps {
   playerCountMode?: 1 | 2 | 3;
   onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
   soundEnabled?: boolean;
+  onQuestionAnswered?: (isCorrect: boolean, gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce') => void;
 }
 
 type GameMode = 'duel2' | 'duel3' | 'quiz1' | 'matching';
@@ -171,7 +172,8 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   playMp3,
   playerCountMode = 2,
   onSwitchPlayerCountMode,
-  soundEnabled = true
+  soundEnabled = true,
+  onQuestionAnswered
 }) => {
   const isZit = gameType === 'zit_anlam';
   const isEs = gameType === 'es_anlam';
@@ -369,6 +371,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
     setQuizSelectedOption(option);
     const isCorrect = option === quizQuestion.correct;
+    onQuestionAnswered?.(isCorrect, gameType);
 
     if (isCorrect) {
       playSound('correct');
@@ -459,6 +462,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       }
 
       const isCorrect = option === p.currentQuestion.correct;
+      onQuestionAnswered?.(isCorrect, gameType);
       const nextPlayers = [...prev];
 
       if (isCorrect) {

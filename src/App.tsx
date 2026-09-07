@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
-  Award, Lock, ShieldCheck, Medal
+  Award, Lock, ShieldCheck, Medal, Activity
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord } from './types';
@@ -16,6 +16,16 @@ import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIcon, GlossyScreenRotateIcon, GoldCoinDisplayCard } from './components/GameUIButtons';
 import { ModernStatsView, Cute3DStarMascotSVG } from './components/ModernStatsView';
+import { ClassCountersModal } from './components/ClassCountersModal';
+import { 
+  ClassCountersData, 
+  loadCounters, 
+  recordSiteVisit, 
+  recordClassClick, 
+  recordClassQuestionSolved,
+  syncHistoricalQuestions,
+  GradeCategoryKey 
+} from './utils/counterStorage';
 import { ChromaKeyVideo } from './components/ChromaKeyVideo';
 import { AutoFitQuestionBox } from './components/AutoFitQuestionBox';
 import { BasketballRaceTrack, SingleBasketballTrack } from './components/BasketballRaceTrack';
@@ -2604,6 +2614,14 @@ export default function App() {
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [statsModalTab, setStatsModalTab] = useState<'rozetler' | 'istatistik'>('rozetler');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showCountersModal, setShowCountersModal] = useState(false);
+  const [countersData, setCountersData] = useState<ClassCountersData>(() => loadCounters());
+
+  const handleClassClick = (category: GradeCategoryKey) => {
+    const updated = recordClassClick(category);
+    setCountersData(updated);
+  };
+
   const [statsData, setStatsData] = useState<Record<string, StatRecord>>(() => {
     try {
       return JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}');
@@ -2709,6 +2727,18 @@ export default function App() {
   useEffect(() => {
     checkAndUnlockBadges(statsData, streak, score, lives);
   }, [statsData]);
+
+  // Record site visit & sync existing historical questions into counters
+  useEffect(() => {
+    recordSiteVisit();
+    const synced = syncHistoricalQuestions(
+      statsData,
+      Object.keys(topics1stGrade),
+      Object.keys(topics3rdGrade),
+      Object.keys(topics4thGrade)
+    );
+    setCountersData(synced);
+  }, []);
 
   // Play hata.mp3 audio whenever trytry2.mp4 defeat video screen is shown
   useEffect(() => {
@@ -3715,6 +3745,24 @@ export default function App() {
 
       localStorage.setItem('mathGameStats_v1', JSON.stringify(stats));
       setStatsData(stats);
+
+      // Update class & category counters
+      let gradeKey: GradeCategoryKey = 'grade2';
+      if (selectedGrade === 1 || topicId.startsWith('g1_') || (topics1stGrade && (topics1stGrade as any)[topicId])) {
+        gradeKey = 'grade1';
+      } else if (selectedGrade === 3 || topicId.startsWith('g3_') || (topics3rdGrade && (topics3rdGrade as any)[topicId])) {
+        gradeKey = 'grade3';
+      } else if (selectedGrade === 4 || topicId.startsWith('g4_') || (topics4thGrade && (topics4thGrade as any)[topicId])) {
+        gradeKey = 'grade4';
+      } else if (topicId.startsWith('ing_') || wordGameType === 'ingilizce') {
+        gradeKey = 'englishGames';
+      } else if (['zit_anlam', 'es_anlam', 'xox_matematik', 'other_diger_oyunlar'].includes(topicId) || wordGameType === 'zit_anlam' || wordGameType === 'es_anlam') {
+        gradeKey = 'otherGames';
+      } else {
+        gradeKey = selectedGrade === 1 ? 'grade1' : selectedGrade === 3 ? 'grade3' : selectedGrade === 4 ? 'grade4' : 'grade2';
+      }
+      const updatedCounters = recordClassQuestionSolved(gradeKey, dogruMu);
+      setCountersData(updatedCounters);
     } catch {
       // Ignore
     }
@@ -4016,6 +4064,7 @@ export default function App() {
                     playMp3('/op.mp3');
                     setSelectedGrade(g);
                     setLastSelectedGrade(g);
+                    handleClassClick(g === 1 ? 'grade1' : g === 2 ? 'grade2' : g === 3 ? 'grade3' : 'grade4');
                     setSelectedCategoryId(null);
                     setGameState('welcome');
                     setShow3DLab(false);
@@ -4453,6 +4502,7 @@ export default function App() {
                     playMp3('/op.mp3');
                     setSelectedGrade(1);
                     setLastSelectedGrade(1);
+                    handleClassClick('grade1');
                   }}
                   className="group relative w-full bg-gradient-to-r from-amber-500 via-orange-600 to-red-600 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-amber-300 shadow-[0_6px_18px_rgba(234,88,12,0.4),0_2px_0_rgba(0,0,0,0.25)] hover:shadow-[0_10px_26px_rgba(234,88,12,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-yellow-300/50 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
@@ -4482,6 +4532,7 @@ export default function App() {
                     playMp3('/op.mp3');
                     setSelectedGrade(2);
                     setLastSelectedGrade(2);
+                    handleClassClick('grade2');
                   }}
                   className="group relative w-full bg-gradient-to-r from-emerald-500 via-teal-600 to-cyan-700 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-emerald-300 shadow-[0_6px_16px_rgba(16,185,129,0.35),0_2px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_24px_rgba(16,185,129,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-emerald-300/40 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
@@ -4511,6 +4562,7 @@ export default function App() {
                     playMp3('/op.mp3');
                     setSelectedGrade(3);
                     setLastSelectedGrade(3);
+                    handleClassClick('grade3');
                   }}
                   className="group relative w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-white/90 shadow-[0_6px_16px_rgba(147,51,234,0.35),0_2px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_24px_rgba(147,51,234,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-purple-300/40 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
@@ -4540,6 +4592,7 @@ export default function App() {
                     playMp3('/op.mp3');
                     setSelectedGrade(4);
                     setLastSelectedGrade(4);
+                    handleClassClick('grade4');
                   }}
                   className="group relative w-full bg-gradient-to-r from-sky-600 via-indigo-700 to-purple-800 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-amber-300 shadow-[0_6px_18px_rgba(79,70,229,0.4),0_2px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_26px_rgba(79,70,229,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-cyan-300/40 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
@@ -4567,6 +4620,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     playMp3('/coin.mp3');
+                    handleClassClick('otherGames');
                     setShowOtherGamesModal(true);
                   }}
                   className="group relative w-full bg-gradient-to-r from-fuchsia-600 via-purple-600 to-pink-600 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-pink-300 shadow-[0_6px_18px_rgba(217,70,239,0.4),0_2px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_26px_rgba(217,70,239,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-pink-300/40 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
@@ -4595,6 +4649,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     playMp3('/coin.mp3');
+                    handleClassClick('englishGames');
                     setShowEnglishGamesModal(true);
                   }}
                   className="group relative w-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-700 text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-3 sm:border-4 border-sky-300 shadow-[0_6px_18px_rgba(14,165,233,0.4),0_2px_0_rgba(0,0,0,0.2)] hover:shadow-[0_10px_26px_rgba(14,165,233,0.5)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer ring-2 sm:ring-4 ring-sky-300/40 min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
@@ -6337,11 +6392,27 @@ export default function App() {
       )}
 
 
-      {/* GLOBAL FOOTER WITH COPYRIGHT TEXT */}
-      <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2.5 sm:py-3.5 px-4 flex items-center justify-center shadow-xl w-full">
-        <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm">
+      {/* GLOBAL FOOTER WITH COPYRIGHT TEXT & DISCREET SAYAÇ BUTTON */}
+      <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xl w-full">
+        <div className="w-8 sm:w-16 shrink-0" />
+        <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm truncate">
           © 2026 OLCİCO Tüm hakları saklıdır.
         </p>
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            setCountersData(loadCounters());
+            setShowCountersModal(true);
+          }}
+          className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-40 hover:opacity-100 shrink-0"
+          title="Sınıf & Ziyaretçi Sayaç Paneli"
+          aria-label="Sayaç Paneli"
+        >
+          <Activity size={13} className="text-amber-400/80 group-hover:animate-pulse" />
+          <span className="text-[10px] font-mono tracking-tight text-slate-400 group-hover:text-amber-300">
+            {countersData.visits.total}
+          </span>
+        </button>
       </footer>
 
       {/* GAME OVER / VICTORY OVERLAY */}
@@ -6718,6 +6789,14 @@ export default function App() {
         );
       })()}
 
+      {/* SINIF & ZİYARETÇİ SAYAÇLARI MODAL (YÖNETİCİ & ÖĞRETMEN) */}
+      <ClassCountersModal
+        isOpen={showCountersModal}
+        onClose={() => setShowCountersModal(false)}
+        countersData={countersData}
+        onCountersUpdated={(newData) => setCountersData(newData)}
+        playMp3={playMp3}
+      />
 
       {/* 3D GEOMETRY INTERACTIVE LAB MODAL */}
       {show3DLab && (
@@ -6829,6 +6908,11 @@ export default function App() {
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
           soundEnabled={soundEnabled}
+          onQuestionAnswered={(isCorrect, gType) => {
+            const cat: GradeCategoryKey = gType === 'ingilizce' ? 'englishGames' : 'otherGames';
+            const updated = recordClassQuestionSolved(cat, isCorrect);
+            setCountersData(updated);
+          }}
         />
       )}
 
