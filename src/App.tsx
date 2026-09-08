@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
-  Award, Lock, ShieldCheck, Medal, Activity
+  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord } from './types';
@@ -196,7 +196,57 @@ function getDynamicQuestionFontClass(
   return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
 }
 
-// UNIFORM OPTION FONT SIZING HELPER (CALCULATED FROM LONGEST OPTION IN SET)
+// GUARANTEED EXACTLY 4 DISTINCT OPTIONS HELPER (PREVENTS MISSING 4TH OPTION)
+export function ensureFourOptions(correct: string | number, wrong: (string | number)[] = []): (string | number)[] {
+  const correctStr = String(correct ?? '').trim();
+  const uniqueWrong: (string | number)[] = [];
+  const seen = new Set<string>();
+  seen.add(correctStr);
+
+  for (const w of wrong) {
+    const wStr = String(w ?? '').trim();
+    if (wStr && !seen.has(wStr)) {
+      seen.add(wStr);
+      uniqueWrong.push(w);
+      if (uniqueWrong.length === 3) break;
+    }
+  }
+
+  if (uniqueWrong.length < 3) {
+    const match = correctStr.match(/^([+-]?\d+(?:[.,]\d+)?)\s*(.*)$/);
+    if (match) {
+      const baseNum = parseFloat(match[1].replace(',', '.'));
+      const unit = match[2] ? ` ${match[2]}` : '';
+      const isInteger = Number.isInteger(baseNum);
+      const deltas = [1, -1, 2, -2, 3, -3, 5, -5, 10, -10, 4, -4, 20, -20];
+
+      for (const d of deltas) {
+        if (uniqueWrong.length >= 3) break;
+        const candidateNum = baseNum + d;
+        if (candidateNum > 0 || (baseNum <= 0 && candidateNum !== baseNum)) {
+          const candidateStr = isInteger ? `${Math.round(candidateNum)}${unit}` : `${candidateNum}${unit}`;
+          if (!seen.has(candidateStr)) {
+            seen.add(candidateStr);
+            uniqueWrong.push(typeof correct === 'number' && !unit ? candidateNum : candidateStr);
+          }
+        }
+      }
+    } else {
+      const fallbacks = ["A", "B", "C", "D", "E"];
+      for (const fb of fallbacks) {
+        if (uniqueWrong.length >= 3) break;
+        if (!seen.has(fb)) {
+          seen.add(fb);
+          uniqueWrong.push(fb);
+        }
+      }
+    }
+  }
+
+  return [correct, ...uniqueWrong.slice(0, 3)];
+}
+
+// UNIFORM OPTION FONT SIZING HELPER (PROPORTIONALLY SCALED TO PREVENT TEXT CLIPPING)
 function getDynamicOptionFontClass(
   options: (string | number)[] = [],
   mode: 1 | 2 | 3 = 1
@@ -207,27 +257,27 @@ function getDynamicOptionFontClass(
   }, 0);
 
   if (mode === 1) {
-    if (maxLen <= 2) return "text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black";
-    if (maxLen <= 5) return "text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black";
-    if (maxLen <= 10) return "text-lg xs:text-xl sm:text-2xl md:text-3xl font-black";
-    if (maxLen <= 18) return "text-base xs:text-lg sm:text-xl md:text-2xl font-extrabold";
-    return "text-sm xs:text-base sm:text-lg md:text-xl font-bold";
+    if (maxLen <= 3) return "text-xl xs:text-2xl sm:text-3xl font-black leading-snug";
+    if (maxLen <= 6) return "text-lg xs:text-xl sm:text-2xl font-black leading-snug";
+    if (maxLen <= 12) return "text-base xs:text-lg sm:text-xl font-black leading-snug";
+    if (maxLen <= 20) return "text-sm xs:text-base sm:text-lg font-extrabold leading-snug";
+    return "text-xs xs:text-sm sm:text-base font-bold leading-snug";
   }
 
   if (mode === 2) {
-    if (maxLen <= 2) return "text-xl sm:text-2xl md:text-3xl font-black";
-    if (maxLen <= 5) return "text-lg sm:text-xl md:text-2xl font-black";
-    if (maxLen <= 10) return "text-base sm:text-lg md:text-xl font-black";
-    if (maxLen <= 18) return "text-xs sm:text-sm md:text-base font-extrabold";
-    return "text-[11px] sm:text-xs md:text-sm font-bold";
+    if (maxLen <= 3) return "text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    if (maxLen <= 6) return "text-base sm:text-lg md:text-xl font-black leading-snug";
+    if (maxLen <= 12) return "text-sm sm:text-base font-black leading-snug";
+    if (maxLen <= 20) return "text-xs sm:text-sm font-extrabold leading-snug";
+    return "text-[11px] sm:text-xs font-bold leading-snug";
   }
 
   // 3 Players
-  if (maxLen <= 2) return "text-lg sm:text-xl md:text-2xl font-black";
-  if (maxLen <= 5) return "text-base sm:text-lg md:text-xl font-black";
-  if (maxLen <= 10) return "text-xs sm:text-sm md:text-base font-black";
-  if (maxLen <= 18) return "text-[11px] sm:text-xs md:text-sm font-extrabold";
-  return "text-[10px] sm:text-[11px] md:text-xs font-bold";
+  if (maxLen <= 3) return "text-base sm:text-lg md:text-xl font-black leading-snug";
+  if (maxLen <= 6) return "text-sm sm:text-base font-black leading-snug";
+  if (maxLen <= 12) return "text-xs sm:text-sm font-black leading-snug";
+  if (maxLen <= 20) return "text-[11px] sm:text-xs font-extrabold leading-snug";
+  return "text-[10px] sm:text-[11px] font-bold leading-snug";
 }
 
 // KULLANICI KURALI: "tüm kesirleri alt alta yaz, pay altında kesir çizgisi onunda altında payda. yan yana yazma."
@@ -3105,7 +3155,8 @@ export default function App() {
       deneme++;
     } while (askedList.includes(imza) && deneme < 40);
 
-    const rawOptions = [data.correct, ...data.wrong];
+    const rawOptions = ensureFourOptions(data.correct, data.wrong);
+    data.wrong = rawOptions.filter(x => x !== data.correct);
     const shuffled = [...rawOptions];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -3116,8 +3167,9 @@ export default function App() {
   };
 
   const setQuestionAndPrepareOptions = (data: QuestionData) => {
+    const rawOptions = ensureFourOptions(data.correct, data.wrong);
+    data.wrong = rawOptions.filter(x => x !== data.correct);
     setCurrentQuestionData(data);
-    const rawOptions = [data.correct, ...data.wrong];
     // Fisher-Yates shuffle to randomly order options ONCE per question
     const shuffled = [...rawOptions];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -4074,12 +4126,12 @@ export default function App() {
         />
       </div>
 
-      {/* GLOBAL HEADER BAR - 3D CARTOON GAME UI STYLE WITH ALL BUTTONS GROUPED AND CENTERED (HIDDEN ON INTRO) */}
+      {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-white dark:bg-[#0B132B] border-b-3 border-yellow-400 dark:border-yellow-500/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 shadow-lg z-[100] relative shrink-0 w-full max-w-full overflow-x-auto no-scrollbar">
+        <header className="bg-[#09101f] border-b border-slate-700/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 shadow-lg z-[100] relative shrink-0 w-full max-w-full overflow-x-auto no-scrollbar">
         {/* SINIF BELİRTEN BUTONLAR (1, 2, 3, 4. SINIF) - 1. BUTONUN (ANA SAYFA) SOL TARAFI */}
         {selectedGrade !== null && (
-          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-slate-900 dark:bg-slate-950 rounded-xl sm:rounded-2xl border-2 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)] shrink-0 mr-0.5 sm:mr-1">
+          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4].map((g) => {
               const isSelected = selectedGrade === g;
               const iconSrc = g === 1 ? '/icon_1.png' : g === 2 ? '/icon_2.png' : g === 3 ? '/icon_3.png' : '/icon_4.png';
@@ -4105,8 +4157,8 @@ export default function App() {
                   title={`${g}. Sınıf`}
                   className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
                     isSelected
-                      ? 'bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 border-yellow-200 ring-2 ring-yellow-300 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.85)] z-10'
-                      : 'bg-slate-800/80 border-slate-700 opacity-60 hover:opacity-100 hover:border-amber-300'
+                      ? 'bg-[#1a2842] border-slate-300 ring-2 ring-slate-400/50 scale-105 shadow-[0_0_10px_rgba(148,163,184,0.3)] z-10'
+                      : 'bg-[#121c2e] border-slate-700/80 opacity-60 hover:opacity-100 hover:border-slate-500'
                   }`}
                 >
                   <img 
@@ -4117,7 +4169,7 @@ export default function App() {
                     className="w-full h-full object-contain p-0.5 pointer-events-none" 
                   />
                   {isSelected && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-300 shadow-[0_0_6px_#fde047]" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-300 shadow-[0_0_6px_#cbd5e1]" />
                   )}
                 </button>
               );
@@ -4340,9 +4392,9 @@ export default function App() {
         </button>
 
         {/* AYIRICI ÇİZGİ */}
-        <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
 
-        {/* 6. 1 OYUNCU (1oy.png) */}
+        {/* 6. 1 OYUNCU (1oy.png) - MAVİ ACCENT */}
         <button
           onClick={() => {
             if (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) return;
@@ -4354,8 +4406,8 @@ export default function App() {
             gameState === 'playing' && isHalatCekmeTopic(currentTopic)
               ? 'opacity-30 cursor-not-allowed'
               : playerCountMode === 1
-              ? 'ring-3 ring-amber-400 scale-105 brightness-110 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] cursor-pointer'
-              : 'opacity-70 hover:opacity-100 cursor-pointer'
+              ? 'ring-2 ring-blue-400 scale-105 shadow-[0_0_12px_rgba(96,165,250,0.5)] cursor-pointer'
+              : 'opacity-60 hover:opacity-100 cursor-pointer'
           }`}
           title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "1 Oyuncu Modu"}
         >
@@ -4367,11 +4419,11 @@ export default function App() {
             className="w-full h-full object-contain pointer-events-none" 
           />
           {playerCountMode === 1 && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]" />
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
           )}
         </button>
 
-        {/* 7. 2 OYUNCU KAPIŞMA (2oy.png) */}
+        {/* 7. 2 OYUNCU KAPIŞMA (2oy.png) - KIRMIZI / PEMBE ACCENT */}
         <button
           onClick={() => {
             playMp3('/op.mp3');
@@ -4379,8 +4431,8 @@ export default function App() {
           }}
           className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 rounded-2xl ${
             playerCountMode === 2
-              ? 'ring-3 ring-rose-500 scale-105 brightness-110 drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]'
-              : 'opacity-70 hover:opacity-100'
+              ? 'ring-2 ring-rose-500 scale-105 shadow-[0_0_12px_rgba(244,63,94,0.5)]'
+              : 'opacity-60 hover:opacity-100'
           }`}
           title="2 Oyuncu Kapışma Modu"
         >
@@ -4396,7 +4448,7 @@ export default function App() {
           )}
         </button>
 
-        {/* 8. 3 OYUNCU KAPIŞMA (3oy.png) */}
+        {/* 8. 3 OYUNCU KAPIŞMA (3oy.png) - YEŞİL ACCENT */}
         <button
           onClick={() => {
             if (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) return;
@@ -4408,8 +4460,8 @@ export default function App() {
             gameState === 'playing' && isHalatCekmeTopic(currentTopic)
               ? 'opacity-30 cursor-not-allowed'
               : playerCountMode === 3
-              ? 'ring-3 ring-emerald-400 scale-105 brightness-110 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)] cursor-pointer'
-              : 'opacity-70 hover:opacity-100 cursor-pointer'
+              ? 'ring-2 ring-emerald-500 scale-105 shadow-[0_0_12px_rgba(16,185,129,0.5)] cursor-pointer'
+              : 'opacity-60 hover:opacity-100 cursor-pointer'
           }`}
           title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "3 Oyuncu Kapışma Modu"}
         >
@@ -4421,44 +4473,44 @@ export default function App() {
             className="w-full h-full object-contain pointer-events-none" 
           />
           {playerCountMode === 3 && (
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
           )}
         </button>
 
         {/* AYIRICI ÇİZGİ */}
-        <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
 
-        {/* GEÇİCİ ETKİNLİKLER ARASI GEÇİŞ BUTONLARI (DİĞER BUTONLARLA AYNI GENİŞLİK VE BOYUTTA) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-950 p-0.5 sm:p-1 rounded-2xl border-2 border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.35)] shrink-0">
+        {/* ETKİNLİKLER ARASI GEÇİŞ BUTONLARI */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
               handlePrevActivity();
             }}
-            title="Önceki Etkinliğe Geç (1. Sınıftan 6. İngilizceye)"
+            title="Önceki Etkinliğe Geç"
             aria-label="Önceki Etkinlik"
-            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl bg-gradient-to-br from-amber-500 via-orange-600 to-amber-600 hover:brightness-110 active:scale-95 text-white font-black flex items-center justify-center shadow-md transition-all cursor-pointer border border-white/50 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
           >
-            <span className="text-sm sm:text-base select-none pointer-events-none">⏮️</span>
+            <SkipBack size={16} className="text-slate-300 group-hover:text-white transition-colors" />
           </button>
           <button
             onClick={() => {
               playMp3('/op.mp3');
               handleNextActivity();
             }}
-            title="Sonraki Etkinliğe Geç (1. Sınıftan 6. İngilizceye)"
+            title="Sonraki Etkinliğe Geç"
             aria-label="Sonraki Etkinlik"
-            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-600 hover:brightness-110 active:scale-95 text-white font-black flex items-center justify-center shadow-md transition-all cursor-pointer border border-white/50 filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
           >
-            <span className="text-sm sm:text-base select-none pointer-events-none">⏭️</span>
+            <SkipForward size={16} className="text-slate-300 group-hover:text-white transition-colors" />
           </button>
         </div>
 
         {/* AYIRICI ÇİZGİ */}
-        <div className="h-7 sm:h-10 w-0.5 bg-yellow-400/40 rounded-full mx-0.5 shrink-0" />
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
 
         {/* TAM EKRAN KONTROLÜ (FH.png GÖRSEL BUTON) */}
-        <div className="flex items-center bg-slate-950 p-0.5 sm:p-1 rounded-2xl border-2 border-cyan-400/80 shadow-[0_0_18px_rgba(6,182,212,0.35)] shrink-0">
+        <div className="flex items-center bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
@@ -4466,10 +4518,10 @@ export default function App() {
             }}
             title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap (Akıllı Tahtaya Tam Yay)"}
             aria-label="Tam Ekran"
-            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
+            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
               isFullscreen
-                ? 'bg-gradient-to-br from-amber-500 via-orange-600 to-amber-600 border-white ring-2 ring-amber-400 brightness-110 shadow-[0_0_12px_rgba(245,158,11,0.8)]'
-                : 'bg-slate-800/80 hover:bg-slate-700/90 border-white/30 opacity-80 hover:opacity-100'
+                ? 'bg-[#1a2842] border-slate-300 ring-2 ring-slate-400/50 shadow-[0_0_10px_rgba(148,163,184,0.3)]'
+                : 'bg-[#121c2e] hover:bg-[#1a2842] border-slate-700/80 opacity-60 hover:opacity-100'
             }`}
           >
             <img 
@@ -4478,7 +4530,7 @@ export default function App() {
               className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
             />
             {isFullscreen && (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_8px_#fcd34d]" />
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-slate-300 shadow-[0_0_6px_#cbd5e1]" />
             )}
           </button>
         </div>
@@ -4487,7 +4539,7 @@ export default function App() {
 
       {/* FLOATING ACTIVITY TOAST NOTIFICATION */}
       {activityToast && (
-        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-950 text-amber-300 font-black px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border-2 border-amber-400 shadow-[0_10px_35px_rgba(0,0,0,0.85),0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-2 text-xs sm:text-sm md:text-base animate-bounce">
+        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-slate-100 font-bold px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border border-slate-600 shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-2 text-xs sm:text-sm md:text-base animate-bounce">
           <span className="text-base sm:text-lg">✨</span>
           <span className="tracking-wide text-white drop-shadow-md">{activityToast}</span>
         </div>
@@ -4495,7 +4547,7 @@ export default function App() {
 
       {/* SCREEN ORIENTATION TOAST BADGE */}
       {showOrientationToast && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-blue-600 via-cyan-600 to-sky-500 text-white font-black px-4 py-2 rounded-full border-2 border-white shadow-2xl animate-bounce flex items-center gap-2 text-xs sm:text-sm">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-slate-100 font-bold px-4 py-2 rounded-full border border-slate-600 shadow-2xl animate-bounce flex items-center gap-2 text-xs sm:text-sm">
           <GlossyScreenRotateIcon isLandscape={isLandscape} size={20} />
           <span>{showOrientationToast}</span>
         </div>
@@ -5928,54 +5980,53 @@ export default function App() {
         </div>
       )}
 
-      {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - OPAK VE NET ARKA PLAN) */}
+      {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - NÖTR ANTRASİT/KOYU LACİVERT PANEL & YUMUŞATILMIŞ MAVİ ACCENT) */}
       {gameState === 'playing' && playerCountMode === 1 && (
-        <div className={`flex-1 flex flex-col p-2 sm:p-3 my-0.5 sm:my-1 bg-[#0a0f1d] border-2 border-cyan-400/40 rounded-2xl sm:rounded-3xl shadow-2xl ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[520px] sm:max-w-[580px] md:max-w-[640px]' : 'max-w-[380px] sm:max-w-[420px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
-          {/* TOP BAR: OPAQUE CAPSULES */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 shrink-0 w-full">
+        <div className={`flex-1 flex flex-col p-2 sm:p-3 my-0.5 sm:my-1 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl ${currentTopic === 'uzamsal_iliskiler' ? 'max-w-[520px] sm:max-w-[580px] md:max-w-[640px]' : 'max-w-[380px] sm:max-w-[420px]'} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
+          {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES (AYNI YÜKSEKLİK, TİPOGRAFİ VE HİZALAMA) */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 shrink-0 w-full h-8 sm:h-9">
             {/* LEFT: GROUP BADGE & TOPIC */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-950 border-2 border-purple-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-[0_0_16px_rgba(192,132,252,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)] shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0 h-full">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
                 1
               </div>
-              <div className="bg-[#0b1329] border border-cyan-400/50 rounded-xl px-2.5 sm:px-3 py-1 flex items-center justify-between gap-1.5 min-w-0 shadow-[0_4px_16px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.2)]">
-                <div className="flex flex-col min-w-0">
-                  <span className="font-black text-[11px] sm:text-xs text-slate-100 uppercase tracking-wide truncate">
+              <div className="h-full bg-[#0e172a] border border-slate-700/80 border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0 shadow-xs">
+                <div className="flex items-center min-w-0">
+                  <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
                     1. GRUP
                   </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-cyan-300 truncate max-w-[110px] sm:max-w-[140px]">
-                    {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
+                  <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                    • {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
                   </span>
                 </div>
                 <img 
                   src={getGradeIconForTopic(currentTopic, selectedGrade)} 
                   alt="Sınıf" 
-                  className="h-6 w-6 sm:h-7 sm:w-7 object-contain shrink-0 filter drop-shadow-md ml-1" 
+                  className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" 
                 />
               </div>
             </div>
 
-            {/* CENTER: COUNTDOWN TIMER BADGE IF TIMED TOPIC (SINGLE PLAYER) */}
-            {isTimedTopic(currentTopic) && (
-              <div className={`border rounded-xl px-2 sm:px-2.5 py-1 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
-                questionTimeLeft <= 3 
-                  ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]' 
-                  : 'bg-[#0b1329] border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-              }`}>
-                <span className={`text-xs ${questionTimeLeft <= 3 ? 'animate-bounce text-rose-400' : ''}`}>⏱️</span>
-                <span>{questionTimeLeft}s</span>
-              </div>
-            )}
+            {/* RIGHT: SCORE, TIMER & LIVES */}
+            <div className="flex items-center gap-1.5 shrink-0 h-full">
+              {isTimedTopic(currentTopic) && (
+                <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                  questionTimeLeft <= 3 
+                    ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60' 
+                    : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                }`}>
+                  <span className="text-xs">⏱️</span>
+                  <span>{questionTimeLeft}s</span>
+                </div>
+              )}
 
-            {/* RIGHT: SCORE & LIVES */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <div className="bg-[#0b1329] border border-cyan-400/50 rounded-xl px-2.5 sm:px-3 py-1 flex items-center gap-1.5 sm:gap-2 shadow-[0_4px_16px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.2)]">
-                <span className="bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs px-2 py-0.5 rounded-lg shadow-md uppercase tracking-wider">
-                  PUAN: {score} / 10
+              <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                  {score} / 10
                 </span>
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1 px-1">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <span key={i} className={`text-xs sm:text-sm transition-all ${i < lives ? 'scale-110 drop-shadow-[0_0_8px_#ef4444]' : 'opacity-25 grayscale'}`}>
+                    <span key={i} className={`text-xs sm:text-sm transition-all ${i < lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
                       ❤️
                     </span>
                   ))}
@@ -5985,9 +6036,9 @@ export default function App() {
           </div>
 
           {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER (ARKA PLAN ASLA KARIŞMAZ) */}
-          <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0b1329] border-2 border-cyan-300/60 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.15)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2.5 sm:p-3.5'} my-1 sm:my-1.5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
+          <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2.5 sm:p-3.5'} my-1 sm:my-1.5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
             {/* Subtle top inner gradient */}
-            <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+            <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
             <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
               <AutoFitQuestionBox
@@ -5998,43 +6049,20 @@ export default function App() {
             </div>
           </div>
 
-          {/* BOTTOM: 2x2 OPTIONS GRID WITH VIBRANT GLOSSY CANDY BUTTONS */}
+          {/* BOTTOM: 2x2 OPTIONS GRID WITH NEUTRAL DARK BUTTONS & ACCENT HOVER */}
           <div className="grid grid-cols-2 gap-1.5 sm:gap-2 w-full shrink-0">
             {(() => {
-              const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 2);
-              const OPTION_COLOR_THEMES = [
-                {
-                  border: 'border-cyan-400',
-                  bg: 'bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 active:from-blue-700 active:to-indigo-800 text-white',
-                  shadow: 'shadow-md active:shadow-xs',
-                },
-                {
-                  border: 'border-pink-400',
-                  bg: 'bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 active:from-rose-700 active:to-rose-800 text-white',
-                  shadow: 'shadow-md active:shadow-xs',
-                },
-                {
-                  border: 'border-emerald-400',
-                  bg: 'bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 active:from-emerald-700 active:to-green-800 text-white',
-                  shadow: 'shadow-md active:shadow-xs',
-                },
-                {
-                  border: 'border-amber-300',
-                  bg: 'bg-gradient-to-b from-amber-600 via-orange-600 to-amber-700 active:from-amber-700 active:to-amber-800 text-white',
-                  shadow: 'shadow-md active:shadow-xs',
-                }
-              ];
+              const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1);
 
               return optionsList.map((opt, idx) => {
                 const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
                 const isWrong = selectedOption !== null && currentQuestionData && opt === selectedOption && opt !== currentQuestionData.correct;
-                const theme = OPTION_COLOR_THEMES[idx % OPTION_COLOR_THEMES.length];
 
-                let feedbackClasses = `${theme.border} ${theme.bg} ${theme.shadow}`;
+                let feedbackClasses = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
                 if (isCorrect) {
-                  feedbackClasses = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-600 shadow-lg scale-102 text-white";
+                  feedbackClasses = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
                 } else if (isWrong) {
-                  feedbackClasses = "ring-4 ring-rose-500 border-rose-400 bg-rose-800 shadow-md scale-95 opacity-80 text-white";
+                  feedbackClasses = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
                 }
 
                 return (
@@ -6042,10 +6070,10 @@ export default function App() {
                     key={idx}
                     onClick={() => handleAnswer(opt)}
                     disabled={feedbackState !== 'none'}
-                    className={`fast-quiz-btn relative w-full ${currentTopic === 'uzamsal_iliskiler' ? 'py-2 sm:py-2.5 px-2.5 min-h-[44px] sm:min-h-[52px]' : 'py-3.5 sm:py-4.5 px-3 min-h-[56px] sm:min-h-[70px]'} rounded-2xl border-2 transition-transform duration-75 flex items-center justify-center text-center leading-tight break-words cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 ${feedbackClasses}`}
+                    className={`fast-quiz-btn relative w-full ${currentTopic === 'uzamsal_iliskiler' ? 'py-2 px-2.5 min-h-[44px] sm:min-h-[50px]' : 'py-2.5 sm:py-3 px-3 min-h-[54px] sm:min-h-[64px]'} rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${feedbackClasses}`}
                   >
                     {/* Subtle top glare in button */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-t-2xl" />
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
                     {(() => {
                       const displayOpt = cleanOptionForDisplay(opt);
                       return typeof displayOpt === 'string' && displayOpt.includes('<') ? (
@@ -6054,7 +6082,7 @@ export default function App() {
                           dangerouslySetInnerHTML={{ __html: displayOpt }}
                         />
                       ) : (
-                        <span className={`relative z-10 px-2 flex items-center justify-center text-center pointer-events-none ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
+                        <span className={`relative z-10 w-full px-1.5 py-0.5 leading-normal flex items-center justify-center text-center pointer-events-none ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
                           {displayOpt}
                         </span>
                       );
@@ -6070,14 +6098,14 @@ export default function App() {
       {/* MULTI-PLAYER SPLIT SCREEN DÜELLO ALANI (2 VE 3 OYUNCU - ŞEFFAF GLASSMORPHISM) */}
       {gameState === 'playing' && playerCountMode > 1 && (
         <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 w-full h-full overflow-hidden min-h-0 relative z-10 ${playerCountMode === 2 ? 'max-w-[clamp(1024px,calc(512px+50vw),1800px)]' : 'max-w-[clamp(1200px,calc(500px+70vw),2200px)] w-full'} mx-auto`}>
-          {/* COMMON TOP BAR: SOLID COMPACT CAPSULES */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 shrink-0">
-            <span className="px-2.5 sm:px-3 py-1 bg-[#0b1329] border border-cyan-400/50 text-cyan-200 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(6,182,212,0.25)] uppercase tracking-wider shrink-0">
+          {/* COMMON TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 shrink-0 h-8 sm:h-9 w-full">
+            <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
               ⚔️ {playerCountMode} OYUNCU DÜELLO
             </span>
-            <div className="flex-1 min-w-0 text-center px-1.5 flex items-center justify-center gap-1.5">
-              <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-[#0b1329] border border-cyan-400/60 rounded-xl px-3 sm:px-6 py-1 shadow-[0_0_16px_rgba(6,182,212,0.3)]">
-                <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
+            <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
+              <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-3 sm:px-6 shadow-xs">
+                <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words">
                   {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || ''}
                 </h2>
                 <img 
@@ -6087,7 +6115,7 @@ export default function App() {
                 />
               </div>
             </div>
-            <span className="px-2.5 sm:px-3 py-1 bg-[#0b1329] border border-cyan-400/50 text-amber-300 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(245,158,11,0.25)] uppercase tracking-wider shrink-0">
+            <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
               🎯 HEDEF: 10 PUAN
             </span>
           </div>
@@ -6097,26 +6125,38 @@ export default function App() {
             const renderPlayerCard = (p: (typeof players)[0], pIdx: number) => {
               const groupTheme = pIdx === 0 
                 ? {
-                    badgeBg: "from-blue-700 via-indigo-800 to-blue-950",
-                    badgeBorder: "border-cyan-300",
-                    badgeShadow: "shadow-[0_0_16px_rgba(6,182,212,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-                    containerBorder: "border-cyan-400",
-                    buttonDefault: "border-cyan-400 bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 active:from-blue-700 active:to-indigo-800 text-white shadow-md active:shadow-xs",
+                    accentColor: "blue",
+                    containerBorder: "border-blue-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-blue-400",
+                    headerTitleColor: "text-blue-200",
+                    avatarBorder: "border-2 border-blue-400",
+                    avatarBg: "bg-[#080e1d] text-blue-300",
+                    buttonDefault: "bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] active:from-[#0e1726] active:to-[#090f1a] text-blue-50/95 border-2 border-blue-500/35 hover:border-blue-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-blue-300/10 to-transparent",
                   }
                 : pIdx === 1
                 ? {
-                    badgeBg: "from-rose-700 via-pink-800 to-rose-950",
-                    badgeBorder: "border-pink-300",
-                    badgeShadow: "shadow-[0_0_16px_rgba(244,63,94,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-                    containerBorder: "border-pink-400",
-                    buttonDefault: "border-pink-400 bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 active:from-rose-700 active:to-rose-800 text-white shadow-md active:shadow-xs",
+                    accentColor: "rose",
+                    containerBorder: "border-rose-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(244,63,94,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-rose-400",
+                    headerTitleColor: "text-rose-200",
+                    avatarBorder: "border-2 border-rose-400",
+                    avatarBg: "bg-[#080e1d] text-rose-300",
+                    buttonDefault: "bg-gradient-to-b from-[#2e1925] via-[#24131d] to-[#180b13] hover:from-[#3a2030] hover:via-[#2c1724] hover:to-[#1d0e17] active:from-[#190c14] active:to-[#10070c] text-rose-50/95 border-2 border-rose-500/35 hover:border-rose-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-rose-300/10 to-transparent",
                   }
                 : {
-                    badgeBg: "from-emerald-700 via-teal-800 to-emerald-950",
-                    badgeBorder: "border-emerald-300",
-                    badgeShadow: "shadow-[0_0_16px_rgba(52,211,153,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-                    containerBorder: "border-emerald-400",
-                    buttonDefault: "border-emerald-400 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 active:from-emerald-700 active:to-green-800 text-white shadow-md active:shadow-xs",
+                    accentColor: "emerald",
+                    containerBorder: "border-emerald-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(16,185,129,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-emerald-400",
+                    headerTitleColor: "text-emerald-200",
+                    avatarBorder: "border-2 border-emerald-400",
+                    avatarBg: "bg-[#080e1d] text-emerald-300",
+                    buttonDefault: "bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95 border-2 border-emerald-500/35 hover:border-emerald-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-emerald-300/10 to-transparent",
                   };
 
               // Halat çekmede kazanan videosu SADECE ortadaki alanda gösterilir; oyuncu kartında ekstra video açılmaz
@@ -6139,12 +6179,12 @@ export default function App() {
                 ? (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[360px] sm:max-w-[420px]' : 'max-w-[320px] sm:max-w-[360px] md:max-w-[380px]')
                 : (playerCountMode === 3 ? 'w-full max-w-full' : 'max-w-[300px] sm:max-w-[340px]');
 
-              // SORU GRUBU SÜTUNU: 100% OPAK KATI ZEMİN (ARKA PLANLA KARIŞMAYI TAMAMEN ÖNLER)
+              // SORU GRUBU SÜTUNU: NÖTR KOYU ANTRASİT/LACİVERT PANEL & OYUNCU ACCENT KENARLIK
               const containerClasses = isWinnerGroup
-                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0a0f1d] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0b1328] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
                 : isOtherGroup
-                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0a0f1d] opacity-65 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
-                : `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0a0f1d] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`;
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0b1328] opacity-65 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                : `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0b1328] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`;
 
               return (
                 <div
@@ -6153,55 +6193,55 @@ export default function App() {
                 >
                   {/* PLAYER HEADER BAR */}
                   {isWinnerGroup ? (
-                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1">
+                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
                       {/* LEFT: GOLD TROPHY */}
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-yellow-400 via-amber-300 to-yellow-600 border-2 border-white shadow-[0_0_15px_rgba(250,204,21,0.9)] text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shrink-0 animate-bounce">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-yellow-400 via-amber-300 to-yellow-600 border-2 border-white shadow-[0_0_15px_rgba(250,204,21,0.9)] text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
                         🏆
                       </div>
                       {/* GOLD CHAMPION CAPSULE */}
-                      <div className="flex-1 ml-1.5 sm:ml-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-2 border-white rounded-xl px-2.5 py-1 flex items-center justify-between shadow-lg">
-                        <span className="font-black text-[11px] sm:text-xs text-slate-950 uppercase tracking-wide truncate flex items-center gap-1.5">
+                      <div className="flex-1 h-full ml-1.5 sm:ml-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-2 border-white rounded-xl px-2.5 flex items-center justify-between shadow-lg">
+                        <span className="font-black text-xs text-slate-950 uppercase tracking-wide truncate flex items-center gap-1.5">
                           <img src={winCfg.img} alt={winCfg.title} className="w-4 h-4 sm:w-5 sm:h-5 object-contain inline-block" />
                           <span>{pIdx + 1}. GRUP KAZANDI!</span>
                         </span>
-                        <span className="bg-slate-950 text-yellow-300 font-black text-[10px] sm:text-[11px] px-2 py-0.5 rounded-lg shadow-inner">
+                        <span className="bg-slate-950 text-yellow-300 font-black text-xs px-2 py-0.5 rounded-lg shadow-inner">
                           {p.score} / 10 🎯
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-0.5 sm:mb-1">
-                      {/* LEFT: CIRCLE BADGE (1), (2), (3) */}
-                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${groupTheme.badgeBg} border-2 ${groupTheme.badgeBorder} ${groupTheme.badgeShadow} text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0`}>
+                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
+                      {/* LEFT: CIRCLE BADGE (1), (2), (3) - AVATAR ÇERÇEVESİ */}
+                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs`}>
                         {pIdx + 1}
                       </div>
 
                       {/* CONNECTED SOLID CAPSULE FOR GROUP NAME, INDIVIDUAL TIMER & SCORE */}
-                      <div className="flex-1 ml-1.5 sm:ml-2 bg-[#0f172a] border border-cyan-400/40 rounded-xl px-2 sm:px-2.5 py-1 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.6)] gap-1 sm:gap-1.5">
-                        <span className="font-black text-[11px] sm:text-xs text-slate-100 uppercase tracking-wide truncate">
+                      <div className={`flex-1 h-full ml-1.5 sm:ml-2 bg-[#0e172a] border border-slate-700/80 ${groupTheme.headerAccentBorder} rounded-xl px-2 sm:px-2.5 flex items-center justify-between shadow-xs gap-1 sm:gap-1.5`}>
+                        <span className={`font-black text-xs ${groupTheme.headerTitleColor} uppercase tracking-wide truncate`}>
                           {pIdx + 1}. GRUP
                         </span>
 
                         {/* INDIVIDUAL PLAYER COUNTDOWN TIMER */}
                         {!isOtherGroup && isTimedTopic(currentTopic) && p.lives > 0 && (
-                          <div className={`px-1.5 sm:px-2 py-0.5 rounded-lg border font-mono font-black text-[11px] sm:text-xs flex items-center gap-1 shrink-0 transition-all ${
+                          <div className={`h-6 sm:h-7 px-1.5 sm:px-2 py-0.5 rounded-lg border font-mono font-black text-xs flex items-center gap-1 shrink-0 transition-all ${
                             (p.timeLeft ?? 10) <= 3
-                              ? 'bg-rose-950 border-rose-500 text-rose-300 ring-2 ring-rose-500/80 scale-105 animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.7)]'
-                              : 'bg-slate-900 border-amber-400/80 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                              ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60'
+                              : 'bg-[#080e1d] border-slate-700 text-slate-200'
                           }`}>
-                            <span className={`text-[11px] sm:text-xs ${(p.timeLeft ?? 10) <= 3 ? 'animate-bounce text-rose-400' : ''}`}>⏱️</span>
+                            <span className="text-xs">⏱️</span>
                             <span>{p.timeLeft ?? 10}s</span>
                           </div>
                         )}
 
                         {/* RIGHT: SCORE & HEARTS */}
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="bg-white/20 text-white font-black text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-lg shadow-sm">
+                          <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
                             {p.score} / 10
                           </span>
-                          <div className="flex items-center gap-0.5">
+                          <div className="flex items-center gap-1 px-0.5">
                             {Array.from({ length: 3 }).map((_, i) => (
-                              <span key={i} className={`text-[11px] sm:text-xs transition-all ${i < p.lives ? 'text-rose-500 scale-110 drop-shadow-[0_0_6px_#f43f5e]' : 'text-slate-600 opacity-40 grayscale'}`}>
+                              <span key={i} className={`text-xs sm:text-sm transition-all ${i < p.lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
                                 ❤️
                               </span>
                             ))}
@@ -6245,7 +6285,7 @@ export default function App() {
                     </div>
                   ) : isOtherGroup ? (
                     /* OTHER GROUPS IN DUEL COMPLETED STATE */
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border border-white/20 flex flex-col items-center justify-center text-center p-3 my-0.5 min-h-0 w-full">
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border border-slate-700/70 flex flex-col items-center justify-center text-center p-3 my-0.5 min-h-0 w-full">
                       <div className="text-2xl sm:text-3xl mb-1 filter drop-shadow">🏁</div>
                       <div className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wide">
                         YARIŞMA TAMAMLANDI
@@ -6257,10 +6297,10 @@ export default function App() {
                   ) : (
                     /* NORMAL GAME PLAYING VIEW */
                     <>
-                      {/* QUESTION SOLID CONTAINER FOR THIS PLAYER - 100% OPAQUE (ARKA PLANLA KARIŞMAZ) */}
-                      <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-cyan-300/60 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1 sm:p-1.5' : (playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1')} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
+                      {/* QUESTION SOLID CONTAINER FOR THIS PLAYER - 100% OPAQUE (NÖTR KOYU ANTRASİT) */}
+                      <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1 sm:p-1.5' : (playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1')} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
                         {/* Subtle top inner gradient */}
-                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
                         {p.lives <= 0 ? (
                           <div className="relative z-20 flex flex-col items-center justify-center gap-1 p-2">
@@ -6292,9 +6332,9 @@ export default function App() {
 
                             let btnClass = groupTheme.buttonDefault;
                             if (isCorrect) {
-                              btnClass = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-600 shadow-lg scale-102 text-white";
+                              btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
                             } else if (isWrong) {
-                              btnClass = "ring-4 ring-rose-500 border-rose-400 bg-rose-800 shadow-md scale-95 opacity-80 text-white";
+                              btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
                             }
 
                             return (
@@ -6302,10 +6342,10 @@ export default function App() {
                                 key={oIdx}
                                 onClick={() => handlePlayerAnswer(pIdx, opt)}
                                 disabled={p.feedbackState !== 'none'}
-                                className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-transform duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-95 ${btnClass}`}
+                                className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
                               >
                                 {/* Inner top glare */}
-                                <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-t-xl sm:rounded-t-2xl" />
+                                <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${groupTheme.buttonGlare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
                                 {(() => {
                                   const displayOpt = cleanOptionForDisplay(opt);
                                   return typeof displayOpt === 'string' && displayOpt.includes('<') ? (
@@ -6314,7 +6354,7 @@ export default function App() {
                                       dangerouslySetInnerHTML={{ __html: displayOpt }}
                                     />
                                   ) : (
-                                    <span className={`relative z-10 px-1 leading-tight flex items-center justify-center text-center ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
+                                    <span className={`relative z-10 w-full px-1 py-0.5 leading-normal flex items-center justify-center text-center ${uniformOptFontClass} text-white font-black [text-shadow:_0_1px_3px_#000]`}>
                                       {displayOpt}
                                     </span>
                                   );

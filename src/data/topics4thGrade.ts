@@ -428,12 +428,20 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
       if (mode < 0.5) {
         // En yakın onluğa yuvarlama
         const dogru = birler >= 5 ? Math.ceil(sayi / 10) * 10 : Math.floor(sayi / 10) * 10;
-        const yanlislar = [
-          dogru - 10,
-          dogru + 10,
-          dogru + 20,
-          dogru - 20
-        ].filter(y => y !== dogru && y > 0).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
+        const adaylar = [dogru - 10, dogru + 10, dogru + 20, dogru - 20, dogru + 30, dogru + 40];
+        const yanlisSet = new Set<number>();
+        for (const a of adaylar) {
+          if (a > 0 && a !== dogru) {
+            yanlisSet.add(a);
+            if (yanlisSet.size === 3) break;
+          }
+        }
+        let off = 10;
+        while (yanlisSet.size < 3) {
+          off += 10;
+          if (dogru + off !== dogru) yanlisSet.add(dogru + off);
+        }
+        const yanlislar = Array.from(yanlisSet).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
 
         return {
           question: `${sayi.toLocaleString('tr-TR')} sayısı en yakın onluğa yuvarlandığında hangi sayı elde edilir?`,
@@ -455,12 +463,20 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
         // En yakın yüzlüğe yuvarlama
         const sonIki = sayi % 100;
         const dogru = sonIki >= 50 ? Math.ceil(sayi / 100) * 100 : Math.floor(sayi / 100) * 100;
-        const yanlislar = [
-          dogru - 100,
-          dogru + 100,
-          dogru + 200,
-          dogru - 200
-        ].filter(y => y !== dogru && y > 0).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
+        const adaylar = [dogru - 100, dogru + 100, dogru + 200, dogru - 200, dogru + 300, dogru + 400];
+        const yanlisSet = new Set<number>();
+        for (const a of adaylar) {
+          if (a > 0 && a !== dogru) {
+            yanlisSet.add(a);
+            if (yanlisSet.size === 3) break;
+          }
+        }
+        let off = 100;
+        while (yanlisSet.size < 3) {
+          off += 100;
+          if (dogru + off !== dogru) yanlisSet.add(dogru + off);
+        }
+        const yanlislar = Array.from(yanlisSet).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
 
         return {
           question: `${sayi.toLocaleString('tr-TR')} sayısı en yakın yüzlüğe yuvarlandığında hangi sayı elde edilir?`,
@@ -499,17 +515,31 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
 
       const sequenceHTML = dizi.map((val, idx) => {
         if (idx === boslukIndex) {
-          return `<div class="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-amber-400 to-orange-500 border-2 border-white text-blue-950 font-black flex items-center justify-center shadow-md animate-pulse text-xs xs:text-sm sm:text-base shrink-0">❓</div>`;
+          return `<div class="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 border-2 border-white text-white font-black flex items-center justify-center shadow-md text-sm xs:text-base sm:text-lg shrink-0 select-none">?</div>`;
         }
-        return `<div class="px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2 sm:py-1 rounded-lg bg-slate-900/90 border border-cyan-400 text-cyan-300 font-black text-[10px] xs:text-[11px] sm:text-xs md:text-sm shadow-sm shrink-0 text-center">${val.toLocaleString('tr-TR')}</div>`;
+        return `<div class="px-2 py-1 xs:px-2.5 xs:py-1 sm:px-3 sm:py-1.5 rounded-xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 text-white font-black text-xs xs:text-sm sm:text-base shadow-sm shrink-0 text-center">${val.toLocaleString('tr-TR')}</div>`;
       }).join('');
 
-      const yanlislar = [
+      const adaylar = [
         dogruCevap + step,
         dogruCevap - step,
         dogruCevap + (step * 2),
-        dogruCevap - (step * 2)
-      ].filter(y => y !== dogruCevap && y > 0).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
+        dogruCevap - (step * 2),
+        dogruCevap + (step * 3)
+      ];
+      const yanlisSet = new Set<number>();
+      for (const a of adaylar) {
+        if (a > 0 && a !== dogruCevap) {
+          yanlisSet.add(a);
+          if (yanlisSet.size === 3) break;
+        }
+      }
+      let off = step;
+      while (yanlisSet.size < 3) {
+        off += step;
+        if (dogruCevap + off !== dogruCevap) yanlisSet.add(dogruCevap + off);
+      }
+      const yanlislar = Array.from(yanlisSet).slice(0, 3).map(n => n.toLocaleString('tr-TR'));
 
       return {
         question: `Ritmik sayma zincirinde soru işareti (❓) yerine hangi sayı gelmelidir?`,
@@ -549,12 +579,25 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
 
       const sequenceHTML = dizi.map((val, idx) => {
         if (idx === boslukIndex) {
-          return `<div class="min-w-[42px] xs:min-w-[50px] sm:min-w-[58px] h-10 xs:h-12 sm:h-14 px-2 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-600 border-2 border-white text-white font-black flex items-center justify-center shadow-lg animate-pulse text-lg xs:text-xl sm:text-2xl shrink-0 whitespace-nowrap">❓</div>`;
+          return `<div class="min-w-[44px] xs:min-w-[52px] sm:min-w-[60px] h-10 xs:h-12 sm:h-14 px-2 rounded-xl bg-gradient-to-tr from-[#1a2842] to-[#121c2e] border-2 border-white text-white font-black flex items-center justify-center shadow-lg text-lg xs:text-xl sm:text-2xl shrink-0 whitespace-nowrap select-none">?</div>`;
         }
-        return `<div class="min-w-[42px] xs:min-w-[50px] sm:min-w-[58px] h-10 xs:h-12 sm:h-14 px-2.5 xs:px-3.5 rounded-xl bg-slate-800 border-2 border-white/70 text-white font-black text-sm xs:text-base sm:text-lg shadow-lg flex items-center justify-center shrink-0 whitespace-nowrap">${val}</div>`;
+        return `<div class="min-w-[44px] xs:min-w-[52px] sm:min-w-[60px] h-10 xs:h-12 sm:h-14 px-2.5 xs:px-3.5 rounded-xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 text-white font-black text-sm xs:text-base sm:text-lg shadow-lg flex items-center justify-center shrink-0 whitespace-nowrap">${val}</div>`;
       }).join('');
 
-      const yanlislar = [dogru + artis, dogru - artis, dogru + artis * 2, dogru - 1].filter(y => y !== dogru && y > 0).slice(0, 3);
+      const adaylar = [dogru + artis, dogru - artis, dogru + artis * 2, dogru - 1, dogru + 2, dogru - artis * 2];
+      const yanlisSet = new Set<number>();
+      for (const a of adaylar) {
+        if (a > 0 && a !== dogru) {
+          yanlisSet.add(a);
+          if (yanlisSet.size === 3) break;
+        }
+      }
+      let off = 1;
+      while (yanlisSet.size < 3) {
+        off++;
+        if (dogru + off !== dogru) yanlisSet.add(dogru + off);
+      }
+      const yanlislar = Array.from(yanlisSet).slice(0, 3);
 
       return {
         question: `Örüntüde soru işareti yerine hangi sayı gelmelidir?`,
@@ -1304,11 +1347,11 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center my-0.5">
-                <svg viewBox="0 0 160 140" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-                  <rect x="35" y="25" width="90" height="90" rx="6" fill="#1e3a8a" fill-opacity="0.85" stroke="#60a5fa" stroke-width="3" />
-                  <path d="M35 37 L47 37 L47 25" fill="none" stroke="#93c5fd" stroke-width="2" />
-                  <text x="80" y="18" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${kenar} cm</text>
-                  <text x="27" y="75" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${kenar} cm</text>
+                <svg viewBox="0 0 200 135" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]" style="overflow: visible;">
+                  <rect x="58" y="24" width="84" height="84" rx="6" fill="#1e3a8a" fill-opacity="0.85" stroke="#60a5fa" stroke-width="3" />
+                  <path d="M58 36 L70 36 L70 24" fill="none" stroke="#93c5fd" stroke-width="2" />
+                  <text x="100" y="17" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${kenar} cm</text>
+                  <text x="48" y="71" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${kenar} cm</text>
                 </svg>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
@@ -1332,11 +1375,11 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center my-0.5">
-                <svg viewBox="0 0 210 130" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-                  <rect x="25" y="25" width="145" height="80" rx="6" fill="#4c1d95" fill-opacity="0.85" stroke="#c084fc" stroke-width="3" />
-                  <path d="M25 37 L37 37 L37 25" fill="none" stroke="#e9d5ff" stroke-width="2" />
-                  <text x="97" y="18" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${uzun} cm</text>
-                  <text x="178" y="70" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${kisa} cm</text>
+                <svg viewBox="0 0 240 135" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]" style="overflow: visible;">
+                  <rect x="30" y="24" width="140" height="80" rx="6" fill="#4c1d95" fill-opacity="0.85" stroke="#c084fc" stroke-width="3" />
+                  <path d="M30 36 L42 36 L42 24" fill="none" stroke="#e9d5ff" stroke-width="2" />
+                  <text x="100" y="17" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${uzun} cm</text>
+                  <text x="178" y="69" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${kisa} cm</text>
                 </svg>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
@@ -1361,11 +1404,11 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center my-0.5">
-                <svg viewBox="0 0 180 140" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-                  <polygon points="90,22 25,115 155,115" fill="#064e3b" fill-opacity="0.85" stroke="#34d399" stroke-width="3" stroke-linejoin="round" />
-                  <text x="48" y="65" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${a} cm</text>
-                  <text x="132" y="65" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${b} cm</text>
-                  <text x="90" y="132" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${c} cm</text>
+                <svg viewBox="0 0 210 135" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]" style="overflow: visible;">
+                  <polygon points="105,20 40,110 170,110" fill="#064e3b" fill-opacity="0.85" stroke="#34d399" stroke-width="3" stroke-linejoin="round" />
+                  <text x="60" y="63" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${a} cm</text>
+                  <text x="150" y="63" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${b} cm</text>
+                  <text x="105" y="127" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${c} cm</text>
                 </svg>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
@@ -1384,7 +1427,7 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
   // 4.3 Birim Kareler ile Alan Tahmini ve Hesabı
   g4_alan_tahmini_ve_birim_kare: {
     title: "Birim Karelerle Alan Hesabı",
-    desc: "Kare, dikdörtgen ve birim kare modelleri üzerinden br² cinsinden alan hesaplama.",
+    desc: "Kare, dikdörtgen ve birim kare modelleri üzerinden br2 cinsinden alan hesaplama.",
     generate: () => {
       const mode = Math.random();
 
@@ -1395,29 +1438,48 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
         const alan = kisa * uzun;
         const cevre = 2 * (kisa + uzun);
 
-        const yanlislar = [cevre, alan + 4, alan - 4 > 0 ? alan - 4 : alan + 8]
-          .filter(y => y !== alan)
-          .slice(0, 3)
-          .map(n => `${n} br²`);
+        // Her zaman tam 3 farklı yanlış seçenek oluştur
+        const adaylar = [
+          cevre,
+          alan + 4,
+          alan > 4 ? alan - 4 : alan + 8,
+          kisa + uzun,
+          alan + 6,
+          alan > 6 ? alan - 6 : alan + 10
+        ];
+        const yanlislarSet = new Set<number>();
+        for (const aday of adaylar) {
+          if (aday > 0 && aday !== alan) {
+            yanlislarSet.add(aday);
+            if (yanlislarSet.size === 3) break;
+          }
+        }
+        let offset = 2;
+        while (yanlislarSet.size < 3) {
+          if (alan + offset !== alan) yanlislarSet.add(alan + offset);
+          if (yanlislarSet.size < 3 && alan - offset > 0) yanlislarSet.add(alan - offset);
+          offset += 2;
+        }
+        const yanlislar = Array.from(yanlislarSet).slice(0, 3).map(n => `${n} br2`);
 
         return {
-          question: `Kısa kenarı ${kisa} br, uzun kenarı ${uzun} br olan dikdörtgenin alanı kaç br²'dir?`,
+          question: `Kısa kenarı ${kisa} br, uzun kenarı ${uzun} br olan dikdörtgenin alanı kaç br2'dir?`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center my-0.5">
-                <svg viewBox="0 0 210 130" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-                  <rect x="25" y="25" width="145" height="80" rx="6" fill="#4c1d95" fill-opacity="0.85" stroke="#c084fc" stroke-width="3" />
-                  <path d="M25 37 L37 37 L37 25" fill="none" stroke="#e9d5ff" stroke-width="2" />
-                  <text x="97" y="18" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${uzun} br</text>
-                  <text x="178" y="70" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${kisa} br</text>
+                <svg viewBox="0 0 240 135" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]" style="overflow: visible;">
+                  <rect x="30" y="24" width="140" height="80" rx="6" fill="#4c1d95" fill-opacity="0.85" stroke="#c084fc" stroke-width="3" />
+                  <path d="M30 36 L42 36 L42 24" fill="none" stroke="#e9d5ff" stroke-width="2" />
+                  <text x="100" y="17" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${uzun} br</text>
+                  <text x="178" y="69" fill="#fde047" font-size="14" font-weight="900" text-anchor="start">${kisa} br</text>
                 </svg>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
-                Yukarıdaki dikdörtgenin <span class="text-yellow-300 underline decoration-yellow-400 font-black">alanı kaç br²'dir</span>?
+                Yukarıdaki dikdörtgenin <span class="text-yellow-300 underline decoration-yellow-400 font-black">alanı kaç br2'dir</span>?
               </div>
             </div>
           `,
-          correct: `${alan} br²`,
+          correct: `${alan} br2`,
           wrong: yanlislar,
           isLong: false
         };
@@ -1427,29 +1489,48 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
         const alan = kenar * kenar;
         const cevre = kenar * 4;
 
-        const yanlislar = [cevre, alan + 5, alan - 5 > 0 ? alan - 5 : alan + 9]
-          .filter(y => y !== alan)
-          .slice(0, 3)
-          .map(n => `${n} br²`);
+        // Her zaman tam 3 farklı yanlış seçenek oluştur (alan === cevre durumu dahil)
+        const adaylar = [
+          cevre,
+          alan + 5,
+          alan > 5 ? alan - 5 : alan + 9,
+          kenar * 2,
+          alan + 7,
+          alan > 7 ? alan - 7 : alan + 12
+        ];
+        const yanlislarSet = new Set<number>();
+        for (const aday of adaylar) {
+          if (aday > 0 && aday !== alan) {
+            yanlislarSet.add(aday);
+            if (yanlislarSet.size === 3) break;
+          }
+        }
+        let offset = 3;
+        while (yanlislarSet.size < 3) {
+          if (alan + offset !== alan) yanlislarSet.add(alan + offset);
+          if (yanlislarSet.size < 3 && alan - offset > 0) yanlislarSet.add(alan - offset);
+          offset += 3;
+        }
+        const yanlislar = Array.from(yanlislarSet).slice(0, 3).map(n => `${n} br2`);
 
         return {
-          question: `Kenar uzunluğu ${kenar} br olan karenin alanı kaç br²'dir?`,
+          question: `Kenar uzunluğu ${kenar} br olan karenin alanı kaç br2'dir?`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center my-0.5">
-                <svg viewBox="0 0 160 140" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-                  <rect x="35" y="25" width="90" height="90" rx="6" fill="#1e3a8a" fill-opacity="0.85" stroke="#60a5fa" stroke-width="3" />
-                  <path d="M35 37 L47 37 L47 25" fill="none" stroke="#93c5fd" stroke-width="2" />
-                  <text x="80" y="18" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${kenar} br</text>
-                  <text x="27" y="75" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${kenar} br</text>
+                <svg viewBox="0 0 200 135" class="h-20 sm:h-24 md:h-28 w-auto filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]" style="overflow: visible;">
+                  <rect x="58" y="24" width="84" height="84" rx="6" fill="#1e3a8a" fill-opacity="0.85" stroke="#60a5fa" stroke-width="3" />
+                  <path d="M58 36 L70 36 L70 24" fill="none" stroke="#93c5fd" stroke-width="2" />
+                  <text x="100" y="17" fill="#fde047" font-size="14" font-weight="900" text-anchor="middle">${kenar} br</text>
+                  <text x="48" y="71" fill="#fde047" font-size="14" font-weight="900" text-anchor="end">${kenar} br</text>
                 </svg>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
-                Yukarıdaki karenin <span class="text-amber-300 underline decoration-amber-400 font-black">alanı kaç br²'dir</span>?
+                Yukarıdaki karenin <span class="text-amber-300 underline decoration-amber-400 font-black">alanı kaç br2'dir</span>?
               </div>
             </div>
           `,
-          correct: `${alan} br²`,
+          correct: `${alan} br2`,
           wrong: yanlislar,
           isLong: false
         };
@@ -1459,17 +1540,35 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
         const sutun = Math.floor(Math.random() * 4) + 3; // 3..6
         const alan = satir * sutun;
 
-        const yanlislar = [alan + 2, alan - 2 > 0 ? alan - 2 : alan + 4, (satir + sutun) * 2]
-          .filter(y => y !== alan)
-          .slice(0, 3)
-          .map(n => `${n} br²`);
+        const adaylar = [
+          alan + 2,
+          alan > 2 ? alan - 2 : alan + 4,
+          (satir + sutun) * 2,
+          satir + sutun,
+          alan + 6,
+          alan > 4 ? alan - 4 : alan + 8
+        ];
+        const yanlislarSet = new Set<number>();
+        for (const aday of adaylar) {
+          if (aday > 0 && aday !== alan) {
+            yanlislarSet.add(aday);
+            if (yanlislarSet.size === 3) break;
+          }
+        }
+        let offset = 2;
+        while (yanlislarSet.size < 3) {
+          if (alan + offset !== alan) yanlislarSet.add(alan + offset);
+          if (yanlislarSet.size < 3 && alan - offset > 0) yanlislarSet.add(alan - offset);
+          offset += 2;
+        }
+        const yanlislar = Array.from(yanlislarSet).slice(0, 3).map(n => `${n} br2`);
 
         const gridCells = Array.from({ length: satir * sutun }).map(() => `
           <div class="w-5 h-5 sm:w-6 sm:h-6 rounded bg-cyan-500/80 border border-cyan-200/60 flex items-center justify-center text-[10px] text-white font-bold shrink-0">1</div>
         `).join('');
 
         return {
-          question: `${satir} satır ve ${sutun} sütundan oluşan şeklin alanı kaç br²'dir?`,
+          question: `${satir} satır ve ${sutun} sütundan oluşan şeklin alanı kaç br2'dir?`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-1 text-center">
               <div class="flex items-center justify-center p-2 rounded-xl bg-slate-900/90 border-2 border-cyan-400 shadow-md my-0.5">
@@ -1478,11 +1577,11 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
                 </div>
               </div>
               <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-md max-w-lg px-2">
-                Yukarıdaki şeklin <span class="text-yellow-300 underline decoration-yellow-400 font-black">alanı kaç br²'dir</span>?
+                Yukarıdaki şeklin <span class="text-yellow-300 underline decoration-yellow-400 font-black">alanı kaç br2'dir</span>?
               </div>
             </div>
           `,
-          correct: `${alan} br²`,
+          correct: `${alan} br2`,
           wrong: yanlislar,
           isLong: false
         };

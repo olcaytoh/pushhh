@@ -195,7 +195,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
           transformOrigin: 'center center',
           opacity: isReady ? 1 : 0.95,
         }}
-        className={`w-full max-w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} text-center transition-transform duration-100 ease-out will-change-transform ${className}`}
+        className={`w-full max-w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} text-center ${className}`}
       >
         {questionHTML ? (
           <div
