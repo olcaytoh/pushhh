@@ -113,9 +113,8 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     // Scale required so that neither width nor height overflows the card frame
     let computedScale = Math.min(scaleX, scaleY);
 
-    // User directive: In multiplayer (mode 2 & 3), keep font size consistent across player groups
-    // Avoid wildly enlarging simple questions while shrinking adjacent players
-    const maxEnlargeScale = mode === 1 ? 1.35 : mode === 2 ? 1.1 : 1.05;
+    // Allow content with surplus room to scale up proportionally so it fills the frame beautifully
+    const maxEnlargeScale = mode === 1 ? 1.6 : mode === 2 ? 1.35 : 1.25;
     const minShrinkScale = mode === 3 ? 0.45 : mode === 2 ? 0.5 : 0.55;
 
     if (computedScale > 1.02) {

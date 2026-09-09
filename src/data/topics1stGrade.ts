@@ -613,15 +613,15 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       const m = modeller[Math.floor(Math.random() * modeller.length)];
 
       const visualHTML = (m as any).img
-        ? `<div class="p-2 sm:p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.5)] shrink-0 flex items-center justify-center">
-             <img src="${(m as any).img}" alt="${m.nesne}" class="geo-cisim-img max-h-20 sm:max-h-24 md:max-h-28 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
+        ? `<div class="p-2.5 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.5)] shrink-0 flex items-center justify-center">
+             <img src="${(m as any).img}" alt="${m.nesne}" class="geo-cisim-img max-h-28 sm:max-h-36 md:max-h-44 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
            </div>`
-        : `<div class="text-5xl xs:text-6xl sm:text-7xl leading-none filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform my-1">${m.emoji}</div>`;
+        : `<div class="text-7xl xs:text-8xl sm:text-9xl leading-none filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform my-1 sm:my-2">${m.emoji}</div>`;
 
       const questionHTML = `
-        <div class="flex flex-col items-center justify-center gap-1.5 sm:gap-2 text-center my-auto">
+        <div class="flex flex-col items-center justify-center gap-2 sm:gap-3 text-center my-auto w-full px-1">
           ${visualHTML}
-          <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white px-2 leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+          <div class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white px-2 leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
             <b>"${m.nesne}"</b> hangi geometrik şekle benzer?
           </div>
         </div>
