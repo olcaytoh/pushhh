@@ -4824,12 +4824,12 @@ export default function App() {
             /* CATEGORY CARDS SCREEN */
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-1.5">
               {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
-              <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
+              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
                   <div className="flex items-center gap-2 sm:gap-3.5">
                     <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                      {selectedGrade}. SINIF MATEMATİK
+                      {selectedGrade === 1 ? '1. SINIF MATEMATİK' : selectedGrade === 2 ? '2. SINIF MATEMATİK' : selectedGrade === 3 ? '3. SINIF MATEMATİK' : '4. SINIF MATEMATİK'}
                     </h2>
                     <span className="text-amber-400/60 font-bold">•</span>
                     <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
@@ -4838,12 +4838,6 @@ export default function App() {
                   </div>
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
                 </div>
-              </div>
-
-              <div className="w-full text-center py-0.5 mb-1 sm:mb-1.5">
-                <p className="text-xs sm:text-sm font-medium text-slate-400">
-                  🎯 Çalışmak istediğin konuya dokun ve öğrenmeye başla!
-                </p>
               </div>
 
               {/* 4. SINIF: 4 MAIN THEME CARDS (2x2 GRID) */}
@@ -5322,7 +5316,7 @@ export default function App() {
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-2">
               
               {/* GLOWING HEADER BADGE - KATEGORİ VE ETKİNLİK SEÇİMİ */}
-              <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-3xl w-full mx-auto shrink-0 py-0.5">
+              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 {(() => {
                   const cat = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
                   if (!cat) return null;
@@ -5342,12 +5336,6 @@ export default function App() {
                     </div>
                   );
                 })()}
-              </div>
-
-              <div className="w-full text-center py-0.5 mb-1 sm:mb-1.5">
-                <p className="text-xs sm:text-sm font-medium text-slate-400">
-                  🎯 Oynamak veya çalışmak istediğin etkinliğe dokun ve başla!
-                </p>
               </div>
 
               {/* SUB-TOPICS RENDERED AS PILL BUTTONS IN A 2-COLUMN GRID (REFERENCE STYLE) */}
@@ -7123,6 +7111,15 @@ export default function App() {
         onClose={() => setShowCountersModal(false)}
         countersData={countersData}
         onCountersUpdated={(newData) => setCountersData(newData)}
+        onResetStats={() => {
+          setStatsData({});
+          setGroupStatsData(DEFAULT_GROUP_STATS);
+          try {
+            localStorage.removeItem('mathGameStats_v1');
+            localStorage.removeItem('mathGameGroupStats_v1');
+            localStorage.removeItem('mathGameStats');
+          } catch {}
+        }}
         playMp3={playMp3}
       />
 
