@@ -2177,10 +2177,12 @@ const TopicButtonReferenceStyle: React.FC<{
         <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide break-words">
           {title}
         </h4>
-        <p className="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5 uppercase tracking-wider flex items-center gap-1 leading-tight">
-          <span className={`w-1.5 h-1.5 rounded-full ${accent.dot} inline-block shrink-0`} />
-          <span>Alıştırma & Oyun</span>
-        </p>
+        <div className="mt-1 flex items-center">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#091122]/80 border border-slate-700/70 text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider backdrop-blur-xs shadow-xs">
+            <span className={`w-1.5 h-1.5 rounded-full ${accent.dot} inline-block shrink-0`} />
+            <span>Alıştırma & Oyun</span>
+          </span>
+        </div>
       </div>
 
       {/* Right 3D Green PLAY Action Image */}
@@ -4613,10 +4615,10 @@ export default function App() {
 
       {/* MAIN SCREEN ROUTING - GRADE SELECTION (1, 2, 3, 4) OR GRADE-SPECIFIC DASHBOARD */}
       {gameState === 'welcome' && (
-        <div className="flex-1 flex flex-col items-center pt-1 sm:pt-2 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-start mt-2 sm:mt-4 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
           {selectedGrade === null ? (
             /* GRADE / CLASS SELECTION SCREEN (1. SINIF, 2. SINIF, 3. SINIF, 4. SINIF) */
-            <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-center my-auto py-1">
+            <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
               {/* 1. ÜST BAŞLIK (BUTONLARIN ÜSTÜNDE / HEADER'IN HEMEN ALTINDA) */}
               <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
@@ -5343,7 +5345,7 @@ export default function App() {
                 
                 {/* 1. NESNELERİN GEOMETRİSİ */}
                 {selectedCategoryId === 'geometri' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">📐</span>
@@ -5379,9 +5381,9 @@ export default function App() {
 
                 {/* 2. SAYILAR VE NİCELİKLER */}
                 {selectedCategoryId === 'sayilar' && (
-                  <div className="space-y-5">
+                  <div className="space-y-4 sm:space-y-5">
                     {/* Standalone topics with Header Frame */}
-                    <div>
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
@@ -5417,7 +5419,7 @@ export default function App() {
                     </div>
 
                     {/* Ritmik Saymalar Group Section */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
@@ -5453,7 +5455,7 @@ export default function App() {
 
                     {/* Saati Okuma Group Section (Sadece 2. Sınıf) */}
                     {selectedGrade === 2 && (
-                      <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                      <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                         <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <span className="text-amber-400 text-base sm:text-xl shrink-0">⏰</span>
@@ -5487,7 +5489,7 @@ export default function App() {
 
                     {/* 1. Sınıf En Alttaki Ek Başlıklar: Sayı & Şekil Örüntüsü, Uzunluk, Tartma, Paralarımız with Header Frame */}
                     {selectedGrade === 1 && (
-                      <div>
+                      <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                         <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <span className="text-amber-400 text-base sm:text-xl shrink-0">📏</span>
@@ -5522,9 +5524,9 @@ export default function App() {
 
                 {/* 3. İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'islemler' && (
-                  <div className="space-y-5">
+                  <div className="space-y-4 sm:space-y-5">
                     {/* Toplama İşlemi Group */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">➕</span>
@@ -5559,7 +5561,7 @@ export default function App() {
                     </div>
 
                     {/* Çıkarma İşlemi Group */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">➖</span>
@@ -5594,7 +5596,7 @@ export default function App() {
                     </div>
 
                     {/* Karışık Toplama Çıkarma Problemleri with Header Frame */}
-                    <div>
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
@@ -5626,7 +5628,7 @@ export default function App() {
 
                     {/* Çarpma, Bölme ve Diğer İşlemler Cards (2. Sınıf) with Header Frame */}
                     {selectedGrade === 2 && (
-                      <div>
+                      <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                         <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <span className="text-amber-400 text-base sm:text-xl shrink-0">✖️</span>
@@ -5661,7 +5663,7 @@ export default function App() {
 
                 {/* 4. VERİ İŞLEME & ÖLÇME */}
                 {selectedCategoryId === 'olcme' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">📊</span>
@@ -5699,7 +5701,7 @@ export default function App() {
                 {selectedCategoryId === 'diger_oyunlar' && (
                   <div className="space-y-4 sm:space-y-5">
                     {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🪢</span>
@@ -5742,7 +5744,7 @@ export default function App() {
                     </div>
 
                     {/* BÖLÜM 2: ⚡ SÜRELİ MATEMATİK YARIŞLARI (1, 2 VE 3 KİŞİLİK) */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">⚡</span>
@@ -5785,7 +5787,7 @@ export default function App() {
                     </div>
 
                     {/* BÖLÜM 3: 🎮 MATEMATİK VE ZEKA OYUNLARI */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-lg">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🎮</span>
@@ -5831,9 +5833,9 @@ export default function App() {
 
                 {/* 3. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
                 {selectedCategoryId === 'g3_tema1' && (
-                  <div className="space-y-5">
+                  <div className="space-y-4 sm:space-y-5">
                     {/* Temel Sayı & Yuvarlama Konuları with Header Frame */}
-                    <div>
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
@@ -5871,7 +5873,7 @@ export default function App() {
                     </div>
 
                     {/* Ritmik Saymalar Alt Başlığı & Konuları */}
-                    <div className="bg-[#0e172a]/95 border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-md">
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
@@ -5912,7 +5914,7 @@ export default function App() {
                     </div>
 
                     {/* Tek-Çift ve Örüntü Konuları with Header Frame */}
-                    <div>
+                    <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                       <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
@@ -5951,7 +5953,7 @@ export default function App() {
 
                 {/* 3. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
                 {selectedCategoryId === 'g3_tema2' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">🍰</span>
@@ -5991,7 +5993,7 @@ export default function App() {
 
                 {/* 3. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'g3_tema3' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
@@ -6029,7 +6031,7 @@ export default function App() {
 
                 {/* 3. SINIF TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME */}
                 {selectedCategoryId === 'g3_tema4' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">📐</span>
@@ -6066,7 +6068,7 @@ export default function App() {
 
                 {/* 4. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
                 {selectedCategoryId === 'g4_tema1' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
@@ -6106,7 +6108,7 @@ export default function App() {
 
                 {/* 4. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
                 {selectedCategoryId === 'g4_tema2' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">🍰</span>
@@ -6145,7 +6147,7 @@ export default function App() {
 
                 {/* 4. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'g4_tema3' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
@@ -6184,7 +6186,7 @@ export default function App() {
 
                 {/* 4. SINIF TEMA 4: GEOMETRİ, VERİ VE OLASILIK */}
                 {selectedCategoryId === 'g4_tema4' && (
-                  <div className="space-y-4">
+                  <div className="bg-[#0e172a]/90 backdrop-blur-md border-2 border-slate-700/80 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl ring-1 ring-white/5">
                     <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="text-amber-400 text-base sm:text-xl shrink-0">📊</span>
