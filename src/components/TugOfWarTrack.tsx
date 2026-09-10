@@ -94,7 +94,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
   return (
     <div
       id="tug-of-war-arena"
-      className={`relative flex flex-col items-center justify-between h-full w-[280px] xs:w-[320px] sm:w-[400px] md:w-[480px] lg:w-[580px] xl:w-[700px] 2xl:w-[820px] rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_30px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 p-2 sm:p-2.5 overflow-hidden select-none ${className}`}
+      className={`relative flex flex-col items-center justify-between h-full min-h-0 w-[220px] xs:w-[250px] sm:w-[300px] md:w-[360px] lg:w-[420px] xl:w-[480px] 2xl:w-[540px] rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_30px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 p-1.5 sm:p-2.5 overflow-hidden select-none ${className}`}
     >
       {/* BACKGROUND FIELD DECORATION */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -194,7 +194,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
 
       {/* MIDDLE: THE DYNAMIC TUG OF WAR ARENA (BASKETBOL SAHASI ZEMİNİ VE ÇİZGİLERİ) */}
       <div
-        className="relative z-10 flex-1 w-full flex flex-col items-center justify-center min-h-[230px] sm:min-h-[270px] md:min-h-[300px] my-1 rounded-2xl border-2 border-white/80 overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.85),inset_0_0_20px_rgba(0,0,0,0.7)]"
+        className="relative z-10 flex-1 w-full flex flex-col items-center justify-center min-h-[160px] sm:min-h-[190px] md:min-h-[220px] my-0.5 sm:my-1 rounded-2xl border-2 border-white/80 overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.85),inset_0_0_20px_rgba(0,0,0,0.7)]"
         style={{
           backgroundColor: '#351806',
           backgroundImage: `
@@ -301,7 +301,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             )}
 
             {/* Video container with 9:16 aspect ratio */}
-            <div className="relative w-[70px] h-[124px] sm:w-[86px] sm:h-[153px] md:w-[102px] md:h-[181px] lg:w-[118px] lg:h-[210px] flex items-center justify-center">
+            <div className="relative w-[54px] h-[96px] sm:w-[68px] sm:h-[121px] md:w-[82px] md:h-[146px] lg:w-[98px] lg:h-[174px] flex items-center justify-center">
               <TransparentVideo
                 src="/hakap.mp4"
                 fallbackImg="/kap1.png"
@@ -346,7 +346,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             )}
 
             {/* Video container with 9:16 aspect ratio */}
-            <div className="relative w-[70px] h-[124px] sm:w-[86px] sm:h-[153px] md:w-[102px] md:h-[181px] lg:w-[118px] lg:h-[210px] flex items-center justify-center">
+            <div className="relative w-[54px] h-[96px] sm:w-[68px] sm:h-[121px] md:w-[82px] md:h-[146px] lg:w-[98px] lg:h-[174px] flex items-center justify-center">
               <TransparentVideo
                 src="/haej.mp4"
                 fallbackImg="/ejd1.png"

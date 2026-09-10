@@ -944,9 +944,11 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
               {activeMode === 'matching' && (
                 <>
-                  <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide mb-1">
-                    Tebrikler! Hafıza Tamamlandı!
-                  </h2>
+                  <div className="w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 text-center mb-2">
+                    <h2 className="text-base sm:text-xl font-black text-amber-300 uppercase tracking-wide">
+                      Tebrikler! Hafıza Tamamlandı!
+                    </h2>
+                  </div>
                   <p className="text-white/80 text-xs sm:text-sm font-bold mb-4">
                     {matchMoves} Hamlede ve {matchTimer} saniyede tüm çiftleri buldun!
                   </p>
@@ -955,9 +957,11 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
               {activeMode === 'quiz1' && (
                 <>
-                  <h2 className="text-xl sm:text-2xl font-black text-amber-300 uppercase tracking-wide mb-1">
-                    Oyun Sona Erdi!
-                  </h2>
+                  <div className="w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 text-center mb-2">
+                    <h2 className="text-base sm:text-xl font-black text-amber-300 uppercase tracking-wide">
+                      Oyun Sona Erdi!
+                    </h2>
+                  </div>
                   <p className="text-white/80 text-xs sm:text-sm font-bold mb-4">
                     Toplam Skorun: <span className="text-amber-400 font-black text-base">{quizScore}</span>
                   </p>
@@ -966,12 +970,14 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
               {(activeMode === 'duel2' || activeMode === 'duel3') && duelWinnerIndex !== null && (
                 <>
-                  <div className="text-xs font-black uppercase text-amber-400 tracking-wider mb-1">
-                    Şampiyon Belli Oldu!
+                  <div className="w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 text-center mb-2">
+                    <div className="text-[10px] sm:text-xs font-black uppercase text-amber-400 tracking-wider mb-0.5">
+                      Şampiyon Belli Oldu!
+                    </div>
+                    <h2 className="text-base sm:text-xl font-black text-white uppercase tracking-wide drop-shadow-md">
+                      👑 {duelPlayers[duelWinnerIndex]?.name} ({duelPlayers[duelWinnerIndex]?.avatar}) KAZANDI!
+                    </h2>
                   </div>
-                  <h2 className="text-xl sm:text-3xl font-black text-white uppercase tracking-wide mb-1 drop-shadow-md">
-                    👑 {duelPlayers[duelWinnerIndex]?.name} ({duelPlayers[duelWinnerIndex]?.avatar}) KAZANDI!
-                  </h2>
                   <p className="text-white/80 text-xs sm:text-sm font-bold mb-4">
                     {duelPlayers[duelWinnerIndex]?.score} Puan ile zafer senin oldu!
                   </p>
@@ -1008,7 +1014,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                     ⚔️ {activeMode === 'duel2' ? '2' : '3'} OYUNCU DÜELLO
                   </span>
                   <div className="flex-1 min-w-0 text-center px-1.5">
-                    <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-slate-950/85 backdrop-blur-xl border border-cyan-400/50 rounded-xl px-3 sm:px-6 py-1 shadow-[0_0_16px_rgba(6,182,212,0.3)]">
+                    <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_16px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 rounded-xl px-3 sm:px-6 py-1">
                       <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
                         {gameTitle} ({gameConcept.toUpperCase()})
                       </h2>

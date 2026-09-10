@@ -281,22 +281,22 @@ export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         
         {/* HEADER BAR */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-2.5 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl shadow-md border border-white/40">
+          <div className="flex items-center gap-2.5 px-3 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-lg sm:text-xl shadow-md border border-white/40 shrink-0">
               🧊
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-black text-amber-300 tracking-wide">
+                <h2 className="text-base sm:text-lg md:text-xl font-black text-amber-300 tracking-wide">
                   3D Geometri Keşif Labı
                 </h2>
                 <img 
                   src="/icon_2.png" 
                   alt="2. Sınıf" 
-                  className="h-6 sm:h-7 w-auto object-contain shrink-0 filter drop-shadow-sm" 
+                  className="h-5 sm:h-6 w-auto object-contain shrink-0 filter drop-shadow-sm" 
                 />
               </div>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-300 font-medium">
                 Geometrik cisimleri seçin, dokunarak döndürün, yüzey-ayrıt-köşelerini keşfedin!
               </p>
             </div>

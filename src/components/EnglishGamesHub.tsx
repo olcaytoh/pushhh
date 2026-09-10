@@ -64,15 +64,18 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
           </span>
         </button>
 
-        <div className="flex flex-col items-center justify-center text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#121c2e] text-slate-300 font-bold text-[8px] sm:text-[10px] tracking-wider uppercase border border-slate-700">
-            <Languages size={11} className="text-sky-400 shrink-0" />
-            <span>6. BÖLÜM</span>
-            <Sparkles size={11} className="text-sky-400 shrink-0" />
+        <div className="flex items-center justify-center text-center">
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.25)] border-l-4 border-l-sky-400">
+            <Languages size={12} className="text-sky-400 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-sky-300 font-bold uppercase tracking-wide">
+              6. BÖLÜM
+            </span>
+            <span className="text-sky-400/60 font-bold">•</span>
+            <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
+              İngilizce Oyunlar
+            </h1>
+            <Sparkles size={12} className="text-sky-400 shrink-0" />
           </div>
-          <h1 className="text-xs sm:text-sm md:text-base font-black text-slate-100 tracking-wide uppercase mt-0.5">
-            İngilizce Oyunlar
-          </h1>
         </div>
 
         <div className="w-12 sm:w-16 flex justify-end">

@@ -298,10 +298,10 @@ export const XOXGame: React.FC<XOXGameProps> = ({ onClose, playMp3 }) => {
           </span>
         </button>
 
-        <div className="flex items-center gap-1.5 px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-blue-950 font-black text-[11px] sm:text-xs md:text-sm tracking-wider uppercase shadow-md border-2 border-white">
-          <Sparkles size={14} className="shrink-0" />
+        <div className="flex items-center gap-2 px-3 sm:px-5 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 text-white font-black text-xs sm:text-sm tracking-wider uppercase">
+          <Sparkles size={14} className="text-amber-400 shrink-0" />
           <span>XOX (TİC-TAC-TOE)</span>
-          <img src="/icon_5.png" alt="Oyun İkonu" className="h-5 sm:h-6 w-auto object-contain shrink-0 filter drop-shadow-xs" />
+          <img src="/icon_5.png" alt="Oyun İkonu" className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-xs ml-1" />
         </div>
 
         <button

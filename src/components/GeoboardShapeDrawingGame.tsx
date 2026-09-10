@@ -1006,9 +1006,11 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
         <div className="fixed inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-4 text-center">
           <div className="w-full max-w-sm p-6 rounded-3xl bg-gradient-to-b from-amber-500/20 to-orange-600/20 border-2 border-amber-400/50 shadow-2xl backdrop-blur-xl flex flex-col items-center gap-4">
             <span className="text-6xl animate-bounce">🏆</span>
-            <h2 className="text-2xl font-black text-amber-300">
-              Tebrikler Şekil Ustası!
-            </h2>
+            <div className="w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+              <h2 className="text-xl font-black text-amber-300">
+                Tebrikler Şekil Ustası!
+              </h2>
+            </div>
             <p className="text-sm text-slate-200">
               Geometri tahtasındaki tüm görevleri başarıyla tamamladın ve <b>{score}</b> puan kazandın!
             </p>

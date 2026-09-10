@@ -91,11 +91,12 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
 
     // Detect if content has full-width image container (such as uzamsal iliskiler)
     const hasFullWidthImage = !!measureEl.querySelector('[data-full-width="true"], .uzamsal-soru-container');
+    const hasHalatBox = !!measureEl.querySelector('.halat-islem-box');
 
     // Margins based on user instruction:
     // Mode 3: Use right up to the frame borders ("çerçevelerin çizgisine kadar kullan")
-    const marginX = hasFullWidthImage ? 0 : (mode === 3 ? 2 : mode === 2 ? 6 : 10);
-    const marginY = hasFullWidthImage ? 0 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
+    const marginX = hasFullWidthImage ? 0 : hasHalatBox ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
+    const marginY = hasFullWidthImage ? 0 : hasHalatBox ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 8);
 
     const targetAvailW = Math.max(10, availWidth - marginX);
     const targetAvailH = Math.max(10, availHeight - marginY);
@@ -115,7 +116,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
 
     // Allow content with surplus room to scale up proportionally so it fills the frame beautifully
     const maxEnlargeScale = mode === 1 ? 1.6 : mode === 2 ? 1.35 : 1.25;
-    const minShrinkScale = mode === 3 ? 0.45 : mode === 2 ? 0.5 : 0.55;
+    const minShrinkScale = mode === 3 ? 0.22 : mode === 2 ? 0.25 : 0.32;
 
     if (computedScale > 1.02) {
       // Content has surplus room: gently enlarge if allowed, but keep player groups consistent

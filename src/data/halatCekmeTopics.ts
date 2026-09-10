@@ -31,8 +31,8 @@ function benzersizYanlislar(correct: number, adaylar: number[], minVal = 0): num
 }
 
 const renderHalatQuestionHTML = (islemStr: string, _islemTuru: string, _aciklama: string, renk: string) => `
-  <div class="flex flex-col items-center justify-center w-full h-full my-auto py-1 text-center select-none">
-    <div class="halat-islem-box px-5 py-3 sm:px-7 sm:py-3.5 md:px-9 md:py-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-2xl xs:text-3xl sm:text-4xl md:text-5xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg shrink-0 inline-flex items-center justify-center" style="white-space: nowrap !important; text-wrap: nowrap !important; word-break: keep-all !important;">
+  <div class="flex flex-col items-center justify-center w-full h-full my-auto py-1 text-center select-none max-w-full">
+    <div class="halat-islem-box px-3.5 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r ${renk} text-white font-black text-xl xs:text-2xl sm:text-3xl md:text-4xl border-2 sm:border-3 border-white shadow-[0_8px_25px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide drop-shadow-lg shrink-0 inline-flex items-center justify-center max-w-full" style="white-space: nowrap !important; text-wrap: nowrap !important; word-break: keep-all !important;">
       ${islemStr} = ?
     </div>
   </div>

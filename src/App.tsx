@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
-  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward
+  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord } from './types';
@@ -14,6 +14,7 @@ import { XOXGame } from './components/XOXGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
+import { FeedbackModal } from './components/FeedbackModal';
 import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIcon, GlossyScreenRotateIcon, GoldCoinDisplayCard } from './components/GameUIButtons';
 import { ModernStatsView, Cute3DStarMascotSVG } from './components/ModernStatsView';
 import { ClassCountersModal } from './components/ClassCountersModal';
@@ -2517,6 +2518,7 @@ export default function App() {
 
   // Tam Ekran Durumu
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   useEffect(() => {
     try {
@@ -4216,6 +4218,54 @@ export default function App() {
 
   const optionsList = shuffledOptions;
 
+  const getCurrentActivityTitle = (): string => {
+    if (show3DLab) return '3B Geometri Laboratuvarı';
+    if (showGeoboard) return 'Geometri Tahtası';
+    if (showXOXGame) return 'Matematik XOX Oyunu';
+    if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
+    if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
+    if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
+    if (showOtherGamesModal) return 'Diğer Oyunlar Merkezi';
+    if (showEnglishGamesModal) return 'İngilizce Oyunlar Merkezi';
+    if (gameState === 'playing' || showTopicModal) {
+      if (currentTopic) {
+        if (halatCekmeTopics[currentTopic]?.title) return halatCekmeTopics[currentTopic].title;
+        if (sureliExtraTopics[currentTopic]?.title) return sureliExtraTopics[currentTopic].title;
+        if (selectedGrade === 1 && topics1stGrade[currentTopic]?.title) return topics1stGrade[currentTopic].title;
+        if (selectedGrade === 2 && topics2ndGrade[currentTopic]?.title) return topics2ndGrade[currentTopic].title;
+        if (selectedGrade === 3 && topics3rdGrade[currentTopic]?.title) return topics3rdGrade[currentTopic].title;
+        if (selectedGrade === 4 && topics4thGrade[currentTopic]?.title) return topics4thGrade[currentTopic].title;
+        if (topics1stGrade[currentTopic]?.title) return topics1stGrade[currentTopic].title;
+        if (topics2ndGrade[currentTopic]?.title) return topics2ndGrade[currentTopic].title;
+        if (topics3rdGrade[currentTopic]?.title) return topics3rdGrade[currentTopic].title;
+        if (topics4thGrade[currentTopic]?.title) return topics4thGrade[currentTopic].title;
+        return currentTopic;
+      }
+    }
+    if (selectedCategoryId) {
+      const catMap: Record<string, string> = {
+        geometri: '1. Nesnelerin Geometrisi',
+        sayilar: '2. Sayılar ve Nicelikler',
+        islemler: '3. İşlemlerden Cebirsel Düşünmeye',
+        olcme: '4. Veri İşleme & Ölçme',
+        diger_oyunlar: '5. Diğer Oyunlar',
+        g3_tema1: '3. Sınıf Tema 1: Sayılar ve Nicelikler (1)',
+        g3_tema2: '3. Sınıf Tema 2: Sayılar ve Nicelikler (2)',
+        g3_tema3: '3. Sınıf Tema 3: İşlemlerden Cebirsel Düşünmeye',
+        g3_tema4: '3. Sınıf Tema 4: Nesnelerin Geometrisi ve Ölçme',
+        g4_tema1: '4. Sınıf Tema 1: Sayılar ve Nicelikler (1)',
+        g4_tema2: '4. Sınıf Tema 2: Sayılar ve Nicelikler (2)',
+        g4_tema3: '4. Sınıf Tema 3: İşlemlerden Cebirsel Düşünmeye',
+        g4_tema4: '4. Sınıf Tema 4: Geometri, Veri ve Olasılık',
+      };
+      return catMap[selectedCategoryId] || selectedCategoryId;
+    }
+    if (selectedGrade) {
+      return `${selectedGrade}. Sınıf Menüsü`;
+    }
+    return 'Giriş / Karşılama Ekranı';
+  };
+
   return (
     <div className="relative h-[100dvh] bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden select-none">
       {/* ORIGINAL POSITIVE CRISP BACKGROUND IMAGE WITH SOFT BLUR & CALMING DARK OVERLAY */}
@@ -4638,6 +4688,29 @@ export default function App() {
             {isFullscreen && (
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-slate-300 shadow-[0_0_6px_#cbd5e1]" />
             )}
+          </button>
+        </div>
+
+        {/* AYIRICI ÇİZGİ */}
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
+
+        {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (EN SAĞA KAYDIRILMIŞ + HEMEN SOLUNDA METİN) */}
+        <div className="ml-auto flex items-center shrink-0 pl-1">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              setShowFeedbackModal(true);
+            }}
+            title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
+            aria-label="Hata ve Görüş Bildir"
+            className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/60 hover:border-amber-400 rounded-xl sm:rounded-2xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
+          >
+            <span className="text-[11px] sm:text-xs md:text-sm font-black text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap drop-shadow-xs">
+              Hata-Görüş bildir
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#1b2b48] to-[#121c2e] group-hover:from-[#22365a] group-hover:to-[#17253d] border border-amber-500/60 group-hover:border-amber-400 flex items-center justify-center text-amber-400 group-hover:text-amber-300 shadow-xs transition-transform group-hover:scale-105 shrink-0">
+              <Mail size={16} className="drop-shadow-sm transition-transform group-hover:scale-110" />
+            </div>
           </button>
         </div>
       </header>
@@ -5391,24 +5464,54 @@ export default function App() {
                 
                 {/* 1. NESNELERİN GEOMETRİSİ */}
                 {selectedCategoryId === 'geometri' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">📐</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          {selectedGrade === 1 ? "Geometrik Cisim ve Şekiller" : "Geometri ve Uzamsal İlişkiler"}
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {(selectedGrade === 1
+                      ? ['uzamsal_iliskiler', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi']
+                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'tartma_olcme']
+                    ).map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 2. SAYILAR VE NİCELİKLER */}
+                {selectedCategoryId === 'sayilar' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Standalone topics */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {(selectedGrade === 1
-                        ? ['uzamsal_iliskiler', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi']
-                        : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'tartma_olcme']
+                        ? ['nesne_sayisi', 'sira_sayilari', 'cok_az_esit']
+                        : ['nesne_sayisi', 'sayi_basamak_degeri', 'en_yakin_onluk', 'deste_duzine', 'kesirler', 'sayi_karsilastirma', 'sira_sayilari', 'paralarimiz', 'zaman_olcme', 'uzunluk_olcme']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        const isSpan = selectedGrade === 1 && key === 'cok_az_esit';
+                        return (
+                          <div key={key} className={isSpan ? "sm:col-span-2" : ""}>
+                            <TopicButtonReferenceStyle
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Ritmik Saymalar Group Section */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['ritmik_ileri_1', 'ritmik_ileri_2', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_1', 'ritmik_geri_2', 'ritmik_geri_10']
+                        : ['ritmik_ileri_2', 'ritmik_ileri_3', 'ritmik_ileri_4', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_2', 'ritmik_geri_10']
                       ).map(key => {
                         const t = topics[key];
                         if (!t) return null;
@@ -5418,72 +5521,16 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            compact
                           />
                         );
                       })}
                     </div>
-                  </div>
-                )}
 
-                {/* 2. SAYILAR VE NİCELİKLER */}
-                {selectedCategoryId === 'sayilar' && (
-                  <div className="space-y-4 sm:space-y-5">
-                    {/* Standalone topics with Header Frame */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            {selectedGrade === 1 ? "Doğal Sayılar ve Nicelikler" : "Basamak Değeri ve Sayılar"}
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
+                    {/* Saati Okuma Group Section (Sadece 2. Sınıf) */}
+                    {selectedGrade === 2 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['nesne_sayisi', 'sira_sayilari', 'cok_az_esit']
-                          : ['nesne_sayisi', 'sayi_basamak_degeri', 'en_yakin_onluk', 'deste_duzine', 'kesirler', 'sayi_karsilastirma', 'sira_sayilari', 'paralarimiz', 'zaman_olcme', 'uzunluk_olcme']
-                        ).map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          const isSpan = selectedGrade === 1 && key === 'cok_az_esit';
-                          return (
-                            <div key={key} className={isSpan ? "sm:col-span-2" : ""}>
-                              <TopicButtonReferenceStyle
-                                topicKey={key}
-                                title={t.title}
-                                onClick={() => selectTopicAndStart(key)}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Ritmik Saymalar Group Section */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            Ritmik Saymalar {selectedGrade === 1 ? "(1'er, 2'şer, 5'er, 10'ar)" : ""}
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['ritmik_ileri_1', 'ritmik_ileri_2', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_1', 'ritmik_geri_2', 'ritmik_geri_10']
-                          : ['ritmik_ileri_2', 'ritmik_ileri_3', 'ritmik_ileri_4', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_2', 'ritmik_geri_10']
-                        ).map(key => {
+                        {['saat_tam', 'saat_yarim', 'saat_ceyrek_gece', 'saat_ceyrek_kala'].map(key => {
                           const t = topics[key];
                           if (!t) return null;
                           return (
@@ -5497,72 +5544,23 @@ export default function App() {
                           );
                         })}
                       </div>
-                    </div>
-
-                    {/* Saati Okuma Group Section (Sadece 2. Sınıf) */}
-                    {selectedGrade === 2 && (
-                      <div className="space-y-2.5 sm:space-y-3">
-                        <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <span className="text-amber-400 text-base sm:text-xl shrink-0">⏰</span>
-                            <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                              Saati Okuma (Tam, Yarım, Çeyrek)
-                            </h3>
-                            <span className="text-amber-400/60 font-bold">•</span>
-                            <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                              Alıştırma & Oyunlar
-                            </span>
-                          </div>
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                          {['saat_tam', 'saat_yarim', 'saat_ceyrek_gece', 'saat_ceyrek_kala'].map(key => {
-                            const t = topics[key];
-                            if (!t) return null;
-                            return (
-                              <TopicButtonReferenceStyle
-                                key={key}
-                                topicKey={key}
-                                title={t.title}
-                                onClick={() => selectTopicAndStart(key)}
-                                compact
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
                     )}
 
-                    {/* 1. Sınıf En Alttaki Ek Başlıklar: Sayı & Şekil Örüntüsü, Uzunluk, Tartma, Paralarımız with Header Frame */}
+                    {/* 1. Sınıf En Alttaki Ek Başlıklar: Sayı & Şekil Örüntüsü, Uzunluk, Tartma, Paralarımız */}
                     {selectedGrade === 1 && (
-                      <div className="space-y-2.5 sm:space-y-3">
-                        <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <span className="text-amber-400 text-base sm:text-xl shrink-0">📏</span>
-                            <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                              Örüntü, Uzunluk, Tartma ve Paralarımız
-                            </h3>
-                            <span className="text-amber-400/60 font-bold">•</span>
-                            <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                              Ölçme & Alıştırma
-                            </span>
-                          </div>
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                          {['sayi_sekil_oruntusu', 'uzunluk_olcme', 'tartma', 'paralarimiz'].map(key => {
-                            const t = topics[key];
-                            if (!t) return null;
-                            return (
-                              <TopicButtonReferenceStyle
-                                key={key}
-                                topicKey={key}
-                                title={t.title}
-                                onClick={() => selectTopicAndStart(key)}
-                              />
-                            );
-                          })}
-                        </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                        {['sayi_sekil_oruntusu', 'uzunluk_olcme', 'tartma', 'paralarimiz'].map(key => {
+                          const t = topics[key];
+                          if (!t) return null;
+                          return (
+                            <TopicButtonReferenceStyle
+                              key={key}
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                            />
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -5570,163 +5568,12 @@ export default function App() {
 
                 {/* 3. İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'islemler' && (
-                  <div className="space-y-4 sm:space-y-5">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Toplama İşlemi Group */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">➕</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            {selectedGrade === 1 ? "Toplama İşlemleri (20 İçinde & Onluklar)" : "Toplama İşlemi"}
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['toplama_20_ici', 'toplama_onluk', 'verilmeyen_toplanan', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
-                          : ['toplama_eldesiz_50', 'toplama_eldeli_50', 'verilmeyen_toplanani_bul', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
-                        ).map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                              compact
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Çıkarma İşlemi Group */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">➖</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            {selectedGrade === 1 ? "Çıkarma İşlemleri (20 İçinde & Onluklar)" : "Çıkarma İşlemi"}
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['cikarma_20_ici', 'cikarma_onluk', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
-                          : ['cikarma_onluksuz_50', 'cikarma_onluklu_50', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
-                        ).map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                              compact
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Karışık Toplama Çıkarma Problemleri with Header Frame */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            Matematik Problemleri
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Toplama ve Çıkarma
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-2 sm:gap-2.5 md:gap-3">
-                        {['toplama_cikarma_problemleri'].map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Çarpma, Bölme ve Diğer İşlemler Cards (2. Sınıf) with Header Frame */}
-                    {selectedGrade === 2 && (
-                      <div className="space-y-2.5 sm:space-y-3">
-                        <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <span className="text-amber-400 text-base sm:text-xl shrink-0">✖️</span>
-                            <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                              Çarpma ve Bölme İşlemleri
-                            </h3>
-                            <span className="text-amber-400/60 font-bold">•</span>
-                            <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                              2. Sınıf Alıştırmaları
-                            </span>
-                          </div>
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                          {['ardisik_toplama', 'ritmik_carpim', 'esit_paylastirma', 'ardisik_cikarma', 'kalansiz_bolme'].map(key => {
-                            const t = topics[key];
-                            if (!t) return null;
-                            return (
-                              <TopicButtonReferenceStyle
-                                key={key}
-                                topicKey={key}
-                                title={t.title}
-                                onClick={() => selectTopicAndStart(key)}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* 4. VERİ İŞLEME & ÖLÇME */}
-                {selectedCategoryId === 'olcme' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">📊</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Veri İşleme ve Tablo Okuma
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Grafik & Analiz
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {(selectedGrade === 1
-                        ? ['veri_grafik']
-                        : ['veri_grafik', 'takvim_olcme']
+                        ? ['toplama_20_ici', 'toplama_onluk', 'verilmeyen_toplanan', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
+                        : ['toplama_eldesiz_50', 'toplama_eldeli_50', 'verilmeyen_toplanani_bul', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
                       ).map(key => {
                         const t = topics[key];
                         if (!t) return null;
@@ -5736,131 +5583,52 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            compact
                           />
                         );
                       })}
                     </div>
-                  </div>
-                )}
 
-                {/* 5. DİĞER OYUNLAR (TÜM SINIF SEVİYELERİ İÇİN) */}
-                {selectedCategoryId === 'diger_oyunlar' && (
-                  <div className="space-y-4 sm:space-y-5">
-                    {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🪢</span>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                                Halat Çekme Oyunları ({selectedGrade}. Sınıf)
-                              </h3>
-                              <span className="text-amber-400/60 font-bold">•</span>
-                              <span className="text-[10px] sm:text-xs text-amber-300 font-bold tracking-wide">
-                                2 Kişilik Kapışma
-                              </span>
-                            </div>
-                            <span className="text-[10px] sm:text-xs text-slate-300 font-medium">Arkadaşınla 2 kişilik düelloda doğru cevabı ver, halatı takımına çek!</span>
-                          </div>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['halat_toplama_1', 'halat_cikarma_1']
-                          : selectedGrade === 2
-                          ? ['halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2']
-                          : selectedGrade === 3
-                          ? ['halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3']
-                          : ['halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4']
-                        ).map(key => {
-                          const t = topics[key] || halatCekmeTopics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                            />
-                          );
-                        })}
-                      </div>
+                    {/* Çıkarma İşlemi Group */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['cikarma_20_ici', 'cikarma_onluk', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
+                        : ['cikarma_onluksuz_50', 'cikarma_onluklu_50', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                          />
+                        );
+                      })}
                     </div>
 
-                    {/* BÖLÜM 2: ⚡ SÜRELİ MATEMATİK YARIŞLARI (1, 2 VE 3 KİŞİLİK) */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">⚡</span>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                                Süreli İşlem Etkinlikleri
-                              </h3>
-                              <span className="text-amber-400/60 font-bold">•</span>
-                              <span className="text-[10px] sm:text-xs text-amber-300 font-bold tracking-wide">
-                                Hızlı Cevapla
-                              </span>
-                            </div>
-                            <span className="text-[10px] sm:text-xs text-slate-300 font-medium">10 saniye süre dolmadan hızlıca cevapla! (1, 2 veya 3 Kişilik)</span>
-                          </div>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {(selectedGrade === 1
-                          ? ['sureli_toplama_cikarma', 'sureli_on_tamamlama']
-                          : selectedGrade === 2
-                          ? ['sureli_toplama_cikarma', 'sureli_carpma_bolme']
-                          : selectedGrade === 3
-                          ? ['sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
-                          : ['sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
-                        ).map(key => {
-                          const t = topics[key] || sureliExtraTopics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                            />
-                          );
-                        })}
-                      </div>
+                    {/* Karışık Toplama Çıkarma Problemleri */}
+                    <div className="grid grid-cols-1 gap-2 sm:gap-2.5 md:gap-3">
+                      {['toplama_cikarma_problemleri'].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
                     </div>
 
-                    {/* BÖLÜM 3: 🎮 MATEMATİK VE ZEKA OYUNLARI */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🎮</span>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                                Zeka ve Matematik Oyunları
-                              </h3>
-                              <span className="text-amber-400/60 font-bold">•</span>
-                              <span className="text-[10px] sm:text-xs text-amber-300 font-bold tracking-wide">
-                                Zeka & Alıştırma
-                              </span>
-                            </div>
-                            <span className="text-[10px] sm:text-xs text-slate-300 font-medium">Hafıza, Çark, Ritim & Dedektiflik</span>
-                          </div>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
+                    {/* Çarpma, Bölme ve Diğer İşlemler Cards (2. Sınıf) */}
+                    {selectedGrade === 2 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {[
-                          'balon_patlatma_mat',
-                          'matematik_hafiza',
-                          'hizli_islem_carki',
-                          'sayi_dedektifi',
-                          'ritim_labirent',
-                          'geometri_eslestirme'
-                        ].map(key => {
+                        {['ardisik_toplama', 'ritmik_carpim', 'esit_paylastirma', 'ardisik_cikarma', 'kalansiz_bolme'].map(key => {
                           const t = topics[key];
                           if (!t) return null;
                           return (
@@ -5873,402 +5641,347 @@ export default function App() {
                           );
                         })}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. VERİ İŞLEME & ÖLÇME */}
+                {selectedCategoryId === 'olcme' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {(selectedGrade === 1
+                      ? ['veri_grafik']
+                      : ['veri_grafik', 'takvim_olcme']
+                    ).map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 5. DİĞER OYUNLAR (TÜM SINIF SEVİYELERİ İÇİN) */}
+                {selectedCategoryId === 'diger_oyunlar' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['halat_toplama_1', 'halat_cikarma_1']
+                        : selectedGrade === 2
+                        ? ['halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2']
+                        : selectedGrade === 3
+                        ? ['halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3']
+                        : ['halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4']
+                      ).map(key => {
+                        const t = topics[key] || halatCekmeTopics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* BÖLÜM 2: ⚡ SÜRELİ MATEMATİK YARIŞLARI (1, 2 VE 3 KİŞİLİK) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['sureli_toplama_cikarma', 'sureli_on_tamamlama']
+                        : selectedGrade === 2
+                        ? ['sureli_toplama_cikarma', 'sureli_carpma_bolme']
+                        : selectedGrade === 3
+                        ? ['sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
+                        : ['sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
+                      ).map(key => {
+                        const t = topics[key] || sureliExtraTopics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* BÖLÜM 3: 🎮 MATEMATİK VE ZEKA OYUNLARI */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'balon_patlatma_mat',
+                        'matematik_hafiza',
+                        'hizli_islem_carki',
+                        'sayi_dedektifi',
+                        'ritim_labirent',
+                        'geometri_eslestirme'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 {/* 3. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
                 {selectedCategoryId === 'g3_tema1' && (
-                  <div className="space-y-4 sm:space-y-5">
-                    {/* Temel Sayı & Yuvarlama Konuları with Header Frame */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            3 Basamaklı Doğal Sayılar ve Yuvarlama
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {[
-                          'g3_uc_basamakli_okuma_yazma',
-                          'g3_sayi_cozumleme',
-                          'g3_sayi_siralama_karsilastirma',
-                          'g3_en_yakin_onluga_yuvarlama_100',
-                          'g3_en_yakin_onluga_yuvarlama',
-                          'g3_en_yakin_yuzluge_yuvarlama'
-                        ].map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                            />
-                          );
-                        })}
-                      </div>
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Temel Sayı & Yuvarlama Konuları */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_uc_basamakli_okuma_yazma',
+                        'g3_sayi_cozumleme',
+                        'g3_sayi_siralama_karsilastirma',
+                        'g3_en_yakin_onluga_yuvarlama_100',
+                        'g3_en_yakin_onluga_yuvarlama',
+                        'g3_en_yakin_yuzluge_yuvarlama'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
                     </div>
 
                     {/* Ritmik Saymalar Alt Başlığı & Konuları */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            Ritmik Saymalar (6, 7, 8, 9, 10 ve 100'er)
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {[
-                          'g3_ritmik_6',
-                          'g3_ritmik_7',
-                          'g3_ritmik_8',
-                          'g3_ritmik_9',
-                          'g3_ritmik_10',
-                          'g3_ritmik_100'
-                        ].map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                              compact
-                            />
-                          );
-                        })}
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_ritmik_6',
+                        'g3_ritmik_7',
+                        'g3_ritmik_8',
+                        'g3_ritmik_9',
+                        'g3_ritmik_10',
+                        'g3_ritmik_100'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                          />
+                        );
+                      })}
                     </div>
 
-                    {/* Tek-Çift ve Örüntü Konuları with Header Frame */}
-                    <div className="space-y-2.5 sm:space-y-3">
-                      <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                            Tek-Çift Sayılar ve Örüntüler
-                          </h3>
-                          <span className="text-amber-400/60 font-bold">•</span>
-                          <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                            Alıştırma & Oyunlar
-                          </span>
-                        </div>
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                        {[
-                          'g3_tek_cift_20ye_kadar_islemler',
-                          'g3_tek_cift_sayilar',
-                          'g3_sayi_sekil_oruntuleri',
-                          'g3_nesne_tahmin_karsilastirma'
-                        ].map(key => {
-                          const t = topics[key];
-                          if (!t) return null;
-                          return (
-                            <TopicButtonReferenceStyle
-                              key={key}
-                              topicKey={key}
-                              title={t.title}
-                              onClick={() => selectTopicAndStart(key)}
-                            />
-                          );
-                        })}
-                      </div>
+                    {/* Tek-Çift ve Örüntü Konuları */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_tek_cift_20ye_kadar_islemler',
+                        'g3_tek_cift_sayilar',
+                        'g3_sayi_sekil_oruntuleri',
+                        'g3_nesne_tahmin_karsilastirma'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 {/* 3. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
                 {selectedCategoryId === 'g3_tema2' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">🍰</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Kesirler, Zaman, Ölçme ve Paralarımız
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g3_birim_kesirler',
-                        'g3_pay_payda_modelleme',
-                        'g3_payda_10_100_kesir',
-                        'g3_zaman_olcme',
-                        'g3_uzunluk_kutle_sivi',
-                        'g3_paralarimiz_lira_kurus'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_birim_kesirler',
+                      'g3_pay_payda_modelleme',
+                      'g3_payda_10_100_kesir',
+                      'g3_zaman_olcme',
+                      'g3_uzunluk_kutle_sivi',
+                      'g3_paralarimiz_lira_kurus'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 3. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'g3_tema3' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Dört İşlem ve Cebirsel Düşünme
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g3_zihinden_toplama_cikarma_tahmin',
-                        'g3_toplama_cikarma_problemleri',
-                        'g3_carpma_bolme_pratik',
-                        'g3_verilmeyen_ogeyi_bulma'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_zihinden_toplama_cikarma_tahmin',
+                      'g3_toplama_cikarma_problemleri',
+                      'g3_carpma_bolme_pratik',
+                      'g3_verilmeyen_ogeyi_bulma'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 3. SINIF TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME */}
                 {selectedCategoryId === 'g3_tema4' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">📐</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Geometrik Cisimler, Şekiller ve Çevre
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g3_geometrik_cisimler_ozellikleri',
-                        'g3_temel_geometri_kavramlari',
-                        'g3_cevre_ve_olculebilir_nitelikler'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_geometrik_cisimler_ozellikleri',
+                      'g3_temel_geometri_kavramlari',
+                      'g3_cevre_ve_olculebilir_nitelikler'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 4. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
                 {selectedCategoryId === 'g4_tema1' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">🔢</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          4-6 Basamaklı Sayılar ve Ritmik Sayma
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g4_sayi_okuma_yazma',
-                        'g4_basamak_ve_cozumleme',
-                        'g4_sayi_siralama',
-                        'g4_en_yakin_onluk_yuzluk',
-                        'g4_ritmik_yuzer_biner',
-                        'g4_sayi_sekil_oruntuleri'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_sayi_okuma_yazma',
+                      'g4_basamak_ve_cozumleme',
+                      'g4_sayi_siralama',
+                      'g4_en_yakin_onluk_yuzluk',
+                      'g4_ritmik_yuzer_biner',
+                      'g4_sayi_sekil_oruntuleri'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 4. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
                 {selectedCategoryId === 'g4_tema2' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">🍰</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Kesirler ve Ölçme Birimleri Dönüşümü
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g4_kesir_cesitleri_modelleme',
-                        'g4_birim_kesirler_karsilastirma',
-                        'g4_paydalari_esit_kesir_islemleri',
-                        'g4_uzunluk_olculeri_donusum',
-                        'g4_kutle_olculeri_ton_kg_g'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_kesir_cesitleri_modelleme',
+                      'g4_birim_kesirler_karsilastirma',
+                      'g4_paydalari_esit_kesir_islemleri',
+                      'g4_uzunluk_olculeri_donusum',
+                      'g4_kutle_olculeri_ton_kg_g'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 4. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
                 {selectedCategoryId === 'g4_tema3' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">🧮</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Dört İşlem ve Zihinden Hesaplama
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g4_dort_islem_toplama_cikarma',
-                        'g4_carpma_islemi_3basamakli',
-                        'g4_kisa_yoldan_carpma_5',
-                        'g4_kisa_yoldan_carpma_50',
-                        'g4_kisa_yoldan_carpma_25',
-                        'g4_bolme_islemi_4basamakli',
-                        'g4_zihinden_carpma_bolme_10_100_1000',
-                        'g4_esitlik_ve_verilmeyen_deger'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_dort_islem_toplama_cikarma',
+                      'g4_carpma_islemi_3basamakli',
+                      'g4_kisa_yoldan_carpma_5',
+                      'g4_kisa_yoldan_carpma_50',
+                      'g4_kisa_yoldan_carpma_25',
+                      'g4_bolme_islemi_4basamakli',
+                      'g4_zihinden_carpma_bolme_10_100_1000',
+                      'g4_esitlik_ve_verilmeyen_deger'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
                 {/* 4. SINIF TEMA 4: GEOMETRİ, VERİ VE OLASILIK */}
                 {selectedCategoryId === 'g4_tema4' && (
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <span className="text-amber-400 text-base sm:text-xl shrink-0">📊</span>
-                        <h3 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                          Geometri, Veri Grafikleri ve Olasılık
-                        </h3>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                          Alıştırma & Oyunlar
-                        </span>
-                      </div>
-                      <span className="text-amber-400 text-base sm:text-xl shrink-0">✨</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                      {[
-                        'g4_geometrik_cisimler',
-                        'g4_cevre_uzunlugu',
-                        'g4_alan_tahmini_ve_birim_kare',
-                        'g4_dogru_isin_dogru_parcasi_acilar',
-                        'g4_simetri_dogrulari',
-                        'g4_sutun_grafigi_ve_tablolar',
-                        'g4_olaylarin_olasiligi'
-                      ].map(key => {
-                        const t = topics[key];
-                        if (!t) return null;
-                        return (
-                          <TopicButtonReferenceStyle
-                            key={key}
-                            topicKey={key}
-                            title={t.title}
-                            onClick={() => selectTopicAndStart(key)}
-                          />
-                        );
-                      })}
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_geometrik_cisimler',
+                      'g4_cevre_uzunlugu',
+                      'g4_alan_tahmini_ve_birim_kare',
+                      'g4_dogru_isin_dogru_parcasi_acilar',
+                      'g4_simetri_dogrulari',
+                      'g4_sutun_grafigi_ve_tablolar',
+                      'g4_olaylarin_olasiligi'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
@@ -6289,7 +6002,7 @@ export default function App() {
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
                 1
               </div>
-              <div className="h-full bg-[#0e172a] border border-slate-700/80 border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0 shadow-xs">
+              <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
                 <div className="flex items-center min-w-0">
                   <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
                     1. GRUP
@@ -6405,7 +6118,7 @@ export default function App() {
               ⚔️ {playerCountMode} OYUNCU DÜELLO
             </span>
             <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
-              <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-3 sm:px-6 shadow-xs">
+              <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
                 <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words">
                   {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || ''}
                 </h2>
@@ -6799,13 +6512,13 @@ export default function App() {
               <div className="relative w-full max-w-[560px] sm:max-w-[660px] md:max-w-[720px] flex flex-col items-center justify-center select-none px-2 py-1">
                 {/* 1. TOP HEADER SECTION: BANNER & WINNER ANNOUNCEMENT (INSIDE CREAM REGION) */}
                 <div className="relative z-10 flex flex-col items-center shrink-0 w-full mb-1 sm:mb-2">
-                  <div className="relative w-full max-w-[360px] xs:max-w-[420px] sm:max-w-[500px] h-12 xs:h-14 sm:h-16 flex items-center justify-center px-4">
+                  <div className="relative w-full max-w-[360px] xs:max-w-[440px] sm:max-w-[520px] rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 flex items-center justify-center px-4 py-2">
                     {/* bb3.png BANNER BACKGROUND */}
                     <div 
-                      className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]"
+                      className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none opacity-30 filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]"
                       style={{ backgroundImage: `url('/bb3.png')` }}
                     />
-                    <div className="relative z-10 flex flex-col items-center justify-center -translate-y-0.5 sm:-translate-y-1">
+                    <div className="relative z-10 flex flex-col items-center justify-center">
                       <h2 className="text-[13px] xs:text-[15px] sm:text-lg md:text-xl font-black text-amber-200 uppercase tracking-wider drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] leading-tight">
                         🏆 {playerCountMode === 3 ? '3 OYUNCU KAPIŞMA ŞAMPİYONU' : '2 OYUNCU KAPIŞMA ŞAMPİYONU'}
                       </h2>
@@ -6983,20 +6696,16 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center w-full max-w-sm">
-                      {/* BANNER WITH bb3.png BEHIND "Üzgünüm, Canların Bitti!" */}
-                      <div className="relative w-full h-10 sm:h-12 flex items-center justify-center px-3">
-                        <div 
-                          className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
-                          style={{ backgroundImage: `url('/bb3.png')` }}
-                        />
-                        <div className="relative z-10 flex items-center justify-center gap-1.5 -translate-y-0.5">
+                      {/* STANDARDIZED FRAME FOR GAME OVER HEADER */}
+                      <div className="relative w-full rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-rose-500/80 shadow-[0_0_20px_rgba(244,63,94,0.3)] border-l-4 border-l-rose-500 flex items-center justify-center px-4 py-2">
+                        <div className="relative z-10 flex items-center justify-center gap-1.5">
                           <span className="text-base sm:text-lg drop-shadow-md">💔🎒</span>
-                          <h2 className="text-[10px] sm:text-xs md:text-sm font-black text-amber-100 uppercase tracking-wide [text-shadow:0_2px_4px_rgba(0,0,0,0.9),0_0_8px_rgba(0,0,0,0.8)]">
+                          <h2 className="text-[11px] sm:text-xs md:text-sm font-black text-rose-200 uppercase tracking-wide drop-shadow-md">
                             Üzgünüm, Canların Bitti!
                           </h2>
                         </div>
                       </div>
-                      <div className="mt-0.5">
+                      <div className="mt-1">
                         <GoldCoinDisplayCard sessionCoins={gameResult.score * 10} totalCoins={totalCoins} compact={true} />
                       </div>
                     </div>
@@ -7378,6 +7087,15 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* FEEDBACK & ERROR REPORT MODAL */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        currentGrade={selectedGrade}
+        currentTopicTitle={getCurrentActivityTitle()}
+        playerCount={isHalatCekmeTopic(currentTopic) ? 2 : playerCountMode}
+        playMp3={playMp3}
+      />
     </div>
   );
 }
