@@ -2200,18 +2200,123 @@ const TopicButtonReferenceStyle: React.FC<{
   title: string;
   onClick: () => void;
   compact?: boolean;
-}> = ({ topicKey, title, onClick, compact }) => {
+  categoryTheme?: string;
+}> = ({ topicKey, title, onClick, compact, categoryTheme }) => {
   const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.png';
   const accent = getIconAccentColor(iconUrl);
+
+  const themeMap: Record<string, {
+    bg: string;
+    border: string;
+    hoverBorder: string;
+    shadow: string;
+    badgeBg: string;
+    badgeBorder: string;
+    badgeText: string;
+    dot: string;
+    btnText: string;
+    btnBg: string;
+  }> = {
+    geometri: {
+      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e]',
+      border: 'border-2 border-emerald-500/70 border-l-4 border-l-emerald-400',
+      hoverBorder: 'hover:border-emerald-400',
+      shadow: 'shadow-[0_0_16px_rgba(16,185,129,0.22)] hover:shadow-[0_0_22px_rgba(16,185,129,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-emerald-400/30',
+      badgeText: 'text-emerald-300',
+      dot: 'bg-emerald-400',
+      btnText: 'text-emerald-300',
+      btnBg: 'bg-emerald-400',
+    },
+    sayilar: {
+      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053]',
+      border: 'border-2 border-sky-500/70 border-l-4 border-l-sky-400',
+      hoverBorder: 'hover:border-sky-400',
+      shadow: 'shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-sky-400/30',
+      badgeText: 'text-sky-300',
+      dot: 'bg-sky-400',
+      btnText: 'text-sky-300',
+      btnBg: 'bg-sky-400',
+    },
+    islemler: {
+      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d]',
+      border: 'border-2 border-amber-500/70 border-l-4 border-l-amber-400',
+      hoverBorder: 'hover:border-amber-400',
+      shadow: 'shadow-[0_0_16px_rgba(245,158,11,0.22)] hover:shadow-[0_0_22px_rgba(245,158,11,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-amber-400/30',
+      badgeText: 'text-amber-300',
+      dot: 'bg-amber-400',
+      btnText: 'text-amber-300',
+      btnBg: 'bg-amber-400',
+    },
+    olcme: {
+      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f]',
+      border: 'border-2 border-indigo-500/70 border-l-4 border-l-indigo-400',
+      hoverBorder: 'hover:border-indigo-400',
+      shadow: 'shadow-[0_0_16px_rgba(129,140,248,0.22)] hover:shadow-[0_0_22px_rgba(129,140,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-indigo-400/30',
+      badgeText: 'text-indigo-300',
+      dot: 'bg-indigo-400',
+      btnText: 'text-indigo-300',
+      btnBg: 'bg-indigo-400',
+    },
+    diger_oyunlar: {
+      bg: 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430]',
+      border: 'border-2 border-pink-500/70 border-l-4 border-l-pink-400',
+      hoverBorder: 'hover:border-pink-400',
+      shadow: 'shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-pink-400/30',
+      badgeText: 'text-pink-300',
+      dot: 'bg-pink-400',
+      btnText: 'text-pink-300',
+      btnBg: 'bg-pink-400',
+    },
+    lab3d: {
+      bg: 'bg-gradient-to-r from-[#141b36] via-[#1a254c] to-[#141b36] hover:from-[#1b2344] hover:via-[#222f60] hover:to-[#1b2344]',
+      border: 'border-2 border-teal-500/70 border-l-4 border-l-teal-400',
+      hoverBorder: 'hover:border-teal-400',
+      shadow: 'shadow-[0_0_16px_rgba(45,212,191,0.22)] hover:shadow-[0_0_22px_rgba(45,212,191,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-teal-400/30',
+      badgeText: 'text-teal-300',
+      dot: 'bg-teal-400',
+      btnText: 'text-teal-300',
+      btnBg: 'bg-teal-400',
+    },
+    ingilizce: {
+      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053]',
+      border: 'border-2 border-sky-500/70 border-l-4 border-l-sky-400',
+      hoverBorder: 'hover:border-sky-400',
+      shadow: 'shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-sky-400/30',
+      badgeText: 'text-sky-300',
+      dot: 'bg-sky-400',
+      btnText: 'text-sky-300',
+      btnBg: 'bg-sky-400',
+    }
+  };
+
+  const activeTheme = categoryTheme ? themeMap[categoryTheme] : null;
 
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full bg-[#121c2e] hover:bg-[#18263e] border-2 border-slate-700/80 border-l-4 ${accent.border} ${accent.hover} rounded-xl sm:rounded-2xl ${
+      className={`group relative w-full ${
+        activeTheme 
+          ? `${activeTheme.bg} ${activeTheme.border} ${activeTheme.hoverBorder} ${activeTheme.shadow}`
+          : `bg-[#121c2e] hover:bg-[#18263e] border-2 border-slate-700/80 border-l-4 ${accent.border} ${accent.hover} shadow-md hover:shadow-lg`
+      } rounded-xl sm:rounded-2xl ${
         compact 
-          ? 'px-2 sm:px-2.5 py-1.5 sm:py-2 pr-3 min-h-[64px] sm:min-h-[76px]' 
-          : 'px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3.5 min-h-[76px] sm:min-h-[86px] md:min-h-[96px]'
-      } flex items-center gap-2.5 sm:gap-3.5 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
+          ? 'px-2 sm:px-2.5 py-1.5 sm:py-2 pr-2.5 sm:pr-3 min-h-[60px] sm:min-h-[70px]' 
+          : 'px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 min-h-[72px] sm:min-h-[82px] md:min-h-[90px]'
+      } flex items-center gap-2.5 sm:gap-3.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
     >
       {/* Left 3D Icon - Enlarged 100%, pure 3D borderless icon with rich depth shadow */}
       <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
@@ -2220,8 +2325,8 @@ const TopicButtonReferenceStyle: React.FC<{
           alt={title} 
           className={`${
             compact 
-              ? 'w-12 h-12 sm:w-14 sm:h-14 md:w-15 md:h-15' 
-              : 'w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18'
+              ? 'w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14' 
+              : 'w-13 h-13 sm:w-15 sm:h-15 md:w-17 md:h-17'
           } object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform`} 
         />
       </div>
@@ -2232,24 +2337,43 @@ const TopicButtonReferenceStyle: React.FC<{
           {title}
         </h4>
         <div className="mt-1 flex items-center">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#091122] border border-slate-700/70 text-[10px] sm:text-xs text-slate-300 font-bold uppercase tracking-wider shadow-xs">
-            <span className={`w-1.5 h-1.5 rounded-full ${accent.dot} inline-block shrink-0`} />
+          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md ${
+            activeTheme 
+              ? `${activeTheme.badgeBg} ${activeTheme.badgeBorder} ${activeTheme.badgeText}` 
+              : 'bg-[#091122] border border-slate-700/70 text-slate-300'
+          } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${activeTheme ? activeTheme.dot : accent.dot} inline-block shrink-0`} />
             <span>Alıştırma & Oyun</span>
           </span>
         </div>
       </div>
 
-      {/* Right 3D Green PLAY Action Image */}
-      <div className={`z-10 shrink-0 relative ${
-        compact 
-          ? 'w-[76px] h-[34px] sm:w-[88px] sm:h-[38px] md:w-[100px] md:h-[44px]' 
-          : 'w-[84px] h-[38px] sm:w-[98px] sm:h-[44px] md:w-[112px] md:h-[50px]'
-      } group-hover:scale-105 transition-transform filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center`}>
-        <div 
-          className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
-          style={{ backgroundImage: `url('/ply.png')` }}
-        />
-      </div>
+      {/* Right Action: Clean BAŞLA Action badge if activeTheme, otherwise fallback ply.png */}
+      {activeTheme ? (
+        <div className={`z-10 shrink-0 flex items-center gap-1.5 ${
+          compact ? 'px-2 py-1' : 'px-2.5 sm:px-3 py-1.5'
+        } rounded-xl bg-black/25 group-hover:bg-black/40 border border-white/15 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all`}>
+          <span className={`font-black ${compact ? 'text-[9px] sm:text-[10px]' : 'text-[10px] sm:text-xs'} ${activeTheme.btnText} tracking-wider uppercase drop-shadow`}>
+            BAŞLA
+          </span>
+          <div className={`${
+            compact ? 'w-4 h-4 sm:w-5 sm:h-5 text-[9px]' : 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs'
+          } rounded-md sm:rounded-lg ${activeTheme.btnBg} text-slate-950 flex items-center justify-center font-black shadow group-hover:rotate-6 transition-transform`}>
+            ▶
+          </div>
+        </div>
+      ) : (
+        <div className={`z-10 shrink-0 relative ${
+          compact 
+            ? 'w-[76px] h-[34px] sm:w-[88px] sm:h-[38px] md:w-[100px] md:h-[44px]' 
+            : 'w-[84px] h-[38px] sm:w-[98px] sm:h-[44px] md:w-[112px] md:h-[50px]'
+        } group-hover:scale-105 transition-transform filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center`}>
+          <div 
+            className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
+            style={{ backgroundImage: `url('/ply.png')` }}
+          />
+        </div>
+      )}
     </button>
   );
 };
@@ -5008,135 +5132,150 @@ export default function App() {
               {selectedGrade === 4 ? (
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
-                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 */}
+                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g4_tema1');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           1. Sayılar ve Nicelikler (1)
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           4-6 Basamaklı Sayılar, Çözümleme & Yuvarlama
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 */}
+                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g4_tema2');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           2. Sayılar ve Nicelikler (2)
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Kesirler, Birim Kesirler & Ölçme Birimleri
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
+                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g4_tema3');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           3. İşlemlerden Cebirsel Düşünmeye
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Eldeli Toplama, Çarpma, Bölme & Cebir
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 4: GEOMETRİ, VERİ VE OLASILIK */}
+                    {/* TEMA 4: GEOMETRİ, VERİ VE OLASILIK (SAFİR / İNDİGO TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g4_tema4');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_39.png" alt="Geometri, Veri ve Olasılık" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           4. Geometri, Veri ve Olasılık
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
                           Açılar, Çevre, Alan, Grafikler & Olasılık
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
                   </div>
 
-                  {/* ROW 3: 5. DİĞER OYUNLAR (4. SINIF) */}
+                  {/* ROW 3: 5. DİĞER OYUNLAR (4. SINIF) (PEMBE / GÜL TEMA) */}
                   <div className="w-full">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('diger_oyunlar');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           5. Diğer Oyunlar
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
                           2 Kişilik Halat Çekme Düellosu, Süreli Çarpma & Bölme
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
                   </div>
@@ -5144,334 +5283,487 @@ export default function App() {
               ) : selectedGrade === 3 ? (
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
-                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 */}
+                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g3_tema1');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           1. Sayılar ve Nicelikler (1)
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           1000'e Kadar Sayılar, Çözümleme & Ritmik
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 */}
+                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g3_tema2');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           2. Sayılar ve Nicelikler (2)
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Kesirler, Zaman, Ölçme & Paralarımız
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
+                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g3_tema3');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           3. İşlemlerden Cebirsel Düşünmeye
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Zihinden İşlem, Çarpma, Bölme & Cebir
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME */}
+                    {/* TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME (SAFİR / İNDİGO TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('g3_tema4');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_39.png" alt="Geometri ve Ölçme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           4. Nesnelerin Geometrisi ve Ölçme
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
                           Cisimler, Açılar & Çevre Hesabı
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
                   </div>
 
-                  {/* ROW 3: 5. DİĞER OYUNLAR (3. SINIF) */}
+                  {/* ROW 3: 5. DİĞER OYUNLAR (3. SINIF) (PEMBE / GÜL TEMA) */}
                   <div className="w-full">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('diger_oyunlar');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           5. Diğer Oyunlar
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
                           2 Kişilik Halat Çekme Düellosu, Süreli Çarpma & Bölme
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
                   </div>
                 </div>
-              ) : (
-                /* MAIN CATEGORY CARDS - 1. & 2. SINIF (5 OR 6 CARDS IN 2-COLUMN GRID + BOTTOM ROW) */
+              ) : selectedGrade === 1 ? (
+                /* MAIN CATEGORY CARDS - 1. SINIF (YENİ MODERN VE DENGELİ TASARIM) */
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
-                  {/* ROWS 1 & 2: 2x2 GRID FOR FIRST 4 MAIN CATEGORIES */}
+                  {/* ÜST 4 KART: 2x2 IZGARA */}
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
-                    {/* CARD 1: GEOMETRİ */}
+                    {/* KART 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('geometri');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           1. Nesnelerin Geometrisi
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Şekiller, Cisimler & Örüntüler
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* CARD 2: SAYILAR */}
+                    {/* KART 2: SAYILAR (GÖKYÜZÜ / MAVİ TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('sayilar');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           2. Sayılar ve Nicelikler
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           Ritmik Sayma & Basamak Değeri
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* CARD 3: İŞLEMLER */}
+                    {/* KART 3: İŞLEMLER (ALTIN / TURUNCU TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('islemler');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           3. İşlemler ve Cebir
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Toplama, Çıkarma, Çarpma, Bölme
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
 
-                    {/* CARD 4: VERİ İŞLEME */}
+                    {/* KART 4: VERİ İŞLEME (SAFİR / İNDİGO TEMA) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setSelectedCategoryId('olcme');
                       }}
-                      className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
-                      <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                         <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
                           4. Veri İşleme
                         </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
                           Sütun Grafikleri & Tablolar
                         </p>
                       </div>
 
-                      <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                        <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
                       </div>
                     </button>
                   </div>
 
-                  {/* ROW 3: 2-COLUMN FOR 2. SINIF (5 & 6) OR SINGLE 5TH ITEM FOR 1. SINIF */}
-                  {selectedGrade === 2 ? (
-                    <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
-                      {/* CARD 5: 5. DİĞER OYUNLAR */}
+                  {/* ALT SIRA: 5. DİĞER OYUNLAR (ORTALANMIŞ, ÜST KARTLARLA AYNI GENİŞLİKTE VE DENGELİ) */}
+                  <div className="w-full flex justify-center">
+                    <div className="w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)]">
                       <button
                         onClick={() => {
                           playMp3('/op.mp3');
                           setSelectedCategoryId('diger_oyunlar');
                         }}
-                        className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                        className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                       >
-                        <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                           <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                         </div>
 
                         <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
                             5. Diğer Oyunlar
                           </h3>
-                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
-                            Balon, Hafıza & Zeka
-                          </p>
-                        </div>
-
-                        <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                          <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
-                        </div>
-                      </button>
-
-                      {/* CARD 6: 6. 3D GEOMETRİ LABI */}
-                      <button
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setShow3DLab(true);
-                        }}
-                        className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_10.png" alt="3D Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
-                        </div>
-
-                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
-                            6. 3D Geometri Labı
-                          </h3>
-                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
-                            Küp, Silindir, Prizma 3D
-                          </p>
-                        </div>
-
-                        <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                          <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
-                        </div>
-                      </button>
-                    </div>
-                  ) : (
-                    /* ROW 3: SINGLE 5TH ITEM (5. DİĞER OYUNLAR) FOR 1. SINIF */
-                    <div className="w-full">
-                      {/* CARD 5: 5. DİĞER OYUNLAR */}
-                      <button
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setSelectedCategoryId('diger_oyunlar');
-                        }}
-                        className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
-                        </div>
-
-                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white leading-tight uppercase tracking-wide break-words">
-                            5. Diğer Oyunlar
-                          </h3>
-                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-slate-400 mt-0.5 break-words leading-tight">
+                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
                             Balon, Hafıza & Zeka Oyunları
                           </p>
                         </div>
 
-                        <div className="z-10 shrink-0 relative w-[100px] h-[44px] sm:w-[120px] sm:h-[52px] md:w-[140px] md:h-[60px] group-hover:scale-105 transition-all filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                          <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                            ▶
+                          </div>
                         </div>
                       </button>
                     </div>
-                  )}
+                  </div>
+                </div>
+              ) : (
+                /* MAIN CATEGORY CARDS - 2. SINIF (ALTERNATİF 1: RENK KODLU CANLI KARTLAR) */
+                <div className="w-full max-w-6xl mx-auto">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('geometri');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Nesnelerin Geometrisi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Şekiller, Cisimler & Örüntüler
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 2: SAYILAR (GÖKYÜZÜ / MAVİ TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('sayilar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sayılar ve Nicelikler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Ritmik Sayma & Basamak Değeri
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: İŞLEMLER (KEHRİBAR / TURUNCU TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('islemler');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. İşlemler ve Cebir
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Toplama, Çıkarma, Çarpma, Bölme
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 4: VERİ İŞLEME (SAFİR / İNDİGO TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('olcme');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Veri İşleme
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Sütun Grafikleri & Tablolar
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 5: DİĞER OYUNLAR (PEMBE / GÜL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('diger_oyunlar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Diğer Oyunlar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                          Balon, Hafıza & Zeka
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 6: 3D GEOMETRİ LABI (TURKUAZ / TEAL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShow3DLab(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#141b36] via-[#1a254c] to-[#141b36] hover:from-[#1b2344] hover:via-[#222f60] hover:to-[#1b2344] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_10.png" alt="3D Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          6. 3D Geometri Labı
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
+                          Küp, Silindir, Prizma 3D
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-teal-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-teal-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -5484,19 +5776,138 @@ export default function App() {
                 {(() => {
                   const cat = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
                   if (!cat) return null;
+                  
+                  const headerThemeStyles: Record<string, { bg: string; border: string; glow: string; text: string; subText: string; accent: string }> = {
+                    geometri: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    sayilar: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    islemler: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    olcme: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                    diger_oyunlar: {
+                      bg: 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24]',
+                      border: 'border-2 border-pink-400/90 border-l-4 border-l-pink-400',
+                      glow: 'shadow-[0_0_20px_rgba(244,114,182,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-pink-300',
+                      accent: 'text-pink-400',
+                    },
+                    g3_tema1: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    g3_tema2: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    g3_tema3: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    g3_tema4: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                    g4_tema1: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    g4_tema2: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    g4_tema3: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    g4_tema4: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                  };
+
+                  const themeStyle = selectedCategoryId && headerThemeStyles[selectedCategoryId]
+                    ? headerThemeStyles[selectedCategoryId]
+                    : {
+                        bg: 'bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e]',
+                        border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                        glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                        text: 'text-white',
+                        subText: 'text-amber-300',
+                        accent: 'text-amber-400',
+                      };
+
                   return (
-                    <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                      <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎯</span>
+                    <div className={`flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl ${themeStyle.bg} ${themeStyle.border} ${themeStyle.glow}`}>
+                      <span className={`${themeStyle.accent} text-lg sm:text-2xl shrink-0`}>🎯</span>
                       <div className="flex items-center gap-2 sm:gap-3.5">
-                        <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
+                        <h2 className={`font-black text-xs sm:text-sm md:text-base ${themeStyle.text} uppercase tracking-wider drop-shadow-sm`}>
                           {cat.name}
                         </h2>
-                        <span className="text-amber-400/60 font-bold">•</span>
-                        <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
+                        <span className={`${themeStyle.accent}/60 font-bold`}>•</span>
+                        <span className={`text-[10px] sm:text-xs ${themeStyle.subText} font-bold uppercase tracking-wide`}>
                           Etkinliğini Seç ve Başla
                         </span>
                       </div>
-                      <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
+                      <span className={`${themeStyle.accent} text-lg sm:text-2xl shrink-0`}>✨</span>
                     </div>
                   );
                 })()}
@@ -5520,6 +5931,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
                         />
                       );
                     })}
@@ -5544,6 +5956,7 @@ export default function App() {
                               topicKey={key}
                               title={t.title}
                               onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="sayilar"
                             />
                           </div>
                         );
@@ -5565,6 +5978,7 @@ export default function App() {
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
                             compact
+                            categoryTheme="sayilar"
                           />
                         );
                       })}
@@ -5583,6 +5997,7 @@ export default function App() {
                               title={t.title}
                               onClick={() => selectTopicAndStart(key)}
                               compact
+                              categoryTheme="sayilar"
                             />
                           );
                         })}
@@ -5601,6 +6016,7 @@ export default function App() {
                               topicKey={key}
                               title={t.title}
                               onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="sayilar"
                             />
                           );
                         })}
@@ -5627,6 +6043,7 @@ export default function App() {
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
                             compact
+                            categoryTheme="islemler"
                           />
                         );
                       })}
@@ -5647,6 +6064,7 @@ export default function App() {
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
                             compact
+                            categoryTheme="islemler"
                           />
                         );
                       })}
@@ -5663,6 +6081,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="islemler"
                           />
                         );
                       })}
@@ -5680,6 +6099,7 @@ export default function App() {
                               topicKey={key}
                               title={t.title}
                               onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="islemler"
                             />
                           );
                         })}
@@ -5703,6 +6123,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="olcme"
                         />
                       );
                     })}
@@ -5719,31 +6140,32 @@ export default function App() {
                           playMp3('/op.mp3');
                           setShowAynisiniBul(true);
                         }}
-                        className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                        className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                       >
-                        <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
                           <img src="/MENUIKON/grid_icon_20.png" alt="Aynısını Bul" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                         </div>
                         <div className="flex-1 text-left min-w-0 py-0.5 z-10">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 border border-amber-400/60 text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wider shadow-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block shrink-0 animate-pulse" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-pink-400/20 border border-pink-400/60 text-pink-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block shrink-0 animate-pulse" />
                               <span>2 Kişilik Kapışma</span>
                             </span>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/50 text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider shadow-xs">
                               <span>Hedef 7 Doğru (3 Hata Elenir)</span>
                             </span>
                           </div>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
+                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-pink-300 transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
                             Aynısını Bul
                           </h3>
-                          <p className="text-[10px] sm:text-xs text-slate-300 line-clamp-1 mt-0.5 font-medium">
+                          <p className="text-[10px] sm:text-xs text-pink-200/70 line-clamp-1 mt-0.5 font-medium">
                             Kırmızı ve Mavi ekran! Ortak aynı nesneyi ilk bulan puanı kapar!
                           </p>
                         </div>
-                        <div className="relative shrink-0 z-10 flex items-center justify-center">
-                          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 border border-amber-300 flex items-center justify-center text-slate-950 font-black shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                            <Play size={18} className="fill-slate-950 ml-0.5" />
+                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                            ▶
                           </div>
                         </div>
                       </button>
@@ -5767,6 +6189,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
                           />
                         );
                       })}
@@ -5790,6 +6213,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
                           />
                         );
                       })}
@@ -5813,6 +6237,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
                           />
                         );
                       })}
@@ -5841,6 +6266,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="sayilar"
                           />
                         );
                       })}
@@ -5865,6 +6291,7 @@ export default function App() {
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
                             compact
+                            categoryTheme="sayilar"
                           />
                         );
                       })}
@@ -5886,6 +6313,7 @@ export default function App() {
                             topicKey={key}
                             title={t.title}
                             onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="sayilar"
                           />
                         );
                       })}
@@ -5912,6 +6340,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
                         />
                       );
                     })}
@@ -5935,6 +6364,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="islemler"
                         />
                       );
                     })}
@@ -5957,6 +6387,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
                         />
                       );
                     })}
@@ -5982,6 +6413,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
                         />
                       );
                     })}
@@ -6006,6 +6438,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
                         />
                       );
                     })}
@@ -6033,6 +6466,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="islemler"
                         />
                       );
                     })}
@@ -6059,6 +6493,7 @@ export default function App() {
                           topicKey={key}
                           title={t.title}
                           onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
                         />
                       );
                     })}

@@ -121,7 +121,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
                   triggerSound(game.sound);
                   game.action();
                 }}
-                className={`group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] border-2 border-slate-700/80 border-l-4 ${accent.border} ${accent.hover} rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-4 min-h-[78px] sm:min-h-[88px] md:min-h-[96px] flex items-center gap-3 sm:gap-4 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left`}
+                className={`group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] border-2 border-sky-500/70 border-l-4 border-l-sky-400 hover:border-sky-400 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-4 min-h-[78px] sm:min-h-[88px] md:min-h-[96px] flex items-center gap-3 sm:gap-4 shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left`}
               >
                 {/* 3D Icon */}
                 <div className="relative shrink-0 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 md:w-22 md:h-22 -my-1">
@@ -135,25 +135,25 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
                 {/* Text Area - FULL TITLE */}
                 <div className="flex-1 min-w-0 py-0.5 z-10">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-slate-800 text-sky-300 border border-slate-600 shadow-xs">
+                    <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-black/40 text-sky-300 border border-sky-400/40 shadow-xs">
                       {game.badge}
                     </span>
                   </div>
-                  <h4 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-white transition-colors leading-snug uppercase tracking-wide break-words">
+                  <h4 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 transition-colors leading-snug uppercase tracking-wide break-words">
                     {game.title}
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-400 font-medium mt-1 flex items-center gap-1.5 leading-snug break-words">
-                    <span className={`w-1.5 h-1.5 rounded-full ${accent.dot} inline-block shrink-0`} />
+                  <p className="text-[10px] sm:text-xs text-sky-200/70 font-medium mt-1 flex items-center gap-1.5 leading-snug break-words">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block shrink-0" />
                     <span>{game.subtitle}</span>
                   </p>
                 </div>
 
-                {/* 3D "OYNA" image */}
-                <div className="relative shrink-0 w-[84px] h-[38px] sm:w-[104px] sm:h-[46px] md:w-[118px] md:h-[52px] group-hover:scale-105 transition-transform filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                  <div
-                    className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
-                    style={{ backgroundImage: `url('/ply.png')` }}
-                  />
+                {/* Modern BAŞLA Button */}
+                <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                  <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                  <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                    ▶
+                  </div>
                 </div>
               </button>
             );
