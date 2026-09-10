@@ -1276,9 +1276,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.png', isSymmetric: true },
         ];
 
+        // Net ve tartışmasız asimetrik nesneler havuzu (çelişkili/yapraklı elma ve tek kulplu kupa gibi kafa karıştırıcı nesneler kaldırıldı)
         const ASIMETRIK_NESNELER: SimetriNesnesi[] = [
-          { id: 'kupa', ad: 'Kupa', img: '/simetri/kupa.png', isSymmetric: false },
-          { id: 'yaprakli_elma', ad: 'Elma', img: '/simetri/yaprakli_elma.png', isSymmetric: false },
+          { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
           { id: 'keman', ad: 'Keman', img: '/simetri/keman.png', isSymmetric: false },
           { id: 'tren', ad: 'Tren', img: '/simetri/tren.png', isSymmetric: false },
           { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.png', isSymmetric: false },
@@ -1290,7 +1290,6 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           { id: 'balik', ad: 'Balık', img: '/simetri/balik.png', isSymmetric: false },
           { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.png', isSymmetric: false },
           { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.png', isSymmetric: false },
-          { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
           { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.png', isSymmetric: false },
           { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.png', isSymmetric: false },
           { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.png', isSymmetric: false },
@@ -1371,8 +1370,11 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           </div>
         `;
 
-        const correct = kartlar[dogruIndex].ad;
-        const wrong = kartlar.filter((_, idx) => idx !== dogruIndex).map((k) => k.ad);
+        // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin ("Şıktaki görsel yok" şikayeti çözüldü)
+        const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`;
+        const wrong = kartlar
+          .filter((_, idx) => idx !== dogruIndex)
+          .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`);
 
         return {
           question: soruMetni.replace(/<[^>]*>/g, ''),

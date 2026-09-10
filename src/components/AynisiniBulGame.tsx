@@ -1,23 +1,24 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Trophy, RotateCcw, X, Layers } from 'lucide-react';
+import { Trophy, RotateCcw, X, Layers, SkipBack, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface AynisiniBulGameProps {
   onClose: () => void;
+  onPrevActivity?: () => void;
+  onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
-export type ThemeCategory = 'all' | 'meyveler' | 'okul' | 'rozets';
+export type ThemeCategory = 'all' | 'meyveler' | 'sevimli' | 'okul' | 'rozets';
 
 interface GameObject {
   id: string;
   name: string;
-  emoji?: string;
-  imageSrc?: string;
-  category: 'meyveler' | 'okul' | 'rozets' | 'genel';
+  imageSrc: string;
+  category: 'meyveler' | 'okul' | 'rozets' | 'sevimli';
 }
 
-// 1. MEYVELER (public/meyveler/M1.png - M19.png)
+// 1. MEYVELER (public/meyveler/M1.png - M19.png) - 19 adet tam orantılı meyve
 const MEYVE_ISIMLERI = [
   'Kırmızı Elma', 'Tatlı Çilek', 'Sarı Muz', 'Sulu Karpuz', 'Turuncu Portakal',
   'Mor Üzüm', 'Sarı Limon', 'Yeşil Armut', 'Şeftali', 'Kırmızı Kiraz',
@@ -32,75 +33,94 @@ const MEYVELER_OBJECTS: GameObject[] = Array.from({ length: 19 }, (_, i) => ({
   category: 'meyveler',
 }));
 
-// 2. ROZETLER (public/rozets/d1.png - d16.png)
+// 2. ROZETLER & KUPALAR (public/rozets/d1.png - d16.png + kupa/tac/yildiz) - 19 adet tam orantılı madalya ve kupa
 const ROZET_ISIMLERI = [
   'Yıldız Rozeti', 'Ateş Rozeti', 'Şimşek Rozeti', 'Zafer Rozeti', 'Altın Kupa',
   'Mavi Elmas', 'Kristal Rozet', 'Altın Taç', 'Şampiyon Rozeti', 'Onur Madalyası',
   'Süper Yıldız', 'Lider Rozeti', 'Gümüş Kalkan', 'Zümrüt Rozet', 'Usta Rozeti', 'Efsane Rozeti'
 ];
 
-const ROZETS_OBJECTS: GameObject[] = Array.from({ length: 16 }, (_, i) => ({
+const ROZETS_BASE: GameObject[] = Array.from({ length: 16 }, (_, i) => ({
   id: `rozet_d${i + 1}`,
   name: ROZET_ISIMLERI[i] || `Rozet ${i + 1}`,
   imageSrc: `/rozets/d${i + 1}.png`,
   category: 'rozets',
 }));
 
-// 3. OKUL GÖRSELLERİ (public/okul_gorseller/...)
+const ROZETS_OBJECTS: GameObject[] = [
+  ...ROZETS_BASE,
+  { id: 'rozet_kupa_kirmizi', name: 'Şampiyon Kupası', imageSrc: '/icoo/kirmizi_kupa.png', category: 'rozets' },
+  { id: 'rozet_altin_tac', name: 'Kral Tacı', imageSrc: '/icoo/tac.png', category: 'rozets' },
+  { id: 'rozet_sari_yildiz', name: 'Parlayan Yıldız', imageSrc: '/icoo/yildiz_sari.png', category: 'rozets' },
+];
+
+// 3. OKUL GÖRSELLERİ - Küçük veya ince görseller elenmiş, hepsi dolgun ve net 19 okul objesi
 const OKUL_OBJECTS: GameObject[] = [
   { id: 'okul_kitap', name: 'Açık Kitap', imageSrc: '/okul_gorseller/acik_kitap.png', category: 'okul' },
-  { id: 'okul_bant', name: 'Bant Makinesi', imageSrc: '/okul_gorseller/bantli_seloteyp_makinesi.png', category: 'okul' },
+  { id: 'okul_tahta', name: 'Kara Tahta', imageSrc: '/okul_gorseller/kara_tahta.png', category: 'okul' },
+  { id: 'okul_otobus', name: 'Okul Servisi', imageSrc: '/okul_gorseller/okul_otobusu.png', category: 'okul' },
+  { id: 'okul_lego', name: 'Lego Blokları', imageSrc: '/okul_gorseller/lego_bloklari.png', category: 'okul' },
   { id: 'okul_palet', name: 'Boya Paleti', imageSrc: '/okul_gorseller/boya_paleti.png', category: 'okul' },
-  { id: 'okul_buyutec', name: 'Büyüteç', imageSrc: '/okul_gorseller/buyutec.png', category: 'okul' },
-  { id: 'okul_cetvel', name: 'Cetvel', imageSrc: '/okul_gorseller/cetvel.png', category: 'okul' },
   { id: 'okul_harf', name: 'Harf Küpleri', imageSrc: '/okul_gorseller/harf_kupleri.png', category: 'okul' },
+  { id: 'okul_buyutec', name: 'Büyüteç', imageSrc: '/okul_gorseller/buyutec.png', category: 'okul' },
+  { id: 'okul_pastel_kutu', name: 'Pastel Boya Kutusu', imageSrc: '/okul_gorseller/pastel_boya_kutusu.png', category: 'okul' },
+  { id: 'okul_harita', name: 'Küre Harita', imageSrc: '/okul_gorseller/kuresel_harita.png', category: 'okul' },
   { id: 'okul_hesap', name: 'Hesap Makinesi', imageSrc: '/okul_gorseller/hesap_makinesi.png', category: 'okul' },
   { id: 'okul_kalemtiras', name: 'Kalemtıraş', imageSrc: '/okul_gorseller/kalemtiras.png', category: 'okul' },
-  { id: 'okul_tahta', name: 'Kara Tahta', imageSrc: '/okul_gorseller/kara_tahta.png', category: 'okul' },
-  { id: 'okul_harita', name: 'Küre Harita', imageSrc: '/okul_gorseller/kuresel_harita.png', category: 'okul' },
-  { id: 'okul_kalem', name: 'Kurşun Kalem', imageSrc: '/okul_gorseller/kursun_kalem.png', category: 'okul' },
-  { id: 'okul_lego', name: 'Lego Blokları', imageSrc: '/okul_gorseller/lego_bloklari.png', category: 'okul' },
-  { id: 'okul_makas', name: 'Okul Makası', imageSrc: '/okul_gorseller/makas.png', category: 'okul' },
-  { id: 'okul_mikroskop', name: 'Mikroskop', imageSrc: '/okul_gorseller/mikroskop.png', category: 'okul' },
-  { id: 'okul_otobus', name: 'Okul Otobüsü', imageSrc: '/okul_gorseller/okul_otobusu.png', category: 'okul' },
-  { id: 'okul_pastel_kutu', name: 'Pastel Boya Kutusu', imageSrc: '/okul_gorseller/pastel_boya_kutusu.png', category: 'okul' },
-  { id: 'okul_pastel_kalem', name: 'Pastel Boya Kalemleri', imageSrc: '/okul_gorseller/renkli_pastel_boya_kalemleri.png', category: 'okul' },
-  { id: 'okul_silgi', name: 'Silgi', imageSrc: '/okul_gorseller/silgi.png', category: 'okul' },
-  { id: 'okul_yapistirici', name: 'Sıvı Yapıştırıcı', imageSrc: '/okul_gorseller/sivi_yapistirici.png', category: 'okul' },
+  { id: 'okul_bant', name: 'Bant Makinesi', imageSrc: '/okul_gorseller/bantli_seloteyp_makinesi.png', category: 'okul' },
   { id: 'okul_defter', name: 'Yıldızlı Defter', imageSrc: '/okul_gorseller/yildizli_kahverengi_defter.png', category: 'okul' },
+  { id: 'okul_makas', name: 'Okul Makası', imageSrc: '/okul_gorseller/makas.png', category: 'okul' },
+  { id: 'okul_renkli_kalemler', name: 'Boya Kalemleri', imageSrc: '/okul_gorseller/renkli_pastel_boya_kalemleri.png', category: 'okul' },
+  { id: 'okul_sirt_cantasi_mavi', name: 'Mavi Okul Çantası', imageSrc: '/icoo/sirt_cantasi_mavi.png', category: 'okul' },
+  { id: 'okul_sirt_cantasi_kahve', name: 'Deri Sırt Çantası', imageSrc: '/icoo/sirt_cantasi_kahverengi.png', category: 'okul' },
+  { id: 'okul_kitap_icoo', name: 'Ders Kitabı', imageSrc: '/icoo/kitap.png', category: 'okul' },
+  { id: 'okul_kalem_icoo', name: 'Yazı Kalemi', imageSrc: '/icoo/kalem.png', category: 'okul' },
 ];
 
-// 4. EĞLENCELİ ÇOCUK DÜNYASI EMOJİLERİ
-const GENEL_OBJECTS: GameObject[] = [
-  { id: 'zar', name: 'Zar', emoji: '🎲', category: 'genel' },
-  { id: 'yonca', name: 'Yonca', emoji: '🍀', category: 'genel' },
-  { id: 'sapka', name: 'Şapka', emoji: '🎩', category: 'genel' },
-  { id: 'dondurma', name: 'Dondurma', emoji: '🍦', category: 'genel' },
-  { id: 'kus', name: 'Kuş', emoji: '🐦', category: 'genel' },
-  { id: 'kalp', name: 'Kalp', emoji: '❤️', category: 'genel' },
-  { id: 'kilit', name: 'Kilit', emoji: '🔒', category: 'genel' },
-  { id: 'cicek', name: 'Çiçek', emoji: '🌸', category: 'genel' },
-  { id: 'yildiz', name: 'Yıldız', emoji: '⭐', category: 'genel' },
-  { id: 'gunes', name: 'Güneş', emoji: '☀️', category: 'genel' },
-  { id: 'ates', name: 'Ateş', emoji: '🔥', category: 'genel' },
-  { id: 'simsek', name: 'Şimşek', emoji: '⚡', category: 'genel' },
-  { id: 'balik', name: 'Balık', emoji: '🐟', category: 'genel' },
-  { id: 'balon', name: 'Balon', emoji: '🎈', category: 'genel' },
-  { id: 'ugurbocegi', name: 'Uğur Böceği', emoji: '🐞', category: 'genel' },
-  { id: 'kelebek', name: 'Kelebek', emoji: '🦋', category: 'genel' },
-  { id: 'futbol', name: 'Futbol Topu', emoji: '⚽', category: 'genel' },
-  { id: 'araba', name: 'Araba', emoji: '🚗', category: 'genel' },
-  { id: 'roket', name: 'Uzay Roketi', emoji: '🚀', category: 'genel' },
-  { id: 'kedi', name: 'Kedi', emoji: '🐱', category: 'genel' },
-  { id: 'panda', name: 'Panda', emoji: '🐼', category: 'genel' },
+// 4. SEVİMLİ DOSTLAR & NESNELER (public/icoo/...) - 34 adet canlı 3D simge (Küçük emojiler yerine!)
+const SEVIMLI_OBJECTS: GameObject[] = [
+  { id: 'ico_ayicik', name: 'Oyuncak Ayı', imageSrc: '/icoo/ayicik.png', category: 'sevimli' },
+  { id: 'ico_balik', name: 'Sevimli Balık', imageSrc: '/icoo/balik.png', category: 'sevimli' },
+  { id: 'ico_kedi', name: 'Yavru Kedi', imageSrc: '/icoo/kedi_yavrusu.png', category: 'sevimli' },
+  { id: 'ico_kopek', name: 'Sadık Köpek', imageSrc: '/icoo/kopek.png', category: 'sevimli' },
+  { id: 'ico_panda', name: 'Sevimli Panda', imageSrc: '/icoo/panda.png', category: 'sevimli' },
+  { id: 'ico_penguen', name: 'Minik Penguen', imageSrc: '/icoo/penguen.png', category: 'sevimli' },
+  { id: 'ico_ordek', name: 'Sarı Ördek', imageSrc: '/icoo/sari_ordek.png', category: 'sevimli' },
+  { id: 'ico_kurbaga', name: 'Yeşil Kurbağa', imageSrc: '/icoo/kurbaga.png', category: 'sevimli' },
+  { id: 'ico_kaplumbaga', name: 'Kaplumbağa', imageSrc: '/icoo/kaplumbaga.png', category: 'sevimli' },
+  { id: 'ico_kelebek_mavi', name: 'Mavi Kelebek', imageSrc: '/icoo/kelebek_mavi.png', category: 'sevimli' },
+  { id: 'ico_kelebek_mor', name: 'Mor Kelebek', imageSrc: '/icoo/kelebek_mor.png', category: 'sevimli' },
+  { id: 'ico_ugur_bocegi', name: 'Uğur Böceği', imageSrc: '/icoo/ugur_bocegi_1.png', category: 'sevimli' },
+  { id: 'ico_yunus', name: 'Sevimli Yunus', imageSrc: '/icoo/yunus_1.png', category: 'sevimli' },
+  { id: 'ico_futbol', name: 'Futbol Topu', imageSrc: '/icoo/futbol_topu.png', category: 'sevimli' },
+  { id: 'ico_basketbol', name: 'Basketbol Topu', imageSrc: '/icoo/basketbol_topu.png', category: 'sevimli' },
+  { id: 'ico_voleybol', name: 'Voleybol Topu', imageSrc: '/icoo/voleybol_topu.png', category: 'sevimli' },
+  { id: 'ico_plaj_topu', name: 'Plaj Topu', imageSrc: '/icoo/plaj_topu.png', category: 'sevimli' },
+  { id: 'ico_hediye_mavi', name: 'Hediye Paketi', imageSrc: '/icoo/hediye_kutusu_mavi.png', category: 'sevimli' },
+  { id: 'ico_hediye_yesil', name: 'Yeşil Hediye', imageSrc: '/icoo/hediye_kutusu_yesil.png', category: 'sevimli' },
+  { id: 'ico_gunes', name: 'Gülümseyen Güneş', imageSrc: '/icoo/gunes.png', category: 'sevimli' },
+  { id: 'ico_kalp', name: 'Kırmızı Kalp', imageSrc: '/icoo/kalp.png', category: 'sevimli' },
+  { id: 'ico_semsiye', name: 'Renkli Şemsiye', imageSrc: '/icoo/semsiye.png', category: 'sevimli' },
+  { id: 'ico_fotograf', name: 'Fotoğraf Makinesi', imageSrc: '/icoo/fotograf_makinesi.png', category: 'sevimli' },
+  { id: 'ico_araba', name: 'Mavi Araba', imageSrc: '/icoo/mavi_araba.png', category: 'sevimli' },
+  { id: 'ico_tren', name: 'Hızlı Tren', imageSrc: '/icoo/tren.png', category: 'sevimli' },
+  { id: 'ico_ucak', name: 'Beyaz Uçak', imageSrc: '/icoo/ucak.png', category: 'sevimli' },
+  { id: 'ico_helikopter', name: 'Helikopter', imageSrc: '/icoo/helikopter.png', category: 'sevimli' },
+  { id: 'ico_itfaiye', name: 'İtfaiye Kamyonu', imageSrc: '/icoo/itfaiye_araci.png', category: 'sevimli' },
+  { id: 'ico_damperli', name: 'Damperli Kamyon', imageSrc: '/icoo/damperli_kamyon.png', category: 'sevimli' },
+  { id: 'ico_traktor', name: 'Yeşil Traktör', imageSrc: '/icoo/traktor.png', category: 'sevimli' },
+  { id: 'ico_roket', name: 'Uzay Roketi', imageSrc: '/icoo/roket.png', category: 'sevimli' },
+  { id: 'ico_cilek', name: 'Taze Çilek', imageSrc: '/icoo/cilek.png', category: 'sevimli' },
+  { id: 'ico_elma', name: 'Kırmızı Elma', imageSrc: '/icoo/elma.png', category: 'sevimli' },
+  { id: 'ico_karpuz', name: 'Dilim Karpuz', imageSrc: '/icoo/karpuz.png', category: 'sevimli' },
 ];
 
-// Tüm havuz (Meyveler + Okul + Rozetler + Genel)
+// Tüm havuz (Meyveler + Okul + Rozetler + Sevimli)
 const ALL_OBJECTS: GameObject[] = [
   ...MEYVELER_OBJECTS,
   ...OKUL_OBJECTS,
   ...ROZETS_OBJECTS,
-  ...GENEL_OBJECTS,
+  ...SEVIMLI_OBJECTS,
 ];
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -114,7 +134,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 // 10 Slot Dairesel Koordinatları: 1 Merkez, 3 İç Halka (r=21%), 6 Dış Halka (r=37%)
 // Tüm nesneler arasındaki minimum merkez-merkez mesafesi %21.0'dir.
-// Nesne genişliği %13.5 olduğunda kenarlar arası en az %7.5 net boşluk kalır, ASLA birbirine değmez!
+// Nesne genişliği %16.5 olduğunda kenarlar arası net boşluk kalır, ASLA birbirine değmez!
 function generateSafeCircleSlots(rotationDeg: number = 0): { x: number; y: number }[] {
   const rot = (rotationDeg * Math.PI) / 180;
   const slots: { x: number; y: number }[] = [{ x: 50, y: 50 }]; // Slot 0: Merkez
@@ -150,7 +170,12 @@ interface PlacedItem extends GameObject {
 const TARGET_WIN_SCORE = 7;
 const MAX_MISTAKES = 3;
 
-export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playMp3 }) => {
+export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
+  onClose,
+  onPrevActivity,
+  onNextActivity,
+  playMp3,
+}) => {
   const [theme, setTheme] = useState<ThemeCategory>('all');
   const [player1Score, setPlayer1Score] = useState(0);
   const [player2Score, setPlayer2Score] = useState(0);
@@ -186,6 +211,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
     if (selectedTheme === 'meyveler') return MEYVELER_OBJECTS;
     if (selectedTheme === 'okul') return OKUL_OBJECTS;
     if (selectedTheme === 'rozets') return ROZETS_OBJECTS;
+    if (selectedTheme === 'sevimli') return SEVIMLI_OBJECTS;
     return ALL_OBJECTS;
   }, []);
 
@@ -224,22 +250,22 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
     const slotsP1 = shuffleArray(generateSafeCircleSlots(rotP1));
     const slotsP2 = shuffleArray(generateSafeCircleSlots(rotP2));
 
-    const scales = [0.95, 1.0, 1.05, 0.98, 1.02, 1.0, 0.96, 1.04, 1.02, 0.98];
-
+    // TÜM GÖRSELLER İÇİN EŞİT VE SABİT ÖLÇEK (scale: 1.0)
+    // Küçük görsel kullanılmaz, hepsi aynı net boyutta ve dik açıda render edilir
     const p1Placed: PlacedItem[] = p1Raw.map((it, idx) => ({
       ...it,
       x: slotsP1[idx].x,
       y: slotsP1[idx].y,
-      scale: scales[idx % scales.length],
-      rotation: Math.floor(Math.random() * 24 - 12),
+      scale: 1.0,
+      rotation: 0,
     }));
 
     const p2Placed: PlacedItem[] = p2Raw.map((it, idx) => ({
       ...it,
       x: slotsP2[idx].x,
       y: slotsP2[idx].y,
-      scale: scales[(idx + 3) % scales.length],
-      rotation: Math.floor(Math.random() * 24 - 12),
+      scale: 1.0,
+      rotation: 0,
     }));
 
     setCommonItem(common);
@@ -420,12 +446,12 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
       </div>
 
       {/* 2. ALT ORTA: BEYAZ HAP EXIT / ÇIKIŞ VE TEMA SEÇİCİ */}
-      <div className="absolute bottom-2 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-3 pointer-events-auto">
+      <div className="absolute bottom-2 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 sm:gap-2.5 pointer-events-auto max-w-[96vw] overflow-x-auto px-1 py-0.5 scrollbar-none">
         {/* Tema Seçici Butonları */}
-        <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/20 flex items-center gap-1 shadow-lg">
+        <div className="bg-black/70 backdrop-blur-md px-2 py-1 rounded-full border border-white/20 flex items-center gap-1 shadow-lg shrink-0">
           <button
             onClick={() => handleThemeChange('all')}
-            className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               theme === 'all'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-white hover:bg-white/10'
@@ -435,7 +461,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
           </button>
           <button
             onClick={() => handleThemeChange('meyveler')}
-            className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               theme === 'meyveler'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-white hover:bg-white/10'
@@ -444,8 +470,18 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
             🍎 Meyveler
           </button>
           <button
+            onClick={() => handleThemeChange('sevimli')}
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+              theme === 'sevimli'
+                ? 'bg-amber-400 text-slate-950 shadow-sm'
+                : 'text-white hover:bg-white/10'
+            }`}
+          >
+            🧸 Sevimli
+          </button>
+          <button
             onClick={() => handleThemeChange('okul')}
-            className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               theme === 'okul'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-white hover:bg-white/10'
@@ -455,7 +491,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
           </button>
           <button
             onClick={() => handleThemeChange('rozets')}
-            className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all whitespace-nowrap ${
               theme === 'rozets'
                 ? 'bg-amber-400 text-slate-950 shadow-sm'
                 : 'text-white hover:bg-white/10'
@@ -465,17 +501,48 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
           </button>
         </div>
 
-        {/* Exit Butonu */}
-        <button
-          onClick={() => {
-            triggerSound('click');
-            onClose();
-          }}
-          className="bg-white hover:bg-slate-100 active:scale-95 text-slate-900 px-4 sm:px-6 py-1 sm:py-1.5 rounded-full font-black text-xs sm:text-sm tracking-wider uppercase shadow-[0_4px_16px_rgba(0,0,0,0.35)] border-2 border-slate-900 cursor-pointer transition-all flex items-center gap-1"
-        >
-          <X size={14} className="stroke-[3]" />
-          <span>EXIT</span>
-        </button>
+        {/* İleri / Geri Etkinlik & Exit Butonları */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {onPrevActivity && (
+            <button
+              onClick={() => {
+                triggerSound('click');
+                onPrevActivity();
+              }}
+              title="Önceki Etkinliğe Geç"
+              className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-bold text-xs shadow-md border border-slate-600 cursor-pointer transition-all flex items-center gap-1"
+            >
+              <SkipBack size={13} />
+              <span className="hidden md:inline">Önceki</span>
+            </button>
+          )}
+
+          {/* Exit Butonu */}
+          <button
+            onClick={() => {
+              triggerSound('click');
+              onClose();
+            }}
+            className="bg-white hover:bg-slate-100 active:scale-95 text-slate-900 px-3 sm:px-5 py-1 sm:py-1.5 rounded-full font-black text-xs sm:text-sm tracking-wider uppercase shadow-[0_4px_16px_rgba(0,0,0,0.35)] border-2 border-slate-900 cursor-pointer transition-all flex items-center gap-1"
+          >
+            <X size={14} className="stroke-[3]" />
+            <span>EXIT</span>
+          </button>
+
+          {onNextActivity && (
+            <button
+              onClick={() => {
+                triggerSound('click');
+                onNextActivity();
+              }}
+              title="Sonraki Etkinliğe Geç"
+              className="bg-slate-800 hover:bg-slate-700 active:scale-95 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full font-bold text-xs shadow-md border border-slate-600 cursor-pointer transition-all flex items-center gap-1"
+            >
+              <span className="hidden md:inline">Sonraki</span>
+              <SkipForward size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 3. SOL YARI: KIRMIZI ALAN (1. OYUNCU) */}
@@ -514,31 +581,25 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
                 style={{
                   left: `${item.x}%`,
                   top: `${item.y}%`,
-                  width: '13.5%',
-                  height: '13.5%',
-                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? item.scale * 1.25 : item.scale}) rotate(${item.rotation}deg)`,
+                  width: '16.5%',
+                  height: '16.5%',
+                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
                 }}
-                className={`absolute flex items-center justify-center rounded-full cursor-pointer transition-transform active:scale-90 hover:scale-110 focus:outline-hidden ${
+                className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
                   isFoundCommon
                     ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
                     : isWrong
                     ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
-                    : 'bg-transparent'
+                    : 'hover:bg-slate-100/50'
                 }`}
                 title={item.name}
               >
-                {item.imageSrc ? (
-                  <img
-                    src={item.imageSrc}
-                    alt={item.name}
-                    className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)] select-none pointer-events-none p-0.5"
-                    draggable={false}
-                  />
-                ) : (
-                  <span className="text-[clamp(1rem,2.8vw,2.2rem)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] leading-none select-none pointer-events-none">
-                    {item.emoji}
-                  </span>
-                )}
+                <img
+                  src={item.imageSrc}
+                  alt={item.name}
+                  className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                  draggable={false}
+                />
               </button>
             );
           })}
@@ -581,31 +642,25 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
                 style={{
                   left: `${item.x}%`,
                   top: `${item.y}%`,
-                  width: '13.5%',
-                  height: '13.5%',
-                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? item.scale * 1.25 : item.scale}) rotate(${item.rotation}deg)`,
+                  width: '16.5%',
+                  height: '16.5%',
+                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
                 }}
-                className={`absolute flex items-center justify-center rounded-full cursor-pointer transition-transform active:scale-90 hover:scale-110 focus:outline-hidden ${
+                className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
                   isFoundCommon
                     ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
                     : isWrong
                     ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
-                    : 'bg-transparent'
+                    : 'hover:bg-slate-100/50'
                 }`}
                 title={item.name}
               >
-                {item.imageSrc ? (
-                  <img
-                    src={item.imageSrc}
-                    alt={item.name}
-                    className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)] select-none pointer-events-none p-0.5"
-                    draggable={false}
-                  />
-                ) : (
-                  <span className="text-[clamp(1rem,2.8vw,2.2rem)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] leading-none select-none pointer-events-none">
-                    {item.emoji}
-                  </span>
-                )}
+                <img
+                  src={item.imageSrc}
+                  alt={item.name}
+                  className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                  draggable={false}
+                />
               </button>
             );
           })}
@@ -660,21 +715,46 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({ onClose, playM
             </div>
 
             {/* Aksiyon Butonları */}
-            <div className="flex items-center justify-center gap-3">
-              <button
-                onClick={handleRestart}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black rounded-xl shadow-lg border border-amber-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
-              >
-                <RotateCcw size={18} />
-                <span>Tekrar Oyna</span>
-              </button>
-              <button
-                onClick={onClose}
-                className="py-3 px-5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-600 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
-              >
-                <X size={18} />
-                <span>Kapat</span>
-              </button>
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={handleRestart}
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black rounded-xl shadow-lg border border-amber-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
+                >
+                  <RotateCcw size={18} />
+                  <span>Tekrar Oyna</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="py-3 px-5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl border border-slate-600 flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                >
+                  <X size={18} />
+                  <span>Kapat</span>
+                </button>
+              </div>
+
+              {(onPrevActivity || onNextActivity) && (
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                  {onPrevActivity && (
+                    <button
+                      onClick={onPrevActivity}
+                      className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <SkipBack size={14} />
+                      <span>Önceki Etkinlik</span>
+                    </button>
+                  )}
+                  {onNextActivity && (
+                    <button
+                      onClick={onNextActivity}
+                      className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all"
+                    >
+                      <span>Sonraki Etkinlik</span>
+                      <SkipForward size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

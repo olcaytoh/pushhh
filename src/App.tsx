@@ -3564,7 +3564,7 @@ export default function App() {
   const allActivitiesList = React.useMemo(() => {
     const list: Array<{
       id: string;
-      type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game';
+      type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard';
       grade?: 1 | 2 | 3 | 4;
       topicKey?: string;
       wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -3720,6 +3720,18 @@ export default function App() {
 
     // GENEL DİĞER OYUNLAR & İNGİLİZCE
     list.push({
+      id: 'other_aynisini_bul',
+      type: 'aynisini_bul',
+      title: 'Aynısını Bul (2 Kişilik)',
+      categoryLabel: 'Diğer Oyunlar'
+    });
+    list.push({
+      id: 'other_geoboard',
+      type: 'geoboard',
+      title: 'Geometri Tahtası',
+      categoryLabel: 'Diğer Oyunlar'
+    });
+    list.push({
       id: 'other_xox',
       type: 'xox',
       title: 'XOX & Zeka Düellosu',
@@ -3759,6 +3771,7 @@ export default function App() {
     setShow3DLab(false);
     setShowGeoboard(false);
     setShowXOXGame(false);
+    setShowAynisiniBul(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -3779,6 +3792,12 @@ export default function App() {
       }
       setGameState('welcome');
       setShow3DLab(true);
+    } else if (entry.type === 'aynisini_bul') {
+      setGameState('welcome');
+      setShowAynisiniBul(true);
+    } else if (entry.type === 'geoboard') {
+      setGameState('welcome');
+      setShowGeoboard(true);
     } else if (entry.type === 'xox') {
       setGameState('welcome');
       setShowXOXGame(true);
@@ -3794,6 +3813,16 @@ export default function App() {
   };
 
   const getCurrentActivityIndex = (): number => {
+    if (showAynisiniBul) {
+      const aIdx = allActivitiesList.findIndex(a => a.type === 'aynisini_bul' || a.id === 'other_aynisini_bul');
+      if (aIdx !== -1) return aIdx;
+    }
+    if (showGeoboard) {
+      const geoIdx = allActivitiesList.findIndex(a => a.type === 'geoboard' || a.id === 'other_geoboard');
+      if (geoIdx !== -1) return geoIdx;
+      if (selectedGrade === 1) return allActivitiesList.findIndex(a => a.id === 'g1_geometri_tahtasi');
+      return allActivitiesList.findIndex(a => a.id === 'g2_geometri_tahtasi');
+    }
     if (wordGameType === 'ingilizce') return allActivitiesList.findIndex(a => a.wordGameType === 'ingilizce' || a.id === 'other_ingilizce');
     if (wordGameType === 'es_anlam') return allActivitiesList.findIndex(a => a.wordGameType === 'es_anlam' || a.id === 'other_es_anlam');
     if (wordGameType === 'zit_anlam') return allActivitiesList.findIndex(a => a.wordGameType === 'zit_anlam' || a.id === 'other_zit_anlam');
@@ -3804,10 +3833,6 @@ export default function App() {
         if (g2Lab !== -1) return g2Lab;
       }
       return allActivitiesList.findIndex(a => a.id === 'g2_other_3dlab' || a.id === 'other_3dlab' || a.type === '3d_lab');
-    }
-    if (showGeoboard) {
-      if (selectedGrade === 1) return allActivitiesList.findIndex(a => a.id === 'g1_geometri_tahtasi');
-      return allActivitiesList.findIndex(a => a.id === 'g2_geometri_tahtasi');
     }
     if (gameState === 'playing') {
       // 1. Exact match with both topicKey and selectedGrade
@@ -7013,6 +7038,8 @@ export default function App() {
               setShowOtherGamesModal(true);
             }
           }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
           playMp3={playMp3}
         />
       )}

@@ -382,8 +382,8 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         <div data-full-width="true" class="uzamsal-soru-container flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
           <div class="uzamsal-soru-frame relative flex items-center justify-center w-full flex-1 min-h-0 p-0.5">
             
-            <!-- + Şeklinde Kompakt ve Çerçeveleri Asla Temas Etmeyen Düzen -->
-            <div class="relative w-[210px] h-[210px] xs:w-[226px] xs:h-[226px] sm:w-[244px] sm:h-[244px] flex items-center justify-center rounded-2xl bg-radial from-slate-800/85 via-slate-900/90 to-[#060a14] border border-slate-700/70 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.5)]">
+            <!-- + Şeklinde Kompakt ve Çerçeveleri Kesinlikle Temas Etmeyen Düzen -->
+            <div class="relative w-[216px] h-[216px] xs:w-[236px] xs:h-[236px] sm:w-[256px] sm:h-[256px] flex items-center justify-center rounded-2xl bg-radial from-slate-800/85 via-slate-900/90 to-[#060a14] border border-slate-700/70 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.5)]">
               
               <!-- Merkez Referans Noktası (Çerçevelerin temas etmesini önleyen merkez boşluğu) -->
               <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 xs:w-7 xs:h-7 rounded-full bg-slate-800/90 border border-slate-600/70 flex items-center justify-center shadow-inner pointer-events-none z-0">
@@ -391,32 +391,32 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
               </div>
 
               <!-- 1. ÜST GÖRSEL -->
-              <div class="absolute bottom-[calc(50%+30px)] xs:bottom-[calc(50%+32px)] sm:bottom-[calc(50%+36px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+              <div class="absolute bottom-[calc(50%+34px)] xs:bottom-[calc(50%+37px)] sm:bottom-[calc(50%+41px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
                 <span class="px-1.5 py-0.2 mb-0.5 rounded-full bg-sky-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">ÜST</span>
-                <div class="w-12 h-12 xs:w-13 xs:h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-sky-500/25 to-sky-950/70 border-2 border-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.35)] p-1 flex items-center justify-center">
+                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-sky-500/25 to-sky-950/70 border-2 border-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.35)] p-1 flex items-center justify-center">
                   <img src="${ustNesne.img}" alt="${ustNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
               </div>
 
               <!-- 2. ALT GÖRSEL -->
-              <div class="absolute top-[calc(50%+30px)] xs:top-[calc(50%+32px)] sm:top-[calc(50%+36px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-                <div class="w-12 h-12 xs:w-13 xs:h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-rose-500/25 to-rose-950/70 border-2 border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute top-[calc(50%+34px)] xs:top-[calc(50%+37px)] sm:top-[calc(50%+41px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-rose-500/25 to-rose-950/70 border-2 border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.35)] p-1 flex items-center justify-center">
                   <img src="${altNesne.img}" alt="${altNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
                 <span class="px-1.5 py-0.2 mt-0.5 rounded-full bg-rose-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">ALT</span>
               </div>
 
               <!-- 3. SOL GÖRSEL -->
-              <div class="absolute right-[calc(50%+30px)] xs:right-[calc(50%+32px)] sm:right-[calc(50%+36px)] top-1/2 -translate-y-1/2 flex items-center z-10">
+              <div class="absolute right-[calc(50%+34px)] xs:right-[calc(50%+37px)] sm:right-[calc(50%+41px)] top-1/2 -translate-y-1/2 flex items-center z-10">
                 <span class="px-1 py-0.5 mr-0.5 rounded-full bg-emerald-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">SOL</span>
-                <div class="w-12 h-12 xs:w-13 xs:h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-emerald-500/25 to-emerald-950/70 border-2 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.35)] p-1 flex items-center justify-center">
+                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-emerald-500/25 to-emerald-950/70 border-2 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.35)] p-1 flex items-center justify-center">
                   <img src="${solNesne.img}" alt="${solNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
               </div>
 
               <!-- 4. SAĞ GÖRSEL -->
-              <div class="absolute left-[calc(50%+30px)] xs:left-[calc(50%+32px)] sm:left-[calc(50%+36px)] top-1/2 -translate-y-1/2 flex items-center z-10">
-                <div class="w-12 h-12 xs:w-13 xs:h-13 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-b from-amber-500/25 to-amber-950/70 border-2 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute left-[calc(50%+34px)] xs:left-[calc(50%+37px)] sm:left-[calc(50%+41px)] top-1/2 -translate-y-1/2 flex items-center z-10">
+                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-amber-500/25 to-amber-950/70 border-2 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.35)] p-1 flex items-center justify-center">
                   <img src="${sagNesne.img}" alt="${sagNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
                 <span class="px-1 py-0.5 ml-0.5 rounded-full bg-amber-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">SAĞ</span>
@@ -466,9 +466,9 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.png', isSymmetric: true },
       ];
 
+      // Net ve tartışmasız asimetrik nesneler havuzu (çelişkili/yapraklı elma ve tek kulplu kupa gibi kafa karıştırıcı nesneler kaldırıldı)
       const ASIMETRIK_NESNELER: SimetriNesnesi[] = [
-        { id: 'kupa', ad: 'Kupa', img: '/simetri/kupa.png', isSymmetric: false },
-        { id: 'yaprakli_elma', ad: 'Elma', img: '/simetri/yaprakli_elma.png', isSymmetric: false },
+        { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
         { id: 'keman', ad: 'Keman', img: '/simetri/keman.png', isSymmetric: false },
         { id: 'tren', ad: 'Tren', img: '/simetri/tren.png', isSymmetric: false },
         { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.png', isSymmetric: false },
@@ -480,7 +480,6 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         { id: 'balik', ad: 'Balık', img: '/simetri/balik.png', isSymmetric: false },
         { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.png', isSymmetric: false },
         { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.png', isSymmetric: false },
-        { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
         { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.png', isSymmetric: false },
         { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.png', isSymmetric: false },
         { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.png', isSymmetric: false },
@@ -551,8 +550,11 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         </div>
       `;
 
-      const correct = kartlar[dogruIndex].ad;
-      const wrong = kartlar.filter((_, idx) => idx !== dogruIndex).map((k) => k.ad);
+      // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin ("Şıktaki görsel yok" şikayeti çözüldü)
+      const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`;
+      const wrong = kartlar
+        .filter((_, idx) => idx !== dogruIndex)
+        .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`);
 
       return {
         question: soruMetni.replace(/<[^>]*>/g, ''),
