@@ -778,4 +778,14 @@ html.smartboard-4k-active #tug-of-war-arena {
   will-change: transform;
   touch-action: manipulation;
 }
+
+@keyframes shake {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  20%, 60% { transform: translate(-55%, -50%) rotate(-6deg); }
+  40%, 80% { transform: translate(-45%, -50%) rotate(6deg); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
  

@@ -11,6 +11,7 @@ import { AslanSVG } from './components/Mascot';
 import { Geometry3DLab } from './components/Geometry3DLab';
 import { GeoboardActivity } from './components/GeoboardActivity';
 import { XOXGame } from './components/XOXGame';
+import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
@@ -1668,6 +1669,7 @@ const CATEGORY_MAP = [
       "halat_toplama_4", "halat_cikarma_4", "halat_carpma_4", "halat_bolme_4",
       "sureli_toplama_cikarma", "sureli_on_tamamlama", "sureli_carpma_bolme",
       "sureli_carpma_3", "sureli_bolme_3", "sureli_carpma_4", "sureli_bolme_4",
+      "aynisini_bul",
       "balon_patlatma_mat",
       "matematik_hafiza",
       "hizli_islem_carki",
@@ -2002,6 +2004,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   sayi_dedektifi: '/MENUIKON/grid_icon_36.png',
   ritim_labirent: '/MENUIKON/grid_icon_17.png',
   geometri_eslestirme: '/MENUIKON/grid_icon_39.png',
+  aynisini_bul: '/MENUIKON/grid_icon_20.png',
 
   // 3. SINIF TEMA 1 (Sayılar ve Nicelikler 1) - HER BUTON FARKLI!
   g3_uc_basamakli_okuma_yazma: '/MENUIKON/grid_icon_21.png',
@@ -2790,6 +2793,7 @@ export default function App() {
   const [showEnglishGamesModal, setShowEnglishGamesModal] = useState(false);
   const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
   const [showXOXGame, setShowXOXGame] = useState(false);
+  const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [statsModalTab, setStatsModalTab] = useState<'rozetler' | 'istatistik'>('rozetler');
@@ -3524,7 +3528,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -4222,6 +4226,7 @@ export default function App() {
     if (show3DLab) return '3B Geometri Laboratuvarı';
     if (showGeoboard) return 'Geometri Tahtası';
     if (showXOXGame) return 'Matematik XOX Oyunu';
+    if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
@@ -4284,8 +4289,10 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-[#09101f] border-b border-slate-700/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 shadow-lg z-[100] relative shrink-0 w-full max-w-full overflow-x-auto no-scrollbar">
-        {/* SINIF BELİRTEN BUTONLAR (1, 2, 3, 4. SINIF) - 1. BUTONUN (ANA SAYFA) SOL TARAFI */}
+        <header className="bg-[#09101f] border-b border-slate-700/80 px-1 xs:px-2 sm:px-4 py-0.5 sm:py-1 flex items-center justify-center shadow-lg z-[100] relative shrink-0 w-full max-w-full">
+          {/* ORTADAKİ TÜM BUTONLAR GRUBU (EKRANDA TAM ORTALANMIŞ) */}
+          <div className="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full">
+          {/* SINIF BELİRTEN BUTONLAR (1, 2, 3, 4. SINIF) - 1. BUTONUN (ANA SAYFA) SOL TARAFI */}
         {selectedGrade !== null && (
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4].map((g) => {
@@ -4383,6 +4390,15 @@ export default function App() {
             // 2. If inside XOX Game
             if (showXOXGame) {
               setShowXOXGame(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 2.1. If inside Aynısını Bul Game
+            if (showAynisiniBul) {
+              setShowAynisiniBul(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
                 setShowOtherGamesModal(true);
               }
@@ -4690,30 +4706,28 @@ export default function App() {
             )}
           </button>
         </div>
+      </div>
 
-        {/* AYIRICI ÇİZGİ */}
-        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
-
-        {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (EN SAĞA KAYDIRILMIŞ + HEMEN SOLUNDA METİN) */}
-        <div className="ml-auto flex items-center shrink-0 pl-1">
-          <button
-            onClick={() => {
-              playMp3('/op.mp3');
-              setShowFeedbackModal(true);
-            }}
-            title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
-            aria-label="Hata ve Görüş Bildir"
-            className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/60 hover:border-amber-400 rounded-xl sm:rounded-2xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
-          >
-            <span className="text-[11px] sm:text-xs md:text-sm font-black text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap drop-shadow-xs">
-              Hata-Görüş bildir
-            </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#1b2b48] to-[#121c2e] group-hover:from-[#22365a] group-hover:to-[#17253d] border border-amber-500/60 group-hover:border-amber-400 flex items-center justify-center text-amber-400 group-hover:text-amber-300 shadow-xs transition-transform group-hover:scale-105 shrink-0">
-              <Mail size={16} className="drop-shadow-sm transition-transform group-hover:scale-110" />
-            </div>
-          </button>
-        </div>
-      </header>
+      {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (EN SAĞDA BAĞIMSIZ SABİT) */}
+      <div className="absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 flex items-center shrink-0 z-10">
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            setShowFeedbackModal(true);
+          }}
+          title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
+          aria-label="Hata ve Görüş Bildir"
+          className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/60 hover:border-amber-400 rounded-xl sm:rounded-2xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.25)] transition-all cursor-pointer"
+        >
+          <span className="text-[11px] sm:text-xs md:text-sm font-black text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap drop-shadow-xs">
+            Hata-Görüş bildir
+          </span>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#1b2b48] to-[#121c2e] group-hover:from-[#22365a] group-hover:to-[#17253d] border border-amber-500/60 group-hover:border-amber-400 flex items-center justify-center text-amber-400 group-hover:text-amber-300 shadow-xs transition-transform group-hover:scale-105 shrink-0">
+            <Mail size={16} className="drop-shadow-sm transition-transform group-hover:scale-110" />
+          </div>
+        </button>
+      </div>
+    </header>
       )}
 
       {/* FLOATING ACTIVITY TOAST NOTIFICATION */}
@@ -5669,6 +5683,43 @@ export default function App() {
                 {/* 5. DİĞER OYUNLAR (TÜM SINIF SEVİYELERİ İÇİN) */}
                 {selectedCategoryId === 'diger_oyunlar' && (
                   <div className="space-y-3 sm:space-y-4">
+                    {/* YENİ 2 KİŞİLİK OYUN: 🔍 AYNISINI BUL (HEDEF 10 PUAN) */}
+                    <div className="w-full">
+                      <button
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setShowAynisiniBul(true);
+                        }}
+                        className="group relative w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] hover:from-[#18263e] hover:via-[#213559] hover:to-[#18263e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      >
+                        <div className="relative shrink-0 z-10 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                          <img src="/MENUIKON/grid_icon_20.png" alt="Aynısını Bul" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0 py-0.5 z-10">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-400/20 border border-amber-400/60 text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wider shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block shrink-0 animate-pulse" />
+                              <span>2 Kişilik Kapışma</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/50 text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider shadow-xs">
+                              <span>Hedef 7 Doğru (3 Hata Elenir)</span>
+                            </span>
+                          </div>
+                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
+                            Aynısını Bul
+                          </h3>
+                          <p className="text-[10px] sm:text-xs text-slate-300 line-clamp-1 mt-0.5 font-medium">
+                            Kırmızı ve Mavi ekran! Ortak aynı nesneyi ilk bulan puanı kapar!
+                          </p>
+                        </div>
+                        <div className="relative shrink-0 z-10 flex items-center justify-center">
+                          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 border border-amber-300 flex items-center justify-center text-slate-950 font-black shadow-md group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                            <Play size={18} className="fill-slate-950 ml-0.5" />
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+
                     {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {(selectedGrade === 1
@@ -6914,11 +6965,15 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !wordGameType && !show3DLab && !showGeoboard && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !wordGameType && !show3DLab && !showGeoboard && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
             setOpenedFromOtherGamesModal(false);
+          }}
+          onOpenAynisiniBul={() => {
+            setOpenedFromOtherGamesModal(true);
+            setShowAynisiniBul(true);
           }}
           onOpenXOX={() => {
             setOpenedFromOtherGamesModal(true);
@@ -6939,6 +6994,19 @@ export default function App() {
           onOpenGeoboard={() => {
             setOpenedFromOtherGamesModal(true);
             setShowGeoboard(true);
+          }}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* AYNISINI BUL OYUNU MODAL (2 KİŞİLİK DÜELLO) */}
+      {showAynisiniBul && (
+        <AynisiniBulGame
+          onClose={() => {
+            setShowAynisiniBul(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
           }}
           playMp3={playMp3}
         />

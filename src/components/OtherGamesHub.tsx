@@ -9,6 +9,7 @@ interface OtherGamesHubProps {
   onOpenEsAnlam: () => void;
   onOpen3DLab?: () => void;
   onOpenGeoboard?: () => void;
+  onOpenAynisiniBul?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -19,6 +20,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenEsAnlam,
   onOpen3DLab,
   onOpenGeoboard,
+  onOpenAynisiniBul,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -28,6 +30,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'aynisini_bul',
+      title: 'Aynısını Bul (2 Kişilik)',
+      subtitle: 'Ortak Nesneyi İlk Sen Bul! (7 Doğru Kazanır, 3 Hata Elenir)',
+      icon: '/MENUIKON/grid_icon_20.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenAynisiniBul) onOpenAynisiniBul();
+      },
+    },
     {
       id: 'xox',
       title: 'XOX & Zeka Düellosu',
