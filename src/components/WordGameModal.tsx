@@ -593,26 +593,41 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
     const groupTheme = pIdx === 0 
       ? {
+          accentColor: "blue",
           badgeBg: "from-blue-700 via-indigo-800 to-blue-950",
-          badgeBorder: "border-cyan-300",
-          badgeShadow: "shadow-[0_0_16px_rgba(6,182,212,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-          containerBorder: "border-cyan-400",
-          buttonDefault: "border-cyan-400 bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 active:from-blue-700 active:to-indigo-800 text-white shadow-[0_4px_14px_rgba(37,99,235,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+          badgeBorder: "border-blue-400",
+          containerBorder: "border-blue-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)]",
+          headerAccentBorder: "border-l-4 border-l-blue-400",
+          headerTitleColor: "text-blue-200",
+          avatarBorder: "border-2 border-blue-400",
+          avatarBg: "bg-[#080e1d] text-blue-300",
+          buttonDefault: "bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] active:from-[#0e1726] active:to-[#090f1a] text-blue-50/95 border-2 border-blue-500/35 hover:border-blue-400/70 shadow-md active:shadow-xs",
+          buttonGlare: "from-blue-300/10 to-transparent",
         }
       : pIdx === 1
       ? {
+          accentColor: "rose",
           badgeBg: "from-rose-700 via-pink-800 to-rose-950",
-          badgeBorder: "border-pink-300",
-          badgeShadow: "shadow-[0_0_16px_rgba(244,63,94,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-          containerBorder: "border-pink-400",
-          buttonDefault: "border-pink-400 bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 hover:from-rose-500 hover:to-pink-500 active:from-rose-700 active:to-rose-800 text-white shadow-[0_4px_14px_rgba(225,29,72,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+          badgeBorder: "border-rose-400",
+          containerBorder: "border-rose-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(244,63,94,0.15)]",
+          headerAccentBorder: "border-l-4 border-l-rose-400",
+          headerTitleColor: "text-rose-200",
+          avatarBorder: "border-2 border-rose-400",
+          avatarBg: "bg-[#080e1d] text-rose-300",
+          buttonDefault: "bg-gradient-to-b from-[#2e1925] via-[#24131d] to-[#180b13] hover:from-[#3a2030] hover:via-[#2c1724] hover:to-[#1d0e17] active:from-[#190c14] active:to-[#10070c] text-rose-50/95 border-2 border-rose-500/35 hover:border-rose-400/70 shadow-md active:shadow-xs",
+          buttonGlare: "from-rose-300/10 to-transparent",
         }
       : {
+          accentColor: "emerald",
           badgeBg: "from-emerald-700 via-teal-800 to-emerald-950",
-          badgeBorder: "border-emerald-300",
-          badgeShadow: "shadow-[0_0_16px_rgba(52,211,153,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)]",
-          containerBorder: "border-emerald-400",
-          buttonDefault: "border-emerald-400 bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-green-800 text-white shadow-[0_4px_14px_rgba(16,185,129,0.5),inset_0_1px_2px_rgba(255,255,255,0.6)]",
+          badgeBorder: "border-emerald-400",
+          containerBorder: "border-emerald-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(16,185,129,0.15)]",
+          headerAccentBorder: "border-l-4 border-l-emerald-400",
+          headerTitleColor: "text-emerald-200",
+          avatarBorder: "border-2 border-emerald-400",
+          avatarBg: "bg-[#080e1d] text-emerald-300",
+          buttonDefault: "bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95 border-2 border-emerald-500/35 hover:border-emerald-400/70 shadow-md active:shadow-xs",
+          buttonGlare: "from-emerald-300/10 to-transparent",
         };
 
     const isWinnerGroup = trackVictoryVideoActive && duelWinnerIndex === pIdx;
@@ -718,29 +733,29 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
     return (
       <div
         key={p.id}
-        className={`relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0a0f1d] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${activeMode === 'duel2' ? 'max-w-[500px] lg:max-w-[560px]' : 'max-w-none'} mx-auto h-full`}
+        className={`relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0b1328] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${activeMode === 'duel2' ? 'max-w-[500px] lg:max-w-[560px]' : 'max-w-none'} mx-auto h-full`}
       >
         {/* PLAYER HEADER BAR */}
-        <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1">
+        <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
           {/* LEFT: CIRCLE BADGE (1), (2), (3) */}
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${groupTheme.badgeBg} border-2 ${groupTheme.badgeBorder} ${groupTheme.badgeShadow} text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0`}>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs`}>
             {pIdx + 1}
           </div>
 
-          {/* CONNECTED GLASS CAPSULE FOR GROUP NAME & SCORE */}
-          <div className="flex-1 ml-1.5 sm:ml-2 bg-slate-900/90 border border-cyan-400/40 rounded-xl px-2 sm:px-2.5 py-1 flex items-center justify-between shadow-md gap-1 sm:gap-1.5">
-            <span className="font-black text-[11px] sm:text-xs text-slate-100 uppercase tracking-wide truncate">
+          {/* CONNECTED SOLID CAPSULE FOR GROUP NAME & SCORE */}
+          <div className={`flex-1 h-full ml-1.5 sm:ml-2 bg-[#0e172a] border border-slate-700/80 ${groupTheme.headerAccentBorder} rounded-xl px-2 sm:px-2.5 flex items-center justify-between shadow-xs gap-1 sm:gap-1.5`}>
+            <span className={`font-black text-xs ${groupTheme.headerTitleColor} uppercase tracking-wide truncate`}>
               {pIdx + 1}. GRUP ({p.avatar})
             </span>
 
             {/* RIGHT: SCORE & HEARTS */}
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="bg-white/15 text-white font-black text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-lg shadow-sm">
+              <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
                 {p.score} / {duelTargetScore}
               </span>
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-1 px-0.5">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <span key={i} className={`text-[11px] sm:text-xs transition-all ${i < p.lives ? 'text-rose-500 scale-110 drop-shadow-[0_0_6px_#f43f5e]' : 'text-slate-600 opacity-40 grayscale'}`}>
+                  <span key={i} className={`text-xs sm:text-sm transition-all ${i < p.lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
                     ❤️
                   </span>
                 ))}
@@ -788,11 +803,11 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               let btnClass = groupTheme.buttonDefault;
               if (p.feedback !== 'none') {
                 if (isCorrectOpt) {
-                  btnClass = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-950/80 shadow-[0_0_25px_rgba(16,185,129,0.9),inset_0_1px_2px_rgba(255,255,255,0.4)] scale-105 animate-pulse text-emerald-100";
+                  btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
                 } else if (isSelected) {
-                  btnClass = "ring-4 ring-rose-500 border-rose-400 bg-rose-950/80 shadow-[0_0_25px_rgba(244,63,94,0.9),inset_0_1px_2px_rgba(255,255,255,0.2)] scale-95 opacity-80 text-rose-100";
+                  btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
                 } else {
-                  btnClass = "opacity-35 border-slate-700 bg-slate-900/60";
+                  btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
                 }
               }
 
@@ -801,17 +816,17 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                   key={oIdx}
                   disabled={p.feedback !== 'none' || p.isEliminated || p.lives <= 0}
                   onClick={() => handleMultiplayerAnswer(pIdx, opt)}
-                  className={`relative group w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 backdrop-blur-xl transition-all duration-150 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-95 ${btnClass}`}
+                  className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-t-xl sm:rounded-t-2xl" />
-                  <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white [text-shadow:_0_2px_4px_#000,_0_4px_8px_rgba(0,0,0,0.9)] break-words`}>
+                  <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${groupTheme.buttonGlare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
+                  <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black break-words`}>
                     {opt}
                   </span>
                   {p.feedback !== 'none' && isCorrectOpt && (
-                    <CheckCircle2 size={16} className="absolute right-2 text-emerald-400 shrink-0 filter drop-shadow-md" />
+                    <CheckCircle2 size={18} className="absolute right-2 text-emerald-300 shrink-0 filter drop-shadow-md" />
                   )}
                   {p.feedback !== 'none' && isSelected && !isCorrectOpt && (
-                    <XCircle size={16} className="absolute right-2 text-rose-400 shrink-0 filter drop-shadow-md" />
+                    <XCircle size={18} className="absolute right-2 text-rose-300 shrink-0 filter drop-shadow-md" />
                   )}
                 </button>
               );
@@ -1129,41 +1144,41 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                 {/* TOP BAR: GLASS CAPSULES MATCHING MAIN CLASSROOM LAYOUT */}
                 <div className="flex items-center justify-between gap-2 mb-2 shrink-0 w-full">
                   {/* LEFT: GROUP BADGE & TOPIC */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-950 border-2 border-purple-300 text-white font-black text-sm sm:text-base flex items-center justify-center shadow-[0_0_16px_rgba(192,132,252,0.7),inset_0_1px_2px_rgba(255,255,255,0.4)] shrink-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-purple-400 text-purple-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
                       1
                     </div>
-                    <div className="bg-slate-950/70 backdrop-blur-xl border border-cyan-400/40 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1 sm:py-1.5 flex items-center justify-between gap-2.5 min-w-0 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_15px_rgba(6,182,212,0.2)]">
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-black text-xs sm:text-sm text-slate-100 uppercase tracking-wider">
+                    <div className="h-8 sm:h-9 bg-[#0e172a] border border-slate-700/80 border-l-4 border-l-purple-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-2 min-w-0 shadow-xs">
+                      <div className="flex flex-col min-w-0 justify-center">
+                        <span className="font-black text-xs text-purple-200 uppercase tracking-wide leading-tight">
                           1. GRUP
                         </span>
-                        <span className="text-[10px] sm:text-xs font-bold text-cyan-300 break-words">
+                        <span className="text-[10px] font-bold text-slate-300 truncate leading-tight">
                           {gameTitle} ({gameConcept.toUpperCase()})
                         </span>
                       </div>
                       <img 
                         src={isIng ? '/icon_6.png' : '/icon_5.png'} 
                         alt="Oyun İkonu" 
-                        className="h-6 w-6 sm:h-7 sm:w-7 object-contain shrink-0 filter drop-shadow-md ml-1" 
+                        className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-md ml-1" 
                       />
                     </div>
                   </div>
 
                   {/* RIGHT: SCORE & LIVES */}
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="bg-slate-950/70 backdrop-blur-xl border border-cyan-400/40 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-2 sm:gap-3 shadow-[0_4px_16px_rgba(0,0,0,0.5),0_0_15px_rgba(6,182,212,0.2)]">
-                      <span className="bg-amber-400 text-slate-950 font-black text-xs sm:text-sm px-2.5 py-1 rounded-lg sm:rounded-xl shadow-md uppercase tracking-wider">
+                    <div className="h-8 sm:h-9 bg-[#0e172a] border border-slate-700/80 rounded-xl px-2.5 sm:px-3 flex items-center gap-2 shadow-xs">
+                      <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
                         PUAN: {quizScore} / 10
                       </span>
                       {quizStreak >= 2 && (
-                        <span className="px-2 py-0.5 rounded-lg bg-orange-500 text-white font-black text-xs uppercase shadow-sm animate-pulse hidden sm:inline-block">
+                        <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-300 font-black text-[11px] uppercase tracking-wider hidden sm:inline-block">
                           🔥 {quizStreak}x
                         </span>
                       )}
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 3 }).map((_, i) => (
-                          <span key={i} className={`text-sm sm:text-base transition-all ${i < quizLives ? 'scale-110 text-rose-500 drop-shadow-[0_0_6px_#f43f5e]' : 'opacity-30 grayscale'}`}>
+                          <span key={i} className={`text-xs sm:text-sm transition-all ${i < quizLives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
                             ❤️
                           </span>
                         ))}
@@ -1172,46 +1187,46 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                   </div>
                 </div>
 
-                {/* QUESTION CARD - MODERN GLASSMORPHISM DESIGN MATCHING GRADE ACTIVITIES */}
-                <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-slate-950/40 backdrop-blur-xl border-2 border-cyan-200/40 shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_2px_rgba(255,255,255,0.45),0_0_25px_rgba(6,182,212,0.2)] p-3 sm:p-4 my-1 flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-[130px] sm:min-h-[160px] w-full max-w-md sm:max-w-lg mx-auto">
+                {/* QUESTION CARD - MODERN SOLID DARK CONTAINER MATCHING GRADE ACTIVITIES */}
+                <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-purple-400/50 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] p-3 sm:p-4 my-1 flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-[130px] sm:min-h-[160px] w-full max-w-md sm:max-w-lg mx-auto">
                   {/* Inner top glare */}
-                  <div className="absolute top-0 left-0 right-0 h-2/5 bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                  <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
                   
                   <div className="relative z-10 flex flex-col items-center justify-center w-full px-2">
                     <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest mb-1.5 [text-shadow:_0_2px_4px_#000]">
                       {isIng ? 'BU KELİMENİN TÜRKÇE KARŞILIĞI:' : `BU KELİMENİN ${gameConcept.toUpperCase()} ANLAMLISI:`}
                     </span>
                     
-                    <div className="px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl tracking-wide uppercase shadow-[0_6px_20px_rgba(245,158,11,0.5)] border-2 sm:border-3 border-white flex items-center gap-2.5 my-1 transform hover:scale-105 transition-transform">
+                    <div className="px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-2xl sm:text-3xl md:text-4xl tracking-wide uppercase shadow-[0_6px_20px_rgba(245,158,11,0.5)] border-2 sm:border-3 border-white flex items-center gap-2.5 my-1">
                       {!isIng && quizQuestion.emoji && <span className="text-2xl sm:text-3xl filter drop-shadow-md">{quizQuestion.emoji}</span>}
-                      <span className="[text-shadow:_0_1px_2px_rgba(255,255,255,0.8)]">{quizQuestion.word}</span>
+                      <span className="truncate">{quizQuestion.word}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* 4 CHOICES - YÜZDE 50 KÜÇÜLTÜLMÜŞ KOMPAKT BUTON TASARIMI */}
+                {/* 4 CHOICES - FAST-QUIZ-BTN DESIGN */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full max-w-md sm:max-w-lg shrink-0 mt-auto">
                   {(() => {
                     const OPTION_COLOR_THEMES = [
                       {
-                        border: 'border-cyan-400',
-                        bg: 'bg-gradient-to-b from-blue-600 via-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 active:from-blue-700 active:to-indigo-800',
-                        shadow: 'shadow-[0_4px_16px_rgba(37,99,235,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                        border: "border-blue-500/35 hover:border-blue-400/70",
+                        bg: "bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] active:from-[#0e1726] active:to-[#090f1a] text-blue-50/95",
+                        glare: "from-blue-300/10 to-transparent",
                       },
                       {
-                        border: 'border-pink-400',
-                        bg: 'bg-gradient-to-b from-rose-600 via-pink-600 to-rose-700 hover:from-rose-500 hover:to-pink-500 active:from-rose-700 active:to-rose-800',
-                        shadow: 'shadow-[0_4px_16px_rgba(225,29,72,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                        border: "border-rose-500/35 hover:border-rose-400/70",
+                        bg: "bg-gradient-to-b from-[#2e1925] via-[#24131d] to-[#180b13] hover:from-[#3a2030] hover:via-[#2c1724] hover:to-[#1d0e17] active:from-[#190c14] active:to-[#10070c] text-rose-50/95",
+                        glare: "from-rose-300/10 to-transparent",
                       },
                       {
-                        border: 'border-emerald-400',
-                        bg: 'bg-gradient-to-b from-emerald-600 via-teal-600 to-green-700 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-green-800',
-                        shadow: 'shadow-[0_4px_16px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                        border: "border-emerald-500/35 hover:border-emerald-400/70",
+                        bg: "bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95",
+                        glare: "from-emerald-300/10 to-transparent",
                       },
                       {
-                        border: 'border-amber-300',
-                        bg: 'bg-gradient-to-b from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 active:from-amber-700 active:to-amber-800',
-                        shadow: 'shadow-[0_4px_16px_rgba(245,158,11,0.45),inset_0_1px_2px_rgba(255,255,255,0.6)]',
+                        border: "border-amber-500/35 hover:border-amber-400/70",
+                        bg: "bg-gradient-to-b from-[#2a2012] via-[#22180c] to-[#171007] hover:from-[#362917] hover:via-[#2a1d0f] hover:to-[#1c1308] active:from-[#160f06] active:to-[#0d0903] text-amber-50/95",
+                        glare: "from-amber-300/10 to-transparent",
                       }
                     ];
 
@@ -1221,14 +1236,14 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                       const optFontClass = getWordOptionFontSize(quizQuestion.options, 1);
                       const theme = OPTION_COLOR_THEMES[oIdx % OPTION_COLOR_THEMES.length];
                       
-                      let btnClass = `${theme.border} ${theme.bg} ${theme.shadow} text-white hover:scale-[1.02]`;
+                      let btnClass = `${theme.border} ${theme.bg} shadow-md active:shadow-xs`;
                       if (quizFeedback !== 'none') {
                         if (isCorrect) {
-                          btnClass = "ring-4 ring-emerald-400 border-emerald-300 bg-emerald-700 shadow-[0_0_30px_rgba(16,185,129,0.9),inset_0_1px_2px_rgba(255,255,255,0.7)] scale-105 animate-pulse text-white";
+                          btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
                         } else if (isSelected) {
-                          btnClass = "ring-4 ring-rose-500 border-rose-400 bg-rose-900/90 shadow-[0_0_30px_rgba(244,63,94,0.9),inset_0_1px_2px_rgba(255,255,255,0.3)] scale-95 opacity-85 text-rose-100";
+                          btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
                         } else {
-                          btnClass = "opacity-35 border-slate-700 bg-slate-900/60 text-slate-300";
+                          btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
                         }
                       }
 
@@ -1237,18 +1252,18 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                           key={oIdx}
                           disabled={quizFeedback !== 'none'}
                           onClick={() => handleQuizAnswer(opt)}
-                          className={`relative group w-full py-2.5 sm:py-3.5 px-2.5 min-h-[46px] sm:min-h-[55px] rounded-xl sm:rounded-2xl border-2 backdrop-blur-xl transition-all duration-150 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-95 ${btnClass}`}
+                          className={`fast-quiz-btn relative w-full py-2.5 sm:py-3.5 px-2.5 min-h-[46px] sm:min-h-[55px] rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
                         >
                           {/* Inner top glare */}
-                          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 via-white/10 to-transparent pointer-events-none rounded-t-xl sm:rounded-t-2xl" />
-                          <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black [text-shadow:_0_2px_4px_#000,_0_4px_8px_rgba(0,0,0,0.9)] break-words`}>
+                          <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${theme.glare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
+                          <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black break-words`}>
                             {opt}
                           </span>
                           {quizFeedback !== 'none' && isCorrect && (
-                            <CheckCircle2 size={18} className="absolute right-2.5 text-emerald-400 shrink-0 filter drop-shadow-md animate-bounce" />
+                            <CheckCircle2 size={18} className="absolute right-2.5 text-emerald-300 shrink-0 filter drop-shadow-md" />
                           )}
                           {quizFeedback !== 'none' && isSelected && !isCorrect && (
-                            <XCircle size={18} className="absolute right-2.5 text-rose-400 shrink-0 filter drop-shadow-md" />
+                            <XCircle size={18} className="absolute right-2.5 text-rose-300 shrink-0 filter drop-shadow-md" />
                           )}
                         </button>
                       );
