@@ -40,9 +40,9 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
           src="/dere3.jpg"
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center scale-105"
+          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
         />
-        <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px] pointer-events-none" />
+        <div className="absolute inset-0 bg-slate-950/30 pointer-events-none" />
       </div>
 
       {/* 2. TOP HEADER BAR */}

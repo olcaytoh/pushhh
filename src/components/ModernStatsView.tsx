@@ -54,6 +54,8 @@ interface ModernStatsViewProps {
     totalBadgesEarned: number;
   };
   streak?: number;
+  students?: Array<{ id: string; name: string; avatar: string; totalCorrect: number; totalWrong: number; gamesPlayed: number; gamesWon: number }>;
+  onOpenRosterModal?: () => void;
   onSelectTopic: (topicKey: string, grade?: number) => void;
   onResetStats?: () => void;
   onResetGradeStats?: (grade: number) => void;
@@ -71,6 +73,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   topicsByGrade,
   topic3DIcons = {},
   topics = {},
+  students = [],
+  onOpenRosterModal,
   onSelectTopic,
   onResetStats,
   onResetGradeStats,
@@ -327,6 +331,16 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <Users size={13} className="text-blue-300" />
               <span>{currentGrade}. Sınıf Grupları</span>
             </button>
+            {onOpenRosterModal && (
+              <button
+                onClick={onOpenRosterModal}
+                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow ring-1 ring-amber-300 transition-all cursor-pointer"
+                title="Öğrenci Listesini ve İstatistiklerini Aç"
+              >
+                <Award size={13} className="text-amber-200" />
+                <span>🎓 Öğrenci İstatistikleri ({students.length})</span>
+              </button>
+            )}
           </div>
 
           <div className="text-[10px] sm:text-[11px] font-bold text-amber-300/90 flex items-center gap-1">
