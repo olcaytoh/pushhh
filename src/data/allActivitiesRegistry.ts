@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -15,6 +15,7 @@ export interface ActivityRegistryItem {
 }
 
 const resolveTitle = (key: string, grade?: number): string => {
+  if (key === 'cisimler_acilimi') return 'Geometrik Cisimler Açılımı';
   if (halatCekmeTopics[key]?.title) return halatCekmeTopics[key].title;
   if (sureliExtraTopics[key]?.title) return sureliExtraTopics[key].title;
   if (grade === 1 && topics1stGrade[key]?.title) return topics1stGrade[key].title;
@@ -39,12 +40,13 @@ const g1Geometri = [
   'uzamsal_iliskiler_simetri',
   'es_nesneler',
   'geometrik_sekil_cisim',
-  'geometri_tahtasi'
+  'geometri_tahtasi',
+  'cisimler_acilimi'
 ];
 g1Geometri.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g1_${key}`,
-    type: key === 'geometri_tahtasi' ? 'geoboard' : 'grade_topic',
+    type: key === 'geometri_tahtasi' ? 'geoboard' : key === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
     grade: 1,
     topicKey: key,
     title: resolveTitle(key, 1),
@@ -150,12 +152,13 @@ const g2Geometri = [
   'geometrik_oruntu',
   'uzamsal_iliskiler_simetri',
   'sivi_olcme',
-  'tartma_olcme'
+  'tartma_olcme',
+  'cisimler_acilimi'
 ];
 g2Geometri.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g2_${key}`,
-    type: key === 'geometri_tahtasi' ? 'geoboard' : 'grade_topic',
+    type: key === 'geometri_tahtasi' ? 'geoboard' : key === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
     grade: 2,
     topicKey: key,
     title: resolveTitle(key, 2),
@@ -350,12 +353,13 @@ g3Tema3.forEach(key => {
 const g3Tema4 = [
   'g3_geometrik_cisimler_ozellikleri',
   'g3_temel_geometri_kavramlari',
-  'g3_cevre_ve_olculebilir_nitelikler'
+  'g3_cevre_ve_olculebilir_nitelikler',
+  'cisimler_acilimi'
 ];
 g3Tema4.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g3_${key}`,
-    type: 'grade_topic',
+    type: key === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
     grade: 3,
     topicKey: key,
     title: resolveTitle(key, 3),
@@ -459,12 +463,13 @@ const g4Tema4 = [
   'g4_dogru_isin_dogru_parcasi_acilar',
   'g4_simetri_dogrulari',
   'g4_sutun_grafigi_ve_tablolar',
-  'g4_olaylarin_olasiligi'
+  'g4_olaylarin_olasiligi',
+  'cisimler_acilimi'
 ];
 g4Tema4.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g4_${key}`,
-    type: 'grade_topic',
+    type: key === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
     grade: 4,
     topicKey: key,
     title: resolveTitle(key, 4),
@@ -532,6 +537,18 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_cisimler_acilimi',
+  type: 'geometric_nets',
+  title: 'Geometrik Cisimler Açılımı',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_kuralli_cumle',
+  type: 'kuralli_cumle',
+  title: 'Kurallı Cümle Oluştur',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
   wordGameType: 'ingilizce',
@@ -540,11 +557,23 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
+  if (type === 'kuralli_cumle' || topicKey === 'kuralli_cumle') {
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'kuralli_cumle' || a.id === 'other_kuralli_cumle');
+    if (idx !== -1) return idx;
+  }
+  if (type === 'geometric_nets' || topicKey === 'cisimler_acilimi') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'geometric_nets' || a.topicKey === 'cisimler_acilimi') && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'geometric_nets' || a.topicKey === 'cisimler_acilimi');
+    if (idx !== -1) return idx;
+  }
   if (type === 'word_game' && wordGameType) {
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'word_game' && a.wordGameType === wordGameType);
     if (idx !== -1) return idx;

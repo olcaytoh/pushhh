@@ -100,47 +100,18 @@ export function saveStudents(students: Student[]): void {
 }
 
 /**
- * Loads selected player student IDs for a specific grade (1, 2, 3, or 4)
+ * Loads selected player student IDs for a specific grade (1, 2, 3, or 4).
+ * By default, no player is pre-selected initially.
  */
-export function loadSelectedStudentIdsForGrade(grade: number): (string | null)[] {
-  try {
-    const raw = localStorage.getItem(SELECTED_STUDENTS_BY_GRADE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object' && Array.isArray(parsed[grade])) {
-        return [parsed[grade][0] || null, parsed[grade][1] || null, parsed[grade][2] || null];
-      }
-    }
-
-    // Legacy fallback for grade 2
-    if (grade === 2) {
-      const legacyRaw = localStorage.getItem(SELECTED_STUDENTS_STORAGE_KEY);
-      if (legacyRaw) {
-        const parsed = JSON.parse(legacyRaw);
-        if (Array.isArray(parsed)) {
-          return [parsed[0] || null, parsed[1] || null, parsed[2] || null];
-        }
-      }
-    }
-  } catch {}
+export function loadSelectedStudentIdsForGrade(_grade: number): (string | null)[] {
   return [null, null, null];
 }
 
 /**
  * Saves selected player student IDs for a specific grade so they persist independently
  */
-export function saveSelectedStudentIdsForGrade(grade: number, ids: (string | null)[]): void {
-  try {
-    let map: Record<number, (string | null)[]> = {};
-    const raw = localStorage.getItem(SELECTED_STUDENTS_BY_GRADE_KEY);
-    if (raw) {
-      try {
-        map = JSON.parse(raw) || {};
-      } catch {}
-    }
-    map[grade] = [ids[0] || null, ids[1] || null, ids[2] || null];
-    localStorage.setItem(SELECTED_STUDENTS_BY_GRADE_KEY, JSON.stringify(map));
-  } catch {}
+export function saveSelectedStudentIdsForGrade(_grade: number, _ids: (string | null)[]): void {
+  // Kept for interface compatibility; no forced persistence so games always start unselected
 }
 
 /**

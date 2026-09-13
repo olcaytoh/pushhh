@@ -12,6 +12,7 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   ingilizce_kelimeler: { title: 'İngilizce Sözlük Oyunu', desc: 'Görseller ve İngilizce kelimeler', icon: '🇬🇧' },
   xox: { title: 'XOX Bilgi Düellosu', desc: 'Strateji ve hızlı soru çözümü', icon: '❌' },
   geoboard: { title: 'Geoboard Şekil Çizimi', desc: 'Geometrik şekiller ve alan hesapları', icon: '📐' },
+  cisimler_acilimi: { title: 'Geometrik Cisimler Açılımı', desc: 'Küp, prizma, silindir ve koninin 3D katlanma ve açınım simülasyonu', icon: '🧊' },
   aynisini_bul: { title: 'Aynısını Bul Dikkat Oyunu', desc: 'Görsel eşleme ve hafıza', icon: '👀' },
   surukle_birak: { title: 'Sürükle Bırak Eşleştirme', desc: 'Kavram ve nesne eşleştirme', icon: '🎯' },
   tug_of_war: { title: 'Halat Çekmece Yarışı', desc: 'Hızlı cevapla halatı grubuna çek', icon: '🪢' },

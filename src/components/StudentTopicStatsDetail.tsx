@@ -28,7 +28,7 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
   playMp3,
   compact = false
 }) => {
-  const [showAllCurriculum, setShowAllCurriculum] = useState(false);
+  const [showAllCurriculum, setShowAllCurriculum] = useState(true);
   const [topicSearch, setTopicSearch] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);

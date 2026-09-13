@@ -21,7 +21,7 @@ import {
   UserPlus,
   GraduationCap
 } from 'lucide-react';
-import { StatRecord, GroupStatsRecord } from '../types';
+import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types';
 import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
@@ -42,6 +42,7 @@ export const Cute3DStarMascotSVG = Cute3DRobotMascotSVG;
 interface ModernStatsViewProps {
   statsData?: Record<string, StatRecord>;
   groupStatsData?: GroupStatsRecord;
+  singleStatsData?: SinglePlayerStatsRecord;
   gradeStatsData?: Record<number, Record<string, StatRecord>>;
   gradeGroupStatsData?: Record<number, GroupStatsRecord>;
   activeGrade?: number | null;
@@ -77,6 +78,7 @@ interface ModernStatsViewProps {
 export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   statsData = {},
   groupStatsData,
+  singleStatsData,
   gradeStatsData = {},
   gradeGroupStatsData = {},
   activeGrade = 2,
@@ -100,16 +102,14 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   useEffect(() => {
     if (activeGrade && [1, 2, 3, 4].includes(activeGrade)) {
       setCurrentGrade(activeGrade);
-      setViewMode(activeGrade === 2 ? 'dogru_yanlis' : 'gruplar');
+      setViewMode('tek_kisilik');
       setCategoryFilter('hepsi');
       setConfirmReset(false);
     }
   }, [activeGrade]);
 
-  // View mode: 'dogru_yanlis' | 'gruplar' | 'ogrenciler'
-  const [viewMode, setViewMode] = useState<'dogru_yanlis' | 'gruplar' | 'ogrenciler'>(
-    initialGrade === 2 ? 'dogru_yanlis' : 'gruplar'
-  );
+  // View mode: 'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler'
+  const [viewMode, setViewMode] = useState<'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler'>('tek_kisilik');
 
   const [localStudents, setLocalStudents] = useState<Student[]>(students || []);
   useEffect(() => {
@@ -288,6 +288,19 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const gradeTotalSolved = gradeTotalDogru + gradeTotalYanlis;
   const gradeAccuracy = gradeTotalSolved > 0 ? Math.round((gradeTotalDogru / gradeTotalSolved) * 100) : 0;
 
+  // Single player topic stats calculation
+  const singleTopicStats = singleStatsData?.topicStats || {};
+  let gradeSingleDogru = 0;
+  let gradeSingleYanlis = 0;
+  topicKeys.forEach(k => {
+    if (singleTopicStats[k]) {
+      gradeSingleDogru += singleTopicStats[k].dogru || 0;
+      gradeSingleYanlis += singleTopicStats[k].yanlis || 0;
+    }
+  });
+  const gradeSingleTotal = gradeSingleDogru + gradeSingleYanlis;
+  const gradeSingleAccuracy = gradeSingleTotal > 0 ? Math.round((gradeSingleDogru / gradeSingleTotal) * 100) : 0;
+
   // Grade Badges Definition
   const GRADE_OPTIONS = [
     { grade: 1, label: '1. SINIF', icon: '/icon_1.png', theme: 'from-amber-500 to-orange-600', ring: 'ring-amber-400' },
@@ -313,9 +326,13 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                 <img src={`/icon_${currentGrade}.png`} alt="" className="h-4 sm:h-4.5 w-auto object-contain shrink-0" />
               </h2>
               <p className="text-[10px] text-purple-200/80 truncate">
-                {viewMode === 'dogru_yanlis'
+                {viewMode === 'tek_kisilik'
+                  ? 'Tek kişilik oyun ve etkinliklerin konu bazlı analizi'
+                  : viewMode === 'dogru_yanlis'
                   ? 'Konulara göre doğru ve yanlış cevap analizi'
-                  : 'Grupların yarışma skorları ve konu başarıları'}
+                  : viewMode === 'gruplar'
+                  ? 'Grupların yarışma skorları ve konu başarıları'
+                  : 'Öğrenci bazlı detaylı konu performans karnesi'}
               </p>
             </div>
           </div>
@@ -357,6 +374,21 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
           <div className="flex items-center gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-purple-400/30 flex-wrap">
             <button
               onClick={() => {
+                setViewMode('tek_kisilik');
+                setExpandedStudentId(null);
+              }}
+              className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
+                viewMode === 'tek_kisilik'
+                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow ring-1 ring-amber-300'
+                  : 'text-purple-200/70 hover:text-white'
+              }`}
+              title={`${currentGrade}. Sınıf Tek Kişilik Etkinlik İstatistiklerini Gör`}
+            >
+              <Target size={13} className={viewMode === 'tek_kisilik' ? 'text-slate-950 stroke-[3]' : 'text-amber-300'} />
+              <span>🎯 {currentGrade}. Sınıf Tek Kişilik</span>
+            </button>
+            <button
+              onClick={() => {
                 setViewMode('dogru_yanlis');
                 setExpandedStudentId(null);
               }}
@@ -390,7 +422,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               }}
               className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === 'ogrenciler'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow ring-1 ring-amber-300'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow ring-1 ring-purple-300'
                   : 'text-purple-200/70 hover:text-white'
               }`}
               title={`${currentGrade}. Sınıf Öğrencilerinin Konu Konu İstatistiklerini Gör`}
@@ -440,7 +472,38 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
         {/* 3. ROW: COMPACT SUMMARY CARDS (SHRUNK TO FREE UP MAXIMUM SPACE FOR TOPICS BELOW) */}
         <div className="px-3 sm:px-4 py-1 shrink-0">
-          {viewMode === 'ogrenciler' ? (
+          {viewMode === 'tek_kisilik' ? (
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+              <div className="bg-gradient-to-b from-emerald-950/90 to-slate-950/95 border border-emerald-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-emerald-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <CheckCircle2 size={12} className="text-emerald-400" />
+                  <span>Tek Kişilik Doğru</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-emerald-300 leading-tight mt-0.5">{gradeSingleDogru}</div>
+              </div>
+              <div className="bg-gradient-to-b from-rose-950/90 to-slate-950/95 border border-rose-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-rose-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <XCircle size={12} className="text-rose-400" />
+                  <span>Tek Kişilik Yanlış</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-rose-300 leading-tight mt-0.5">{gradeSingleYanlis}</div>
+              </div>
+              <div className="bg-gradient-to-b from-amber-950/90 to-slate-950/95 border border-amber-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <Trophy size={12} className="text-amber-400" />
+                  <span>Başarı Oranı</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-amber-300 leading-tight mt-0.5">%{gradeSingleAccuracy}</div>
+              </div>
+              <div className="bg-gradient-to-b from-cyan-950/90 to-slate-950/95 border border-cyan-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-cyan-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <Sparkles size={12} className="text-cyan-400" />
+                  <span>Tamamlanan Oyun</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-cyan-300 leading-tight mt-0.5">{singleStatsData?.wins || 0}</div>
+              </div>
+            </div>
+          ) : viewMode === 'ogrenciler' ? (
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <div className="bg-gradient-to-b from-amber-950/90 to-slate-950/95 border border-amber-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
                 <div className="flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] uppercase">
@@ -764,6 +827,11 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               const tTotal = tStat.dogru + tStat.yanlis;
               const tRate = tTotal > 0 ? Math.round((tStat.dogru / tTotal) * 100) : 0;
 
+              // Single player topic stats
+              const sStat = singleTopicStats[key] || { dogru: 0, yanlis: 0 };
+              const sTotal = sStat.dogru + sStat.yanlis;
+              const sRate = sTotal > 0 ? Math.round((sStat.dogru / sTotal) * 100) : 0;
+
               // Group topic stats
               const g1Dogru = groupsList[0].topicStats[key]?.dogru || 0;
               const g2Dogru = groupsList[1].topicStats[key]?.dogru || 0;
@@ -814,6 +882,33 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                       </span>
                     )}
 
+                    {viewMode === 'tek_kisilik' && (
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        <span className={`px-2 py-0.5 rounded-full font-black text-[10px] sm:text-xs border ${
+                          sTotal > 0 && sRate >= 70
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+                            : sTotal > 0
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+                            : 'bg-purple-500/20 text-purple-300 border-purple-400/30'
+                        }`}>
+                          {sTotal > 0 ? `%${sRate} Başarı` : 'Henüz Çözülmedi'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectTopic(key, currentGrade);
+                            onClose();
+                          }}
+                          className="px-2 py-0.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-[10px] flex items-center gap-1 shadow cursor-pointer transition active:scale-95"
+                          title="Tek kişilik modda başlat"
+                        >
+                          <Play size={10} fill="currentColor" />
+                          <span>Oyna</span>
+                        </button>
+                      </div>
+                    )}
+
                     {viewMode === 'dogru_yanlis' && (
                       <div className="shrink-0 flex items-center gap-1.5">
                         <span className={`px-2 py-0.5 rounded-full font-black text-[10px] sm:text-xs border ${
@@ -830,7 +925,44 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                   </div>
 
                   {/* STAT BODY ACCORDING TO VIEW MODE */}
-                  {viewMode === 'dogru_yanlis' ? (
+                  {viewMode === 'tek_kisilik' ? (
+                    /* TEK KİŞİLİK METRİKLER & PROGRESS BAR */
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] sm:text-xs font-black">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                            <Check size={12} className="text-emerald-400 stroke-[3]" />
+                            <b>{sStat.dogru}</b> Tek Kişilik Doğru
+                          </span>
+                          <span className="px-2 py-0.5 rounded-lg bg-rose-950/80 border border-rose-500/40 text-rose-300 flex items-center gap-1">
+                            <X size={12} className="text-rose-400 stroke-[3]" />
+                            <b>{sStat.yanlis}</b> Tek Kişilik Yanlış
+                          </span>
+                        </div>
+                        <span className="text-purple-200/80 text-[10px] sm:text-xs font-semibold">
+                          Toplam: <b className="text-white">{sTotal}</b> soru
+                        </span>
+                      </div>
+
+                      {/* Accuracy bar */}
+                      <div className="w-full bg-black/40 rounded-full h-2.5 overflow-hidden border border-purple-500/30 flex">
+                        {sTotal > 0 ? (
+                          <>
+                            <div
+                              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500"
+                              style={{ width: `${(sStat.dogru / sTotal) * 100}%` }}
+                            />
+                            <div
+                              className="h-full bg-gradient-to-r from-rose-500 to-red-600 transition-all duration-500"
+                              style={{ width: `${(sStat.yanlis / sTotal) * 100}%` }}
+                            />
+                          </>
+                        ) : (
+                          <div className="h-full w-full bg-purple-900/30" />
+                        )}
+                      </div>
+                    </div>
+                  ) : viewMode === 'dogru_yanlis' ? (
                     /* DOĞRU / YANLIŞ METRICS & PROGRESS BAR (2. SINIF & GRADE SPECIFIC) */
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] sm:text-xs font-black">

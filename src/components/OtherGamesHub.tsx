@@ -10,6 +10,8 @@ interface OtherGamesHubProps {
   onOpen3DLab?: () => void;
   onOpenGeoboard?: () => void;
   onOpenAynisiniBul?: () => void;
+  onOpenGeometricNets?: () => void;
+  onOpenKuralliCumle?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -21,6 +23,8 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpen3DLab,
   onOpenGeoboard,
   onOpenAynisiniBul,
+  onOpenGeometricNets,
+  onOpenKuralliCumle,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -82,6 +86,26 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/coin.mp3',
       action: () => {
         if (onOpenGeoboard) onOpenGeoboard();
+      },
+    },
+    {
+      id: 'cisimler_acilimi',
+      title: 'Geometrik Cisimler Açılımı',
+      subtitle: '3D Katlama & Yüzey Açınım Simülasyonu',
+      icon: '/MENUIKON/grid_icon_10.png',
+      sound: '/para.mp3',
+      action: () => {
+        if (onOpenGeometricNets) onOpenGeometricNets();
+      },
+    },
+    {
+      id: 'kuralli_cumle',
+      title: 'Kurallı Cümle Oluştur',
+      subtitle: 'Kelimeleri Sürükle, Anlamlı ve Kurallı Cümleleri Kur!',
+      icon: '/MENUIKON/grid_icon_28.png',
+      sound: '/farklilvl.mp3',
+      action: () => {
+        if (onOpenKuralliCumle) onOpenKuralliCumle();
       },
     }
   ];

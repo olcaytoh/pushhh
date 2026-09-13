@@ -2,17 +2,19 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
-  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail
+  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { QuestionData, StatRecord, PlayerData, GroupStatsRecord } from './types';
+import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
 import { BADGES, BadgeItem, getBadgeRepeatCount } from './badges';
 import { AslanSVG } from './components/Mascot';
 import { Geometry3DLab } from './components/Geometry3DLab';
 import { GeoboardActivity } from './components/GeoboardActivity';
+import { GeometricNetsActivity } from './components/GeometricNetsActivity';
 import { XOXGame } from './components/XOXGame';
 import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
+import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -1910,6 +1912,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   es_nesneler: '/MENUIKON/grid_icon_27.png',
   geometrik_sekil_cisim: '/MENUIKON/grid_icon_39.png',
   geometri_tahtasi: '/MENUIKON/grid_icon_10.png',
+  cisimler_acilimi: '/MENUIKON/grid_icon_10.png',
   yuz_ayrit_kose: '/MENUIKON/grid_icon_16.png',
   geometrik_oruntu: '/MENUIKON/grid_icon_19.png',
   uzamsal_iliskiler_simetri: '/MENUIKON/grid_icon_07.png',
@@ -2929,6 +2932,7 @@ export default function App() {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [show3DLab, setShow3DLab] = useState(false);
   const [showGeoboard, setShowGeoboard] = useState(false);
+  const [showGeometricNets, setShowGeometricNets] = useState(false);
   const [showOtherGamesModal, setShowOtherGamesModal] = useState(false);
   const [showEnglishGamesModal, setShowEnglishGamesModal] = useState(false);
   const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
@@ -2943,7 +2947,8 @@ export default function App() {
   const [countersData, setCountersData] = useState<ClassCountersData>(() => loadCounters());
   const [students, setStudents] = useState<Student[]>(() => loadStudents());
   const activeGradeNumber: number = (selectedGrade && [1, 2, 3, 4].includes(selectedGrade)) ? selectedGrade : 2;
-  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>(() => loadSelectedStudentIdsForGrade(activeGradeNumber));
+  // En başta kimse seçili olmasın: [null, null, null]
+  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([null, null, null]);
   const [showStudentRosterModal, setShowStudentRosterModal] = useState(false);
   const [rosterModalGrade, setRosterModalGrade] = useState<number | null>(null);
   const [statsModalGrade, setStatsModalGrade] = useState<number | null>(null);
@@ -2953,15 +2958,10 @@ export default function App() {
     saveStudents(students);
   }, [students]);
 
-  // When active grade changes, switch player slots to that grade's selections
+  // Sınıf değiştiğinde veya başlangıçta kimse seçili olmasın
   useEffect(() => {
-    setSelectedStudentIds(loadSelectedStudentIdsForGrade(activeGradeNumber));
+    setSelectedStudentIds([null, null, null]);
   }, [activeGradeNumber]);
-
-  // Auto-persist selected player students for active grade to localStorage
-  useEffect(() => {
-    saveSelectedStudentIdsForGrade(activeGradeNumber, selectedStudentIds);
-  }, [selectedStudentIds, activeGradeNumber]);
 
   // Clean up selected student slots if a student was deleted from roster
   useEffect(() => {
@@ -3011,6 +3011,23 @@ export default function App() {
       // Ignore
     }
     return DEFAULT_GROUP_STATS;
+  });
+
+  const DEFAULT_SINGLE_STATS: SinglePlayerStatsRecord = {
+    dogru: 0,
+    yanlis: 0,
+    wins: 0,
+    topicStats: {}
+  };
+
+  const [singleStatsData, setSingleStatsData] = useState<SinglePlayerStatsRecord>(() => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Ignore
+    }
+    return DEFAULT_SINGLE_STATS;
   });
 
   const totalCorrect = Object.values(statsData).reduce<number>((sum, item) => sum + ((item as StatRecord)?.dogru || 0), 0);
@@ -3124,6 +3141,12 @@ export default function App() {
       playWrongSound();
       setFeedbackState('wrong');
       kaydetIstatistik(currentTopic, false);
+      if (playerCountMode === 1) {
+        kaydetSingleIstatistik(currentTopic, false);
+        if (selectedStudentIds[0]) {
+          setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, false));
+        }
+      }
       setStreak(0);
 
       setLives(prev => {
@@ -3483,6 +3506,7 @@ export default function App() {
       return;
     }
     setPlayerCountMode(newMode);
+    setSelectedStudentIds([null, null, null]);
     playMp3('/coin.mp3');
 
     // If currently in playing mode, dynamically adjust active players
@@ -3566,7 +3590,11 @@ export default function App() {
       setLastSelectedGrade(gradeOverride);
     }
     const effectiveGrade = gradeOverride !== undefined ? gradeOverride : (selectedGrade || 1);
-    const foundActivityIdx = findActivityIndex(topicKey === 'geometri_tahtasi' ? 'geoboard' : 'grade_topic', topicKey, effectiveGrade);
+    const foundActivityIdx = findActivityIndex(
+      topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
+      topicKey,
+      effectiveGrade
+    );
     if (foundActivityIdx !== -1) {
       setCurrentActivityIndex(foundActivityIdx);
     }
@@ -3576,6 +3604,11 @@ export default function App() {
     if (topicKey === 'geometri_tahtasi') {
       setCurrentTopic('geometri_tahtasi');
       setShowGeoboard(true);
+      return;
+    }
+    if (topicKey === 'cisimler_acilimi') {
+      setCurrentTopic('cisimler_acilimi');
+      setShowGeometricNets(true);
       return;
     }
     setCurrentTopic(topicKey);
@@ -3674,6 +3707,8 @@ export default function App() {
       setShuffledOptions(initialPlayers[0].shuffledOptions);
     }
 
+    // Oyun başında kimse seçili olmasın
+    setSelectedStudentIds([null, null, null]);
     setGameState('playing');
   };
 
@@ -3716,7 +3751,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -3757,6 +3792,7 @@ export default function App() {
 
     setShow3DLab(false);
     setShowGeoboard(false);
+    setShowGeometricNets(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
     setShowOtherGamesModal(false);
@@ -3772,6 +3808,14 @@ export default function App() {
         setSelectedCategoryId(getCategoryIdForTopic(entry.topicKey));
       }
       selectTopicAndStart(entry.topicKey, entry.grade);
+    } else if (entry.type === 'geometric_nets' || entry.topicKey === 'cisimler_acilimi') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId(getCategoryIdForTopic('geometrik_sekil_cisim'));
+      }
+      setGameState('welcome');
+      setShowGeometricNets(true);
     } else if (entry.type === '3d_lab') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -3922,12 +3966,49 @@ export default function App() {
     }
   };
 
+  const kaydetSingleIstatistik = (topicId: string, dogruMu: boolean) => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      const current: SinglePlayerStatsRecord = raw ? JSON.parse(raw) : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      if (!current.topicStats) current.topicStats = {};
+      if (!current.topicStats[topicId]) current.topicStats[topicId] = { dogru: 0, yanlis: 0 };
+
+      if (dogruMu) {
+        current.dogru = (current.dogru || 0) + 1;
+        current.topicStats[topicId].dogru++;
+      } else {
+        current.yanlis = (current.yanlis || 0) + 1;
+        current.topicStats[topicId].yanlis++;
+      }
+
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(current));
+      setSingleStatsData({ ...current });
+    } catch (e) {
+      console.error('Error saving single player stats:', e);
+    }
+  };
+
+  const incrementSingleWin = () => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      const current: SinglePlayerStatsRecord = raw ? JSON.parse(raw) : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      current.wins = (current.wins || 0) + 1;
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(current));
+      setSingleStatsData({ ...current });
+    } catch (e) {
+      console.error('Error incrementing single win:', e);
+    }
+  };
+
   const handleAnswer = (option: string | number) => {
     if (feedbackState !== 'none' || !currentQuestionData) return;
 
     setSelectedOption(option);
     const isCorrect = option === currentQuestionData.correct;
     kaydetIstatistik(currentTopic, isCorrect);
+    if (playerCountMode === 1) {
+      kaydetSingleIstatistik(currentTopic, isCorrect);
+    }
     if (selectedStudentIds[0]) {
       setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, isCorrect));
     }
@@ -3977,6 +4058,10 @@ export default function App() {
         incrementBadgeCount('tam_puan');
         if (lives === 3) {
           incrementBadgeCount('kusursuz');
+        }
+
+        if (playerCountMode === 1) {
+          incrementSingleWin();
         }
 
         if (selectedStudentIds[0]) {
@@ -4219,6 +4304,7 @@ export default function App() {
   const getCurrentActivityTitle = (): string => {
     if (show3DLab) return '3B Geometri Laboratuvarı';
     if (showGeoboard) return 'Geometri Tahtası';
+    if (showGeometricNets) return 'Geometrik Cisimler Açılımı';
     if (showXOXGame) return 'Matematik XOX Oyunu';
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
@@ -4374,6 +4460,7 @@ export default function App() {
               gameState === 'gameover' || 
               showGeoboard || 
               show3DLab || 
+              showGeometricNets ||
               showAynisiniBul || 
               showXOXGame || 
               wordGameType !== null
@@ -4425,6 +4512,15 @@ export default function App() {
             // 4. If inside Geoboard (Checked before showOtherGamesModal)
             if (showGeoboard) {
               setShowGeoboard(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 4.1 If inside Geometric Nets
+            if (showGeometricNets) {
+              setShowGeometricNets(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
                 setShowOtherGamesModal(true);
               }
@@ -4490,6 +4586,7 @@ export default function App() {
               gameState === 'gameover' || 
               showGeoboard || 
               show3DLab || 
+              showGeometricNets ||
               showAynisiniBul || 
               showXOXGame || 
               wordGameType !== null
@@ -4741,7 +4838,7 @@ export default function App() {
 
       {/* MAIN SCREEN ROUTING - GRADE SELECTION (1, 2, 3, 4) OR GRADE-SPECIFIC DASHBOARD */}
       {gameState === 'welcome' && (
-        <div className="flex-1 flex flex-col items-center justify-start mt-2 sm:mt-4 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-start pt-3 sm:pt-5 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
           {selectedGrade === null ? (
             /* GRADE / CLASS SELECTION SCREEN (1. SINIF, 2. SINIF, 3. SINIF, 4. SINIF) */
             <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
@@ -5762,8 +5859,8 @@ export default function App() {
                 {selectedCategoryId === 'geometri' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                     {(selectedGrade === 1
-                      ? ['uzamsal_iliskiler', 'uzamsal_iliskiler_simetri', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi']
-                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'tartma_olcme']
+                      ? ['uzamsal_iliskiler', 'uzamsal_iliskiler_simetri', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi', 'cisimler_acilimi']
+                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'tartma_olcme', 'cisimler_acilimi']
                     ).map(key => {
                       const t = topics[key];
                       if (!t) return null;
@@ -6221,7 +6318,8 @@ export default function App() {
                     {[
                       'g3_geometrik_cisimler_ozellikleri',
                       'g3_temel_geometri_kavramlari',
-                      'g3_cevre_ve_olculebilir_nitelikler'
+                      'g3_cevre_ve_olculebilir_nitelikler',
+                      'cisimler_acilimi'
                     ].map(key => {
                       const t = topics[key];
                       if (!t) return null;
@@ -6327,7 +6425,8 @@ export default function App() {
                       'g4_dogru_isin_dogru_parcasi_acilar',
                       'g4_simetri_dogrulari',
                       'g4_sutun_grafigi_ve_tablolar',
-                      'g4_olaylarin_olasiligi'
+                      'g4_olaylarin_olasiligi',
+                      'cisimler_acilimi'
                     ].map(key => {
                       const t = topics[key];
                       if (!t) return null;
@@ -6352,121 +6451,298 @@ export default function App() {
       )}
 
       {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - NÖTR ANTRASİT/KOYU LACİVERT PANEL & YUMUŞATILMIŞ MAVİ ACCENT) */}
-      {gameState === 'playing' && playerCountMode === 1 && (
-        <div className={`flex-1 flex flex-col p-2 sm:p-3 my-0.5 sm:my-1 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl ${selectedGrade === 4 ? 'max-w-[520px] sm:max-w-[620px] md:max-w-[720px] lg:max-w-[820px] xl:max-w-[920px]' : (currentTopic === 'uzamsal_iliskiler' ? 'max-w-[520px] sm:max-w-[580px] md:max-w-[640px]' : 'max-w-[380px] sm:max-w-[420px]')} mx-auto w-full justify-between overflow-hidden min-h-0 relative h-full z-10`}>
-          {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES (AYNI YÜKSEKLİK, TİPOGRAFİ VE HİZALAMA) */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 shrink-0 w-full h-8 sm:h-9">
-            {/* LEFT: GROUP BADGE & TOPIC */}
-            <div className="flex items-center gap-1.5 min-w-0 h-full">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
-                1
-              </div>
-              <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
-                <div className="flex items-center min-w-0">
-                  <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
-                    1. GRUP
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
-                    • {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
-                  </span>
-                </div>
-                <img 
-                  src={getGradeIconForTopic(currentTopic, selectedGrade)} 
-                  alt="Sınıf" 
-                  className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" 
-                />
-              </div>
-            </div>
+      {gameState === 'playing' && playerCountMode === 1 && (() => {
+        const availableStudents = currentGradeStudents.length > 0 ? currentGradeStudents : students;
+        // Sort students alphabetically by Turkish collation
+        const sortedStudents = [...availableStudents].sort((a, b) => 
+          a.name.localeCompare(b.name, 'tr')
+        );
+        const assignedStudent = selectedStudentIds[0] ? (students.find(s => s.id === selectedStudentIds[0]) || null) : null;
+        const leftStudents = sortedStudents.slice(0, 12);
+        const rightStudents = sortedStudents.slice(12, 23);
 
-            {/* RIGHT: SCORE, TIMER & LIVES */}
-            <div className="flex items-center gap-1.5 shrink-0 h-full">
-              {isTimedTopic(currentTopic) && (
-                <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
-                  questionTimeLeft <= 3 
-                    ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60' 
-                    : 'bg-[#080e1d] border-slate-700 text-slate-200'
-                }`}>
-                  <span className="text-xs">⏱️</span>
-                  <span>{questionTimeLeft}s</span>
-                </div>
-              )}
-
-              <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
-                <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
-                  {score} / 10
+        const renderAvatarGrid = (
+          slotsStudents: typeof sortedStudents, 
+          side: 'left' | 'right', 
+          count: number,
+          label: string
+        ) => {
+          const isLeft = side === 'left';
+          return (
+            <div className={`flex flex-col shrink-0 bg-[#0b1328] rounded-2xl sm:rounded-3xl border-2 ${
+              isLeft 
+                ? 'border-indigo-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(99,102,241,0.2)]' 
+                : 'border-amber-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(245,158,11,0.2)]'
+            } p-2 sm:p-2.5 md:p-3 select-none`}>
+              {/* FRAME HEADER (BAŞKA ÇERÇEVE BAŞLIĞI) */}
+              <div className={`flex items-center justify-between px-1 pb-1.5 mb-1.5 border-b ${
+                isLeft ? 'border-indigo-500/25' : 'border-amber-500/25'
+              } text-[9.5px] sm:text-[10.5px] md:text-xs font-black uppercase tracking-wider`}>
+                <span className={`flex items-center gap-1.5 ${isLeft ? 'text-indigo-300' : 'text-amber-300'}`}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${
+                    isLeft 
+                      ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.9)]' 
+                      : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
+                  }`} />
+                  {label}
                 </span>
-                <div className="flex items-center gap-1 px-1">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <span key={i} className={`text-xs sm:text-sm transition-all ${i < lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
-                      ❤️
-                    </span>
-                  ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    setRosterModalGrade(activeGradeNumber);
+                    setShowStudentRosterModal(true);
+                  }}
+                  className={`text-[8.5px] sm:text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-md ${
+                    isLeft 
+                      ? 'bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/30' 
+                      : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/30'
+                  }`}
+                  title="Sınıf Listesini Yönet"
+                >
+                  <Users size={12} />
+                  <span>{count} Kişi</span>
+                </button>
+              </div>
+
+              {/* 2-ROW x 6-COLUMN GRID (GENİŞLİK 6, YÜKSEKLİK 2 - BÜYÜTÜLMÜŞ AVATARLAR) */}
+              <div className="grid grid-cols-6 grid-rows-2 gap-1.5 sm:gap-2">
+                {Array.from({ length: 12 }).map((_, slotIdx) => {
+                  // For right side (11 students requested), slot index 11 is the 12th cell.
+                  // If rightStudents has <= 11 students, slot 11 is a "+ Ekle" button to keep the 6x2 grid rectangle intact!
+                  if (side === 'right' && slotIdx === 11 && slotsStudents.length <= 11) {
+                    return (
+                      <button
+                        key="add-student-slot"
+                        type="button"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setRosterModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
+                        className="w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 rounded-xl border-2 border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 transition-all cursor-pointer flex flex-col items-center justify-center group active:scale-95"
+                        title="Yeni Öğrenci Ekle"
+                      >
+                        <UserPlus size={15} className="text-amber-400 group-hover:scale-110 transition" />
+                        <span className="text-[7.5px] sm:text-[8px] md:text-[9px] font-bold text-amber-300 mt-1 leading-none">
+                          Ekle
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const student = slotsStudents[slotIdx];
+
+                  if (!student) {
+                    // Empty seat placeholder
+                    const seatNum = side === 'left' ? slotIdx + 1 : slotIdx + 13;
+                    return (
+                      <button
+                        key={`empty-${slotIdx}`}
+                        type="button"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setRosterModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
+                        className="w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 rounded-xl border-2 border-dashed border-slate-700/50 hover:border-slate-500 bg-[#070d1a]/50 hover:bg-slate-800/40 flex flex-col items-center justify-center text-slate-500 hover:text-slate-300 transition-all cursor-pointer group"
+                        title={`Sıra #${seatNum} - Öğrenci Ekle`}
+                      >
+                        <span className="text-[9px] sm:text-[10px] md:text-xs text-slate-600 group-hover:text-slate-400 font-mono">
+                          {seatNum}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  // En başta kimse seçili değil; tıklandığında seçilir veya seçim kaldırılır
+                  const isSelected = Boolean(selectedStudentIds[0] && selectedStudentIds[0] === student.id);
+
+                  return (
+                    <button
+                      key={student.id}
+                      type="button"
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        // Tıklanan öğrenci zaten seçiliyse seçimi kaldır (null), değilse seç
+                        setSelectedStudentIds(prev => [
+                          prev[0] === student.id ? null : student.id, 
+                          prev[1] || null, 
+                          prev[2] || null
+                        ]);
+                      }}
+                      title={`${student.name} (${student.className || ''}) • ${student.totalCorrect} Doğru - ${isSelected ? 'Seçimi Kaldır' : 'Aktif Oyuncu Yap'}`}
+                      className={`group relative p-0.5 sm:p-1 md:p-1.5 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center ${
+                        isSelected
+                          ? 'bg-gradient-to-b from-amber-500/35 via-orange-500/25 to-amber-600/30 border-2 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_16px_rgba(251,191,36,0.6)] scale-105 z-10'
+                          : 'bg-[#060c1c]/90 hover:bg-[#111e3d] border border-slate-700/70 hover:border-blue-400/70'
+                      } w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 active:scale-95`}
+                    >
+                      {/* AVATAR BADGE (BÜYÜTÜLMÜŞ BOYUT) */}
+                      <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-8.5 md:h-8.5 lg:w-9.5 lg:h-9.5 xl:w-11 xl:h-11 rounded-lg bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl shrink-0 shadow border border-white/20 relative`}>
+                        <span>{student.avatar}</span>
+                        {isSelected && (
+                          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border border-slate-950 shadow flex items-center justify-center text-[8px] text-slate-950 font-black">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      {/* STUDENT FIRST NAME */}
+                      <span className={`text-[7px] xs:text-[7.5px] sm:text-[8px] md:text-[8.5px] lg:text-[9.5px] xl:text-[10.5px] font-bold block truncate max-w-full leading-tight mt-0.5 sm:mt-1 ${
+                        isSelected ? 'text-amber-300 font-black' : 'text-slate-200 group-hover:text-white'
+                      }`}>
+                        {student.name.split(' ')[0]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-end justify-center lg:justify-between xl:justify-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6 w-full h-full max-h-full overflow-y-auto lg:overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1780px] mx-auto">
+            {/* SOL ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SOLUNDA, 12 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
+            <div className="order-2 lg:order-1 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
+              {renderAvatarGrid(leftStudents, 'left', 12, '1. Grup (1-12)')}
+            </div>
+
+            {/* MERKEZ: SORU ÇERÇEVESİ (ŞIKLARIN GENİŞLİĞİ KADAR, ŞIKLAR ÇERÇEVENİN İÇİNDE) */}
+            <div className="order-1 lg:order-2 h-full flex-1 max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink-0 w-full">
+              <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+                {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                  {/* LEFT: GROUP BADGE & TOPIC */}
+                  <div className="flex items-center gap-1.5 min-w-0 h-full">
+                    {assignedStudent ? (
+                      <div 
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                        title={`Aktif Öğrenci: ${assignedStudent.name}`}
+                      >
+                        {assignedStudent.avatar}
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                        1
+                      </div>
+                    )}
+                    <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                      <div className="flex items-center min-w-0">
+                        <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                          {assignedStudent ? assignedStudent.name : '1. GRUP'}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                          • {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
+                        </span>
+                      </div>
+                      <img 
+                        src={getGradeIconForTopic(currentTopic, selectedGrade)} 
+                        alt="Sınıf" 
+                        className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* RIGHT: SCORE, TIMER & LIVES */}
+                  <div className="flex items-center gap-1.5 shrink-0 h-full">
+                    {isTimedTopic(currentTopic) && (
+                      <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                        questionTimeLeft <= 3 
+                          ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60' 
+                          : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                      }`}>
+                        <span className="text-xs">⏱️</span>
+                        <span>{questionTimeLeft}s</span>
+                      </div>
+                    )}
+
+                    <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                      <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                        {score} / 10
+                      </span>
+                      <div className="flex items-center gap-1 px-1">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <span key={i} className={`text-xs sm:text-sm transition-all ${i < lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
+                            ❤️
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                  <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
+                    {/* Subtle top inner gradient */}
+                    <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                    <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
+                      <AutoFitQuestionBox
+                        questionHTML={currentQuestionData?.questionHTML}
+                        questionText={currentQuestionData?.question}
+                        mode={1}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID) */}
+                <div className={`grid grid-cols-2 ${selectedGrade === 4 ? 'gap-2 sm:gap-3 md:gap-3.5' : 'gap-1.5 sm:gap-2'} w-full shrink-0 mt-1`}>
+                  {(() => {
+                    const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
+                    const singleOptHeightClass = selectedGrade === 4
+                      ? 'h-[37px] sm:h-[43px] md:h-[48px] lg:h-[53px] xl:h-[59px] 2xl:h-[64px] max-h-[37px] sm:max-h-[43px] md:max-h-[48px] lg:max-h-[53px] xl:max-h-[59px] 2xl:max-h-[64px] px-2 sm:px-3'
+                      : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'py-2 px-2.5 min-h-[48px] sm:min-h-[58px]' : 'py-3 sm:py-3.5 px-3 min-h-[68px] sm:min-h-[80px] md:min-h-[88px]');
+
+                    return optionsList.map((opt, idx) => {
+                      const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
+                      const isWrong = selectedOption !== null && currentQuestionData && opt === selectedOption && opt !== currentQuestionData.correct;
+
+                      let feedbackClasses = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
+                      if (isCorrect) {
+                        feedbackClasses = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                      } else if (isWrong) {
+                        feedbackClasses = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleAnswer(opt)}
+                          disabled={feedbackState !== 'none'}
+                          className={`fast-quiz-btn relative w-full ${singleOptHeightClass} rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${feedbackClasses}`}
+                        >
+                          {/* Subtle top glare in button */}
+                          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
+                          {(() => {
+                            const displayOpt = cleanOptionForDisplay(opt, selectedGrade === 4);
+                            return (
+                              <AutoFitOptionContent
+                                opt={opt}
+                                displayOpt={displayOpt}
+                                isGrade4={selectedGrade === 4}
+                                mode={1}
+                                fallbackFontClass={uniformOptFontClass}
+                              />
+                            );
+                          })()}
+                        </button>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER (ARKA PLAN ASLA KARIŞMAZ) */}
-          <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2.5 sm:p-3.5'} my-1 sm:my-1.5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
-            {/* Subtle top inner gradient */}
-            <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
-
-            <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
-              <AutoFitQuestionBox
-                questionHTML={currentQuestionData?.questionHTML}
-                questionText={currentQuestionData?.question}
-                mode={1}
-              />
+            {/* SAĞ ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SAĞINDA, 11 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
+            <div className="order-3 lg:order-3 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
+              {renderAvatarGrid(rightStudents, 'right', 11, '2. Grup (13-23)')}
             </div>
           </div>
-
-          {/* BOTTOM: 2x2 OPTIONS GRID WITH NEUTRAL DARK BUTTONS & ACCENT HOVER */}
-          <div className={`grid grid-cols-2 ${selectedGrade === 4 ? 'gap-2.5 sm:gap-3.5 md:gap-4' : 'gap-1.5 sm:gap-2'} w-full shrink-0`}>
-            {(() => {
-              const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
-              const singleOptHeightClass = selectedGrade === 4
-                ? 'h-[37px] sm:h-[43px] md:h-[48px] lg:h-[53px] xl:h-[59px] 2xl:h-[64px] max-h-[37px] sm:max-h-[43px] md:max-h-[48px] lg:max-h-[53px] xl:max-h-[59px] 2xl:max-h-[64px] px-2 sm:px-3'
-                : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'py-2 px-2.5 min-h-[48px] sm:min-h-[58px]' : 'py-3 sm:py-3.5 px-3 min-h-[68px] sm:min-h-[80px] md:min-h-[88px]');
-
-              return optionsList.map((opt, idx) => {
-                const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
-                const isWrong = selectedOption !== null && currentQuestionData && opt === selectedOption && opt !== currentQuestionData.correct;
-
-                let feedbackClasses = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
-                if (isCorrect) {
-                  feedbackClasses = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
-                } else if (isWrong) {
-                  feedbackClasses = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
-                }
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleAnswer(opt)}
-                    disabled={feedbackState !== 'none'}
-                    className={`fast-quiz-btn relative w-full ${singleOptHeightClass} rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${feedbackClasses}`}
-                  >
-                    {/* Subtle top glare in button */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
-                    {(() => {
-                      const displayOpt = cleanOptionForDisplay(opt, selectedGrade === 4);
-                      return (
-                        <AutoFitOptionContent
-                          opt={opt}
-                          displayOpt={displayOpt}
-                          isGrade4={selectedGrade === 4}
-                          mode={1}
-                          fallbackFontClass={uniformOptFontClass}
-                        />
-                      );
-                    })()}
-                  </button>
-                );
-              });
-            })()}
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MULTI-PLAYER SPLIT SCREEN DÜELLO ALANI (2 VE 3 OYUNCU - ŞEFFAF GLASSMORPHISM) */}
       {gameState === 'playing' && playerCountMode > 1 && (
@@ -6496,7 +6772,7 @@ export default function App() {
           {/* DÜELLO ALANI VE DİKEY BASKETBOL PARKURU YERLEŞİMİ */}
           {(() => {
             const renderPlayerCard = (p: (typeof players)[0], pIdx: number) => {
-              const assignedStudent = students.find(s => s.id === selectedStudentIds[pIdx]);
+              const assignedStudent = selectedStudentIds[pIdx] ? (students.find(s => s.id === selectedStudentIds[pIdx]) || null) : null;
               const groupTheme = pIdx === 0 
                 ? {
                     accentColor: "blue",
@@ -7225,6 +7501,7 @@ export default function App() {
           <ModernStatsView
             statsData={statsData}
             groupStatsData={groupStatsData}
+            singleStatsData={singleStatsData}
             topics={topics}
             topic3DIcons={TOPIC_3D_ICONS}
             activeGrade={statsModalGrade || selectedGrade || 2}
@@ -7238,6 +7515,7 @@ export default function App() {
               const keysToRemove = [
                 'mathGameStats_v1',
                 'mathGameGroupStats_v1',
+                'mathGameSingleStats_v1',
                 'mathGameBadges_v1',
                 'mathGameBadgeCounts_v1',
                 'mathGameTopicWins_v1',
@@ -7258,6 +7536,7 @@ export default function App() {
               try {
                 localStorage.setItem('mathGameStats_v1', '{}');
                 localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(DEFAULT_GROUP_STATS));
+                localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(DEFAULT_SINGLE_STATS));
                 localStorage.setItem('mathGameBadges_v1', '[]');
                 localStorage.setItem('mathGameBadgeCounts_v1', '{}');
                 localStorage.setItem('mathGameTopicWins_v1', '{}');
@@ -7267,6 +7546,7 @@ export default function App() {
               }
               setStatsData({});
               setGroupStatsData(DEFAULT_GROUP_STATS);
+              setSingleStatsData(DEFAULT_SINGLE_STATS);
               setUnlockedBadges([]);
               setBadgeCounts({});
               setTopicWinCounts({});
@@ -7364,8 +7644,22 @@ export default function App() {
         />
       )}
 
+      {/* GEOMETRIC NETS (AÇILIM) ACTIVITY MODAL */}
+      {showGeometricNets && (
+        <GeometricNetsActivity
+          onClose={() => {
+            setShowGeometricNets(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+        />
+      )}
+
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !wordGameType && !show3DLab && !showGeoboard && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -7406,6 +7700,12 @@ export default function App() {
             const gIdx = findActivityIndex('geoboard', undefined, selectedGrade || 1);
             if (gIdx !== -1) setCurrentActivityIndex(gIdx);
             setShowGeoboard(true);
+          }}
+          onOpenGeometricNets={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gnIdx = findActivityIndex('geometric_nets', 'cisimler_acilimi', selectedGrade || undefined);
+            if (gnIdx !== -1) setCurrentActivityIndex(gnIdx);
+            setShowGeometricNets(true);
           }}
           playMp3={playMp3}
         />

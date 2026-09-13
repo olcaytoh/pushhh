@@ -2494,6 +2494,37 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
         };
       }
     }
+  },
+
+  cisimler_acilimi: {
+    title: "Geometrik Cisimler Açılımı",
+    desc: "Küp, prizma, silindir ve koninin 3D katlanışını ve açınımını etkileşimli keşfetme.",
+    generate: () => {
+      const sorular = [
+        {
+          q: "6 adet eş kareden oluşan ve katlandığında küp oluşturan açınım hangisidir?",
+          c: "Küp Açınımı",
+          w: ["Silindir Açınımı", "Koni Açınımı", "Üçgen Prizma"]
+        },
+        {
+          q: "Yan yüzeyi açıldığında bir DİKDÖRTGEN, alt ve üstü iki daire olan cisim hangisidir?",
+          c: "Silindir",
+          w: ["Küp", "Kare Prizma", "Koni"]
+        },
+        {
+          q: "Açınımında 1 daire ve 1 daire dilimi (külah) olan geometrik cisim hangisidir?",
+          c: "Koni",
+          w: ["Silindir", "Küp", "Küre"]
+        }
+      ];
+      const s = sorular[Math.floor(Math.random() * sorular.length)];
+      return {
+        question: s.q,
+        correct: s.c,
+        wrong: s.w,
+        isLong: false
+      };
+    }
   }
 
 };

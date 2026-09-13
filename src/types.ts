@@ -22,6 +22,13 @@ export interface StatRecord {
   yanlis: number;
 }
 
+export interface SinglePlayerStatsRecord {
+  dogru: number;
+  yanlis: number;
+  wins: number;
+  topicStats: Record<string, StatRecord>;
+}
+
 export interface GroupTopicStat {
   dogru: number;
   yanlis: number;

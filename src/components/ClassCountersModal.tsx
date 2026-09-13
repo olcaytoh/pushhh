@@ -203,17 +203,17 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER BAR */}
-        <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-amber-400/40 shrink-0 gap-2">
-          <div className="flex items-center gap-2.5 sm:gap-3 px-2.5 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 min-w-0">
+        <div className="relative z-30 flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b-2 border-amber-400/50 shrink-0 gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 min-w-0 flex-1">
             <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-slate-950 font-black shadow-md border border-white/40 shrink-0">
               <BarChart3 size={20} className="sm:w-[22px] sm:h-[22px]" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-lg md:text-xl font-black tracking-wide text-white drop-shadow-sm uppercase truncate">
+                <h2 className="text-xs xs:text-sm sm:text-base md:text-lg font-black tracking-wide text-white drop-shadow-sm uppercase">
                   Sınıf & Ziyaretçi Sayaç Paneli
                 </h2>
-                <span className="hidden xs:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
                   <ShieldCheck size={11} /> Yönetici & Öğretmen
                 </span>
               </div>
@@ -225,7 +225,7 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700 cursor-pointer shrink-0"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-slate-700 cursor-pointer shrink-0 ml-2"
             title="Kapat"
           >
             <X size={18} />
@@ -233,7 +233,7 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
         </div>
 
         {/* TABS HEADER */}
-        <div className="flex items-center gap-1 sm:gap-2 px-3 sm:px-6 pt-3 pb-2 bg-slate-950/70 border-b border-slate-800 overflow-x-auto scrollbar-none shrink-0">
+        <div className="relative z-20 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 bg-[#090f1d] border-b border-slate-800 overflow-x-auto no-scrollbar shrink-0">
           <button
             onClick={() => {
               playMp3?.('/op.mp3');
