@@ -32,6 +32,7 @@ import {
   restoreDefaultStudentsForGrade
 } from '../utils/studentStore';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
+import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
 
 interface StudentRosterModalProps {
   isOpen: boolean;
@@ -932,17 +933,27 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                   {/* STUDENT MAIN ROW */}
                   <div className="flex items-center justify-between gap-2.5">
                     {/* LEFT: AVATAR & NAME */}
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div
+                      className={`flex items-center gap-2.5 min-w-0 flex-1 ${!isEditing ? 'cursor-pointer select-none group' : ''}`}
+                      onClick={() => {
+                        if (!isEditing) {
+                          setExpandedStudentId(isExpanded ? null : student.id);
+                        }
+                      }}
+                    >
                       {/* AVATAR BADGE */}
                       <div
-                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xl sm:text-2xl shadow border border-white/20 shrink-0`}
+                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xl sm:text-2xl shadow border border-white/20 shrink-0 group-hover:scale-105 transition-transform`}
                       >
                         {student.avatar}
                       </div>
 
                       {/* NAME OR EDIT INPUT */}
                       {isEditing ? (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
+                        <div
+                          className="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap"
+                          onClick={e => e.stopPropagation()}
+                        >
                           <input
                             type="text"
                             value={editingName}
@@ -987,7 +998,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                       ) : (
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="font-black text-xs sm:text-sm text-white tracking-wide truncate">
+                            <h4 className="font-black text-xs sm:text-sm text-white tracking-wide truncate group-hover:text-indigo-300 transition-colors">
                               {student.name}
                             </h4>
                             
@@ -1002,6 +1013,10 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                                 {student.className}
                               </span>
                             )}
+
+                            <span className="text-[9px] text-indigo-400/70 font-semibold hidden sm:inline-block">
+                              {isExpanded ? '▲ Konuları Kapat' : '▼ Konuları Gör'}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
                             <span>🎮 {student.gamesPlayed} Oyun</span>
@@ -1019,32 +1034,44 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                     {/* STATS CAPSULES: DOĞRU, YANLIŞ, % ORAN */}
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       {/* DOĞRU */}
-                      <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center gap-1 text-[11px] sm:text-xs font-black">
+                      <div
+                        onClick={() => !isEditing && setExpandedStudentId(isExpanded ? null : student.id)}
+                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center gap-1 text-[11px] sm:text-xs font-black cursor-pointer hover:bg-emerald-950/90 transition"
+                        title="Tüm konu istatistiklerini görmek için tıkla"
+                      >
                         <CheckCircle2 size={13} />
                         <span>{student.totalCorrect}</span>
                       </div>
 
                       {/* YANLIŞ */}
-                      <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-400 flex items-center gap-1 text-[11px] sm:text-xs font-black">
+                      <div
+                        onClick={() => !isEditing && setExpandedStudentId(isExpanded ? null : student.id)}
+                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-400 flex items-center gap-1 text-[11px] sm:text-xs font-black cursor-pointer hover:bg-rose-950/90 transition"
+                        title="Tüm konu istatistiklerini görmek için tıkla"
+                      >
                         <XCircle size={13} />
                         <span>{student.totalWrong}</span>
                       </div>
 
                       {/* % BAŞARI */}
-                      <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-black min-w-[50px] text-center">
+                      <div
+                        onClick={() => !isEditing && setExpandedStudentId(isExpanded ? null : student.id)}
+                        className="px-2 sm:px-2.5 py-1 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-black min-w-[50px] text-center cursor-pointer hover:bg-amber-950/80 transition"
+                        title="Tüm konu istatistiklerini görmek için tıkla"
+                      >
                         %{studentSuccessRate}
                       </div>
 
                       {/* ACTIONS */}
-                      <div className="flex items-center gap-1 ml-1">
+                      <div className="flex items-center gap-1 ml-1" onClick={e => e.stopPropagation()}>
                         {/* TOGGLE TOPIC DETAIL */}
                         <button
                           type="button"
                           onClick={() => setExpandedStudentId(isExpanded ? null : student.id)}
                           className={`p-1.5 rounded-lg border text-slate-300 transition cursor-pointer ${
-                            isExpanded ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-slate-800/80 border-slate-700 hover:text-white'
+                            isExpanded ? 'bg-indigo-600 border-indigo-400 text-white shadow' : 'bg-slate-800/80 border-slate-700 hover:text-white'
                           }`}
-                          title="Detaylı Konu İstatistikleri"
+                          title={isExpanded ? 'Konu detaylarını kapat' : 'Öğrencinin konu konu tüm istatistiklerini gör'}
                         >
                           {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
@@ -1083,71 +1110,12 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
 
                   {/* EXPANDED TOPIC STATS ACCORDION */}
                   {isExpanded && (
-                    <div className="mt-1 pt-2 border-t border-slate-800/80 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-indigo-300">
-                          📊 Çözülen Etkinlik ve Konu Dağılımı:
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              playMp3?.('/op.mp3');
-                              await exportStudentsToPDF([student], student.grade);
-                            }}
-                            className="text-[10px] text-indigo-200 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/40 px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition active:scale-95"
-                            title={`${student.name} için bireysel PDF karne çıktısı al`}
-                          >
-                            <FileText size={10} className="text-rose-400" />
-                            <span>Bireysel PDF</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleResetSingle(student.id)}
-                            className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
-                            title="Sadece bu öğrencinin doğru-yanlışlarını sıfırla"
-                          >
-                            <Trash2 size={10} />
-                            <span>Skorunu Sıfırla</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {topicEntries.length === 0 ? (
-                        <p className="text-[11px] text-slate-500 italic py-1">
-                          Bu öğrenci henüz 2 veya 3 kişilik oyunlarda soru çözmedi. Oyun oynadıkça istatistikleri burada listelenir.
-                        </p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {topicEntries.map(([tKey, stat]) => {
-                            const total = stat.correct + stat.wrong;
-                            const tRate = total > 0 ? Math.round((stat.correct / total) * 100) : 0;
-
-                            return (
-                              <div
-                                key={tKey}
-                                className="p-2 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between text-xs"
-                              >
-                                <span className="font-semibold text-slate-200 truncate pr-2">
-                                  {tKey.replace(/_/g, ' ')}
-                                </span>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <span className="text-emerald-400 font-bold flex items-center gap-0.5">
-                                    <CheckCircle2 size={11} /> {stat.correct}
-                                  </span>
-                                  <span className="text-rose-400 font-bold flex items-center gap-0.5">
-                                    <XCircle size={11} /> {stat.wrong}
-                                  </span>
-                                  <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">
-                                    %{tRate}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                    <div className="mt-1 pt-1.5 border-t border-slate-800/80">
+                      <StudentTopicStatsDetail
+                        student={student}
+                        onResetScore={handleResetSingle}
+                        playMp3={playMp3}
+                      />
                     </div>
                   )}
                 </div>

@@ -83,7 +83,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs animate-fadeIn">
       <div 
         className="relative w-full max-w-lg bg-[#0d1526] border-2 border-amber-400/90 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.25)] flex flex-col max-h-[92vh] overflow-hidden text-slate-100"
         onClick={e => e.stopPropagation()}

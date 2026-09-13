@@ -14,11 +14,18 @@ import {
   CheckCircle2,
   XCircle,
   BarChart3,
-  FileText
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  UserPlus,
+  GraduationCap
 } from 'lucide-react';
 import { StatRecord, GroupStatsRecord } from '../types';
 import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
+import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
+import { resetSingleStudentStat } from '../utils/studentStore';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
@@ -99,10 +106,35 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     }
   }, [activeGrade]);
 
-  // View mode: 2nd grade defaults to 'dogru_yanlis', other grades default to 'gruplar'
-  const [viewMode, setViewMode] = useState<'dogru_yanlis' | 'gruplar'>(
+  // View mode: 'dogru_yanlis' | 'gruplar' | 'ogrenciler'
+  const [viewMode, setViewMode] = useState<'dogru_yanlis' | 'gruplar' | 'ogrenciler'>(
     initialGrade === 2 ? 'dogru_yanlis' : 'gruplar'
   );
+
+  const [localStudents, setLocalStudents] = useState<Student[]>(students || []);
+  useEffect(() => {
+    setLocalStudents(students || []);
+  }, [students]);
+
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const [studentSearch, setStudentSearch] = useState<string>('');
+
+  const gradeStudents = localStudents.filter(s => s.grade === currentGrade);
+  const studentTotalCorrect = gradeStudents.reduce((sum, s) => sum + (s.totalCorrect || 0), 0);
+  const studentTotalWrong = gradeStudents.reduce((sum, s) => sum + (s.totalWrong || 0), 0);
+  const studentTotalQuestions = studentTotalCorrect + studentTotalWrong;
+  const studentAvgAccuracy = studentTotalQuestions > 0 ? Math.round((studentTotalCorrect / studentTotalQuestions) * 100) : 0;
+
+  const filteredGradeStudents = gradeStudents.filter(s => {
+    if (!studentSearch.trim()) return true;
+    const q = studentSearch.trim().toLowerCase();
+    return s.name.toLowerCase().includes(q) || (s.className && s.className.toLowerCase().includes(q));
+  });
+
+  const handleResetSingleStudent = (studentId: string) => {
+    const updated = resetSingleStudentStat(studentId);
+    setLocalStudents(updated);
+  };
 
   const [categoryFilter, setCategoryFilter] = useState<string>('hepsi');
   const [localConfirmReset, setLocalConfirmReset] = useState<boolean>(false);
@@ -321,10 +353,13 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
         </div>
 
         {/* 2. ROW: VIEW MODE SWITCHER (COMPACT) */}
-        <div className="px-3 sm:px-4 py-0.5 shrink-0 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-purple-400/30">
+        <div className="px-3 sm:px-4 py-0.5 shrink-0 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-purple-400/30 flex-wrap">
             <button
-              onClick={() => setViewMode('dogru_yanlis')}
+              onClick={() => {
+                setViewMode('dogru_yanlis');
+                setExpandedStudentId(null);
+              }}
               className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
                 viewMode === 'dogru_yanlis'
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow ring-1 ring-emerald-300'
@@ -335,7 +370,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <span>{currentGrade}. Sınıf Doğru - Yanlış</span>
             </button>
             <button
-              onClick={() => setViewMode('gruplar')}
+              onClick={() => {
+                setViewMode('gruplar');
+                setExpandedStudentId(null);
+              }}
               className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
                 viewMode === 'gruplar'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow ring-1 ring-blue-300'
@@ -345,24 +383,28 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <Users size={13} className="text-blue-300" />
               <span>{currentGrade}. Sınıf Grupları</span>
             </button>
-            {onOpenRosterModal && (
-              <button
-                onClick={() => onOpenRosterModal(currentGrade)}
-                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow ring-1 ring-amber-300 transition-all cursor-pointer active:scale-95"
-                title={`${currentGrade}. Sınıf Öğrenci Listesini ve İstatistiklerini Aç`}
-              >
-                <Award size={13} className="text-amber-200 shrink-0" />
-                <span>🎓 {currentGrade}. Sınıf Öğrencileri ({students.filter(s => s.grade === currentGrade).length})</span>
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setViewMode('ogrenciler');
+                setExpandedStudentId(null);
+              }}
+              className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'ogrenciler'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow ring-1 ring-amber-300'
+                  : 'text-purple-200/70 hover:text-white'
+              }`}
+              title={`${currentGrade}. Sınıf Öğrencilerinin Konu Konu İstatistiklerini Gör`}
+            >
+              <Award size={13} className="text-amber-300 shrink-0" />
+              <span>🎓 {currentGrade}. Sınıf Öğrencileri ({gradeStudents.length})</span>
+            </button>
 
-            {students && (
+            {localStudents.length > 0 && (
               <button
                 disabled={isPdfExporting}
                 onClick={async () => {
                   try {
                     setIsPdfExporting(true);
-                    const gradeStudents = students.filter(s => s.grade === currentGrade);
                     await exportStudentsToPDF(gradeStudents, currentGrade);
                   } catch (e) {
                     console.error('PDF export error', e);
@@ -370,11 +412,22 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                     setIsPdfExporting(false);
                   }
                 }}
-                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white shadow ring-1 ring-rose-400/40 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                className="px-2 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white shadow ring-1 ring-rose-400/40 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                 title={`${currentGrade}. Sınıf Öğrenci Başarı ve İstatistik PDF Raporunu İndir`}
               >
-                <FileText size={13} className="text-rose-200 shrink-0" />
+                <FileText size={12} className="text-rose-200 shrink-0" />
                 <span>{isPdfExporting ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
+              </button>
+            )}
+
+            {onOpenRosterModal && (
+              <button
+                onClick={() => onOpenRosterModal(currentGrade)}
+                className="px-2 py-1 rounded-md font-bold text-[10px] sm:text-[11px] flex items-center gap-1 bg-purple-900/70 hover:bg-purple-800 text-purple-200 border border-purple-400/30 transition cursor-pointer"
+                title="Öğrenci Ekle / Düzenle / Listeyi Yönet"
+              >
+                <UserPlus size={12} className="text-purple-300 shrink-0" />
+                <span className="hidden sm:inline">Öğrenci Yönetimi</span>
               </button>
             )}
           </div>
@@ -387,7 +440,31 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
         {/* 3. ROW: COMPACT SUMMARY CARDS (SHRUNK TO FREE UP MAXIMUM SPACE FOR TOPICS BELOW) */}
         <div className="px-3 sm:px-4 py-1 shrink-0">
-          {viewMode === 'dogru_yanlis' ? (
+          {viewMode === 'ogrenciler' ? (
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="bg-gradient-to-b from-amber-950/90 to-slate-950/95 border border-amber-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-amber-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <Award size={12} className="text-amber-400" />
+                  <span>Kayıtlı Öğrenci</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-amber-300 leading-tight mt-0.5">{gradeStudents.length}</div>
+              </div>
+              <div className="bg-gradient-to-b from-indigo-950/90 to-slate-950/95 border border-indigo-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-indigo-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <BarChart3 size={12} className="text-indigo-400" />
+                  <span>Toplam Soru</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-indigo-300 leading-tight mt-0.5">{studentTotalQuestions}</div>
+              </div>
+              <div className="bg-gradient-to-b from-emerald-950/90 to-slate-950/95 border border-emerald-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
+                <div className="flex items-center justify-center gap-1 text-emerald-300 font-black text-[9px] sm:text-[10px] uppercase">
+                  <Trophy size={12} className="text-emerald-400" />
+                  <span>Sınıf Ortalaması</span>
+                </div>
+                <div className="text-base sm:text-xl font-black text-emerald-300 leading-tight mt-0.5">%{studentAvgAccuracy}</div>
+              </div>
+            </div>
+          ) : viewMode === 'dogru_yanlis' ? (
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <div className="bg-gradient-to-b from-emerald-950/90 to-slate-950/95 border border-emerald-400/60 rounded-xl p-1.5 sm:p-2 text-center shadow">
                 <div className="flex items-center justify-center gap-1 text-emerald-300 font-black text-[9px] sm:text-[10px] uppercase">
@@ -485,7 +562,153 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
         {/* 4. MAIN SCROLLABLE CONTENT: EXPANDED TOPIC LIST WITH MIN-H-0 */}
         <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-2 space-y-2">
           
-          {/* CATEGORY FILTER PILLS */}
+          {viewMode === 'ogrenciler' ? (
+            <div className="space-y-2.5 pb-2">
+              {/* TOP ACTIONS & SEARCH */}
+              <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={studentSearch}
+                      onChange={e => setStudentSearch(e.target.value)}
+                      placeholder="Öğrenci ara..."
+                      className="w-40 sm:w-60 py-1 pl-7 pr-2 rounded-xl bg-slate-950/80 border border-purple-400/30 text-white text-xs placeholder:text-purple-300/50 focus:outline-none focus:border-amber-400"
+                    />
+                    <Search size={12} className="absolute left-2.5 top-2.5 text-purple-300/60 pointer-events-none" />
+                  </div>
+                  <span className="text-[11px] font-bold text-amber-300/90">
+                    {filteredGradeStudents.length} Öğrenci
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[11px] text-purple-200/80">
+                  <Sparkles size={12} className="text-amber-300 shrink-0" />
+                  <span>Öğrenciye tıklayarak konu konu istatistiklerini açabilirsiniz</span>
+                </div>
+              </div>
+
+              {/* STUDENTS LIST */}
+              {filteredGradeStudents.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-[#2a1380]/60 border border-purple-400/20 text-center flex flex-col items-center justify-center">
+                  <span className="text-3xl mb-2">🎓</span>
+                  <p className="text-sm font-bold text-white">
+                    {studentSearch ? 'Aranan öğrenci bulunamadı.' : `${currentGrade}. Sınıfta kayıtlı öğrenci bulunmuyor.`}
+                  </p>
+                  {onOpenRosterModal && (
+                    <button
+                      onClick={() => onOpenRosterModal(currentGrade)}
+                      className="mt-3 px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow transition"
+                    >
+                      + Öğrenci Listesini Aç ve Ekle
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredGradeStudents.map(student => {
+                    const isExpanded = expandedStudentId === student.id;
+                    const totalAnswers = (student.totalCorrect || 0) + (student.totalWrong || 0);
+                    const studentSuccessRate = totalAnswers > 0 ? Math.round(((student.totalCorrect || 0) / totalAnswers) * 100) : 0;
+                    const topicCount = Object.keys(student.topicStats || {}).length;
+
+                    return (
+                      <div
+                        key={student.id}
+                        className={`rounded-2xl bg-gradient-to-b from-[#2e1882] to-[#221069] border transition shadow-md overflow-hidden ${
+                          isExpanded ? 'border-amber-400/70 ring-1 ring-amber-400/40' : 'border-purple-400/30 hover:border-purple-400/60'
+                        } p-2.5 sm:p-3`}
+                      >
+                        {/* MAIN STUDENT ROW */}
+                        <div
+                          onClick={() => setExpandedStudentId(isExpanded ? null : student.id)}
+                          className="flex items-center justify-between gap-2.5 cursor-pointer group select-none"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            {/* AVATAR */}
+                            <div
+                              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xl sm:text-2xl shadow border border-white/20 shrink-0 group-hover:scale-105 transition-transform`}
+                            >
+                              {student.avatar}
+                            </div>
+
+                            {/* NAME & META */}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h4 className="font-black text-xs sm:text-sm text-white tracking-wide truncate group-hover:text-amber-300 transition-colors">
+                                  {student.name}
+                                </h4>
+                                {student.className && (
+                                  <span className="px-1.5 py-0.2 rounded bg-indigo-500/30 border border-indigo-400/40 text-indigo-200 text-[9px] font-bold">
+                                    {student.className}
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-amber-300 font-extrabold">
+                                  {isExpanded ? '▲ Konu Detaylarını Gizle' : `▼ ${topicCount} Konu Analizini Gör`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-purple-200/70 mt-0.5">
+                                <span>🎮 {student.gamesPlayed} Oyun</span>
+                                {student.gamesWon > 0 && (
+                                  <span className="text-amber-300 font-bold flex items-center gap-0.5">
+                                    <Trophy size={11} />
+                                    <span>{student.gamesWon} Galibiyet</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* STATS CAPSULES */}
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 text-[11px] sm:text-xs font-black">
+                              <CheckCircle2 size={13} />
+                              <span>{student.totalCorrect}</span>
+                            </div>
+
+                            <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-300 flex items-center gap-1 text-[11px] sm:text-xs font-black">
+                              <XCircle size={13} />
+                              <span>{student.totalWrong}</span>
+                            </div>
+
+                            <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-black min-w-[48px] text-center">
+                              %{studentSuccessRate}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedStudentId(isExpanded ? null : student.id);
+                              }}
+                              className={`p-1.5 rounded-lg border text-purple-200 transition cursor-pointer ${
+                                isExpanded ? 'bg-amber-500 text-slate-950 border-amber-400 font-black shadow' : 'bg-purple-900/60 border-purple-400/30 hover:text-white'
+                              }`}
+                              title={isExpanded ? 'Konu detaylarını kapat' : 'Öğrencinin konu konu tüm istatistiklerini gör'}
+                            >
+                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* EXPANDED TOPIC STATS DETAIL */}
+                        {isExpanded && (
+                          <div className="mt-2.5 pt-2.5 border-t border-purple-400/20">
+                            <StudentTopicStatsDetail
+                              student={student}
+                              onResetScore={handleResetSingleStudent}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* CATEGORY FILTER PILLS */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
             {categories.map(cat => (
               <button
@@ -703,6 +926,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               );
             })}
           </div>
+            </>
+          )}
 
         </div>
 

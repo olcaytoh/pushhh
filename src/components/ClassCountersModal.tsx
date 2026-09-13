@@ -195,29 +195,29 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md select-none overflow-y-auto"
+      className="fixed inset-0 z-[500] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md select-none overflow-y-auto"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-4xl bg-slate-900/95 border-2 border-amber-400/80 rounded-2xl sm:rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.85)] flex flex-col max-h-[92vh] overflow-hidden text-white"
+        className="relative w-full max-w-4xl bg-slate-900/95 border-2 border-amber-400/80 rounded-2xl sm:rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.85)] flex flex-col max-h-[92vh] sm:max-h-[90vh] my-auto overflow-hidden text-white"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER BAR */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-amber-400/40">
-          <div className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-slate-950 font-black shadow-md border border-white/40 shrink-0">
-              <BarChart3 size={22} />
+        <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-amber-400/40 shrink-0 gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 px-2.5 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 min-w-0">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center text-slate-950 font-black shadow-md border border-white/40 shrink-0">
+              <BarChart3 size={20} className="sm:w-[22px] sm:h-[22px]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-xl font-black tracking-wide text-white drop-shadow-sm uppercase">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-lg md:text-xl font-black tracking-wide text-white drop-shadow-sm uppercase truncate">
                   Sınıf & Ziyaretçi Sayaç Paneli
                 </h2>
-                <span className="hidden xs:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                <span className="hidden xs:inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
                   <ShieldCheck size={11} /> Yönetici & Öğretmen
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium">
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium truncate">
                 Sınıf sınıf tıklanma, ziyaretçi girişleri ve soru çözüm analizleri
               </p>
             </div>

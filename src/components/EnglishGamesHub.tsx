@@ -33,7 +33,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div className="fixed inset-0 z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
       {/* 1. CINEMATIC BACKGROUND IMAGE */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img

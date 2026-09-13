@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Student } from '../types/student';
+import { getTopicInfo } from './topicHelper';
 
 // In-memory cache for fonts to avoid re-fetching
 let cachedRegularBase64: string | null = null;
@@ -287,6 +288,75 @@ export async function exportStudentsToPDF(
       doc.line(14, 286, 196, 286);
     }
   });
+
+  // IF SINGLE STUDENT (INDIVIDUAL REPORT), APPEND DETAILED TOPIC BREAKDOWN TABLE
+  if (sortedStudents.length === 1) {
+    const single = sortedStudents[0];
+    const topicList = Object.entries(single.topicStats || {});
+    if (topicList.length > 0) {
+      const topicHeaders = ['#', 'Konu / Etkinlik Adı', 'Doğru', 'Yanlış', 'Toplam', 'Başarı (%)', 'Son Çözüm Tarihi'];
+      const topicBody = topicList.map(([tKey, stat], tIdx) => {
+        const tInfo = getTopicInfo(tKey, single.grade);
+        const tTot = stat.correct + stat.wrong;
+        const tRt = tTot > 0 ? Math.round((stat.correct / tTot) * 100) : 0;
+        const lastDate = stat.lastPlayed ? new Date(stat.lastPlayed).toLocaleDateString('tr-TR') : '-';
+        return [
+          `${tIdx + 1}`,
+          fontLoaded ? tInfo.title : cleanTurkishForStandardFont(tInfo.title),
+          `${stat.correct}`,
+          `${stat.wrong}`,
+          `${tTot}`,
+          tTot > 0 ? `%${tRt}` : '-',
+          lastDate
+        ];
+      });
+
+      const lastAutoTable = (doc as any).lastAutoTable;
+      const nextY = lastAutoTable ? lastAutoTable.finalY + 12 : 90;
+
+      // Section title
+      doc.setFont(fontName, 'bold');
+      doc.setFontSize(10.5);
+      doc.setTextColor(30, 41, 59);
+      const secTitle = fontLoaded
+        ? `📊 ${single.name} - Konu Bazlı Çözülen Soru ve Başarı Dağılımı`
+        : cleanTurkishForStandardFont(`${single.name} - Konu Bazli Cozulen Soru ve Basari Dagilimi`);
+      doc.text(secTitle, 14, nextY);
+
+      autoTable(doc, {
+        startY: nextY + 3,
+        head: [fontLoaded ? topicHeaders : topicHeaders.map(h => cleanTurkishForStandardFont(h))],
+        body: topicBody,
+        styles: {
+          font: fontName,
+          fontSize: 8.5,
+          cellPadding: 2.2,
+          lineColor: [226, 232, 240],
+          lineWidth: 0.2
+        },
+        headStyles: {
+          font: fontName,
+          fontStyle: 'bold',
+          fillColor: [79, 70, 229], // Indigo 600
+          textColor: [255, 255, 255],
+          fontSize: 8.5,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 10 },
+          1: { halign: 'left', fontStyle: 'bold', cellWidth: 70 },
+          2: { halign: 'center', textColor: [5, 150, 105], fontStyle: 'bold', cellWidth: 18 },
+          3: { halign: 'center', textColor: [225, 29, 72], fontStyle: 'bold', cellWidth: 18 },
+          4: { halign: 'center', cellWidth: 18 },
+          5: { halign: 'center', fontStyle: 'bold', cellWidth: 22 },
+          6: { halign: 'center', cellWidth: 26 }
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        }
+      });
+    }
+  }
 
   // SAVE FILE
   const fileSuffix = gradeTab === 'ALL' ? 'tum_siniflar' : `${gradeTab}_sinif`;
