@@ -28,28 +28,36 @@ export const AVATAR_OPTIONS: AvatarOption[] = [
 ];
 
 export const DEFAULT_STUDENTS: Student[] = [
-  { id: 'std_1', name: 'Ali Yılmaz', avatar: '🦁', avatarBg: 'from-amber-500 to-yellow-600', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_2', name: 'Ayşe Kaya', avatar: '🦊', avatarBg: 'from-orange-500 to-amber-600', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_3', name: 'Mehmet Demir', avatar: '🚀', avatarBg: 'from-blue-600 to-indigo-700', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_4', name: 'Zeynep Çelik', avatar: '🦄', avatarBg: 'from-pink-500 to-purple-600', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_5', name: 'Can Öztürk', avatar: '🦖', avatarBg: 'from-emerald-600 to-teal-700', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_6', name: 'Elif Şahin', avatar: '🌟', avatarBg: 'from-amber-300 to-yellow-500', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_7', name: 'Burak Yıldız', avatar: '🤖', avatarBg: 'from-cyan-600 to-blue-700', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_8', name: 'Deniz Aydın', avatar: '🐬', avatarBg: 'from-sky-500 to-blue-600', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_9', name: 'Ece Koç', avatar: '🐰', avatarBg: 'from-rose-400 to-pink-500', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_10', name: 'Mert Aksoy', avatar: '⚽', avatarBg: 'from-emerald-500 to-green-700', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_11', name: 'Selin Arslan', avatar: '🎨', avatarBg: 'from-fuchsia-500 to-purple-700', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_12', name: 'Kaan Polat', avatar: '⚡', avatarBg: 'from-yellow-500 to-orange-600', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() }
+  // 1. SINIF ÖRNEK ÖĞRENCİLERİ
+  { id: 'std_g1_1', name: 'Can Öztürk', avatar: '🦖', avatarBg: 'from-emerald-600 to-teal-700', grade: 1, className: '1-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g1_2', name: 'Elif Şahin', avatar: '🌟', avatarBg: 'from-amber-300 to-yellow-500', grade: 1, className: '1-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g1_3', name: 'Deniz Aydın', avatar: '🐬', avatarBg: 'from-sky-500 to-blue-600', grade: 1, className: '1-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+
+  // 2. SINIF ÖRNEK ÖĞRENCİLERİ
+  { id: 'std_g2_1', name: 'Ali Yılmaz', avatar: '🦁', avatarBg: 'from-amber-500 to-yellow-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_2', name: 'Ayşe Kaya', avatar: '🦊', avatarBg: 'from-orange-500 to-amber-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_3', name: 'Mehmet Demir', avatar: '🚀', avatarBg: 'from-blue-600 to-indigo-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+
+  // 3. SINIF ÖRNEK ÖĞRENCİLERİ
+  { id: 'std_g3_1', name: 'Zeynep Çelik', avatar: '🦄', avatarBg: 'from-pink-500 to-purple-600', grade: 3, className: '3-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g3_2', name: 'Burak Yıldız', avatar: '🤖', avatarBg: 'from-cyan-600 to-blue-700', grade: 3, className: '3-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g3_3', name: 'Ece Koç', avatar: '🐰', avatarBg: 'from-rose-400 to-pink-500', grade: 3, className: '3-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+
+  // 4. SINIF ÖRNEK ÖĞRENCİLERİ
+  { id: 'std_g4_1', name: 'Mert Aksoy', avatar: '⚽', avatarBg: 'from-emerald-500 to-green-700', grade: 4, className: '4-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g4_2', name: 'Selin Arslan', avatar: '🎨', avatarBg: 'from-fuchsia-500 to-purple-700', grade: 4, className: '4-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g4_3', name: 'Kaan Polat', avatar: '⚡', avatarBg: 'from-yellow-500 to-orange-600', grade: 4, className: '4-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() }
 ];
 
 const STORAGE_KEY = 'classroom_students_v1';
 const INITIALIZED_KEY = 'classroom_students_init_v1';
 export const SELECTED_STUDENTS_STORAGE_KEY = 'classroom_selected_students_v1';
+export const SELECTED_STUDENTS_BY_GRADE_KEY = 'classroom_selected_students_by_grade_v1';
 
 /**
  * Loads students from localStorage.
- * If the user has explicitly emptied the roster, preserves the empty roster [].
- * Seeds DEFAULT_STUDENTS ONLY on the very first time the application is ever opened.
+ * Ensures every student is assigned to their proper grade (1, 2, 3, 4).
+ * If previously created without grade, defaults to 2 (since 2. Sınıf was default).
  */
 export function loadStudents(): Student[] {
   try {
@@ -59,7 +67,10 @@ export function loadStudents(): Student[] {
     if (raw !== null) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed.map((s: any) => ({
+          ...s,
+          grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
+        }));
       }
     }
 
@@ -77,7 +88,7 @@ export function loadStudents(): Student[] {
 }
 
 /**
- * Saves students to localStorage with initialization flag so empty rosters persist
+ * Saves students to localStorage with initialization flag
  */
 export function saveStudents(students: Student[]): void {
   try {
@@ -89,15 +100,26 @@ export function saveStudents(students: Student[]): void {
 }
 
 /**
- * Loads selected player student IDs for the 2/3 player dock
+ * Loads selected player student IDs for a specific grade (1, 2, 3, or 4)
  */
-export function loadSelectedStudentIds(): (string | null)[] {
+export function loadSelectedStudentIdsForGrade(grade: number): (string | null)[] {
   try {
-    const raw = localStorage.getItem(SELECTED_STUDENTS_STORAGE_KEY);
+    const raw = localStorage.getItem(SELECTED_STUDENTS_BY_GRADE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return [parsed[0] || null, parsed[1] || null, parsed[2] || null];
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed[grade])) {
+        return [parsed[grade][0] || null, parsed[grade][1] || null, parsed[grade][2] || null];
+      }
+    }
+
+    // Legacy fallback for grade 2
+    if (grade === 2) {
+      const legacyRaw = localStorage.getItem(SELECTED_STUDENTS_STORAGE_KEY);
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw);
+        if (Array.isArray(parsed)) {
+          return [parsed[0] || null, parsed[1] || null, parsed[2] || null];
+        }
       }
     }
   } catch {}
@@ -105,12 +127,34 @@ export function loadSelectedStudentIds(): (string | null)[] {
 }
 
 /**
- * Saves selected player student IDs to localStorage so they persist on page refresh
+ * Saves selected player student IDs for a specific grade so they persist independently
+ */
+export function saveSelectedStudentIdsForGrade(grade: number, ids: (string | null)[]): void {
+  try {
+    let map: Record<number, (string | null)[]> = {};
+    const raw = localStorage.getItem(SELECTED_STUDENTS_BY_GRADE_KEY);
+    if (raw) {
+      try {
+        map = JSON.parse(raw) || {};
+      } catch {}
+    }
+    map[grade] = [ids[0] || null, ids[1] || null, ids[2] || null];
+    localStorage.setItem(SELECTED_STUDENTS_BY_GRADE_KEY, JSON.stringify(map));
+  } catch {}
+}
+
+/**
+ * Loads legacy selected student IDs
+ */
+export function loadSelectedStudentIds(): (string | null)[] {
+  return loadSelectedStudentIdsForGrade(2);
+}
+
+/**
+ * Saves legacy selected student IDs
  */
 export function saveSelectedStudentIds(ids: (string | null)[]): void {
-  try {
-    localStorage.setItem(SELECTED_STUDENTS_STORAGE_KEY, JSON.stringify(ids));
-  } catch {}
+  saveSelectedStudentIdsForGrade(2, ids);
 }
 
 /**
@@ -130,11 +174,14 @@ function toTurkishTitleCase(str: string): string {
 
 /**
  * Advanced parser for multiline, Excel copy-paste, e-Okul exports, or comma-separated lists
+ * targetGrade: 1, 2, 3, or 4
+ * If replaceMode is true, it ONLY replaces students of targetGrade, keeping all other grades intact!
  */
 export function importStudentsFromText(
   rawText: string,
   existingStudents: Student[] = [],
   replaceMode = false,
+  targetGrade = 2,
   targetClass = ''
 ): Student[] {
   if (!rawText.trim()) return existingStudents;
@@ -149,11 +196,18 @@ export function importStudentsFromText(
 
   if (lines.length === 0) return existingStudents;
 
-  const startingStudents = replaceMode ? [] : [...existingStudents];
-  const existingMap = new Map<string, Student>();
-  startingStudents.forEach(s => existingMap.set(s.name.toLocaleLowerCase('tr'), s));
+  // Other grades students will be preserved untouched
+  const studentsOtherGrades = existingStudents.filter(s => s.grade !== targetGrade);
 
-  const result: Student[] = [...startingStudents];
+  // For the target grade: if replaceMode, start empty; otherwise keep existing target grade students
+  const studentsTargetGrade = replaceMode
+    ? []
+    : existingStudents.filter(s => s.grade === targetGrade);
+
+  const existingMap = new Map<string, Student>();
+  studentsTargetGrade.forEach(s => existingMap.set(s.name.toLocaleLowerCase('tr'), s));
+
+  const resultTargetGrade: Student[] = [...studentsTargetGrade];
 
   lines.forEach((line, idx) => {
     let candidate = line;
@@ -193,13 +247,14 @@ export function importStudentsFromText(
       return;
     }
 
-    const avatarOpt = AVATAR_OPTIONS[(result.length + idx) % AVATAR_OPTIONS.length];
+    const avatarOpt = AVATAR_OPTIONS[(resultTargetGrade.length + idx) % AVATAR_OPTIONS.length];
     const newStudent: Student = {
-      id: `std_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+      id: `std_g${targetGrade}_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
       name: formattedName,
       avatar: avatarOpt.emoji,
       avatarBg: avatarOpt.bg,
-      className: targetClass.trim() || undefined,
+      grade: targetGrade,
+      className: targetClass.trim() || `${targetGrade}-A`,
       totalCorrect: 0,
       totalWrong: 0,
       gamesPlayed: 0,
@@ -208,16 +263,37 @@ export function importStudentsFromText(
       createdAt: new Date().toISOString()
     };
 
-    result.push(newStudent);
+    resultTargetGrade.push(newStudent);
     existingMap.set(lower, newStudent);
   });
 
-  saveStudents(result);
-  return result;
+  const finalStudents = [...studentsOtherGrades, ...resultTargetGrade];
+  saveStudents(finalStudents);
+  return finalStudents;
 }
 
 /**
- * Resets the entire roster to empty [] without resurrecting default students
+ * Resets students of a specific grade to empty [] without touching other grades
+ */
+export function clearStudentsForGrade(grade: number, existingStudents: Student[]): Student[] {
+  const updated = existingStudents.filter(s => s.grade !== grade);
+  saveStudents(updated);
+  return updated;
+}
+
+/**
+ * Restores default sample students for a specific grade
+ */
+export function restoreDefaultStudentsForGrade(grade: number, existingStudents: Student[]): Student[] {
+  const defaults = DEFAULT_STUDENTS.filter(s => s.grade === grade);
+  const otherGrades = existingStudents.filter(s => s.grade !== grade);
+  const updated = [...otherGrades, ...defaults];
+  saveStudents(updated);
+  return updated;
+}
+
+/**
+ * Resets the entire roster to empty [] across all grades
  */
 export function clearAllStudents(): Student[] {
   saveStudents([]);
@@ -225,7 +301,7 @@ export function clearAllStudents(): Student[] {
 }
 
 /**
- * Restores the 12 fun sample students
+ * Restores all sample students across all grades
  */
 export function restoreDefaultStudents(): Student[] {
   saveStudents(DEFAULT_STUDENTS);
@@ -315,11 +391,13 @@ export function resetSingleStudentStat(studentId: string): Student[] {
 }
 
 export function exportStudentsToCSV(students: Student[]): string {
-  const headers = ['Öğrenci Adı', 'Avatar', 'Toplam Doğru', 'Toplam Yanlış', 'Başarı Yüzdesi (%)', 'Oynanan Oyun', 'Galibiyet'];
+  const headers = ['Sınıf Seviyesi', 'Şube', 'Öğrenci Adı', 'Avatar', 'Toplam Doğru', 'Toplam Yanlış', 'Başarı Yüzdesi (%)', 'Oynanan Oyun', 'Galibiyet'];
   const rows = students.map(s => {
     const total = s.totalCorrect + s.totalWrong;
     const rate = total > 0 ? Math.round((s.totalCorrect / total) * 100) : 0;
     return [
+      `"${s.grade}. Sınıf"`,
+      `"${s.className || ''}"`,
       `"${s.name}"`,
       `"${s.avatar}"`,
       s.totalCorrect,

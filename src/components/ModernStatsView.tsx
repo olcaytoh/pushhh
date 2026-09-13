@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Trophy,
   Sparkles,
@@ -16,6 +16,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { StatRecord, GroupStatsRecord } from '../types';
+import { Student } from '../types/student';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
@@ -54,8 +55,8 @@ interface ModernStatsViewProps {
     totalBadgesEarned: number;
   };
   streak?: number;
-  students?: Array<{ id: string; name: string; avatar: string; totalCorrect: number; totalWrong: number; gamesPlayed: number; gamesWon: number }>;
-  onOpenRosterModal?: () => void;
+  students?: Student[];
+  onOpenRosterModal?: (grade?: number) => void;
   onSelectTopic: (topicKey: string, grade?: number) => void;
   onResetStats?: () => void;
   onResetGradeStats?: (grade: number) => void;
@@ -85,6 +86,16 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   // Active grade tab: defaults to currently chosen grade in the app, or 2nd grade
   const initialGrade = (activeGrade && [1, 2, 3, 4].includes(activeGrade)) ? activeGrade : 2;
   const [currentGrade, setCurrentGrade] = useState<number>(initialGrade);
+
+  // Sync currentGrade when activeGrade prop changes
+  useEffect(() => {
+    if (activeGrade && [1, 2, 3, 4].includes(activeGrade)) {
+      setCurrentGrade(activeGrade);
+      setViewMode(activeGrade === 2 ? 'dogru_yanlis' : 'gruplar');
+      setCategoryFilter('hepsi');
+      setConfirmReset(false);
+    }
+  }, [activeGrade]);
 
   // View mode: 2nd grade defaults to 'dogru_yanlis', other grades default to 'gruplar'
   const [viewMode, setViewMode] = useState<'dogru_yanlis' | 'gruplar'>(
@@ -333,12 +344,12 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
             </button>
             {onOpenRosterModal && (
               <button
-                onClick={onOpenRosterModal}
-                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow ring-1 ring-amber-300 transition-all cursor-pointer"
-                title="Öğrenci Listesini ve İstatistiklerini Aç"
+                onClick={() => onOpenRosterModal(currentGrade)}
+                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow ring-1 ring-amber-300 transition-all cursor-pointer active:scale-95"
+                title={`${currentGrade}. Sınıf Öğrenci Listesini ve İstatistiklerini Aç`}
               >
-                <Award size={13} className="text-amber-200" />
-                <span>🎓 Öğrenci İstatistikleri ({students.length})</span>
+                <Award size={13} className="text-amber-200 shrink-0" />
+                <span>🎓 {currentGrade}. Sınıf Öğrenci İstatistikleri ({students.filter(s => s.grade === currentGrade).length})</span>
               </button>
             )}
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
@@ -23,8 +23,8 @@ import { Student } from './types/student';
 import { 
   loadStudents, 
   saveStudents, 
-  loadSelectedStudentIds, 
-  saveSelectedStudentIds, 
+  loadSelectedStudentIdsForGrade, 
+  saveSelectedStudentIdsForGrade, 
   recordStudentAnswer, 
   recordStudentGameResult 
 } from './utils/studentStore';
@@ -2942,22 +2942,30 @@ export default function App() {
   const [showCountersModal, setShowCountersModal] = useState(false);
   const [countersData, setCountersData] = useState<ClassCountersData>(() => loadCounters());
   const [students, setStudents] = useState<Student[]>(() => loadStudents());
-  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>(() => loadSelectedStudentIds());
+  const activeGradeNumber: number = (selectedGrade && [1, 2, 3, 4].includes(selectedGrade)) ? selectedGrade : 2;
+  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>(() => loadSelectedStudentIdsForGrade(activeGradeNumber));
   const [showStudentRosterModal, setShowStudentRosterModal] = useState(false);
+  const [rosterModalGrade, setRosterModalGrade] = useState<number | null>(null);
+  const [statsModalGrade, setStatsModalGrade] = useState<number | null>(null);
 
   // Auto-persist students state changes to localStorage
   useEffect(() => {
     saveStudents(students);
   }, [students]);
 
-  // Auto-persist selected player students to localStorage
+  // When active grade changes, switch player slots to that grade's selections
   useEffect(() => {
-    saveSelectedStudentIds(selectedStudentIds);
-  }, [selectedStudentIds]);
+    setSelectedStudentIds(loadSelectedStudentIdsForGrade(activeGradeNumber));
+  }, [activeGradeNumber]);
+
+  // Auto-persist selected player students for active grade to localStorage
+  useEffect(() => {
+    saveSelectedStudentIdsForGrade(activeGradeNumber, selectedStudentIds);
+  }, [selectedStudentIds, activeGradeNumber]);
 
   // Clean up selected student slots if a student was deleted from roster
   useEffect(() => {
-    const validIds = new Set(students.map(s => s.id));
+    const validIds = new Set(students.filter(s => s.grade === activeGradeNumber).map(s => s.id));
     setSelectedStudentIds(prev => {
       let changed = false;
       const updated = prev.map(id => {
@@ -2969,7 +2977,12 @@ export default function App() {
       });
       return changed ? updated : prev;
     });
-  }, [students]);
+  }, [students, activeGradeNumber]);
+
+  // Memoized students for current active grade
+  const currentGradeStudents = useMemo(() => {
+    return students.filter(s => s.grade === activeGradeNumber);
+  }, [students, activeGradeNumber]);
 
   const handleClassClick = (category: GradeCategoryKey) => {
     const updated = recordClassClick(category);
@@ -4528,6 +4541,7 @@ export default function App() {
             try {
               setStatsData(JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}'));
             } catch {}
+            setStatsModalGrade(selectedGrade || 2);
             setShowStatsModal(true);
           }}
           className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
@@ -6581,7 +6595,11 @@ export default function App() {
                       <div
                         className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs cursor-pointer hover:scale-105 transition`}
                         title={assignedStudent ? `${assignedStudent.name} (Dokunarak sınıf listesini aç)` : `${pIdx + 1}. Grup (Dokunarak öğrenci seç)`}
-                        onClick={() => setShowStudentRosterModal(true)}
+                        onClick={() => {
+                          setRosterModalGrade(activeGradeNumber);
+                          setStatsModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
                       >
                         {assignedStudent ? (
                           <span className="text-base sm:text-lg select-none">{assignedStudent.avatar}</span>
@@ -6836,7 +6854,8 @@ export default function App() {
           {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
           {playerCountMode >= 2 && (
             <StudentAvatarDock
-              students={students}
+              students={currentGradeStudents}
+              currentGrade={activeGradeNumber}
               playerCount={playerCountMode}
               selectedStudentIds={selectedStudentIds}
               onSelectStudentForPlayer={(pIdx, studentId) => {
@@ -6846,7 +6865,10 @@ export default function App() {
                   return updated;
                 });
               }}
-              onOpenRosterModal={() => setShowStudentRosterModal(true)}
+              onOpenRosterModal={(gradeToOpen) => {
+                setRosterModalGrade(gradeToOpen || activeGradeNumber);
+                setShowStudentRosterModal(true);
+              }}
               playMp3={playMp3}
             />
           )}
@@ -7205,7 +7227,7 @@ export default function App() {
             groupStatsData={groupStatsData}
             topics={topics}
             topic3DIcons={TOPIC_3D_ICONS}
-            activeGrade={selectedGrade || 2}
+            activeGrade={statsModalGrade || selectedGrade || 2}
             openedTopics={openedTopics}
             unlockedBadges={unlockedBadges}
             badgeCounts={badgeCounts}
@@ -7259,11 +7281,19 @@ export default function App() {
             confirmReset={confirmReset}
             setConfirmReset={setConfirmReset}
             students={students}
-            onOpenRosterModal={() => {
+            onOpenRosterModal={(grade) => {
+              const targetGrade = typeof grade === 'number' && [1, 2, 3, 4].includes(grade)
+                ? grade
+                : (statsModalGrade || selectedGrade || 2);
+              setStatsModalGrade(targetGrade);
+              setRosterModalGrade(targetGrade);
               setShowStatsModal(false);
               setShowStudentRosterModal(true);
             }}
-            onClose={() => setShowStatsModal(false)}
+            onClose={() => {
+              setShowStatsModal(false);
+              setStatsModalGrade(null);
+            }}
           />
         );
       })()}
@@ -7271,9 +7301,22 @@ export default function App() {
       {/* ÖĞRENCİ LİSTESİ VE İSTATİSTİKLERİ MODAL (DIŞARIDAN LİSTE EKLEME & AVATAR DEĞİŞTİRME) */}
       <StudentRosterModal
         isOpen={showStudentRosterModal}
-        onClose={() => setShowStudentRosterModal(false)}
+        onClose={() => {
+          setShowStudentRosterModal(false);
+          setRosterModalGrade(null);
+        }}
+        onBackToStats={(grade) => {
+          const targetGrade = typeof grade === 'number' && [1, 2, 3, 4].includes(grade)
+            ? grade
+            : (rosterModalGrade || statsModalGrade || selectedGrade || 2);
+          setStatsModalGrade(targetGrade);
+          setRosterModalGrade(targetGrade);
+          setShowStudentRosterModal(false);
+          setShowStatsModal(true);
+        }}
         students={students}
         onStudentsUpdated={(updated) => setStudents(updated)}
+        currentGrade={rosterModalGrade || statsModalGrade || activeGradeNumber}
         playMp3={playMp3}
       />
 

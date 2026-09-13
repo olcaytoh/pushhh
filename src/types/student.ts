@@ -9,7 +9,8 @@ export interface Student {
   name: string;
   avatar: string; // emoji or icon code e.g. "🦁", "🚀", "🦊"
   avatarBg?: string; // Tailwind gradient or color for the badge
-  className?: string; // e.g. "3-A", "4-B" or "Sınıfım"
+  grade: number; // 1, 2, 3, 4 (which grade level this student belongs to: 1. Sınıf, 2. Sınıf, 3. Sınıf, 4. Sınıf)
+  className?: string; // e.g. "2-A", "3-B" or "Şube"
   totalCorrect: number;
   totalWrong: number;
   gamesPlayed: number;
