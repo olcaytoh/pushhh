@@ -43,27 +43,45 @@ export const DEFAULT_STUDENTS: Student[] = [
 ];
 
 const STORAGE_KEY = 'classroom_students_v1';
+const INITIALIZED_KEY = 'classroom_students_init_v1';
+export const SELECTED_STUDENTS_STORAGE_KEY = 'classroom_selected_students_v1';
 
+/**
+ * Loads students from localStorage.
+ * If the user has explicitly emptied the roster, preserves the empty roster [].
+ * Seeds DEFAULT_STUDENTS ONLY on the very first time the application is ever opened.
+ */
 export function loadStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
+    const isInitialized = localStorage.getItem(INITIALIZED_KEY);
+
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+
+    // First time EVER visit: seed default students
+    if (!isInitialized) {
       saveStudents(DEFAULT_STUDENTS);
       return DEFAULT_STUDENTS;
     }
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-    return DEFAULT_STUDENTS;
+
+    return [];
   } catch (err) {
     console.error('Error loading students from localStorage:', err);
     return DEFAULT_STUDENTS;
   }
 }
 
+/**
+ * Saves students to localStorage with initialization flag so empty rosters persist
+ */
 export function saveStudents(students: Student[]): void {
   try {
+    localStorage.setItem(INITIALIZED_KEY, 'true');
     localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
   } catch (err) {
     console.error('Error saving students to localStorage:', err);
@@ -71,39 +89,117 @@ export function saveStudents(students: Student[]): void {
 }
 
 /**
- * Parses multiline or comma/semicolon-separated raw student names
- * Removes numbering prefixes like "1. ", "1- ", "1) "
+ * Loads selected player student IDs for the 2/3 player dock
  */
-export function importStudentsFromText(rawText: string, existingStudents: Student[] = []): Student[] {
-  const lines = rawText
-    .split(/\r?\n|,|;/)
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+export function loadSelectedStudentIds(): (string | null)[] {
+  try {
+    const raw = localStorage.getItem(SELECTED_STUDENTS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return [parsed[0] || null, parsed[1] || null, parsed[2] || null];
+      }
+    }
+  } catch {}
+  return [null, null, null];
+}
+
+/**
+ * Saves selected player student IDs to localStorage so they persist on page refresh
+ */
+export function saveSelectedStudentIds(ids: (string | null)[]): void {
+  try {
+    localStorage.setItem(SELECTED_STUDENTS_STORAGE_KEY, JSON.stringify(ids));
+  } catch {}
+}
+
+/**
+ * Helper to capitalize Turkish names properly
+ */
+function toTurkishTitleCase(str: string): string {
+  return str
+    .split(/\s+/)
+    .map(word => {
+      if (!word) return '';
+      const first = word.charAt(0).toLocaleUpperCase('tr');
+      const rest = word.slice(1).toLocaleLowerCase('tr');
+      return first + rest;
+    })
+    .join(' ');
+}
+
+/**
+ * Advanced parser for multiline, Excel copy-paste, e-Okul exports, or comma-separated lists
+ */
+export function importStudentsFromText(
+  rawText: string,
+  existingStudents: Student[] = [],
+  replaceMode = false,
+  targetClass = ''
+): Student[] {
+  if (!rawText.trim()) return existingStudents;
+
+  // Split lines
+  let lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+  // If user pasted a single line with commas or semicolons
+  if (lines.length === 1 && (lines[0].includes(',') || lines[0].includes(';'))) {
+    lines = lines[0].split(/[,;]/).map(l => l.trim()).filter(l => l.length > 0);
+  }
 
   if (lines.length === 0) return existingStudents;
 
+  const startingStudents = replaceMode ? [] : [...existingStudents];
   const existingMap = new Map<string, Student>();
-  existingStudents.forEach(s => existingMap.set(s.name.toLocaleLowerCase('tr'), s));
+  startingStudents.forEach(s => existingMap.set(s.name.toLocaleLowerCase('tr'), s));
 
-  const result: Student[] = [...existingStudents];
+  const result: Student[] = [...startingStudents];
 
   lines.forEach((line, idx) => {
-    // Strip leading numbers: "1. Ahmet", "02- Mehmet", "3) Ayşe", "4 : Ali"
-    const cleanedName = line.replace(/^[\d\s.\-):]+/i, '').trim();
-    if (!cleanedName || cleanedName.length < 2) return;
+    let candidate = line;
 
-    const lower = cleanedName.toLocaleLowerCase('tr');
+    // Handle Excel tab-separated columns (e.g., "1 \t Ahmet Yılmaz \t Erkek")
+    if (candidate.includes('\t')) {
+      const cols = candidate.split('\t').map(c => c.trim()).filter(Boolean);
+      // Pick the first column that has alphabetic characters (not just a student number like "105")
+      const textCol = cols.find(c => /[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(c));
+      if (textCol) {
+        candidate = textCol;
+      }
+    }
+
+    // Handle e-Okul "SOYAD, AD" format (e.g. "KAYA, AYŞE" -> "Ayşe Kaya")
+    if (candidate.includes(',')) {
+      const parts = candidate.split(',').map(p => p.trim());
+      if (parts.length === 2 && parts[0].length >= 2 && parts[1].length >= 2) {
+        candidate = `${parts[1]} ${parts[0]}`;
+      }
+    }
+
+    // Strip leading numbers: "1. Ahmet", "02- Mehmet", "3) Ayşe", "4 : Ali", "#5 Fatma"
+    candidate = candidate.replace(/^[\d\s.\-):#]+/i, '');
+    // Strip trailing student numbers like "Ahmet Yılmaz 412"
+    candidate = candidate.replace(/\s+\d+$/i, '');
+    candidate = candidate.trim();
+
+    if (!candidate || candidate.length < 2) return;
+
+    // Capitalize cleanly
+    const formattedName = toTurkishTitleCase(candidate);
+    const lower = formattedName.toLocaleLowerCase('tr');
+
     if (existingMap.has(lower)) {
-      // Already exists, keep existing record
+      // Already in list, skip duplicate
       return;
     }
 
     const avatarOpt = AVATAR_OPTIONS[(result.length + idx) % AVATAR_OPTIONS.length];
     const newStudent: Student = {
-      id: `std_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      name: cleanedName,
+      id: `std_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+      name: formattedName,
       avatar: avatarOpt.emoji,
       avatarBg: avatarOpt.bg,
+      className: targetClass.trim() || undefined,
       totalCorrect: 0,
       totalWrong: 0,
       gamesPlayed: 0,
@@ -118,6 +214,22 @@ export function importStudentsFromText(rawText: string, existingStudents: Studen
 
   saveStudents(result);
   return result;
+}
+
+/**
+ * Resets the entire roster to empty [] without resurrecting default students
+ */
+export function clearAllStudents(): Student[] {
+  saveStudents([]);
+  return [];
+}
+
+/**
+ * Restores the 12 fun sample students
+ */
+export function restoreDefaultStudents(): Student[] {
+  saveStudents(DEFAULT_STUDENTS);
+  return DEFAULT_STUDENTS;
 }
 
 export function recordStudentAnswer(

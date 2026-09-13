@@ -9,6 +9,7 @@ export interface Student {
   name: string;
   avatar: string; // emoji or icon code e.g. "🦁", "🚀", "🦊"
   avatarBg?: string; // Tailwind gradient or color for the badge
+  className?: string; // e.g. "3-A", "4-B" or "Sınıfım"
   totalCorrect: number;
   totalWrong: number;
   gamesPlayed: number;

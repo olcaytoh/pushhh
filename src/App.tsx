@@ -20,7 +20,14 @@ import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIco
 import { ModernStatsView, Cute3DStarMascotSVG } from './components/ModernStatsView';
 import { ClassCountersModal } from './components/ClassCountersModal';
 import { Student } from './types/student';
-import { loadStudents, recordStudentAnswer, recordStudentGameResult } from './utils/studentStore';
+import { 
+  loadStudents, 
+  saveStudents, 
+  loadSelectedStudentIds, 
+  saveSelectedStudentIds, 
+  recordStudentAnswer, 
+  recordStudentGameResult 
+} from './utils/studentStore';
 import { StudentAvatarDock } from './components/StudentAvatarDock';
 import { StudentRosterModal } from './components/StudentRosterModal';
 import { 
@@ -2935,8 +2942,34 @@ export default function App() {
   const [showCountersModal, setShowCountersModal] = useState(false);
   const [countersData, setCountersData] = useState<ClassCountersData>(() => loadCounters());
   const [students, setStudents] = useState<Student[]>(() => loadStudents());
-  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([null, null, null]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>(() => loadSelectedStudentIds());
   const [showStudentRosterModal, setShowStudentRosterModal] = useState(false);
+
+  // Auto-persist students state changes to localStorage
+  useEffect(() => {
+    saveStudents(students);
+  }, [students]);
+
+  // Auto-persist selected player students to localStorage
+  useEffect(() => {
+    saveSelectedStudentIds(selectedStudentIds);
+  }, [selectedStudentIds]);
+
+  // Clean up selected student slots if a student was deleted from roster
+  useEffect(() => {
+    const validIds = new Set(students.map(s => s.id));
+    setSelectedStudentIds(prev => {
+      let changed = false;
+      const updated = prev.map(id => {
+        if (id && !validIds.has(id)) {
+          changed = true;
+          return null;
+        }
+        return id;
+      });
+      return changed ? updated : prev;
+    });
+  }, [students]);
 
   const handleClassClick = (category: GradeCategoryKey) => {
     const updated = recordClassClick(category);

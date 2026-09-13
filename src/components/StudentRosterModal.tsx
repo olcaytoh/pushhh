@@ -25,7 +25,9 @@ import {
   importStudentsFromText,
   resetAllStudentStats,
   resetSingleStudentStat,
-  exportStudentsToCSV
+  exportStudentsToCSV,
+  clearAllStudents,
+  restoreDefaultStudents
 } from '../utils/studentStore';
 
 interface StudentRosterModalProps {
@@ -44,23 +46,38 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   playMp3
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [classFilter, setClassFilter] = useState<string>('ALL');
   const [showImportBox, setShowImportBox] = useState(false);
   const [importText, setImportText] = useState('');
+  const [importMode, setImportMode] = useState<'replace' | 'append'>('replace');
+  const [importClassName, setImportClassName] = useState('');
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [showAddSingle, setShowAddSingle] = useState(false);
   const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentClass, setNewStudentClass] = useState('');
   const [selectedAvatarId, setSelectedAvatarId] = useState(AVATAR_OPTIONS[0].id);
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [editingAvatarId, setEditingAvatarId] = useState<string | null>(null);
+  const [editingClassName, setEditingClassName] = useState('');
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
+  const [confirmClearRoster, setConfirmClearRoster] = useState(false);
+  const [confirmRestoreDemo, setConfirmRestoreDemo] = useState(false);
 
   if (!isOpen) return null;
 
-  // Filter students
-  const filteredStudents = students.filter(s =>
-    s.name.toLocaleLowerCase('tr').includes(searchTerm.trim().toLocaleLowerCase('tr'))
+  // Extract unique classes for filter tags
+  const existingClasses = Array.from(
+    new Set(students.map(s => s.className).filter(Boolean) as string[])
   );
+
+  // Filter students
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name.toLocaleLowerCase('tr').includes(searchTerm.trim().toLocaleLowerCase('tr'));
+    const matchesClass = classFilter === 'ALL' || s.className === classFilter;
+    return matchesSearch && matchesClass;
+  });
 
   // Overall class calculations
   const totalClassCorrect = students.reduce((acc, s) => acc + s.totalCorrect, 0);
@@ -73,10 +90,18 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   const handleImportSubmit = () => {
     if (!importText.trim()) return;
     playMp3?.('/op.mp3');
-    const updated = importStudentsFromText(importText, students);
+    const isReplace = importMode === 'replace';
+    const updated = importStudentsFromText(importText, students, isReplace, importClassName);
+    saveStudents(updated);
     onStudentsUpdated(updated);
     setImportText('');
     setShowImportBox(false);
+    setSuccessNotice(
+      isReplace
+        ? `✅ ${updated.length} öğrenci yeni sınıf olarak kaydedildi! Sayfa yenilense de kalıcıdır.`
+        : `✅ Yeni öğrenciler listenize eklendi! Toplam ${updated.length} öğrenci kaydedildi.`
+    );
+    setTimeout(() => setSuccessNotice(null), 5000);
   };
 
   const handleAddSingleStudent = () => {
@@ -84,10 +109,11 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     playMp3?.('/op.mp3');
     const avatarOpt = AVATAR_OPTIONS.find(a => a.id === selectedAvatarId) || AVATAR_OPTIONS[0];
     const newStd: Student = {
-      id: `std_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      id: `std_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: newStudentName.trim(),
       avatar: avatarOpt.emoji,
       avatarBg: avatarOpt.bg,
+      className: newStudentClass.trim() || undefined,
       totalCorrect: 0,
       totalWrong: 0,
       gamesPlayed: 0,
@@ -100,6 +126,8 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     onStudentsUpdated(updated);
     setNewStudentName('');
     setShowAddSingle(false);
+    setSuccessNotice(`✅ "${newStd.name}" eklendi ve kalıcı olarak kaydedildi.`);
+    setTimeout(() => setSuccessNotice(null), 4000);
   };
 
   const handleSaveEdit = (studentId: string) => {
@@ -112,13 +140,17 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
         ...s,
         name: editingName.trim(),
         avatar: avatarOpt ? avatarOpt.emoji : s.avatar,
-        avatarBg: avatarOpt ? avatarOpt.bg : s.avatarBg
+        avatarBg: avatarOpt ? avatarOpt.bg : s.avatarBg,
+        className: editingClassName.trim() || undefined
       };
     });
     saveStudents(updated);
     onStudentsUpdated(updated);
     setEditingStudentId(null);
     setEditingAvatarId(null);
+    setEditingClassName('');
+    setSuccessNotice('✅ Öğrenci bilgileri güncellendi.');
+    setTimeout(() => setSuccessNotice(null), 3000);
   };
 
   const handleDeleteStudent = (studentId: string) => {
@@ -126,6 +158,24 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     const updated = students.filter(s => s.id !== studentId);
     saveStudents(updated);
     onStudentsUpdated(updated);
+  };
+
+  const handleClearRoster = () => {
+    playMp3?.('/op.mp3');
+    const updated = clearAllStudents();
+    onStudentsUpdated(updated);
+    setConfirmClearRoster(false);
+    setSuccessNotice('🧹 Sınıf listesi temizlendi (0 öğrenci). Sayfa yenilense de boş liste korunur.');
+    setTimeout(() => setSuccessNotice(null), 5000);
+  };
+
+  const handleRestoreDemo = () => {
+    playMp3?.('/op.mp3');
+    const updated = restoreDefaultStudents();
+    onStudentsUpdated(updated);
+    setConfirmRestoreDemo(false);
+    setSuccessNotice('🦁 12 kişilik örnek sınıf listesi geri yüklendi.');
+    setTimeout(() => setSuccessNotice(null), 4000);
   };
 
   const handleResetSingle = (studentId: string) => {
@@ -139,6 +189,8 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     const updated = resetAllStudentStats();
     onStudentsUpdated(updated);
     setConfirmResetAll(false);
+    setSuccessNotice('🔄 Tüm sınıfın doğru-yanlış skorları sıfırlandı.');
+    setTimeout(() => setSuccessNotice(null), 4000);
   };
 
   const handleDownloadCSV = () => {
@@ -165,12 +217,18 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
               🎓
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm sm:text-base font-black text-white tracking-tight flex items-center gap-2 truncate">
-                <span>Sınıf Listesi & Öğrenci İstatistikleri</span>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/50 text-indigo-200 text-[10px] sm:text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-black text-white tracking-tight flex items-center gap-2 truncate">
+                  <span>Sınıf Listesi & Öğrenci İstatistikleri</span>
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/50 text-indigo-200 text-[10px] sm:text-xs font-bold">
                   {students.length} Öğrenci
                 </span>
-              </h2>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-semibold flex items-center gap-1">
+                  <span>💾</span>
+                  <span>Kalıcı Kayıtlı (Sayfa yenilense de silinmez)</span>
+                </span>
+              </div>
               <p className="text-[11px] text-indigo-200/80 truncate">
                 Öğrenci avatarları, çok oyunculu yarışma kayıtları ve doğru-yanlış analizleri
               </p>
@@ -186,6 +244,22 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
             <X size={18} />
           </button>
         </div>
+
+        {/* SUCCESS NOTIFICATION TOAST BANNER */}
+        {successNotice && (
+          <div className="bg-emerald-950/90 border-b border-emerald-500/50 px-4 py-2 text-xs font-bold text-emerald-200 flex items-center justify-between animate-fadeIn shrink-0">
+            <span className="flex items-center gap-2">
+              <span>{successNotice}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setSuccessNotice(null)}
+              className="text-emerald-300 hover:text-white p-0.5"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {/* TOP STATS CARDS & CONTROLS TOOLBAR */}
         <div className="px-3 sm:px-5 py-2 border-b border-slate-800 bg-[#0a1020]/90 shrink-0 flex flex-col gap-2">
@@ -219,6 +293,38 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* CLASS FILTER TABS (IF MULTIPLE CLASSES EXIST) */}
+          {existingClasses.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
+              <span className="text-[10px] text-slate-400 font-bold uppercase shrink-0">Sınıf:</span>
+              <button
+                type="button"
+                onClick={() => setClassFilter('ALL')}
+                className={`px-2.5 py-0.5 rounded-lg font-bold text-[11px] transition shrink-0 ${
+                  classFilter === 'ALL'
+                    ? 'bg-indigo-600 text-white shadow'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                Tümü ({students.length})
+              </button>
+              {existingClasses.map(cls => (
+                <button
+                  key={cls}
+                  type="button"
+                  onClick={() => setClassFilter(cls)}
+                  className={`px-2.5 py-0.5 rounded-lg font-bold text-[11px] transition shrink-0 ${
+                    classFilter === cls
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {cls} ({students.filter(s => s.className === cls).length})
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* ACTION BUTTONS & SEARCH BAR */}
           <div className="flex items-center justify-between gap-2 flex-wrap pt-1">
@@ -267,13 +373,75 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                 title="İstatistikleri CSV olarak indir"
               >
                 <Download size={13} />
-                <span className="hidden sm:inline">İndir (Excel/CSV)</span>
+                <span className="hidden sm:inline">Excel/CSV İndir</span>
               </button>
+
+              {/* CLEAR ROSTER OR RESTORE DEMO BUTTONS */}
+              {confirmClearRoster ? (
+                <div className="flex items-center gap-1 bg-rose-950 border border-rose-600 rounded-xl px-2 py-0.5 animate-pulse">
+                  <span className="text-[10px] font-bold text-rose-200">Tüm liste silinsin mi?</span>
+                  <button
+                    type="button"
+                    onClick={handleClearRoster}
+                    className="px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px]"
+                  >
+                    Evet, Sil
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClearRoster(false)}
+                    className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]"
+                  >
+                    İptal
+                  </button>
+                </div>
+              ) : students.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmClearRoster(true)}
+                  className="px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-rose-950 hover:text-rose-300 border border-slate-700 text-slate-400 font-bold text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer"
+                  title="Tüm sınıf listesini temizle"
+                >
+                  <Trash2 size={12} />
+                  <span className="hidden md:inline">Listeyi Temizle</span>
+                </button>
+              ) : null}
+
+              {/* RESTORE DEMO BUTTON */}
+              {confirmRestoreDemo ? (
+                <div className="flex items-center gap-1 bg-amber-950 border border-amber-600 rounded-xl px-2 py-0.5 animate-pulse">
+                  <span className="text-[10px] font-bold text-amber-200">Örnek sınıf yüklensin mi?</span>
+                  <button
+                    type="button"
+                    onClick={handleRestoreDemo}
+                    className="px-1.5 py-0.5 rounded bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px]"
+                  >
+                    Yükle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmRestoreDemo(false)}
+                    className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]"
+                  >
+                    İptal
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmRestoreDemo(true)}
+                  className="px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer"
+                  title="12 kişilik örnek hayvan avatarlı listeyi yükle"
+                >
+                  <Sparkles size={12} />
+                  <span className="hidden md:inline">Örnek Sınıf</span>
+                </button>
+              )}
 
               {/* RESET ALL STATS CONFIRMATION */}
               {confirmResetAll ? (
                 <div className="flex items-center gap-1 bg-rose-950 border border-rose-600 rounded-xl px-2 py-0.5 animate-pulse">
-                  <span className="text-[10px] font-bold text-rose-200">Sıfırlansın mı?</span>
+                  <span className="text-[10px] font-bold text-rose-200">Skorlar sıfırlansın mı?</span>
                   <button
                     type="button"
                     onClick={handleResetAll}
@@ -305,12 +473,12 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
 
           {/* BULK IMPORT COLLAPSIBLE DRAWER */}
           {showImportBox && (
-            <div className="mt-1 p-3 rounded-2xl bg-indigo-950/80 border border-indigo-500/50 flex flex-col gap-2">
+            <div className="mt-1 p-3 rounded-2xl bg-indigo-950/90 border-2 border-indigo-500/60 flex flex-col gap-2.5 shadow-lg">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-indigo-200 flex items-center gap-1.5">
-                  <span>📋 Öğrenci Listesini Yapıştır</span>
+                <span className="text-xs font-black text-white flex items-center gap-1.5">
+                  <span>📋 Toplu Öğrenci Listesini Yapıştır</span>
                   <span className="text-[10px] font-normal text-indigo-300/80">
-                    (Her satıra bir isim veya virgülle ayırarak yazabilirsiniz)
+                    (e-Okul, Excel, Word veya düz metin)
                   </span>
                 </span>
                 <button
@@ -322,32 +490,75 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                 </button>
               </div>
 
+              {/* IMPORT MODE SELECTION (REPLACE VS APPEND) */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 text-xs bg-slate-950/80 p-2 rounded-xl border border-indigo-500/30">
+                <span className="text-indigo-300 font-bold text-[11px] shrink-0">İşlem Türü:</span>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-emerald-300 font-bold">
+                    <input
+                      type="radio"
+                      name="importMode"
+                      checked={importMode === 'replace'}
+                      onChange={() => setImportMode('replace')}
+                      className="accent-emerald-500 cursor-pointer"
+                    />
+                    <span>Yeni Sınıf Olarak Kaydet (Eski listeyi temizler)</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer text-indigo-200">
+                    <input
+                      type="radio"
+                      name="importMode"
+                      checked={importMode === 'append'}
+                      onChange={() => setImportMode('append')}
+                      className="accent-indigo-500 cursor-pointer"
+                    />
+                    <span>Mevcut Listeye İlave Et</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* CLASS NAME OPTIONAL INPUT */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-300 font-semibold shrink-0">Sınıf/Şube (İsteğe Bağlı):</span>
+                <input
+                  type="text"
+                  value={importClassName}
+                  onChange={e => setImportClassName(e.target.value)}
+                  placeholder="Örn: 3-A veya 4-B"
+                  className="w-32 px-2 py-1 text-xs rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-400"
+                />
+                <span className="text-[10px] text-slate-400 italic">
+                  Birden çok sınıfı ayrı etiketlemek isterseniz şube adı yazabilirsiniz.
+                </span>
+              </div>
+
               <textarea
                 rows={4}
                 value={importText}
                 onChange={e => setImportText(e.target.value)}
-                placeholder={"Örnek:\n1. Ali Yılmaz\n2. Ayşe Kaya\n3. Mehmet Demir\nZeynep Çelik\nCan Öztürk"}
+                placeholder={"Örnek Yapıştırma Formatları:\n1. Ali Yılmaz\n2. Ayşe Kaya\n103 Mehmet Demir\nZeynep Çelik\n\n(Numaralar, tireler ve gereksiz karakterler otomatik ayıklanır)"}
                 className="w-full p-2.5 rounded-xl bg-slate-950 border border-indigo-400/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-400 font-mono"
               />
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-indigo-300">
-                  * Otomatik olarak numaralar temizlenecek ve her öğrenciye sevimli bir avatar atanacaktır.
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-[10px] text-emerald-300 font-medium">
+                  💾 Eklenen tüm öğrenciler anında tarayıcınızın yerel hafızasına kaydedilir. Sayfayı yenileseniz de asla kaybolmaz!
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-auto">
                   <button
                     type="button"
                     onClick={() => setShowImportBox(false)}
-                    className="px-3 py-1 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold"
+                    className="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold"
                   >
                     Vazgeç
                   </button>
                   <button
                     type="button"
                     onClick={handleImportSubmit}
-                    className="px-4 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow"
+                    className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow flex items-center gap-1.5 cursor-pointer"
                   >
-                    Listeyi Kaydet
+                    <Check size={14} />
+                    <span>Listeyi Kalıcı Olarak Kaydet</span>
                   </button>
                 </div>
               </div>
@@ -370,20 +581,27 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <input
                   type="text"
                   value={newStudentName}
                   onChange={e => setNewStudentName(e.target.value)}
                   placeholder="Öğrenci Adı ve Soyadı..."
-                  className="flex-1 p-2 rounded-xl bg-slate-950 border border-emerald-400/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+                  className="flex-1 min-w-[180px] p-2 rounded-xl bg-slate-950 border border-emerald-400/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+                />
+                <input
+                  type="text"
+                  value={newStudentClass}
+                  onChange={e => setNewStudentClass(e.target.value)}
+                  placeholder="Sınıf (Örn: 3-A)"
+                  className="w-24 p-2 rounded-xl bg-slate-950 border border-emerald-400/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
                 />
                 <button
                   type="button"
                   onClick={handleAddSingleStudent}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow cursor-pointer"
                 >
-                  Ekle
+                  Kalıcı Ekle
                 </button>
               </div>
 
@@ -448,12 +666,20 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
 
                       {/* NAME OR EDIT INPUT */}
                       {isEditing ? (
-                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0 flex-wrap">
                           <input
                             type="text"
                             value={editingName}
                             onChange={e => setEditingName(e.target.value)}
-                            className="p-1 px-2 text-xs rounded-lg bg-slate-900 border border-indigo-400 text-white flex-1 min-w-0"
+                            placeholder="Öğrenci Adı"
+                            className="p-1 px-2 text-xs rounded-lg bg-slate-900 border border-indigo-400 text-white flex-1 min-w-[120px]"
+                          />
+                          <input
+                            type="text"
+                            value={editingClassName}
+                            onChange={e => setEditingClassName(e.target.value)}
+                            placeholder="Sınıf (3-A)"
+                            className="p-1 px-2 text-xs rounded-lg bg-slate-900 border border-indigo-400 text-white w-20"
                           />
                           <button
                             type="button"
@@ -474,9 +700,16 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                         </div>
                       ) : (
                         <div className="min-w-0">
-                          <h4 className="font-black text-xs sm:text-sm text-white tracking-wide truncate">
-                            {student.name}
-                          </h4>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-black text-xs sm:text-sm text-white tracking-wide truncate">
+                              {student.name}
+                            </h4>
+                            {student.className && (
+                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 text-[9px] font-bold">
+                                {student.className}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
                             <span>🎮 {student.gamesPlayed} Oyun</span>
                             {student.gamesWon > 0 && (
@@ -530,6 +763,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                             onClick={() => {
                               setEditingStudentId(student.id);
                               setEditingName(student.name);
+                              setEditingClassName(student.className || '');
                               const avOpt = AVATAR_OPTIONS.find(a => a.emoji === student.avatar);
                               setEditingAvatarId(avOpt ? avOpt.id : AVATAR_OPTIONS[0].id);
                             }}
