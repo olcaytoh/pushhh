@@ -31,6 +31,7 @@ import {
   restoreDefaultStudents,
   restoreDefaultStudentsForGrade
 } from '../utils/studentStore';
+import { exportStudentsToPDF } from '../utils/studentPdfExport';
 
 interface StudentRosterModalProps {
   isOpen: boolean;
@@ -98,6 +99,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   const [confirmResetAll, setConfirmResetAll] = useState(false);
   const [confirmClearGrade, setConfirmClearGrade] = useState(false);
   const [confirmRestoreGrade, setConfirmRestoreGrade] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Toplu içe aktarma açıldığında hedef sınıfı aktif sekmeyle eşitle
   useEffect(() => {
@@ -292,6 +294,27 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // PDF Raporu İndirme
+  const handleDownloadPDF = async () => {
+    playMp3?.('/op.mp3');
+    setIsGeneratingPdf(true);
+    try {
+      const listToExport = activeGradeTab === 'ALL'
+        ? students
+        : students.filter(s => s.grade === activeGradeTab);
+      await exportStudentsToPDF(listToExport, activeGradeTab);
+      const gradeText = activeGradeTab === 'ALL' ? 'Tüm sınıflar' : `${activeGradeTab}. Sınıf`;
+      setSuccessNotice(`📄 ${gradeText} öğrenci başarı ve istatistik PDF raporu indirildi.`);
+      setTimeout(() => setSuccessNotice(null), 4000);
+    } catch (err) {
+      console.error('PDF export error:', err);
+      setSuccessNotice('⚠️ PDF raporu oluşturulurken bir sorun oluştu.');
+      setTimeout(() => setSuccessNotice(null), 4000);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   // Sınıf seviyesi renk şeması
@@ -568,7 +591,18 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                 title="İstatistikleri CSV olarak indir"
               >
                 <Download size={13} />
-                <span className="hidden sm:inline">Excel/CSV İndir</span>
+                <span className="hidden sm:inline">Excel/CSV</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isGeneratingPdf}
+                onClick={handleDownloadPDF}
+                className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 border border-rose-400/50 text-white font-black text-[11px] sm:text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow shadow-rose-950/40 disabled:opacity-50"
+                title={`${activeGradeTab === 'ALL' ? 'Tüm sınıflar' : `${activeGradeTab}. Sınıf`} istatistik raporunu PDF olarak indir`}
+              >
+                <FileText size={13} className="text-rose-200" />
+                <span>{isGeneratingPdf ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
               </button>
 
               {/* CLEAR GRADE ROSTER BUTTON */}
@@ -1054,15 +1088,30 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                         <span className="text-[11px] font-bold text-indigo-300">
                           📊 Çözülen Etkinlik ve Konu Dağılımı:
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => handleResetSingle(student.id)}
-                          className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
-                          title="Sadece bu öğrencinin doğru-yanlışlarını sıfırla"
-                        >
-                          <Trash2 size={10} />
-                          <span>Skorunu Sıfırla</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              playMp3?.('/op.mp3');
+                              await exportStudentsToPDF([student], student.grade);
+                            }}
+                            className="text-[10px] text-indigo-200 hover:text-white bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/40 px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition active:scale-95"
+                            title={`${student.name} için bireysel PDF karne çıktısı al`}
+                          >
+                            <FileText size={10} className="text-rose-400" />
+                            <span>Bireysel PDF</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleResetSingle(student.id)}
+                            className="text-[10px] text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                            title="Sadece bu öğrencinin doğru-yanlışlarını sıfırla"
+                          >
+                            <Trash2 size={10} />
+                            <span>Skorunu Sıfırla</span>
+                          </button>
+                        </div>
                       </div>
 
                       {topicEntries.length === 0 ? (

@@ -13,10 +13,12 @@ import {
   Award,
   CheckCircle2,
   XCircle,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { StatRecord, GroupStatsRecord } from '../types';
 import { Student } from '../types/student';
+import { exportStudentsToPDF } from '../utils/studentPdfExport';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
@@ -105,6 +107,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<string>('hepsi');
   const [localConfirmReset, setLocalConfirmReset] = useState<boolean>(false);
   const [resetScope, setResetScope] = useState<'grade' | 'all'>('grade');
+  const [isPdfExporting, setIsPdfExporting] = useState<boolean>(false);
 
   const confirmReset = propConfirmReset !== undefined ? propConfirmReset : localConfirmReset;
   const setConfirmReset = (val: boolean) => {
@@ -349,7 +352,29 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                 title={`${currentGrade}. Sınıf Öğrenci Listesini ve İstatistiklerini Aç`}
               >
                 <Award size={13} className="text-amber-200 shrink-0" />
-                <span>🎓 {currentGrade}. Sınıf Öğrenci İstatistikleri ({students.filter(s => s.grade === currentGrade).length})</span>
+                <span>🎓 {currentGrade}. Sınıf Öğrencileri ({students.filter(s => s.grade === currentGrade).length})</span>
+              </button>
+            )}
+
+            {students && (
+              <button
+                disabled={isPdfExporting}
+                onClick={async () => {
+                  try {
+                    setIsPdfExporting(true);
+                    const gradeStudents = students.filter(s => s.grade === currentGrade);
+                    await exportStudentsToPDF(gradeStudents, currentGrade);
+                  } catch (e) {
+                    console.error('PDF export error', e);
+                  } finally {
+                    setIsPdfExporting(false);
+                  }
+                }}
+                className="px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-500 text-white shadow ring-1 ring-rose-400/40 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                title={`${currentGrade}. Sınıf Öğrenci Başarı ve İstatistik PDF Raporunu İndir`}
+              >
+                <FileText size={13} className="text-rose-200 shrink-0" />
+                <span>{isPdfExporting ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
               </button>
             )}
           </div>
