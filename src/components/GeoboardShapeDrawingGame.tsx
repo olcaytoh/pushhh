@@ -630,7 +630,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto">
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto">
       {/* ÜST BAŞLIK VE SKOR ÇUBUĞU */}
       <div className="w-full max-w-2xl flex items-center justify-between gap-2 shrink-0 py-1">
         <button

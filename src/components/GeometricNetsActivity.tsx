@@ -892,7 +892,7 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white">
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white">
       {/* 1. BACKGROUND GRADIENT & DYNAMIC PARTICLES */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#080d1a] via-[#0d162d] to-[#060a14]" />

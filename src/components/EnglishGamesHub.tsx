@@ -33,7 +33,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
       {/* 1. CINEMATIC BACKGROUND IMAGE */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img
@@ -45,26 +45,9 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
         <div className="absolute inset-0 bg-slate-950/30 pointer-events-none" />
       </div>
 
-      {/* 2. TOP HEADER BAR */}
+      {/* 2. SUB-HEADER BAR */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <button
-          onClick={() => {
-            triggerSound('/op.mp3');
-            onClose();
-          }}
-          title="Ana Sayfaya Dön"
-          className="group relative w-[88px] h-[30px] sm:w-[110px] sm:h-[38px] transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.3)] shrink-0"
-        >
-          <div
-            className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
-            style={{ backgroundImage: `url('/butt.png')` }}
-          />
-          <span className="relative z-10 text-white font-black text-[9px] sm:text-xs tracking-wider [text-shadow:0_2px_0_#000,0_3px_6px_rgba(0,0,0,0.8)] uppercase select-none -translate-y-[1px]">
-            ANA MENÜ
-          </span>
-        </button>
-
-        <div className="flex items-center justify-center text-center">
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.25)] border-l-4 border-l-sky-400">
             <Languages size={12} className="text-sky-400 shrink-0" />
             <span className="text-[10px] sm:text-xs text-sky-300 font-bold uppercase tracking-wide">
@@ -78,10 +61,17 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
           </div>
         </div>
 
-        <div className="w-12 sm:w-16 flex justify-end">
-          <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400">
-            <Trophy size={16} />
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              triggerSound('/op.mp3');
+              onClose();
+            }}
+            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+            title="Kapat"
+          >
+            ✕ Kapat
+          </button>
         </div>
       </header>
 
@@ -104,11 +94,13 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
           </div>
         </div>
 
-        <div className="w-full text-center py-0.5 mb-1 sm:mb-1.5">
-          <p className="text-xs sm:text-sm font-medium text-slate-400 flex items-center justify-center gap-2">
-            <span>🎮</span>
-            <span>Oynamak istediğin İngilizce oyununu seç ve başla!</span>
-          </p>
+        <div className="w-full flex justify-center py-0.5 mb-1.5 sm:mb-2 shrink-0">
+          <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0c243f]/95 via-[#143359]/95 to-[#0c243f]/95 backdrop-blur-md border border-slate-700/90 shadow-[0_4px_16px_rgba(0,0,0,0.6)] border-b-2 border-b-sky-400/70">
+            <span className="text-base sm:text-lg shrink-0">🎮</span>
+            <p className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              Oynamak istediğin İngilizce oyununu seç ve başla!
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full max-w-2xl mx-auto">

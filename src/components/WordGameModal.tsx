@@ -838,7 +838,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100">
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100">
       {/* 1. BACKGROUND IMAGE & STAGE LIGHTING OVERLAYS */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 

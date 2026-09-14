@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';

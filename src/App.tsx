@@ -2938,6 +2938,7 @@ export default function App() {
   const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
+  const [showKuralliCumle, setShowKuralliCumle] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
@@ -3751,7 +3752,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -3795,6 +3796,7 @@ export default function App() {
     setShowGeometricNets(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -3830,6 +3832,9 @@ export default function App() {
       }
       setGameState('welcome');
       setShowAynisiniBul(true);
+    } else if (entry.type === 'kuralli_cumle' || entry.id === 'other_kuralli_cumle') {
+      setGameState('welcome');
+      setShowKuralliCumle(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4307,6 +4312,7 @@ export default function App() {
     if (showGeometricNets) return 'Geometrik Cisimler Açılımı';
     if (showXOXGame) return 'Matematik XOX Oyunu';
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
+    if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
@@ -4369,56 +4375,96 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-[#09101f] border-b border-slate-700/80 px-2 sm:px-4 py-1 flex items-center justify-center shadow-lg z-[100] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+        <header className="bg-[#09101f] border-b border-slate-700/80 px-2 sm:px-4 py-1 flex items-center justify-center shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
           {/* ORTADAKİ TÜM BUTONLAR GRUBU (EKRANDA TAM ORTALANMIŞ) */}
           <div className="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 mx-auto max-w-[calc(100%-180px)] sm:max-w-[calc(100%-240px)]">
-          {/* SINIF BELİRTEN BUTONLAR (1, 2, 3, 4. SINIF) - 1. BUTONUN (ANA SAYFA) SOL TARAFI */}
-        {selectedGrade !== null && (
+          {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
-            {[1, 2, 3, 4].map((g) => {
-              const isSelected = selectedGrade === g;
-              const iconSrc = g === 1 ? '/icon_1.png' : g === 2 ? '/icon_2.png' : g === 3 ? '/icon_3.png' : '/icon_4.png';
+            {[1, 2, 3, 4, 5, 6].map((g) => {
+              const isSelected = 
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
+              const iconSrc = `/icon_${g}.png`;
+              const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
               return (
                 <button
                   key={g}
                   onClick={() => {
                     playMp3('/op.mp3');
-                    setSelectedGrade(g);
-                    setLastSelectedGrade(g);
-                    handleClassClick(g === 1 ? 'grade1' : g === 2 ? 'grade2' : g === 3 ? 'grade3' : 'grade4');
-                    setSelectedCategoryId(null);
-                    setGameState('welcome');
-                    setShow3DLab(false);
-                    setShowGeoboard(false);
-                    setShowOtherGamesModal(false);
-                    setShowEnglishGamesModal(false);
-                    setShowXOXGame(false);
-                    setWordGameType(null);
-                    setShowStatsModal(false);
-                    setShowTopicModal(false);
+                    if (g <= 4) {
+                      setSelectedGrade(g as 1 | 2 | 3 | 4);
+                      setLastSelectedGrade(g as 1 | 2 | 3 | 4);
+                      handleClassClick(g === 1 ? 'grade1' : g === 2 ? 'grade2' : g === 3 ? 'grade3' : 'grade4');
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowOtherGamesModal(false);
+                      setShowEnglishGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                    } else if (g === 5) {
+                      setSelectedGrade(null);
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                      setShowEnglishGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowOtherGamesModal(true);
+                    } else if (g === 6) {
+                      setSelectedGrade(null);
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                      setShowOtherGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowEnglishGamesModal(true);
+                    }
                   }}
-                  title={`${g}. Sınıf`}
-                  className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
+                  title={title}
+                  className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
                     isSelected
-                      ? 'bg-[#1a2842] border-slate-300 ring-2 ring-slate-400/50 scale-105 shadow-[0_0_10px_rgba(148,163,184,0.3)] z-10'
+                      ? 'bg-[#1a2842] border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.4)] z-10'
                       : 'bg-[#121c2e] border-slate-700/80 opacity-60 hover:opacity-100 hover:border-slate-500'
                   }`}
                 >
                   <img 
                     src={iconSrc} 
-                    alt={`${g}. Sınıf`} 
+                    alt={title} 
                     loading="eager"
                     decoding="async"
                     className="w-full h-full object-contain p-0.5 pointer-events-none" 
                   />
                   {isSelected && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-slate-300 shadow-[0_0_6px_#cbd5e1]" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
                   )}
                 </button>
               );
             })}
           </div>
-        )}
 
         {/* 1. ANA SAYFA */}
         <button
@@ -4430,10 +4476,13 @@ export default function App() {
             setShowStatsModal(false);
             setShow3DLab(false);
             setShowGeoboard(false);
+            setShowGeometricNets(false);
             setShowOtherGamesModal(false);
             setShowEnglishGamesModal(false);
             setOpenedFromOtherGamesModal(false);
             setShowXOXGame(false);
+            setShowAynisiniBul(false);
+            setShowKuralliCumle(false);
             setWordGameType(null);
             setSelectedGrade(null);
           }}
@@ -4463,9 +4512,19 @@ export default function App() {
               showGeometricNets ||
               showAynisiniBul || 
               showXOXGame || 
+              showKuralliCumle ||
               wordGameType !== null
             ) {
               handlePrevActivity();
+              return;
+            }
+
+            // 0.1 If inside Kurallı Cümle
+            if (showKuralliCumle) {
+              setShowKuralliCumle(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
               return;
             }
 
@@ -6505,8 +6564,8 @@ export default function App() {
                 </button>
               </div>
 
-              {/* 2-ROW x 6-COLUMN GRID (GENİŞLİK 6, YÜKSEKLİK 2 - BÜYÜTÜLMÜŞ AVATARLAR) */}
-              <div className="grid grid-cols-6 grid-rows-2 gap-1.5 sm:gap-2">
+              {/* 2-ROW x 6-COLUMN GRID (GENİŞLİK 6, YÜKSEKLİK 2 - BÜYÜTÜLMÜŞ AVATARLAR VE NET İSİMLER) */}
+              <div className="grid grid-cols-6 grid-rows-2 gap-1 sm:gap-1.5 md:gap-2">
                 {Array.from({ length: 12 }).map((_, slotIdx) => {
                   // For right side (11 students requested), slot index 11 is the 12th cell.
                   // If rightStudents has <= 11 students, slot 11 is a "+ Ekle" button to keep the 6x2 grid rectangle intact!
@@ -6520,11 +6579,11 @@ export default function App() {
                           setRosterModalGrade(activeGradeNumber);
                           setShowStudentRosterModal(true);
                         }}
-                        className="w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 rounded-xl border-2 border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 transition-all cursor-pointer flex flex-col items-center justify-center group active:scale-95"
+                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 transition-all cursor-pointer flex flex-col items-center justify-center p-1 group active:scale-95"
                         title="Yeni Öğrenci Ekle"
                       >
-                        <UserPlus size={15} className="text-amber-400 group-hover:scale-110 transition" />
-                        <span className="text-[7.5px] sm:text-[8px] md:text-[9px] font-bold text-amber-300 mt-1 leading-none">
+                        <UserPlus size={16} className="text-amber-400 group-hover:scale-110 transition" />
+                        <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-amber-300 mt-1 leading-none">
                           Ekle
                         </span>
                       </button>
@@ -6545,10 +6604,10 @@ export default function App() {
                           setRosterModalGrade(activeGradeNumber);
                           setShowStudentRosterModal(true);
                         }}
-                        className="w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 rounded-xl border-2 border-dashed border-slate-700/50 hover:border-slate-500 bg-[#070d1a]/50 hover:bg-slate-800/40 flex flex-col items-center justify-center text-slate-500 hover:text-slate-300 transition-all cursor-pointer group"
+                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-slate-700/50 hover:border-slate-500 bg-[#070d1a]/50 hover:bg-slate-800/40 flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-300 transition-all cursor-pointer group"
                         title={`Sıra #${seatNum} - Öğrenci Ekle`}
                       >
-                        <span className="text-[9px] sm:text-[10px] md:text-xs text-slate-600 group-hover:text-slate-400 font-mono">
+                        <span className="text-[10px] sm:text-xs text-slate-600 group-hover:text-slate-400 font-mono font-bold">
                           {seatNum}
                         </span>
                       </button>
@@ -6572,24 +6631,24 @@ export default function App() {
                         ]);
                       }}
                       title={`${student.name} (${student.className || ''}) • ${student.totalCorrect} Doğru - ${isSelected ? 'Seçimi Kaldır' : 'Aktif Oyuncu Yap'}`}
-                      className={`group relative p-0.5 sm:p-1 md:p-1.5 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-center text-center ${
+                      className={`group relative p-1 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-between text-center ${
                         isSelected
                           ? 'bg-gradient-to-b from-amber-500/35 via-orange-500/25 to-amber-600/30 border-2 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_16px_rgba(251,191,36,0.6)] scale-105 z-10'
                           : 'bg-[#060c1c]/90 hover:bg-[#111e3d] border border-slate-700/70 hover:border-blue-400/70'
-                      } w-9 xs:w-10 sm:w-11 md:w-12 lg:w-13.5 xl:w-15 2xl:w-16.5 h-11 xs:h-12 sm:h-13 md:h-14 lg:h-15 xl:h-17 2xl:h-18.5 active:scale-95`}
+                      } w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 active:scale-95`}
                     >
-                      {/* AVATAR BADGE (BÜYÜTÜLMÜŞ BOYUT) */}
-                      <div className={`w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-8.5 md:h-8.5 lg:w-9.5 lg:h-9.5 xl:w-11 xl:h-11 rounded-lg bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl shrink-0 shadow border border-white/20 relative`}>
+                      {/* AVATAR BADGE */}
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-sm sm:text-base md:text-lg shrink-0 shadow border border-white/20 relative mt-0.5`}>
                         <span>{student.avatar}</span>
                         {isSelected && (
-                          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border border-slate-950 shadow flex items-center justify-center text-[8px] text-slate-950 font-black">
+                          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-slate-950 shadow flex items-center justify-center text-[9px] text-slate-950 font-black">
                             ✓
                           </span>
                         )}
                       </div>
-                      {/* STUDENT FIRST NAME */}
-                      <span className={`text-[7px] xs:text-[7.5px] sm:text-[8px] md:text-[8.5px] lg:text-[9.5px] xl:text-[10.5px] font-bold block truncate max-w-full leading-tight mt-0.5 sm:mt-1 ${
-                        isSelected ? 'text-amber-300 font-black' : 'text-slate-200 group-hover:text-white'
+                      {/* STUDENT FIRST NAME - HER ZAMAN NET VE OKUNAKLI */}
+                      <span className={`text-[8.5px] sm:text-[9.5px] md:text-[10.5px] font-bold block truncate w-full text-center leading-tight mb-0.5 px-0.5 ${
+                        isSelected ? 'text-amber-300 font-black drop-shadow' : 'text-slate-100 group-hover:text-white'
                       }`}>
                         {student.name.split(' ')[0]}
                       </span>
@@ -7659,7 +7718,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -7676,6 +7735,12 @@ export default function App() {
             const xIdx = findActivityIndex('xox');
             if (xIdx !== -1) setCurrentActivityIndex(xIdx);
             setShowXOXGame(true);
+          }}
+          onOpenKuralliCumle={() => {
+            setOpenedFromOtherGamesModal(true);
+            const kcIdx = findActivityIndex('kuralli_cumle', undefined, undefined);
+            if (kcIdx !== -1) setCurrentActivityIndex(kcIdx);
+            setShowKuralliCumle(true);
           }}
           onOpenZitAnlam={() => {
             setOpenedFromOtherGamesModal(true);
@@ -7708,6 +7773,22 @@ export default function App() {
             setShowGeometricNets(true);
           }}
           playMp3={playMp3}
+        />
+      )}
+
+      {/* KURALLI CÜMLE OLUŞTUR ETKİNLİĞİ */}
+      {showKuralliCumle && (
+        <KuralliCumleActivity
+          onClose={() => {
+            setShowKuralliCumle(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGrade={selectedGrade || 1}
         />
       )}
 
