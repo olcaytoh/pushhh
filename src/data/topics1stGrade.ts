@@ -379,47 +379,47 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       }
 
       const questionHTML = `
-        <div data-full-width="true" class="uzamsal-soru-container flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
-          <div class="uzamsal-soru-frame relative flex items-center justify-center w-full flex-1 min-h-0 p-0.5">
+        <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
+          <div class="relative flex items-center justify-center w-full flex-1 min-h-0 p-0.5">
             
-            <!-- + Şeklinde Kompakt ve Çerçeveleri Kesinlikle Temas Etmeyen Düzen -->
-            <div class="relative w-[216px] h-[216px] xs:w-[236px] xs:h-[236px] sm:w-[256px] sm:h-[256px] flex items-center justify-center rounded-2xl bg-radial from-slate-800/85 via-slate-900/90 to-[#060a14] border border-slate-700/70 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.5)]">
+            <!-- + Şeklinde Kompakt ve Çerçeveleri Kesinlikle Temas Etmeyen Düzen (büyütülmüş, kutuyu daha iyi dolduruyor) -->
+            <div class="relative w-[336px] h-[336px] xs:w-[368px] xs:h-[368px] sm:w-[400px] sm:h-[400px] flex items-center justify-center rounded-2xl bg-radial from-slate-800/85 via-slate-900/90 to-[#060a14] border border-slate-700/70 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_4px_12px_rgba(0,0,0,0.5)]">
               
               <!-- Merkez Referans Noktası (Çerçevelerin temas etmesini önleyen merkez boşluğu) -->
-              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 xs:w-7 xs:h-7 rounded-full bg-slate-800/90 border border-slate-600/70 flex items-center justify-center shadow-inner pointer-events-none z-0">
-                <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]"></div>
+              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 xs:w-10 xs:h-10 rounded-full bg-slate-800/90 border border-slate-600/70 flex items-center justify-center shadow-inner pointer-events-none z-0">
+                <div class="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]"></div>
               </div>
 
               <!-- 1. ÜST GÖRSEL -->
-              <div class="absolute bottom-[calc(50%+34px)] xs:bottom-[calc(50%+37px)] sm:bottom-[calc(50%+41px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-                <span class="px-1.5 py-0.2 mb-0.5 rounded-full bg-sky-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">ÜST</span>
-                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-sky-500/25 to-sky-950/70 border-2 border-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute bottom-[calc(50%+50px)] xs:bottom-[calc(50%+56px)] sm:bottom-[calc(50%+63px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+                <span class="px-2 py-0.5 mb-1 rounded-full bg-sky-500 text-white font-black text-[10px] xs:text-[11px] sm:text-xs tracking-wider shadow">ÜST</span>
+                <div class="w-16 h-16 xs:w-[72px] xs:h-[72px] sm:w-20 sm:h-20 rounded-xl bg-gradient-to-b from-sky-500/25 to-sky-950/70 border-2 border-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.35)] p-1.5 flex items-center justify-center">
                   <img src="${ustNesne.img}" alt="${ustNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
               </div>
 
               <!-- 2. ALT GÖRSEL -->
-              <div class="absolute top-[calc(50%+34px)] xs:top-[calc(50%+37px)] sm:top-[calc(50%+41px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-rose-500/25 to-rose-950/70 border-2 border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute top-[calc(50%+50px)] xs:top-[calc(50%+56px)] sm:top-[calc(50%+63px)] left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+                <div class="w-16 h-16 xs:w-[72px] xs:h-[72px] sm:w-20 sm:h-20 rounded-xl bg-gradient-to-b from-rose-500/25 to-rose-950/70 border-2 border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.35)] p-1.5 flex items-center justify-center">
                   <img src="${altNesne.img}" alt="${altNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
-                <span class="px-1.5 py-0.2 mt-0.5 rounded-full bg-rose-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">ALT</span>
+                <span class="px-2 py-0.5 mt-1 rounded-full bg-rose-500 text-white font-black text-[10px] xs:text-[11px] sm:text-xs tracking-wider shadow">ALT</span>
               </div>
 
               <!-- 3. SOL GÖRSEL -->
-              <div class="absolute right-[calc(50%+34px)] xs:right-[calc(50%+37px)] sm:right-[calc(50%+41px)] top-1/2 -translate-y-1/2 flex items-center z-10">
-                <span class="px-1 py-0.5 mr-0.5 rounded-full bg-emerald-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">SOL</span>
-                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-emerald-500/25 to-emerald-950/70 border-2 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute right-[calc(50%+50px)] xs:right-[calc(50%+56px)] sm:right-[calc(50%+63px)] top-1/2 -translate-y-1/2 flex items-center z-10">
+                <span class="px-1.5 py-0.5 mr-1 rounded-full bg-emerald-500 text-white font-black text-[10px] xs:text-[11px] sm:text-xs tracking-wider shadow">SOL</span>
+                <div class="w-16 h-16 xs:w-[72px] xs:h-[72px] sm:w-20 sm:h-20 rounded-xl bg-gradient-to-b from-emerald-500/25 to-emerald-950/70 border-2 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.35)] p-1.5 flex items-center justify-center">
                   <img src="${solNesne.img}" alt="${solNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
               </div>
 
               <!-- 4. SAĞ GÖRSEL -->
-              <div class="absolute left-[calc(50%+34px)] xs:left-[calc(50%+37px)] sm:left-[calc(50%+41px)] top-1/2 -translate-y-1/2 flex items-center z-10">
-                <div class="w-11 h-11 xs:w-12 xs:h-12 sm:w-13 sm:h-13 rounded-xl bg-gradient-to-b from-amber-500/25 to-amber-950/70 border-2 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.35)] p-1 flex items-center justify-center">
+              <div class="absolute left-[calc(50%+50px)] xs:left-[calc(50%+56px)] sm:left-[calc(50%+63px)] top-1/2 -translate-y-1/2 flex items-center z-10">
+                <div class="w-16 h-16 xs:w-[72px] xs:h-[72px] sm:w-20 sm:h-20 rounded-xl bg-gradient-to-b from-amber-500/25 to-amber-950/70 border-2 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.35)] p-1.5 flex items-center justify-center">
                   <img src="${sagNesne.img}" alt="${sagNesne.ad}" class="w-full h-full object-contain filter drop-shadow" />
                 </div>
-                <span class="px-1 py-0.5 ml-0.5 rounded-full bg-amber-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] tracking-wider shadow">SAĞ</span>
+                <span class="px-1.5 py-0.5 ml-1 rounded-full bg-amber-500 text-white font-black text-[10px] xs:text-[11px] sm:text-xs tracking-wider shadow">SAĞ</span>
               </div>
 
             </div>
@@ -528,18 +528,18 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       const borderColors = ['border-sky-400/80', 'border-amber-400/80', 'border-emerald-400/80', 'border-rose-400/80'];
 
       const cardsHTML = kartlar.map((kart, idx) => `
-        <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-1.5 sm:p-2 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
-          <div class="w-11 h-11 xs:w-13 xs:h-13 sm:w-15 sm:h-15 flex items-center justify-center p-0.5 my-auto">
+        <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-2 sm:p-3 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
+          <div class="w-16 h-16 xs:w-[76px] xs:h-[76px] sm:w-24 sm:h-24 flex items-center justify-center p-1 my-auto">
             <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow" />
           </div>
-          <span class="text-[9px] xs:text-[10px] sm:text-[11px] font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
+          <span class="text-[11px] xs:text-xs sm:text-sm font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
         </div>
       `).join('');
 
       const questionHTML = `
-        <div data-full-width="true" class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
+        <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
           <!-- Üstte 4 Görsel -->
-          <div class="grid grid-cols-4 gap-1.5 xs:gap-2 sm:gap-2.5 w-full max-w-[310px] xs:max-w-[340px] sm:max-w-[380px] md:max-w-[420px] mx-auto shrink-0 my-auto">
+          <div class="grid grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3.5 w-full max-w-[440px] xs:max-w-[480px] sm:max-w-[560px] md:max-w-[620px] mx-auto shrink-0 my-auto">
             ${cardsHTML}
           </div>
 

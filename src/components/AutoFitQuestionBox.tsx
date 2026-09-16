@@ -115,7 +115,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     let computedScale = Math.min(scaleX, scaleY);
 
     // Allow content with surplus room to scale up proportionally so it fills the frame beautifully
-    const maxEnlargeScale = mode === 1 ? 1.6 : mode === 2 ? 1.35 : 1.25;
+    const maxEnlargeScale = mode === 1 ? 2.2 : mode === 2 ? 1.8 : 1.5;
     const minShrinkScale = mode === 3 ? 0.22 : mode === 2 ? 0.25 : 0.32;
 
     if (computedScale > 1.02) {

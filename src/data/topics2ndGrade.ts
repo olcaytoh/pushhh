@@ -1201,7 +1201,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const dogruAd = CISIM_OZELLIK[secilenKey].ad;
         const tumAdlar = Object.values(CISIM_OZELLIK).map(o => o.ad);
         const wrong = rastgeleSec(tumAdlar.filter(a => a !== dogruAd), 3);
-        const soruHTML = `<div class="flex flex-col items-center justify-center w-full my-auto max-h-full py-1"><div class="w-32 h-32 xs:w-36 xs:h-36 sm:w-44 sm:h-44 md:w-52 md:h-52 p-2.5 sm:p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div></div>`;
+        const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto max-h-full py-1"><div class="w-48 h-48 xs:w-56 xs:h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div></div>`;
         return {
           question: "",
           questionHTML: soruHTML,
@@ -1222,7 +1222,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const cevap = ozellik[sorulan];
         const ek = OZELLIK_EK[sorulan];
         const tamlayan = getCisimTamlayan(ozellik.ad);
-        const soruHTML = `<div class="flex flex-col items-center justify-center w-full gap-2.5 sm:gap-3.5 my-auto max-h-full py-1"><div class="w-24 h-24 xs:w-28 xs:h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 p-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1"><b>${tamlayan}</b> kaç <b>${ek.buyuk}</b> vardır?</div></div>`;
+        const soruHTML = `<div class="flex flex-col items-center justify-center w-full gap-2.5 sm:gap-3.5 my-auto max-h-full py-1"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1"><b>${tamlayan}</b> kaç <b>${ek.buyuk}</b> vardır?</div></div>`;
         return {
           question: `${tamlayan} kaç ${ek.kucuk} vardır?`,
           questionHTML: soruHTML,
@@ -1348,18 +1348,18 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         ];
 
         const cardsHTML = kartlar.map((kart, idx) => `
-          <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-1.5 sm:p-2 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
-            <div class="w-11 h-11 xs:w-13 xs:h-13 sm:w-15 sm:h-15 flex items-center justify-center p-0.5 my-auto">
+          <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-2 sm:p-3 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
+            <div class="w-16 h-16 xs:w-[76px] xs:h-[76px] sm:w-24 sm:h-24 flex items-center justify-center p-1 my-auto">
               <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow" />
             </div>
-            <span class="text-[9px] xs:text-[10px] sm:text-[11px] font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
+            <span class="text-[11px] xs:text-xs sm:text-sm font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
           </div>
         `).join('');
 
         const questionHTML = `
-          <div data-full-width="true" class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
+          <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
             <!-- Üstte 4 Görsel -->
-            <div class="grid grid-cols-4 gap-1.5 xs:gap-2 sm:gap-2.5 w-full max-w-[310px] xs:max-w-[340px] sm:max-w-[380px] md:max-w-[420px] mx-auto shrink-0 my-auto">
+            <div class="grid grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3.5 w-full max-w-[440px] xs:max-w-[480px] sm:max-w-[560px] md:max-w-[620px] mx-auto shrink-0 my-auto">
               ${cardsHTML}
             </div>
 

@@ -2315,7 +2315,7 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-3 sm:gap-4 py-1 text-center">
               <div class="flex items-center justify-center">
-                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-32 sm:max-h-40 md:max-h-48 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
+                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-40 sm:max-h-52 md:max-h-64 lg:max-h-72 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
               </div>
               <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
                 Bu geometrik cismin kaç tane <span class="text-amber-300 underline decoration-amber-400 font-black">KÖŞESİ</span> vardır?
@@ -2335,7 +2335,7 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-3 sm:gap-4 py-1 text-center">
               <div class="flex items-center justify-center">
-                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-32 sm:max-h-40 md:max-h-48 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
+                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-40 sm:max-h-52 md:max-h-64 lg:max-h-72 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
               </div>
               <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
                 Bu geometrik cismin kaç tane <span class="text-amber-300 underline decoration-amber-400 font-black">AYRITI (Kenarı)</span> vardır?
@@ -2355,7 +2355,7 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-3 sm:gap-4 py-1 text-center">
               <div class="flex items-center justify-center">
-                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-32 sm:max-h-40 md:max-h-48 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
+                <img src="${secilen.img}" alt="" class="geo-cisim-img max-h-40 sm:max-h-52 md:max-h-64 lg:max-h-72 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] hover:scale-105 transition-transform" />
               </div>
               <div class="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
                 Bu geometrik cismin kaç tane <span class="text-amber-300 underline decoration-amber-400 font-black">YÜZÜ</span> vardır?
