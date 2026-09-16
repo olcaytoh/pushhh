@@ -4375,9 +4375,12 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-[#09101f] border-b border-slate-700/80 px-2 sm:px-4 py-1 flex items-center justify-center shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
-          {/* ORTADAKİ TÜM BUTONLAR GRUBU (EKRANDA TAM ORTALANMIŞ) */}
-          <div className="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 mx-auto max-w-[calc(100%-180px)] sm:max-w-[calc(100%-240px)]">
+        <header className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-3 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+          {/* SOL DENGELEYİCİ BOŞLUK (GENİŞ EKRANDA BUTONLARI OPTİK OLARAK TAM ORTADA TUTAR) */}
+          <div className="shrink-0 hidden lg:flex items-center w-24 xl:w-28 pointer-events-none opacity-0" aria-hidden="true" />
+
+          {/* ORTADAKİ TÜM BUTONLAR GRUBU */}
+          <div className="flex-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0">
           {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
@@ -4857,23 +4860,21 @@ export default function App() {
         </div>
       </div>
 
-      {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (EN SAĞDA BAĞIMSIZ SABİT) */}
-      <div className="absolute right-1.5 sm:right-3.5 top-1/2 -translate-y-1/2 flex items-center shrink-0 z-20">
+      {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (SAĞDA, TAM EKRAN BUTONUNUN ÜZERİNE ASLA BİNMEYECEK ŞEKİLDE FLEX İÇİNDE VE KOMPAKT) */}
+      <div className="shrink-0 flex items-center pl-1 sm:pl-2 z-20">
         <button
           onClick={() => {
             playMp3('/op.mp3');
             setShowFeedbackModal(true);
           }}
           title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
-          aria-label="Hata ve Görüş Bildir"
-          className="group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-xl sm:rounded-2xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.3)] transition-all cursor-pointer"
+          aria-label="Görüş Bildir"
+          className="group flex items-center gap-1.5 px-2 sm:px-2.5 h-8 xs:h-9 sm:h-11 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-lg sm:rounded-xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.3)] transition-all cursor-pointer shrink-0"
         >
-          <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-black text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap drop-shadow-xs">
-            Hata-Görüş bildir
+          <Mail size={15} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap hidden sm:inline">
+            Görüş Bildir
           </span>
-          <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#1b2b48] to-[#121c2e] group-hover:from-[#22365a] group-hover:to-[#17253d] border border-amber-500/60 group-hover:border-amber-400 flex items-center justify-center text-amber-400 group-hover:text-amber-300 shadow-xs transition-transform group-hover:scale-105 shrink-0">
-            <Mail size={16} className="drop-shadow-sm transition-transform group-hover:scale-110" />
-          </div>
         </button>
       </div>
     </header>
