@@ -15,6 +15,7 @@ import { XOXGame } from './components/XOXGame';
 import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
+import { FarkBulGame } from './components/FarkBulGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -271,6 +272,10 @@ function getDynamicOptionFontClass(
 ): string {
   const maxLen: number = options.reduce<number>((max, opt) => {
     const clean = String(opt ?? '').replace(/<[^>]*>/g, '').trim();
+    if ((mode === 3 || mode === 2) && clean.includes(' ')) {
+      const words = clean.split(/\s+/);
+      return Math.max(max, ...words.map(w => w.length));
+    }
     return Math.max(max, clean.length);
   }, 0);
 
@@ -319,12 +324,12 @@ function getDynamicOptionFontClass(
     return "text-[10px] sm:text-[11px] font-bold leading-snug";
   }
 
-  // 3 Players
-  if (maxLen <= 3) return "text-sm sm:text-base font-black leading-snug";
-  if (maxLen <= 6) return "text-xs sm:text-sm font-black leading-snug";
-  if (maxLen <= 10) return "text-[11px] sm:text-xs font-bold leading-snug";
-  if (maxLen <= 16) return "text-[10px] sm:text-[11px] font-bold leading-snug";
-  return "text-[9px] sm:text-[10px] font-bold leading-snug";
+  // 3 Players: Şıklar alt alta kaysın, yazı büyüklüğü korunsun
+  if (maxLen <= 3) return "text-base sm:text-lg md:text-xl font-black leading-snug";
+  if (maxLen <= 6) return "text-sm sm:text-base md:text-lg font-black leading-snug";
+  if (maxLen <= 10) return "text-xs sm:text-sm md:text-base font-black leading-snug";
+  if (maxLen <= 14) return "text-[11px] sm:text-xs md:text-sm font-black leading-snug";
+  return "text-[10px] sm:text-[11px] md:text-xs font-bold leading-snug";
 }
 
 // KULLANICI KURALI: "tüm kesirleri alt alta yaz, pay altında kesir çizgisi onunda altında payda. yan yana yazma."
@@ -2939,6 +2944,7 @@ export default function App() {
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
+  const [showFarkBul, setShowFarkBul] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
@@ -3752,7 +3758,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showFarkBul && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -3797,6 +3803,7 @@ export default function App() {
     setShowXOXGame(false);
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
+    setShowFarkBul(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -3835,6 +3842,9 @@ export default function App() {
     } else if (entry.type === 'kuralli_cumle' || entry.id === 'other_kuralli_cumle') {
       setGameState('welcome');
       setShowKuralliCumle(true);
+    } else if (entry.type === 'fark_bul' || entry.id === 'other_fark_bul') {
+      setGameState('welcome');
+      setShowFarkBul(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4313,6 +4323,7 @@ export default function App() {
     if (showXOXGame) return 'Matematik XOX Oyunu';
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
+    if (showFarkBul) return '7 Farkı Bul (Görsel Dikkat)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
@@ -4385,8 +4396,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showFarkBul || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
               const iconSrc = `/icon_${g}.png`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -4410,6 +4421,7 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
+                      setShowFarkBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4423,6 +4435,7 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
+                      setShowFarkBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4439,6 +4452,7 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
+                      setShowFarkBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4516,13 +4530,23 @@ export default function App() {
               showAynisiniBul || 
               showXOXGame || 
               showKuralliCumle ||
+              showFarkBul ||
               wordGameType !== null
             ) {
               handlePrevActivity();
               return;
             }
 
-            // 0.1 If inside Kurallı Cümle
+            // 0.1 If inside Fark Bul
+            if (showFarkBul) {
+              setShowFarkBul(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.2 If inside Kurallı Cümle
             if (showKuralliCumle) {
               setShowKuralliCumle(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
@@ -6877,7 +6901,7 @@ export default function App() {
               const uniformOptFontClass = getDynamicOptionFontClass(p.shuffledOptions, playerCountMode, selectedGrade);
               const optHeightClasses = selectedGrade === 4
                 ? (playerCountMode === 3
-                    ? "h-[26px] sm:h-[30px] md:h-[34px] lg:h-[39px] xl:h-[43px] max-h-[26px] sm:max-h-[30px] md:max-h-[34px] lg:max-h-[39px] xl:max-h-[43px] px-1.5"
+                    ? "min-h-[32px] sm:min-h-[38px] md:min-h-[44px] lg:min-h-[48px] py-1 px-1.5"
                     : "h-[30px] sm:h-[38px] md:h-[43px] lg:h-[48px] xl:h-[54px] 2xl:h-[61px] max-h-[30px] sm:max-h-[38px] md:max-h-[43px] lg:max-h-[48px] xl:max-h-[54px] 2xl:max-h-[61px] px-2")
                 : (playerCountMode === 3
                     ? "py-2 px-1.5 min-h-[48px] sm:min-h-[58px] md:min-h-[64px]"
@@ -7719,7 +7743,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -7742,6 +7766,12 @@ export default function App() {
             const kcIdx = findActivityIndex('kuralli_cumle', undefined, undefined);
             if (kcIdx !== -1) setCurrentActivityIndex(kcIdx);
             setShowKuralliCumle(true);
+          }}
+          onOpenFarkBul={() => {
+            setOpenedFromOtherGamesModal(true);
+            const fbIdx = findActivityIndex('fark_bul');
+            if (fbIdx !== -1) setCurrentActivityIndex(fbIdx);
+            setShowFarkBul(true);
           }}
           onOpenZitAnlam={() => {
             setOpenedFromOtherGamesModal(true);
@@ -7790,6 +7820,21 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGrade={selectedGrade || 1}
+        />
+      )}
+
+      {/* 7 FARKI BUL OYUNU (GÖRSEL DİKKAT) */}
+      {showFarkBul && (
+        <FarkBulGame
+          onClose={() => {
+            setShowFarkBul(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
         />
       )}
 

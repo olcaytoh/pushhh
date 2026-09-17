@@ -101,18 +101,6 @@ const SOLIDS: SolidDefinition[] = [
     colorTheme: 'from-pink-500 to-rose-600'
   },
   {
-    id: 'pyramid',
-    name: 'Kare Piramit',
-    emoji: '🔺',
-    facesCount: 5,
-    edgesCount: 8,
-    verticesCount: 5,
-    faceDescription: '1 Kare Taban + 4 Üçgen Yan Yüz',
-    didacticFact: 'Mısır piramitleri bu şekildedir. Tabanı kare, yan yüzeyleri tepe noktasında birleşen 4 üçgendir.',
-    curriculumGrade: '3 ve 4. Sınıf',
-    colorTheme: 'from-yellow-500 to-amber-600'
-  },
-  {
     id: 'sphere',
     name: 'Küre',
     emoji: '⚽',
@@ -624,129 +612,61 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         const w = 1.8; // side of triangle
         const l = 2.4; // prism length
         const triH = (Math.sqrt(3) / 2) * w; // equilateral triangle height ≈ 1.56
-        const fold60 = (1 - u) * (Math.PI / 3); // 60 degrees
+        // Left and right rectangles fold up and in towards the apex by 120 degrees (2 * PI / 3)
+        const foldAngle120 = (1 - u) * ((2 * Math.PI) / 3);
 
-        // Base rectangle (w x l)
+        // 0. Base rectangle (w x l) - lies flat on XZ plane at y = 0
         const baseGeo = new THREE.PlaneGeometry(w, l);
         baseGeo.rotateX(-Math.PI / 2);
         group.add(createStyledFace(baseGeo, FACE_COLORS[0]));
 
-        // Left Side Rectangle (w x l)
+        // 1. Left Side Rectangle (w x l) - hinged at x = -w/2, folds up by 120°
         const leftPivot = new THREE.Group();
         leftPivot.position.set(-w / 2, 0, 0);
-        leftPivot.rotation.z = fold60;
+        leftPivot.rotation.z = -foldAngle120;
         const leftGeo = new THREE.PlaneGeometry(w, l);
         leftGeo.rotateX(-Math.PI / 2);
         leftGeo.translate(-w / 2, 0, 0);
         leftPivot.add(createStyledFace(leftGeo, FACE_COLORS[3]));
         group.add(leftPivot);
 
-        // Right Side Rectangle (w x l)
+        // 2. Right Side Rectangle (w x l) - hinged at x = +w/2, folds up by 120°
         const rightPivot = new THREE.Group();
         rightPivot.position.set(w / 2, 0, 0);
-        rightPivot.rotation.z = -fold60;
+        rightPivot.rotation.z = foldAngle120;
         const rightGeo = new THREE.PlaneGeometry(w, l);
         rightGeo.rotateX(-Math.PI / 2);
         rightGeo.translate(w / 2, 0, 0);
         rightPivot.add(createStyledFace(rightGeo, FACE_COLORS[4]));
         group.add(rightPivot);
 
-        // Front Triangle Base
+        // 3. Front Triangle Base - hinged at z = +l/2, folds up by 90°
         const frontPivot = new THREE.Group();
         frontPivot.position.set(0, 0, l / 2);
-        frontPivot.rotation.x = foldAngle90;
+        frontPivot.rotation.x = -foldAngle90;
         const frontTriShape = new THREE.Shape();
         frontTriShape.moveTo(-w / 2, 0);
         frontTriShape.lineTo(w / 2, 0);
         frontTriShape.lineTo(0, triH);
         frontTriShape.closePath();
         const frontTriGeo = new THREE.ShapeGeometry(frontTriShape);
-        frontTriGeo.rotateX(-Math.PI / 2);
+        frontTriGeo.rotateX(Math.PI / 2);
         frontPivot.add(createStyledFace(frontTriGeo, FACE_COLORS[1]));
         group.add(frontPivot);
 
-        // Back Triangle Base
+        // 4. Back Triangle Base - hinged at z = -l/2, folds up by 90°
         const backPivot = new THREE.Group();
         backPivot.position.set(0, 0, -l / 2);
-        backPivot.rotation.x = -foldAngle90;
+        backPivot.rotation.x = foldAngle90;
         const backTriShape = new THREE.Shape();
         backTriShape.moveTo(-w / 2, 0);
         backTriShape.lineTo(w / 2, 0);
-        backTriShape.lineTo(0, -triH);
+        backTriShape.lineTo(0, triH);
         backTriShape.closePath();
         const backTriGeo = new THREE.ShapeGeometry(backTriShape);
         backTriGeo.rotateX(-Math.PI / 2);
         backPivot.add(createStyledFace(backTriGeo, FACE_COLORS[2]));
         group.add(backPivot);
-        break;
-      }
-
-      case 'pyramid': {
-        const s = 2.0;
-        const apexH = 1.6;
-        const slantH = Math.sqrt((s / 2) * (s / 2) + apexH * apexH);
-        const foldAnglePyramid = (1 - u) * Math.acos((s / 2) / slantH);
-
-        // Square Base
-        const baseGeo = new THREE.PlaneGeometry(s, s);
-        baseGeo.rotateX(-Math.PI / 2);
-        group.add(createStyledFace(baseGeo, FACE_COLORS[4]));
-
-        // Front Triangle
-        const frontPivot = new THREE.Group();
-        frontPivot.position.set(0, 0, s / 2);
-        frontPivot.rotation.x = foldAnglePyramid;
-        const fTriShape = new THREE.Shape();
-        fTriShape.moveTo(-s / 2, 0);
-        fTriShape.lineTo(s / 2, 0);
-        fTriShape.lineTo(0, slantH);
-        fTriShape.closePath();
-        const fTriGeo = new THREE.ShapeGeometry(fTriShape);
-        fTriGeo.rotateX(-Math.PI / 2);
-        frontPivot.add(createStyledFace(fTriGeo, FACE_COLORS[1]));
-        group.add(frontPivot);
-
-        // Back Triangle
-        const backPivot = new THREE.Group();
-        backPivot.position.set(0, 0, -s / 2);
-        backPivot.rotation.x = -foldAnglePyramid;
-        const bTriShape = new THREE.Shape();
-        bTriShape.moveTo(-s / 2, 0);
-        bTriShape.lineTo(s / 2, 0);
-        bTriShape.lineTo(0, -slantH);
-        bTriShape.closePath();
-        const bTriGeo = new THREE.ShapeGeometry(bTriShape);
-        bTriGeo.rotateX(-Math.PI / 2);
-        backPivot.add(createStyledFace(bTriGeo, FACE_COLORS[2]));
-        group.add(backPivot);
-
-        // Left Triangle
-        const leftPivot = new THREE.Group();
-        leftPivot.position.set(-s / 2, 0, 0);
-        leftPivot.rotation.z = foldAnglePyramid;
-        const lTriShape = new THREE.Shape();
-        lTriShape.moveTo(0, -s / 2);
-        lTriShape.lineTo(0, s / 2);
-        lTriShape.lineTo(-slantH, 0);
-        lTriShape.closePath();
-        const lTriGeo = new THREE.ShapeGeometry(lTriShape);
-        lTriGeo.rotateX(-Math.PI / 2);
-        leftPivot.add(createStyledFace(lTriGeo, FACE_COLORS[3]));
-        group.add(leftPivot);
-
-        // Right Triangle
-        const rightPivot = new THREE.Group();
-        rightPivot.position.set(s / 2, 0, 0);
-        rightPivot.rotation.z = -foldAnglePyramid;
-        const rTriShape = new THREE.Shape();
-        rTriShape.moveTo(0, -s / 2);
-        rTriShape.lineTo(0, s / 2);
-        rTriShape.lineTo(slantH, 0);
-        rTriShape.closePath();
-        const rTriGeo = new THREE.ShapeGeometry(rTriShape);
-        rTriGeo.rotateX(-Math.PI / 2);
-        rightPivot.add(createStyledFace(rTriGeo, FACE_COLORS[0]));
-        group.add(rightPivot);
         break;
       }
 

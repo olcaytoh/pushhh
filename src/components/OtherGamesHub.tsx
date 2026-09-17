@@ -12,6 +12,7 @@ interface OtherGamesHubProps {
   onOpenAynisiniBul?: () => void;
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
+  onOpenFarkBul?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -25,6 +26,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenAynisiniBul,
   onOpenGeometricNets,
   onOpenKuralliCumle,
+  onOpenFarkBul,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -106,6 +108,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenKuralliCumle) onOpenKuralliCumle();
+      },
+    },
+    {
+      id: 'fark_bul',
+      title: '7 Farkı Bul (Görsel Dikkat)',
+      subtitle: '2 Görsel Arasındaki 7 Farkı Bul! (Her İki Taraftan Dokunulabilir)',
+      icon: '/MENUIKON/grid_icon_19.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenFarkBul) onOpenFarkBul();
       },
     }
   ];
