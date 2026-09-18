@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul' | 'sozluk_sirala';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -555,6 +555,12 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_sozluk_sirala',
+  type: 'sozluk_sirala',
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
   wordGameType: 'ingilizce',
@@ -563,11 +569,15 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul' | 'sozluk_sirala',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
+  if (type === 'sozluk_sirala' || topicKey === 'sozluk_sirala') {
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sozluk_sirala' || a.id === 'other_sozluk_sirala');
+    if (idx !== -1) return idx;
+  }
   if (type === 'fark_bul' || topicKey === 'fark_bul') {
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'fark_bul' || a.id === 'other_fark_bul');
     if (idx !== -1) return idx;

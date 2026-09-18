@@ -435,17 +435,30 @@ export const FarkBulGame: React.FC<FarkBulGameProps> = ({
             </div>
             <div
               onClick={(e) => handlePanelClick(e, 'left')}
-              className="relative w-full aspect-[1408/1536] max-h-[72vh] md:max-h-[76vh] rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-[0_4px_25px_rgba(0,0,0,0.8)] cursor-crosshair group select-none bg-slate-950 touch-none"
+              className="relative w-full max-h-[72vh] md:max-h-[76vh] rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-[0_4px_25px_rgba(0,0,0,0.8)] cursor-crosshair group select-none bg-slate-950 touch-none flex items-center justify-center"
+              style={{
+                aspectRatio: currentLevel.w && currentLevel.h ? `${currentLevel.w} / ${currentLevel.h}` : '1408 / 1536'
+              }}
             >
-              {/* Left half of image rendered with 200% width and left 0% */}
-              <img
-                src={currentLevel.src}
-                alt="Sol Görsel"
-                draggable={false}
-                referrerPolicy="no-referrer"
-                className="absolute inset-y-0 left-0 h-full w-[200%] max-w-none object-cover pointer-events-none select-none"
-                style={{ transform: 'translateX(0%)' }}
-              />
+              {/* Left Panel Image */}
+              {currentLevel.leftSrc ? (
+                <img
+                  src={currentLevel.leftSrc}
+                  alt="Sol Görsel"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-fill pointer-events-none select-none"
+                />
+              ) : (
+                <img
+                  src={currentLevel.src}
+                  alt="Sol Görsel"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-y-0 left-0 h-full w-[200%] max-w-none object-cover pointer-events-none select-none"
+                  style={{ transform: 'translateX(0%)' }}
+                />
+              )}
 
               {/* Found Differences Markers on Left Panel */}
               {currentLevel.differences.map((diff) => {
@@ -504,17 +517,30 @@ export const FarkBulGame: React.FC<FarkBulGameProps> = ({
             </div>
             <div
               onClick={(e) => handlePanelClick(e, 'right')}
-              className="relative w-full aspect-[1408/1536] max-h-[72vh] md:max-h-[76vh] rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-[0_4px_25px_rgba(0,0,0,0.8)] cursor-crosshair group select-none bg-slate-950 touch-none"
+              className="relative w-full max-h-[72vh] md:max-h-[76vh] rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-[0_4px_25px_rgba(0,0,0,0.8)] cursor-crosshair group select-none bg-slate-950 touch-none flex items-center justify-center"
+              style={{
+                aspectRatio: currentLevel.w && currentLevel.h ? `${currentLevel.w} / ${currentLevel.h}` : '1408 / 1536'
+              }}
             >
-              {/* Right half of image rendered with 200% width and translated -50% */}
-              <img
-                src={currentLevel.src}
-                alt="Sağ Görsel"
-                draggable={false}
-                referrerPolicy="no-referrer"
-                className="absolute inset-y-0 left-0 h-full w-[200%] max-w-none object-cover pointer-events-none select-none"
-                style={{ transform: 'translateX(-50%)' }}
-              />
+              {/* Right Panel Image */}
+              {currentLevel.rightSrc ? (
+                <img
+                  src={currentLevel.rightSrc}
+                  alt="Sağ Görsel"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-fill pointer-events-none select-none"
+                />
+              ) : (
+                <img
+                  src={currentLevel.src}
+                  alt="Sağ Görsel"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-y-0 left-0 h-full w-[200%] max-w-none object-cover pointer-events-none select-none"
+                  style={{ transform: 'translateX(-50%)' }}
+                />
+              )}
 
               {/* Found Differences Markers on Right Panel (synchronized) */}
               {currentLevel.differences.map((diff) => {
@@ -609,13 +635,13 @@ export const FarkBulGame: React.FC<FarkBulGameProps> = ({
                         : 'border-slate-700 hover:border-slate-500 bg-slate-800/80'
                     }`}
                   >
-                    {/* Thumbnail preview (left half of image) */}
+                    {/* Thumbnail preview */}
                     <div className="relative w-full aspect-[4/3] bg-slate-950 overflow-hidden">
                       <img
-                        src={lvl.src}
+                        src={lvl.leftSrc || lvl.src}
                         alt={lvl.title}
                         referrerPolicy="no-referrer"
-                        className="absolute inset-0 w-[200%] h-full object-cover object-left"
+                        className="w-full h-full object-cover"
                       />
                       {isDone && (
                         <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500/90 text-white text-[9px] font-black flex items-center gap-0.5 shadow">

@@ -2,10 +2,20 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
-  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus
+  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus,
+  Cloud
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
+import { auth, onAuthStateChanged, User } from './firebase';
+import { GoogleAuthSyncModal } from './components/GoogleAuthSyncModal';
+import {
+  signInWithGoogle,
+  signOutUser,
+  saveUserDataToCloud,
+  loadUserDataFromCloud,
+  getLocalLastSyncedAt
+} from './services/cloudSyncService';
 import { BADGES, BadgeItem, getBadgeRepeatCount } from './badges';
 import { AslanSVG } from './components/Mascot';
 import { Geometry3DLab } from './components/Geometry3DLab';
@@ -16,6 +26,7 @@ import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { FarkBulGame } from './components/FarkBulGame';
+import { SozlukSiralaGame } from './components/SozlukSiralaGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -2945,6 +2956,7 @@ export default function App() {
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
   const [showFarkBul, setShowFarkBul] = useState(false);
+  const [showSozlukSirala, setShowSozlukSirala] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
@@ -2959,6 +2971,140 @@ export default function App() {
   const [showStudentRosterModal, setShowStudentRosterModal] = useState(false);
   const [rosterModalGrade, setRosterModalGrade] = useState<number | null>(null);
   const [statsModalGrade, setStatsModalGrade] = useState<number | null>(null);
+
+  // Google Auth & Cloud Synchronization States
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showGoogleAuthModal, setShowGoogleAuthModal] = useState(false);
+  const [lastCloudSyncedAt, setLastCloudSyncedAt] = useState<string | null>(() => getLocalLastSyncedAt());
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        setIsCloudSyncing(true);
+        try {
+          const cloudData = await loadUserDataFromCloud(user.uid);
+          if (cloudData) {
+            if (cloudData.students && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+              setStudents(cloudData.students);
+              saveStudents(cloudData.students);
+            }
+            if (cloudData.counters) {
+              setCountersData(cloudData.counters);
+              try {
+                localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+              } catch {}
+            }
+            if (cloudData.lastSyncedAt) {
+              setLastCloudSyncedAt(cloudData.lastSyncedAt);
+            }
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Veriler eşitlendi.`);
+            setTimeout(() => setActivityToast(null), 3500);
+          } else {
+            // First time cloud user: backup current local data to cloud
+            const initialSyncTime = await saveUserDataToCloud(user.uid, students, countersData, selectedStudentIds);
+            setLastCloudSyncedAt(initialSyncTime);
+            setActivityToast('Öğrenci listeniz ve istatistikleriniz Google hesabınıza yedeklendi! ☁️');
+            setTimeout(() => setActivityToast(null), 3500);
+          }
+        } catch (err) {
+          console.error('Cloud auto-sync error on login:', err);
+        } finally {
+          setIsCloudSyncing(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Debounced auto-sync to Cloud when students or counters change and user is logged in
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!currentUser) return;
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsCloudSyncing(true);
+        const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+        setLastCloudSyncedAt(syncTime);
+      } catch (err) {
+        console.error('Debounced cloud sync error:', err);
+      } finally {
+        setIsCloudSyncing(false);
+      }
+    }, 3000);
+
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [students, countersData, currentUser]);
+
+  // Manual Sync Up Handler (Forced upload)
+  const handleManualSyncUp = async () => {
+    if (!currentUser) {
+      setShowGoogleAuthModal(true);
+      return;
+    }
+    setIsCloudSyncing(true);
+    try {
+      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+      setLastCloudSyncedAt(syncTime);
+      setActivityToast('Buluta başarıyla yedeklendi! ☁️');
+      setTimeout(() => setActivityToast(null), 3000);
+    } catch (err) {
+      console.error('Manual sync up error:', err);
+      setActivityToast('Yedekleme sırasında bir hata oluştu.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Manual Sync Down Handler (Forced restore)
+  const handleManualSyncDown = async () => {
+    if (!currentUser) {
+      setShowGoogleAuthModal(true);
+      return;
+    }
+    setIsCloudSyncing(true);
+    try {
+      const cloudData = await loadUserDataFromCloud(currentUser.uid);
+      if (cloudData) {
+        if (cloudData.students && Array.isArray(cloudData.students)) {
+          setStudents(cloudData.students);
+          saveStudents(cloudData.students);
+        }
+        if (cloudData.counters) {
+          setCountersData(cloudData.counters);
+          try {
+            localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+          } catch {}
+        }
+        if (cloudData.selectedStudentIds && Array.isArray(cloudData.selectedStudentIds)) {
+          setSelectedStudentIds(cloudData.selectedStudentIds);
+        }
+        if (cloudData.lastSyncedAt) {
+          setLastCloudSyncedAt(cloudData.lastSyncedAt);
+        }
+        setActivityToast('Buluttan tüm veriler başarıyla geri yüklendi! 📥');
+        setTimeout(() => setActivityToast(null), 3000);
+      } else {
+        setActivityToast('Bulutta henüz kayıtlı veri bulunamadı.');
+        setTimeout(() => setActivityToast(null), 3000);
+      }
+    } catch (err) {
+      console.error('Manual sync down error:', err);
+      setActivityToast('Geri yükleme sırasında bir hata oluştu.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
 
   // Auto-persist students state changes to localStorage
   useEffect(() => {
@@ -3758,7 +3904,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showFarkBul && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showFarkBul && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -3804,6 +3950,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowFarkBul(false);
+    setShowSozlukSirala(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -3845,6 +3992,9 @@ export default function App() {
     } else if (entry.type === 'fark_bul' || entry.id === 'other_fark_bul') {
       setGameState('welcome');
       setShowFarkBul(true);
+    } else if (entry.type === 'sozluk_sirala' || entry.id === 'other_sozluk_sirala') {
+      setGameState('welcome');
+      setShowSozlukSirala(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4324,6 +4474,7 @@ export default function App() {
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (showFarkBul) return '7 Farkı Bul (Görsel Dikkat)';
+    if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
@@ -4396,8 +4547,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showFarkBul || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !showSozlukSirala && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showFarkBul || showSozlukSirala || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
               const iconSrc = `/icon_${g}.png`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -4422,6 +4573,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowFarkBul(false);
+                      setShowSozlukSirala(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4436,6 +4588,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowFarkBul(false);
+                      setShowSozlukSirala(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4531,9 +4684,19 @@ export default function App() {
               showXOXGame || 
               showKuralliCumle ||
               showFarkBul ||
+              showSozlukSirala ||
               wordGameType !== null
             ) {
               handlePrevActivity();
+              return;
+            }
+
+            // 0.05 If inside Sözlük Sıralama
+            if (showSozlukSirala) {
+              setShowSozlukSirala(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
               return;
             }
 
@@ -4675,6 +4838,9 @@ export default function App() {
               showGeometricNets ||
               showAynisiniBul || 
               showXOXGame || 
+              showKuralliCumle ||
+              showFarkBul ||
+              showSozlukSirala ||
               wordGameType !== null
             ) {
               handleNextActivity();
@@ -4884,8 +5050,74 @@ export default function App() {
         </div>
       </div>
 
-      {/* HATA VE GERİ BİLDİRİM BÖLÜMÜ (SAĞDA, TAM EKRAN BUTONUNUN ÜZERİNE ASLA BİNMEYECEK ŞEKİLDE FLEX İÇİNDE VE KOMPAKT) */}
-      <div className="shrink-0 flex items-center pl-1 sm:pl-2 z-20">
+      {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ */}
+      <div className="shrink-0 flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 z-20">
+        {/* GOOGLE AUTH & CLOUD SYNC BUTTON */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            setShowGoogleAuthModal(true);
+          }}
+          title={currentUser ? `Google Bulut Senkronizasyonu: ${currentUser.displayName || currentUser.email}` : "Google ile Giriş Yap & Öğrenci/İstatistikleri Buluta Yedekle"}
+          aria-label="Google Bulut Eşitleme"
+          className={`group flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 h-8 xs:h-9 sm:h-11 rounded-lg sm:rounded-xl shadow-md transition-all cursor-pointer shrink-0 border ${
+            currentUser
+              ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.35)]'
+              : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_12px_rgba(59,130,246,0.35)]'
+          }`}
+        >
+          {currentUser ? (
+            <>
+              {currentUser.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt={currentUser.displayName || 'Google'}
+                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-emerald-400/80 object-cover shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[10px] sm:text-xs shrink-0">
+                  {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
+                </div>
+              )}
+              <div className="flex flex-col items-start leading-none hidden sm:flex">
+                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
+                  {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
+                </span>
+                <span className="text-[8px] text-emerald-400/80 font-medium flex items-center gap-0.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
+                  {isCloudSyncing ? 'Eşitleniyor' : 'Bulut Aktif'}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span className="text-[11px] sm:text-xs font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap hidden sm:inline">
+                Google Giriş
+              </span>
+            </>
+          )}
+        </button>
+
+        {/* FEEDBACK BUTTON */}
         <button
           onClick={() => {
             playMp3('/op.mp3');
@@ -5091,7 +5323,7 @@ export default function App() {
                       5. Diğer Oyunlar
                     </h3>
                     <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
-                      XOX & Matematik, Zıt & Eş Anlam, Hafıza Oyunları
+                      Sözlük Sıralama, Aynısını Bul, 7 Farkı Bul, XOX & Zeka Oyunları
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
@@ -7658,6 +7890,8 @@ export default function App() {
               setShowStatsModal(false);
               setStatsModalGrade(null);
             }}
+            currentUser={currentUser}
+            onOpenCloudSync={() => setShowGoogleAuthModal(true)}
           />
         );
       })()}
@@ -7682,6 +7916,8 @@ export default function App() {
         onStudentsUpdated={(updated) => setStudents(updated)}
         currentGrade={rosterModalGrade || statsModalGrade || activeGradeNumber}
         playMp3={playMp3}
+        currentUser={currentUser}
+        onOpenCloudSync={() => setShowGoogleAuthModal(true)}
       />
 
       {/* SINIF & ZİYARETÇİ SAYAÇLARI MODAL (YÖNETİCİ & ÖĞRETMEN) */}
@@ -7699,6 +7935,29 @@ export default function App() {
             localStorage.removeItem('mathGameStats');
           } catch {}
         }}
+        playMp3={playMp3}
+        currentUser={currentUser}
+        onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+      />
+
+      {/* GOOGLE GİRİŞ VE BULUT SENKRONİZASYONU MODALI */}
+      <GoogleAuthSyncModal
+        isOpen={showGoogleAuthModal}
+        onClose={() => setShowGoogleAuthModal(false)}
+        currentUser={currentUser}
+        onSignIn={async () => {
+          await signInWithGoogle();
+        }}
+        onSignOut={async () => {
+          await signOutUser();
+          setCurrentUser(null);
+        }}
+        students={students}
+        countersData={countersData}
+        lastSyncedAt={lastCloudSyncedAt}
+        isSyncing={isCloudSyncing}
+        onManualSyncUp={handleManualSyncUp}
+        onManualSyncDown={handleManualSyncDown}
         playMp3={playMp3}
       />
 
@@ -7743,11 +8002,17 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !showSozlukSirala && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
             setOpenedFromOtherGamesModal(false);
+          }}
+          onOpenSozlukSirala={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ssIdx = findActivityIndex('sozluk_sirala');
+            if (ssIdx !== -1) setCurrentActivityIndex(ssIdx);
+            setShowSozlukSirala(true);
           }}
           onOpenAynisiniBul={() => {
             setOpenedFromOtherGamesModal(true);
@@ -7835,6 +8100,20 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
+        />
+      )}
+
+      {/* SÖZLÜK SIRALAMA OYUNU (ALFABE PORTALI - 2 & 3 KİŞİLİK) */}
+      {showSozlukSirala && (
+        <SozlukSiralaGame
+          onClose={() => {
+            setShowSozlukSirala(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          playMp3={playMp3}
+          initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
         />
       )}
 

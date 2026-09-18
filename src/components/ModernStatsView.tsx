@@ -19,8 +19,10 @@ import {
   ChevronUp,
   Search,
   UserPlus,
-  GraduationCap
+  GraduationCap,
+  Cloud
 } from 'lucide-react';
+import { User } from '../firebase';
 import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types';
 import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
@@ -73,6 +75,8 @@ interface ModernStatsViewProps {
   confirmReset?: boolean;
   setConfirmReset?: (val: boolean) => void;
   onClose: () => void;
+  currentUser?: User | null;
+  onOpenCloudSync?: () => void;
 }
 
 export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
@@ -92,7 +96,9 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   onResetGradeStats,
   confirmReset: propConfirmReset,
   setConfirmReset: propSetConfirmReset,
-  onClose
+  onClose,
+  currentUser,
+  onOpenCloudSync
 }) => {
   // Active grade tab: defaults to currently chosen grade in the app, or 2nd grade
   const initialGrade = (activeGrade && [1, 2, 3, 4].includes(activeGrade)) ? activeGrade : 2;
@@ -460,6 +466,24 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               >
                 <UserPlus size={12} className="text-purple-300 shrink-0" />
                 <span className="hidden sm:inline">Öğrenci Yönetimi</span>
+              </button>
+            )}
+
+            {onOpenCloudSync && (
+              <button
+                onClick={onOpenCloudSync}
+                className={`px-2 py-1 rounded-md font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border transition cursor-pointer ${
+                  currentUser
+                    ? 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border-emerald-500/40'
+                    : 'bg-blue-950/80 hover:bg-blue-900 text-blue-300 border-blue-500/40'
+                }`}
+                title="Google ile Bulut Senkronizasyonu & Yedekleme"
+              >
+                <Cloud size={12} className={currentUser ? "text-emerald-400" : "text-cyan-400"} />
+                <span className="hidden sm:inline">
+                  {currentUser ? 'Buluta Bağlı' : 'Buluta Yedekle'}
+                </span>
+                {currentUser && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
               </button>
             )}
           </div>

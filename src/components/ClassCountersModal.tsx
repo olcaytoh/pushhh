@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { 
   X, Users, MousePointerClick, CheckCircle2, XCircle, 
   BarChart3, RotateCcw, Copy, Check, Sparkles, TrendingUp,
-  Calendar, Clock, ShieldCheck, PieChart, Layers
+  Calendar, Clock, ShieldCheck, PieChart, Layers, Cloud
 } from 'lucide-react';
+import { User } from '../firebase';
 import { 
   ClassCountersData, 
   GradeCategoryKey, 
@@ -18,6 +19,8 @@ interface ClassCountersModalProps {
   onCountersUpdated: (newData: ClassCountersData) => void;
   onResetStats?: () => void;
   playMp3?: (src: string) => void;
+  currentUser?: User | null;
+  onOpenCloudSync?: () => void;
 }
 
 interface GradeMeta {
@@ -121,7 +124,9 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
   countersData,
   onCountersUpdated,
   onResetStats,
-  playMp3
+  playMp3,
+  currentUser,
+  onOpenCloudSync
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'classes' | 'questions' | 'visits'>('overview');
   const [copied, setCopied] = useState(false);
@@ -222,6 +227,24 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
               </p>
             </div>
           </div>
+
+          {onOpenCloudSync && (
+            <button
+              onClick={onOpenCloudSync}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer border flex items-center gap-1.5 shadow shrink-0 ${
+                currentUser
+                  ? 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
+                  : 'bg-blue-950/80 hover:bg-blue-900 text-blue-300 border-blue-500/50 hover:border-blue-400'
+              }`}
+              title="Google ile Bulut Senkronizasyonu & Yedekleme"
+            >
+              <Cloud size={14} className={currentUser ? "text-emerald-400" : "text-cyan-400"} />
+              <span className="hidden sm:inline">
+                {currentUser ? 'Buluta Bağlı' : 'Google ile Eşitle'}
+              </span>
+              {currentUser && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+            </button>
+          )}
 
           <button
             onClick={onClose}

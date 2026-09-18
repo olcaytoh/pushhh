@@ -13,6 +13,7 @@ interface OtherGamesHubProps {
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
   onOpenFarkBul?: () => void;
+  onOpenSozlukSirala?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -27,6 +28,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenGeometricNets,
   onOpenKuralliCumle,
   onOpenFarkBul,
+  onOpenSozlukSirala,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -36,6 +38,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'sozluk_sirala',
+      title: 'Sözlük Sıralama (Alfabe Portalı)',
+      subtitle: '2 ve 3 Kişilik Alfabetik Harf Sıralama Yarışı (1-2. Sınıf: 4 Harf, 3-4. Sınıf: 5 Harf)',
+      icon: '/MENUIKON/grid_icon_25.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenSozlukSirala) onOpenSozlukSirala();
+      },
+    },
     {
       id: 'aynisini_bul',
       title: 'Aynısını Bul (2 Kişilik)',

@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information for authenticated teacher",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "displayName", "updatedAt"]
+    },
+    "TeacherClassData": {
+      "title": "TeacherClassData",
+      "description": "Synced student roster, class counters, and statistics for the teacher",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "studentsJson": { "type": "string" },
+        "countersJson": { "type": "string" },
+        "selectedStudentIdsJson": { "type": "string" },
+        "lastSyncedAt": { "type": "string" }
+      },
+      "required": ["userId", "studentsJson", "countersJson", "lastSyncedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document owned by the user"
+    },
+    "/users/{userId}/data/classroom": {
+      "schema": "TeacherClassData",
+      "description": "Teacher classroom statistics and student list data"
+    }
+  }
+}

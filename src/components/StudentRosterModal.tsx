@@ -16,8 +16,10 @@ import {
   ChevronUp,
   Sparkles,
   GraduationCap,
-  ArrowLeft
+  ArrowLeft,
+  Cloud
 } from 'lucide-react';
+import { User } from '../firebase';
 import { Student } from '../types/student';
 import {
   AVATAR_OPTIONS,
@@ -42,6 +44,8 @@ interface StudentRosterModalProps {
   onStudentsUpdated: (updated: Student[]) => void;
   currentGrade?: number | null; // 1, 2, 3, or 4
   playMp3?: (src: string) => void;
+  currentUser?: User | null;
+  onOpenCloudSync?: () => void;
 }
 
 export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
@@ -51,7 +55,9 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   students,
   onStudentsUpdated,
   currentGrade = 2,
-  playMp3
+  playMp3,
+  currentUser,
+  onOpenCloudSync
 }) => {
   // Sınıf seviyesi sekmesi (1, 2, 3, 4 veya 'ALL' - Varsayılan: Aktif oyunun sınıfı)
   const [activeGradeTab, setActiveGradeTab] = useState<number | 'ALL'>(() => {
@@ -368,6 +374,28 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onOpenCloudSync && (
+              <button
+                type="button"
+                onClick={() => {
+                  playMp3?.('/op.mp3');
+                  onOpenCloudSync();
+                }}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer border flex items-center gap-1.5 shadow ${
+                  currentUser
+                    ? 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
+                    : 'bg-blue-950/80 hover:bg-blue-900 text-blue-300 border-blue-500/50 hover:border-blue-400'
+                }`}
+                title="Google ile Bulut Senkronizasyonu & Yedekleme"
+              >
+                <Cloud size={14} className={currentUser ? "text-emerald-400" : "text-cyan-400"} />
+                <span className="hidden sm:inline">
+                  {currentUser ? 'Buluta Bağlı' : 'Google ile Eşitle'}
+                </span>
+                {currentUser && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+              </button>
+            )}
+
             {onBackToStats && (
               <button
                 type="button"
