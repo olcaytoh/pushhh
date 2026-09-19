@@ -3,13 +3,14 @@ import confetti from 'canvas-confetti';
 import { 
   Sparkles, CheckCircle2, RotateCcw, Shuffle, HelpCircle, 
   Volume2, ArrowRight, ArrowLeft, Trophy, Star, Award, 
-  GripVertical, ChevronLeft, ChevronRight
+  GripVertical, ChevronLeft, ChevronRight, Home
 } from 'lucide-react';
 
 export type GradeLevel = 1 | 2 | 3 | 4;
 
 export interface KuralliCumleActivityProps {
   onClose: () => void;
+  onGoHome?: () => void;
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
@@ -354,6 +355,7 @@ function shuffleWords(words: string[]): WordItem[] {
 
 export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   onClose,
+  onGoHome,
   onPrevActivity,
   onNextActivity,
   playMp3,
@@ -365,6 +367,16 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     }
     return 1;
   });
+
+  useEffect(() => {
+    if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
+      setSelectedGrade(initialGrade as GradeLevel);
+      setCurrentSentenceIndex(0);
+      setIsCorrect(false);
+      setShowErrorShake(false);
+      setSelectedWordIndex(null);
+    }
+  }, [initialGrade]);
 
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
   const [words, setWords] = useState<WordItem[]>([]);
@@ -570,7 +582,10 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   const gradeCompletedCount = currentGradeSentences.filter(s => completedSentences.includes(s.id)).length;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+    >
       {/* 1. BACKGROUND IMAGE (/dere3.jpg) WITH BLUR */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -584,22 +599,42 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
       {/* 2. SUB-HEADER BAR */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        {/* Left: Section badge */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
+        {/* Left: Nav Buttons & Section badge */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-2 px-2.5 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
             <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
             <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
               5. DİĞER OYUNLAR
             </span>
             <span className="text-amber-400/60 font-bold">•</span>
             <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Kurallı Cümle Oluştur
+              Kurallı Cümle
             </h1>
             <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
-        {/* Right: Progress Indicator & Close button */}
+        {/* Right: Progress Indicator, Home & Close button */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <div className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-slate-800/90 border border-slate-700 rounded-xl shadow-xs">
             <Star size={14} className="text-amber-400 fill-amber-400" />
@@ -609,11 +644,23 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
           </div>
 
           <button
+            onClick={() => {
+              if (onGoHome) onGoHome();
+              else onClose();
+            }}
+            className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+            title="Ana Sayfaya Dön"
+          >
+            <Home size={13} />
+            <span className="hidden xs:inline">Ana Sayfa</span>
+          </button>
+
+          <button
             onClick={onClose}
-            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+            className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
             title="Kapat"
           >
-            ✕ Kapat
+            ✕ <span className="hidden xs:inline">Kapat</span>
           </button>
         </div>
       </header>

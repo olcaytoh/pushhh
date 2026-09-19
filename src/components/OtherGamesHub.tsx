@@ -1,9 +1,10 @@
 import React from 'react';
-import { Sparkles, ArrowLeft, Swords, BookOpen, Brain, Play, Star, Flame, Trophy } from 'lucide-react';
+import { Sparkles, ArrowLeft, Swords, BookOpen, Brain, Play, Star, Flame, Trophy, Home } from 'lucide-react';
 import { getIconAccentColor } from '../App';
 
 interface OtherGamesHubProps {
   onClose: () => void;
+  onGoHome?: () => void;
   onOpenXOX: () => void;
   onOpenZitAnlam: () => void;
   onOpenEsAnlam: () => void;
@@ -12,13 +13,13 @@ interface OtherGamesHubProps {
   onOpenAynisiniBul?: () => void;
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
-  onOpenFarkBul?: () => void;
   onOpenSozlukSirala?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
 export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onClose,
+  onGoHome,
   onOpenXOX,
   onOpenZitAnlam,
   onOpenEsAnlam,
@@ -27,7 +28,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenAynisiniBul,
   onOpenGeometricNets,
   onOpenKuralliCumle,
-  onOpenFarkBul,
   onOpenSozlukSirala,
   playMp3
 }) => {
@@ -121,16 +121,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       action: () => {
         if (onOpenKuralliCumle) onOpenKuralliCumle();
       },
-    },
-    {
-      id: 'fark_bul',
-      title: '7 Farkı Bul (Görsel Dikkat)',
-      subtitle: '2 Görsel Arasındaki 7 Farkı Bul! (Her İki Taraftan Dokunulabilir)',
-      icon: '/MENUIKON/grid_icon_19.png',
-      sound: '/coin.mp3',
-      action: () => {
-        if (onOpenFarkBul) onOpenFarkBul();
-      },
     }
   ];
 
@@ -164,9 +154,19 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={13} />
+              <span>Ana Sayfa</span>
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
             title="Kapat"
           >
             ✕ Kapat

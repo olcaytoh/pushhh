@@ -25,7 +25,6 @@ import { XOXGame } from './components/XOXGame';
 import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
-import { FarkBulGame } from './components/FarkBulGame';
 import { SozlukSiralaGame } from './components/SozlukSiralaGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
@@ -2656,6 +2655,29 @@ export default function App() {
     }
   }, [showIntro]);
 
+  const appHeaderRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (appHeaderRef.current) {
+        const h = appHeaderRef.current.offsetHeight;
+        if (h > 0) {
+          document.documentElement.style.setProperty('--app-header-height', `${h}px`);
+        }
+      }
+    };
+    updateHeaderHeight();
+    const ro = new ResizeObserver(updateHeaderHeight);
+    if (appHeaderRef.current) {
+      ro.observe(appHeaderRef.current);
+    }
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, [showIntro]);
+
   // Single Player Game State
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -2955,7 +2977,6 @@ export default function App() {
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
-  const [showFarkBul, setShowFarkBul] = useState(false);
   const [showSozlukSirala, setShowSozlukSirala] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
@@ -3904,7 +3925,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showFarkBul && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -3949,7 +3970,6 @@ export default function App() {
     setShowXOXGame(false);
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
-    setShowFarkBul(false);
     setShowSozlukSirala(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
@@ -3986,13 +4006,18 @@ export default function App() {
       }
       setGameState('welcome');
       setShowAynisiniBul(true);
-    } else if (entry.type === 'kuralli_cumle' || entry.id === 'other_kuralli_cumle') {
+    } else if (entry.type === 'kuralli_cumle' || entry.id.includes('kuralli_cumle')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
       setGameState('welcome');
       setShowKuralliCumle(true);
-    } else if (entry.type === 'fark_bul' || entry.id === 'other_fark_bul') {
-      setGameState('welcome');
-      setShowFarkBul(true);
-    } else if (entry.type === 'sozluk_sirala' || entry.id === 'other_sozluk_sirala') {
+    } else if (entry.type === 'sozluk_sirala' || entry.id.includes('sozluk_sirala')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
       setGameState('welcome');
       setShowSozlukSirala(true);
     } else if (entry.type === 'geoboard') {
@@ -4028,6 +4053,27 @@ export default function App() {
   const handleNextActivity = () => {
     const nextIdx = (currentActivityIndex + 1) % ALL_ACTIVITIES_LIST.length;
     switchToActivityByIndex(nextIdx);
+  };
+
+  const handleGoHome = () => {
+    playMp3('/op.mp3');
+    setGameState('welcome');
+    setSelectedCategoryId(null);
+    setLastSelectedCategoryId(null);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setOpenedFromOtherGamesModal(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setWordGameType(null);
+    setSelectedGrade(null);
   };
 
   const kaydetGrupIstatistik = (pIndex: number, topicId: string, dogruMu: boolean) => {
@@ -4473,7 +4519,6 @@ export default function App() {
     if (showXOXGame) return 'Matematik XOX Oyunu';
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
-    if (showFarkBul) return '7 Farkı Bul (Görsel Dikkat)';
     if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
@@ -4537,7 +4582,7 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-3 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-3 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
           {/* SOL DENGELEYİCİ BOŞLUK (GENİŞ EKRANDA BUTONLARI OPTİK OLARAK TAM ORTADA TUTAR) */}
           <div className="shrink-0 hidden lg:flex items-center w-24 xl:w-28 pointer-events-none opacity-0" aria-hidden="true" />
 
@@ -4547,8 +4592,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !showSozlukSirala && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showFarkBul || showSozlukSirala || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
               const iconSrc = `/icon_${g}.png`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -4572,7 +4617,6 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
-                      setShowFarkBul(false);
                       setShowSozlukSirala(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -4587,7 +4631,6 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
-                      setShowFarkBul(false);
                       setShowSozlukSirala(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -4605,7 +4648,6 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
-                      setShowFarkBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4638,24 +4680,7 @@ export default function App() {
 
         {/* 1. ANA SAYFA */}
         <button
-          onClick={() => {
-            playMp3('/op.mp3');
-            setGameState('welcome');
-            setSelectedCategoryId(null);
-            setShowTopicModal(false);
-            setShowStatsModal(false);
-            setShow3DLab(false);
-            setShowGeoboard(false);
-            setShowGeometricNets(false);
-            setShowOtherGamesModal(false);
-            setShowEnglishGamesModal(false);
-            setOpenedFromOtherGamesModal(false);
-            setShowXOXGame(false);
-            setShowAynisiniBul(false);
-            setShowKuralliCumle(false);
-            setWordGameType(null);
-            setSelectedGrade(null);
-          }}
+          onClick={handleGoHome}
           title="Ana Sayfaya Dön"
           className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
@@ -4683,7 +4708,6 @@ export default function App() {
               showAynisiniBul || 
               showXOXGame || 
               showKuralliCumle ||
-              showFarkBul ||
               showSozlukSirala ||
               wordGameType !== null
             ) {
@@ -4694,15 +4718,6 @@ export default function App() {
             // 0.05 If inside Sözlük Sıralama
             if (showSozlukSirala) {
               setShowSozlukSirala(false);
-              if (openedFromOtherGamesModal || selectedGrade === null) {
-                setShowOtherGamesModal(true);
-              }
-              return;
-            }
-
-            // 0.1 If inside Fark Bul
-            if (showFarkBul) {
-              setShowFarkBul(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
                 setShowOtherGamesModal(true);
               }
@@ -4839,7 +4854,6 @@ export default function App() {
               showAynisiniBul || 
               showXOXGame || 
               showKuralliCumle ||
-              showFarkBul ||
               showSozlukSirala ||
               wordGameType !== null
             ) {
@@ -5323,7 +5337,7 @@ export default function App() {
                       5. Diğer Oyunlar
                     </h3>
                     <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
-                      Sözlük Sıralama, Aynısını Bul, 7 Farkı Bul, XOX & Zeka Oyunları
+                      Sözlük Sıralama, Aynısını Bul, XOX & Zeka Oyunları
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
@@ -8002,15 +8016,16 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showFarkBul && !showSozlukSirala && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
             setOpenedFromOtherGamesModal(false);
           }}
+          onGoHome={handleGoHome}
           onOpenSozlukSirala={() => {
             setOpenedFromOtherGamesModal(true);
-            const ssIdx = findActivityIndex('sozluk_sirala');
+            const ssIdx = findActivityIndex('sozluk_sirala', undefined, selectedGrade || undefined);
             if (ssIdx !== -1) setCurrentActivityIndex(ssIdx);
             setShowSozlukSirala(true);
           }}
@@ -8028,15 +8043,9 @@ export default function App() {
           }}
           onOpenKuralliCumle={() => {
             setOpenedFromOtherGamesModal(true);
-            const kcIdx = findActivityIndex('kuralli_cumle', undefined, undefined);
+            const kcIdx = findActivityIndex('kuralli_cumle', undefined, selectedGrade || undefined);
             if (kcIdx !== -1) setCurrentActivityIndex(kcIdx);
             setShowKuralliCumle(true);
-          }}
-          onOpenFarkBul={() => {
-            setOpenedFromOtherGamesModal(true);
-            const fbIdx = findActivityIndex('fark_bul');
-            if (fbIdx !== -1) setCurrentActivityIndex(fbIdx);
-            setShowFarkBul(true);
           }}
           onOpenZitAnlam={() => {
             setOpenedFromOtherGamesModal(true);
@@ -8081,25 +8090,11 @@ export default function App() {
               setShowOtherGamesModal(true);
             }
           }}
+          onGoHome={handleGoHome}
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGrade={selectedGrade || 1}
-        />
-      )}
-
-      {/* 7 FARKI BUL OYUNU (GÖRSEL DİKKAT) */}
-      {showFarkBul && (
-        <FarkBulGame
-          onClose={() => {
-            setShowFarkBul(false);
-            if (openedFromOtherGamesModal || selectedGrade === null) {
-              setShowOtherGamesModal(true);
-            }
-          }}
-          onPrevActivity={handlePrevActivity}
-          onNextActivity={handleNextActivity}
-          playMp3={playMp3}
         />
       )}
 
@@ -8112,6 +8107,9 @@ export default function App() {
               setShowOtherGamesModal(true);
             }
           }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
         />

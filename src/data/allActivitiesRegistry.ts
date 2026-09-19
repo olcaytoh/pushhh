@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul' | 'sozluk_sirala';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -123,6 +123,20 @@ ALL_ACTIVITIES_LIST.push({
   type: 'aynisini_bul',
   grade: 1,
   title: 'Aynısını Bul (2 Kişilik)',
+  categoryLabel: '1. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g1_sozluk_sirala',
+  type: 'sozluk_sirala',
+  grade: 1,
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '1. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g1_kuralli_cumle',
+  type: 'kuralli_cumle',
+  grade: 1,
+  title: 'Kurallı Cümle Oluştur (1. Sınıf)',
   categoryLabel: '1. Sınıf Diğer Oyunlar'
 });
 const g1Diger = [
@@ -253,6 +267,20 @@ ALL_ACTIVITIES_LIST.push({
   title: 'Aynısını Bul (2 Kişilik)',
   categoryLabel: '2. Sınıf Diğer Oyunlar'
 });
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_sozluk_sirala',
+  type: 'sozluk_sirala',
+  grade: 2,
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '2. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_kuralli_cumle',
+  type: 'kuralli_cumle',
+  grade: 2,
+  title: 'Kurallı Cümle Oluştur (2. Sınıf)',
+  categoryLabel: '2. Sınıf Diğer Oyunlar'
+});
 const g2Diger = [
   'halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2',
   'sureli_toplama_cikarma', 'sureli_carpma_bolme',
@@ -375,6 +403,20 @@ ALL_ACTIVITIES_LIST.push({
   title: 'Aynısını Bul (2 Kişilik)',
   categoryLabel: '3. Sınıf Diğer Oyunlar'
 });
+ALL_ACTIVITIES_LIST.push({
+  id: 'g3_sozluk_sirala',
+  type: 'sozluk_sirala',
+  grade: 3,
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '3. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g3_kuralli_cumle',
+  type: 'kuralli_cumle',
+  grade: 3,
+  title: 'Kurallı Cümle Oluştur (3. Sınıf)',
+  categoryLabel: '3. Sınıf Diğer Oyunlar'
+});
 const g3Diger = [
   'halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3',
   'sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
@@ -485,6 +527,20 @@ ALL_ACTIVITIES_LIST.push({
   title: 'Aynısını Bul (2 Kişilik)',
   categoryLabel: '4. Sınıf Diğer Oyunlar'
 });
+ALL_ACTIVITIES_LIST.push({
+  id: 'g4_sozluk_sirala',
+  type: 'sozluk_sirala',
+  grade: 4,
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '4. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g4_kuralli_cumle',
+  type: 'kuralli_cumle',
+  grade: 4,
+  title: 'Kurallı Cümle Oluştur (4. Sınıf)',
+  categoryLabel: '4. Sınıf Diğer Oyunlar'
+});
 const g4Diger = [
   'halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4',
   'sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
@@ -502,18 +558,18 @@ g4Diger.forEach(key => {
 });
 
 // ==========================================
-// GENEL DİĞER OYUNLAR & İNGİLİZCE
+// GENEL DİĞER OYUNLAR & İNGİLİZCE (Tüm Hub Listesi)
 // ==========================================
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_sozluk_sirala',
+  type: 'sozluk_sirala',
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: 'Diğer Oyunlar'
+});
 ALL_ACTIVITIES_LIST.push({
   id: 'other_aynisini_bul',
   type: 'aynisini_bul',
   title: 'Aynısını Bul (2 Kişilik)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_geoboard',
-  type: 'geoboard',
-  title: 'Geometri Tahtası',
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -537,6 +593,18 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_3d_lab',
+  type: '3d_lab',
+  title: '3D Geometri & Şekil Laboratuvarı',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_geoboard',
+  type: 'geoboard',
+  title: 'Geometri Tahtası',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_cisimler_acilimi',
   type: 'geometric_nets',
   title: 'Geometrik Cisimler Açılımı',
@@ -549,18 +617,6 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
-  id: 'other_fark_bul',
-  type: 'fark_bul',
-  title: '7 Farkı Bul (Görsel Dikkat)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_sozluk_sirala',
-  type: 'sozluk_sirala',
-  title: 'Sözlük Sıralama (Alfabe Portalı)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
   wordGameType: 'ingilizce',
@@ -569,20 +625,24 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'fark_bul' | 'sozluk_sirala',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
   if (type === 'sozluk_sirala' || topicKey === 'sozluk_sirala') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sozluk_sirala' || a.id === `g${grade}_sozluk_sirala`) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sozluk_sirala' || a.id === 'other_sozluk_sirala');
     if (idx !== -1) return idx;
   }
-  if (type === 'fark_bul' || topicKey === 'fark_bul') {
-    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'fark_bul' || a.id === 'other_fark_bul');
-    if (idx !== -1) return idx;
-  }
   if (type === 'kuralli_cumle' || topicKey === 'kuralli_cumle') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kuralli_cumle' || a.id === `g${grade}_kuralli_cumle`) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'kuralli_cumle' || a.id === 'other_kuralli_cumle');
     if (idx !== -1) return idx;
   }
@@ -603,6 +663,10 @@ export const findActivityIndex = (
     if (idx !== -1) return idx;
   }
   if (type === '3d_lab') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === '3d_lab' && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === '3d_lab');
     if (idx !== -1) return idx;
   }

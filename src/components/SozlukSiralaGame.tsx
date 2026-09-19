@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, RotateCcw, Trophy, 
-  HelpCircle, Volume2, VolumeX, Sparkles, CheckCircle2, XCircle
+  HelpCircle, Volume2, VolumeX, Sparkles, CheckCircle2, XCircle,
+  ChevronLeft, ChevronRight, Home
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -13,6 +14,9 @@ import {
 
 interface SozlukSiralaGameProps {
   onClose: () => void;
+  onGoHome?: () => void;
+  onPrevActivity?: () => void;
+  onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialGradeGroup?: '1-2' | '3-4';
 }
@@ -33,11 +37,23 @@ interface PlayerState {
 
 export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   onClose,
+  onGoHome,
+  onPrevActivity,
+  onNextActivity,
   playMp3,
   initialGradeGroup = '1-2',
 }) => {
   // Config state
   const [gradeGroup, setGradeGroup] = useState<GradeGroup>(initialGradeGroup);
+
+  useEffect(() => {
+    if (initialGradeGroup) {
+      setGradeGroup(initialGradeGroup);
+      setCurrentRound(1);
+      setGameOver(false);
+      setRoundWinner(null);
+    }
+  }, [initialGradeGroup]);
   const [playerMode, setPlayerMode] = useState<PlayerMode>(2);
   const [currentRound, setCurrentRound] = useState<number>(1);
   const totalRounds = 5;
@@ -431,21 +447,58 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[500] flex flex-col bg-slate-950 font-sans select-none overflow-hidden text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 font-sans select-none overflow-hidden text-white"
+    >
       {/* 1. TOP HEADER NAVIGATION BAR */}
-      <header className="relative z-30 bg-[#070e1c] border-b border-slate-800 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-md shrink-0">
-        {/* Left: Back & Round Counter */}
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="relative z-30 bg-[#070e1c] border-b border-slate-800 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-md shrink-0 gap-1.5">
+        {/* Left: Nav, Back & Round Counter */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+
           <button
             onClick={() => {
               triggerSound('/op.mp3');
               onClose();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white rounded-xl font-bold text-xs sm:text-sm border border-slate-700 shadow transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white rounded-xl font-bold text-xs sm:text-sm border border-slate-700 shadow transition-all cursor-pointer"
+            title="Çıkış"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden xs:inline">Çıkış</span>
           </button>
+
+          <button
+            onClick={() => {
+              triggerSound('/op.mp3');
+              if (onGoHome) onGoHome();
+              else onClose();
+            }}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-900/80 hover:bg-emerald-800 active:bg-emerald-950 text-emerald-200 hover:text-white rounded-xl font-bold text-xs sm:text-sm border border-emerald-500/80 shadow transition-all cursor-pointer"
+            title="Ana Sayfaya Dön"
+          >
+            <Home className="w-4 h-4" />
+            <span className="hidden xs:inline">Ana Sayfa</span>
+          </button>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Eşleşme Counter badge (Matching photo: "Eşleşme 7 / 10") */}
           <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center gap-2 shadow-inner">
