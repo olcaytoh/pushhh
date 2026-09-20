@@ -6,7 +6,16 @@ import { topics4thGrade } from '../data/topics4thGrade';
 // Special game/activity titles
 const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
   zit_anlam: { title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', icon: '⚡' },
+  turkce_zit_anlam: { title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', icon: '⚡' },
   es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
+  turkce_es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
+  turkce_sozcuk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
+  turkce_sozluk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
+  sozluk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
+  turkce_kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
+  kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
+  turkce_hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', icon: '🗣️' },
+  hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', icon: '🗣️' },
   es_sesli: { title: 'Eş Sesli (Sesteş) Sözcükler', desc: 'Yazılışları aynı anlamları farklı sözcükler', icon: '📝' },
   ingilizce: { title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları', icon: '🌍' },
   ingilizce_kelimeler: { title: 'İngilizce Sözlük Oyunu', desc: 'Görseller ve İngilizce kelimeler', icon: '🇬🇧' },
@@ -88,10 +97,27 @@ export function getCurriculumTopicsForGrade(grade: number): TopicInfo[] {
   else if (grade === 4) source = topics4thGrade;
   else source = topics2ndGrade;
 
-  return Object.entries(source).map(([key, val]) => ({
+  const list: TopicInfo[] = Object.entries(source).map(([key, val]) => ({
     key,
     title: val.title,
     desc: val.desc,
     grade
   }));
+
+  if (grade === 2) {
+    const turkceTopics: TopicInfo[] = [
+      { key: 'turkce_hece_sayisi', title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', grade: 2 },
+      { key: 'turkce_kuralli_cumle', title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', grade: 2 },
+      { key: 'turkce_sozcuk_sirala', title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', grade: 2 },
+      { key: 'turkce_zit_anlam', title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', grade: 2 },
+      { key: 'turkce_es_anlam', title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', grade: 2 }
+    ];
+    turkceTopics.forEach(t => {
+      if (!list.some(item => item.key === t.key)) {
+        list.push(t);
+      }
+    });
+  }
+
+  return list;
 }

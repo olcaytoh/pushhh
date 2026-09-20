@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { 
   ArrowLeft, Maximize2, Minimize2, RotateCcw, Trophy, 
   HelpCircle, Volume2, VolumeX, Sparkles, CheckCircle2, XCircle,
@@ -11,6 +11,8 @@ import {
   isAlphabeticalOrder, 
   sortLettersAlphabetically 
 } from '../data/sozlukSiralaData';
+import { Student } from '../types/student';
+import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 
 interface SozlukSiralaGameProps {
   onClose: () => void;
@@ -19,6 +21,11 @@ interface SozlukSiralaGameProps {
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialGradeGroup?: '1-2' | '3-4';
+  students?: Student[];
+  selectedStudentId?: string | null;
+  onSelectStudent?: (id: string | null) => void;
+  onOpenRosterModal?: () => void;
+  onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
 type GradeGroup = '1-2' | '3-4';
@@ -42,7 +49,20 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   onNextActivity,
   playMp3,
   initialGradeGroup = '1-2',
+  students,
+  selectedStudentId,
+  onSelectStudent,
+  onOpenRosterModal,
+  onQuestionAnswered,
 }) => {
+  // Split students into Left (12) and Right (11) slots
+  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
+  const assignedStudent = useMemo(
+    () => students?.find(s => s.id === selectedStudentId) || null,
+    [students, selectedStudentId]
+  );
+
   // Config state
   const [gradeGroup, setGradeGroup] = useState<GradeGroup>(initialGradeGroup);
 
@@ -327,6 +347,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       setRoundWinner(playerIdx);
       triggerSound('/coin.mp3');
 
+      if (onQuestionAnswered) {
+        onQuestionAnswered(true);
+      }
+
       // Confetti burst
       const isLeft = playerIdx === 0;
       const isRight = playerIdx === (players.length - 1);
@@ -359,6 +383,9 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
     } else {
       // INCORRECT ORDER
       triggerSound('/hata.mp3');
+      if (onQuestionAnswered) {
+        onQuestionAnswered(false);
+      }
       setPlayers(prev => {
         const next = [...prev];
         next[playerIdx] = {
@@ -623,30 +650,77 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
         </div>
       )}
 
-      {/* 3. MAIN DUAL / TRIPLE BATTLE ARENA (EXACT SPLIT FROM PHOTO) */}
-      <div className="flex-1 flex flex-row relative min-h-0 w-full overflow-hidden">
-        {players.map((player, pIdx) => {
-          const theme = getPlayerTheme(player.colorName);
-          const isWinnerThisRound = roundWinner === pIdx;
-
-          return (
-            <React.Fragment key={player.id}>
-              {/* Individual Player Screen Panel */}
-              <div 
-                className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 px-2 sm:px-4 py-2 sm:py-3 transition-transform ${
-                  player.shake ? 'animate-shake' : ''
-                }`}
+      {/* ACTIVE STUDENT NOTIFICATION BADGE IF ANY */}
+      {assignedStudent && (
+        <div className="relative z-20 mt-1 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold shadow animate-fadeIn">
+            <span>🎮 Oynayan Öğrenci:</span>
+            <span className="text-white font-extrabold flex items-center gap-1">
+              <span>{assignedStudent.avatar}</span>
+              <span>{assignedStudent.name}</span>
+            </span>
+            {onSelectStudent && (
+              <button
+                type="button"
+                onClick={() => onSelectStudent(null)}
+                className="text-amber-400 hover:text-amber-200 ml-1 text-[11px] underline cursor-pointer"
               >
-                {/* Subtle Grid Ambient Texture */}
-                <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" />
+                (Değiştir)
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
-                {/* Player Header Info & Score */}
-                <div className="relative z-10 flex items-center justify-between w-full max-w-lg mx-auto mb-1 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-xl bg-black/40 text-white font-black text-xs sm:text-sm border border-white/30 backdrop-blur-sm shadow-sm">
-                      {player.name}
-                    </span>
-                  </div>
+      {/* 3. MAIN WORKSPACE WITH SIDE AVATAR GRIDS */}
+      <div className="relative z-10 flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden p-1 sm:p-2">
+        {/* LEFT STUDENT SIDE GRID */}
+        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+          <div className="hidden xl:flex shrink-0 self-center">
+            <StudentAvatarSideGrid
+              slotsStudents={leftStudents}
+              side="left"
+              count={students.length}
+              label="1. Grup (Sol)"
+              selectedStudentId={selectedStudentId || null}
+              onSelectStudent={onSelectStudent}
+              onOpenRosterModal={onOpenRosterModal}
+              playMp3={triggerSound}
+            />
+          </div>
+        )}
+
+        {/* CENTER BATTLE ARENA (EXACT SPLIT FROM PHOTO) */}
+        <div className="flex-1 flex flex-row relative min-h-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800 shadow-2xl">
+          {players.map((player, pIdx) => {
+            const theme = getPlayerTheme(player.colorName);
+            const isWinnerThisRound = roundWinner === pIdx;
+
+            return (
+              <React.Fragment key={player.id}>
+                {/* Individual Player Screen Panel */}
+                <div 
+                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 px-2 sm:px-4 py-2 sm:py-3 transition-transform ${
+                    player.shake ? 'animate-shake' : ''
+                  }`}
+                >
+                  {/* Subtle Grid Ambient Texture */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" />
+
+                  {/* Player Header Info & Score */}
+                  <div className="relative z-10 flex items-center justify-between w-full max-w-lg mx-auto mb-1 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-xl bg-black/40 text-white font-black text-xs sm:text-sm border border-white/30 backdrop-blur-sm shadow-sm flex items-center gap-1.5">
+                        {pIdx === 0 && assignedStudent ? (
+                          <>
+                            <span>{assignedStudent.avatar}</span>
+                            <span>{assignedStudent.name}</span>
+                          </>
+                        ) : (
+                          player.name
+                        )}
+                      </span>
+                    </div>
 
                   <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/50 border border-amber-400/70 shadow-md">
                     <Trophy className="w-4 h-4 text-amber-400" />
@@ -800,6 +874,23 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
             </React.Fragment>
           );
         })}
+        </div>
+
+        {/* RIGHT STUDENT SIDE GRID */}
+        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+          <div className="hidden xl:flex shrink-0 self-center">
+            <StudentAvatarSideGrid
+              slotsStudents={rightStudents}
+              side="right"
+              count={students.length}
+              label="2. Grup (Sağ)"
+              selectedStudentId={selectedStudentId || null}
+              onSelectStudent={onSelectStudent}
+              onOpenRosterModal={onOpenRosterModal}
+              playMp3={triggerSound}
+            />
+          </div>
+        )}
       </div>
 
       {/* 4. ROUND VICTORY OVERLAY BANNER */}

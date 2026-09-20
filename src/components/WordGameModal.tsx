@@ -6,6 +6,9 @@ import {
 import confetti from 'canvas-confetti';
 import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA, WordPair } from '../data/wordPairsData';
 import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrack';
+import { Student } from '../types/student';
+import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface WordGameModalProps {
   gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -16,6 +19,10 @@ interface WordGameModalProps {
   onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
   soundEnabled?: boolean;
   onQuestionAnswered?: (isCorrect: boolean, gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce') => void;
+  students?: Student[];
+  selectedStudentId?: string | null;
+  onSelectStudent?: (id: string | null) => void;
+  onOpenRosterModal?: () => void;
 }
 
 type GameMode = 'duel2' | 'duel3' | 'quiz1' | 'matching';
@@ -174,8 +181,32 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   playerCountMode = 2,
   onSwitchPlayerCountMode,
   soundEnabled = true,
-  onQuestionAnswered
+  onQuestionAnswered,
+  students,
+  selectedStudentId,
+  onSelectStudent,
+  onOpenRosterModal,
 }) => {
+  // Split students into Left (12) and Right (11) slots
+  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
+  const assignedStudent = useMemo(
+    () => students?.find(s => s.id === selectedStudentId) || null,
+    [students, selectedStudentId]
+  );
+
+  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([
+    selectedStudentId || null,
+    null,
+    null
+  ]);
+
+  useEffect(() => {
+    if (selectedStudentId !== undefined) {
+      setSelectedStudentIds(prev => [selectedStudentId || null, prev[1] || null, prev[2] || null]);
+    }
+  }, [selectedStudentId]);
+
   const isZit = gameType === 'zit_anlam';
   const isEs = gameType === 'es_anlam';
   const isIng = gameType === 'ingilizce';
@@ -730,6 +761,10 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       );
     }
 
+    const assignedPlayerStudent = selectedStudentIds[pIdx]
+      ? (students?.find(s => s.id === selectedStudentIds[pIdx]) || null)
+      : (pIdx === 0 ? assignedStudent : null);
+
     return (
       <div
         key={p.id}
@@ -737,15 +772,24 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       >
         {/* PLAYER HEADER BAR */}
         <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
-          {/* LEFT: CIRCLE BADGE (1), (2), (3) */}
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs`}>
-            {pIdx + 1}
-          </div>
+          {/* LEFT: CIRCLE BADGE OR AVATAR */}
+          {assignedPlayerStudent ? (
+            <div 
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedPlayerStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs`}
+              title={`Aktif Öğrenci: ${assignedPlayerStudent.name}`}
+            >
+              {assignedPlayerStudent.avatar}
+            </div>
+          ) : (
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs`}>
+              {pIdx + 1}
+            </div>
+          )}
 
           {/* CONNECTED SOLID CAPSULE FOR GROUP NAME & SCORE */}
           <div className={`flex-1 h-full ml-1.5 sm:ml-2 bg-[#0e172a] border border-slate-700/80 ${groupTheme.headerAccentBorder} rounded-xl px-2 sm:px-2.5 flex items-center justify-between shadow-xs gap-1 sm:gap-1.5`}>
             <span className={`font-black text-xs ${groupTheme.headerTitleColor} uppercase tracking-wide truncate`}>
-              {pIdx + 1}. GRUP ({p.avatar})
+              {assignedPlayerStudent ? `${assignedPlayerStudent.name} (${p.avatar})` : `${pIdx + 1}. GRUP (${p.avatar})`}
             </span>
 
             {/* RIGHT: SCORE & HEARTS */}
@@ -781,7 +825,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           ) : p.currentQuestion ? (
             <div className="relative z-10 flex flex-col items-center justify-center text-center px-2 sm:px-3 w-full max-h-full overflow-hidden my-auto">
               <div className="text-xs sm:text-sm md:text-base font-black uppercase text-amber-300 tracking-wider mb-2 drop-shadow-[0_2px_4px_#000] [text-shadow:0_2px_4px_#000]">
-                {isIng ? 'TÜRKÇE ANLAMI:' : `${gameConcept.toUpperCase()} ANLAMLISI:`}
+                {isIng ? 'TÜRKÇE ANLAMI:' : isZit ? 'ZIT ANLAMLISI:' : 'EŞ ANLAMLISI:'}
               </div>
 
               {/* TARGET WORD DISPLAY */}
@@ -819,7 +863,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                   className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
                 >
                   <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${groupTheme.buttonGlare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
-                  <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black break-words`}>
+                  <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black truncate`}>
                     {opt}
                   </span>
                   {p.feedback !== 'none' && isCorrectOpt && (
@@ -838,7 +882,10 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100"
+    >
       {/* 1. BACKGROUND IMAGE & STAGE LIGHTING OVERLAYS */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -947,7 +994,29 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       )}
 
       {/* 4. MAIN CONTENT CONTAINER */}
-      <main className="relative z-10 flex-1 flex flex-col p-2 sm:p-3 overflow-hidden min-h-0">
+      <main className="relative z-10 flex-1 flex flex-col p-1 sm:p-2.5 overflow-hidden min-h-0">
+        {/* ACTIVE STUDENT NOTIFICATION BADGE IF ANY */}
+        {assignedStudent && (
+          <div className="relative z-20 mb-1 flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold shadow animate-fadeIn">
+              <span>🎮 Oynayan Öğrenci:</span>
+              <span className="text-white font-extrabold flex items-center gap-1">
+                <span>{assignedStudent.avatar}</span>
+                <span>{assignedStudent.name}</span>
+              </span>
+              {onSelectStudent && (
+                <button
+                  type="button"
+                  onClick={() => onSelectStudent(null)}
+                  className="text-amber-400 hover:text-amber-200 ml-1 text-[11px] underline cursor-pointer"
+                >
+                  (Değiştir)
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {showCompletionScreen ? (
           /* ========================================================================= */
           /* A. VICTORY / GAME OVER COMPLETION SCREEN                                  */
@@ -1018,19 +1087,40 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           </div>
         ) : (
           /* ========================================================================= */
-          /* B. ACTIVE GAMEPLAY SCREENS                                                 */
+          /* B. ACTIVE GAMEPLAY SCREENS WITH SIDE AVATAR GRIDS                          */
           /* ========================================================================= */
-          <>
+          <div className="flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden">
+            {/* LEFT STUDENT SIDE GRID - ONLY IN 1-PLAYER / MATCHING MODES */}
+            {(activeMode === 'quiz1' || activeMode === 'matching') && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+              <div className="hidden xl:flex shrink-0 self-center">
+                <StudentAvatarSideGrid
+                  slotsStudents={leftStudents}
+                  side="left"
+                  count={students.length}
+                  label="1. Grup (Sol)"
+                  selectedStudentId={selectedStudentId || null}
+                  onSelectStudent={onSelectStudent}
+                  onOpenRosterModal={onOpenRosterModal}
+                  playMp3={(s) => playSound('click')}
+                />
+              </div>
+            )}
+
+            <div className="flex-1 w-full h-full min-h-0 flex flex-col items-center justify-between overflow-hidden">
             {/* MULTIPLAYER DUEL: 2 & 3 PLAYERS */}
             {(activeMode === 'duel2' || activeMode === 'duel3') && (
-              <div className="flex-1 flex flex-col w-full h-full min-h-0 overflow-hidden">
+              <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 w-full h-full overflow-hidden min-h-0 relative z-10 ${
+                activeMode === 'duel2' 
+                  ? 'max-w-[clamp(1024px,calc(512px+50vw),1800px)]' 
+                  : 'max-w-[clamp(1200px,calc(500px+70vw),2200px)] w-full'
+              } mx-auto`}>
                 {/* COMMON TOP BAR: SLEEK COMPACT GLASS CAPSULES */}
-                <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 shrink-0">
-                  <span className="px-2.5 sm:px-3 py-1 bg-slate-950/75 backdrop-blur-xl border border-cyan-400/40 text-cyan-200 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(6,182,212,0.25)] uppercase tracking-wider shrink-0">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 shrink-0 h-8 sm:h-9 w-full">
+                  <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
                     ⚔️ {activeMode === 'duel2' ? '2' : '3'} OYUNCU DÜELLO
                   </span>
-                  <div className="flex-1 min-w-0 text-center px-1.5">
-                    <div className="inline-flex items-center justify-center gap-1.5 max-w-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_16px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 rounded-xl px-3 sm:px-6 py-1">
+                  <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
+                    <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
                       <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
                         {gameTitle} ({gameConcept.toUpperCase()})
                       </h2>
@@ -1041,7 +1131,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                       />
                     </div>
                   </div>
-                  <span className="px-2.5 sm:px-3 py-1 bg-slate-950/75 backdrop-blur-xl border border-cyan-400/40 text-amber-300 font-black text-[11px] sm:text-xs rounded-xl shadow-[0_0_12px_rgba(245,158,11,0.25)] uppercase tracking-wider shrink-0">
+                  <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
                     🎯 HEDEF: {duelTargetScore} PUAN
                   </span>
                 </div>
@@ -1135,6 +1225,28 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
+                {students && students.length > 0 && (
+                  <StudentAvatarDock
+                    students={students}
+                    currentGrade={2}
+                    playerCount={activeMode === 'duel3' ? 3 : 2}
+                    selectedStudentIds={selectedStudentIds}
+                    onSelectStudentForPlayer={(pIdx, studentId) => {
+                      setSelectedStudentIds(prev => {
+                        const updated = [...prev];
+                        updated[pIdx] = studentId;
+                        return updated;
+                      });
+                      if (studentId) playSound('click');
+                    }}
+                    onOpenRosterModal={() => {
+                      onOpenRosterModal?.();
+                    }}
+                    playMp3={playMp3}
+                  />
+                )}
               </div>
             )}
 
@@ -1145,13 +1257,22 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                 <div className="flex items-center justify-between gap-2 mb-2 shrink-0 w-full">
                   {/* LEFT: GROUP BADGE & TOPIC */}
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-purple-400 text-purple-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
-                      1
-                    </div>
+                    {assignedStudent ? (
+                      <div 
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                        title={`Aktif Öğrenci: ${assignedStudent.name}`}
+                      >
+                        {assignedStudent.avatar}
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-purple-400 text-purple-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                        1
+                      </div>
+                    )}
                     <div className="h-8 sm:h-9 bg-[#0e172a] border border-slate-700/80 border-l-4 border-l-purple-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-2 min-w-0 shadow-xs">
                       <div className="flex flex-col min-w-0 justify-center">
-                        <span className="font-black text-xs text-purple-200 uppercase tracking-wide leading-tight">
-                          1. GRUP
+                        <span className="font-black text-xs text-purple-200 uppercase tracking-wide leading-tight truncate">
+                          {assignedStudent ? assignedStudent.name : '1. GRUP'}
                         </span>
                         <span className="text-[10px] font-bold text-slate-300 truncate leading-tight">
                           {gameTitle} ({gameConcept.toUpperCase()})
@@ -1329,7 +1450,24 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                 </div>
               </div>
             )}
-          </>
+            </div>
+
+            {/* RIGHT STUDENT SIDE GRID - ONLY IN 1-PLAYER / MATCHING MODES */}
+            {(activeMode === 'quiz1' || activeMode === 'matching') && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+              <div className="hidden xl:flex shrink-0 self-center">
+                <StudentAvatarSideGrid
+                  slotsStudents={rightStudents}
+                  side="right"
+                  count={students.length}
+                  label="2. Grup (Sağ)"
+                  selectedStudentId={selectedStudentId || null}
+                  onSelectStudent={onSelectStudent}
+                  onOpenRosterModal={onOpenRosterModal}
+                  playMp3={(s) => playSound('click')}
+                />
+              </div>
+            )}
+          </div>
         )}
       </main>
     </div>

@@ -3780,6 +3780,18 @@ export default function App() {
     if (topicKey !== currentTopic) {
       playFarkliLvlSound();
     }
+
+    // Reset all special activity modal views
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowHeceSayisi(false);
+    setWordGameType(null);
+
     if (topicKey === 'geometri_tahtasi') {
       setCurrentTopic('geometri_tahtasi');
       setShowGeoboard(true);
@@ -4001,6 +4013,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
+    setShowHeceSayisi(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4050,6 +4063,13 @@ export default function App() {
       }
       setGameState('welcome');
       setShowSozlukSirala(true);
+    } else if (entry.type === 'hece_sayisi' || entry.id.includes('hece_sayisi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowHeceSayisi(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4102,6 +4122,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
+    setShowHeceSayisi(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -4646,6 +4667,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
+                      setShowHeceSayisi(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4660,6 +4682,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
+                      setShowHeceSayisi(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4676,6 +4699,8 @@ export default function App() {
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
+                      setShowSozlukSirala(false);
+                      setShowHeceSayisi(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -5980,6 +6005,8 @@ export default function App() {
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
+                        const idx = findActivityIndex('sozluk_sirala', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
                         setShowSozlukSirala(true);
                       }}
                       className="group relative w-full bg-gradient-to-r from-[#1c0d28] via-[#2d1440] to-[#1c0d28] hover:from-[#251136] hover:via-[#3a1954] hover:to-[#251136] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-purple-400/90 border-l-4 border-l-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
@@ -6007,6 +6034,8 @@ export default function App() {
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
+                        const idx = findActivityIndex('word_game', undefined, 2, 'zit_anlam');
+                        if (idx !== -1) setCurrentActivityIndex(idx);
                         setWordGameType('zit_anlam');
                       }}
                       className="group relative w-full bg-gradient-to-r from-[#2c0f1f] via-[#45142f] to-[#2c0f1f] hover:from-[#3a1329] hover:via-[#57193b] hover:to-[#3a1329] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)] hover:shadow-[0_0_25px_rgba(244,63,94,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
@@ -6034,6 +6063,8 @@ export default function App() {
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
+                        const idx = findActivityIndex('word_game', undefined, 2, 'es_anlam');
+                        if (idx !== -1) setCurrentActivityIndex(idx);
                         setWordGameType('es_anlam');
                       }}
                       className="group relative w-full bg-gradient-to-r from-[#2a1708] via-[#43230b] to-[#2a1708] hover:from-[#361d0a] hover:via-[#522b0e] hover:to-[#361d0a] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:shadow-[0_0_25px_rgba(251,191,36,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
@@ -6061,6 +6092,8 @@ export default function App() {
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
+                        const idx = findActivityIndex('kuralli_cumle', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
                         setShowKuralliCumle(true);
                       }}
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
@@ -6089,6 +6122,8 @@ export default function App() {
                       <button
                         onClick={() => {
                           playMp3('/op.mp3');
+                          const idx = findActivityIndex('hece_sayisi', undefined, 2);
+                          if (idx !== -1) setCurrentActivityIndex(idx);
                           setShowHeceSayisi(true);
                         }}
                         className="group relative w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)] bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
@@ -8416,6 +8451,25 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGrade={selectedGrade || 1}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onOpenRosterModal={() => {
+            setRosterModalGrade(selectedGrade || 1);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            kaydetIstatistik('turkce_kuralli_cumle', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kuralli_cumle', isCorrect));
+            }
+          }}
         />
       )}
 
@@ -8432,8 +8486,29 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
+          soundEnabled={soundEnabled}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
           onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
             kaydetIstatistik('turkce_hece_sayisi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_sayisi', isCorrect));
+            }
+          }}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onOpenRosterModal={() => {
+            setRosterModalGrade(selectedGrade || 2);
+            setShowStudentRosterModal(true);
           }}
         />
       )}
@@ -8452,6 +8527,26 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(id ? [id] : []);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={() => {
+            setRosterModalGrade(selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_sozluk_sirala', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_sozluk_sirala', isCorrect));
+            }
+          }}
         />
       )}
 
@@ -8525,10 +8620,27 @@ export default function App() {
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
           soundEnabled={soundEnabled}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(id ? [id] : []);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={() => {
+            setRosterModalGrade(selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
           onQuestionAnswered={(isCorrect, gType) => {
             const cat: GradeCategoryKey = gType === 'ingilizce' ? 'englishGames' : 'otherGames';
             const updated = recordClassQuestionSolved(cat, isCorrect);
             setCountersData(updated);
+            const topicKey = gType === 'zit_anlam' ? 'turkce_zit_anlam' : gType === 'es_anlam' ? 'turkce_es_anlam' : 'ingilizce';
+            kaydetIstatistik(topicKey, isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], topicKey, isCorrect));
+            }
           }}
         />
       )}

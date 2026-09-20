@@ -361,6 +361,34 @@ export function resetSingleStudentStat(studentId: string): Student[] {
   return students;
 }
 
+/**
+ * Resets stats for a single topic for a specific student
+ */
+export function resetSingleStudentTopicStat(studentId: string, topicKey: string): Student[] {
+  const students = loadStudents();
+  const idx = students.findIndex(s => s.id === studentId);
+  if (idx === -1) return students;
+
+  const student = students[idx];
+  const topicStat = student.topicStats?.[topicKey];
+  if (!topicStat) return students;
+
+  const topicCorrect = topicStat.correct || 0;
+  const topicWrong = topicStat.wrong || 0;
+
+  const newTopicStats = { ...(student.topicStats || {}) };
+  delete newTopicStats[topicKey];
+
+  students[idx] = {
+    ...student,
+    totalCorrect: Math.max(0, (student.totalCorrect || 0) - topicCorrect),
+    totalWrong: Math.max(0, (student.totalWrong || 0) - topicWrong),
+    topicStats: newTopicStats
+  };
+  saveStudents(students);
+  return students;
+}
+
 export function exportStudentsToCSV(students: Student[]): string {
   const headers = ['Sınıf Seviyesi', 'Şube', 'Öğrenci Adı', 'Avatar', 'Toplam Doğru', 'Toplam Yanlış', 'Başarı Yüzdesi (%)', 'Oynanan Oyun', 'Galibiyet'];
   const rows = students.map(s => {

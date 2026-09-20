@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Sparkles, CheckCircle2, RotateCcw, Shuffle, HelpCircle, 
   Volume2, ArrowRight, ArrowLeft, Trophy, Star, Award, 
   GripVertical, ChevronLeft, ChevronRight, Home
 } from 'lucide-react';
+import { Student } from '../types/student';
+import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 
 export type GradeLevel = 1 | 2 | 3 | 4;
 
@@ -15,6 +17,11 @@ export interface KuralliCumleActivityProps {
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialGrade?: number;
+  students?: Student[];
+  selectedStudentId?: string | null;
+  onSelectStudent?: (id: string | null) => void;
+  onOpenRosterModal?: () => void;
+  onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
 interface SentenceData {
@@ -359,8 +366,17 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   onPrevActivity,
   onNextActivity,
   playMp3,
-  initialGrade
+  initialGrade,
+  students,
+  selectedStudentId,
+  onSelectStudent,
+  onOpenRosterModal,
+  onQuestionAnswered
 }) => {
+  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
+  const assignedStudent = useMemo(() => students?.find(s => s.id === selectedStudentId), [students, selectedStudentId]);
+
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(() => {
     if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
       return initialGrade as GradeLevel;
@@ -534,6 +550,10 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       setShowErrorShake(false);
       triggerSound('/farklilvl.mp3');
 
+      if (onQuestionAnswered) {
+        onQuestionAnswered(true);
+      }
+
       // Trigger celebratory confetti
       confetti({
         particleCount: 70,
@@ -563,6 +583,11 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       setIsCorrect(false);
       setShowErrorShake(true);
       triggerSound('/hata.mp3');
+
+      if (onQuestionAnswered) {
+        onQuestionAnswered(false);
+      }
+
       setTimeout(() => setShowErrorShake(false), 800);
     }
   };
@@ -665,8 +690,47 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         </div>
       </header>
 
-      {/* 3. MAIN WORKSPACE */}
-      <main className="relative z-10 flex-1 p-2 sm:p-3 max-w-5xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center justify-between gap-2.5">
+      {/* ACTIVE STUDENT NOTIFICATION BADGE IF ANY */}
+      {assignedStudent && (
+        <div className="relative z-20 mt-1 flex items-center justify-center">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold shadow animate-fadeIn">
+            <span>🎮 Oynayan Öğrenci:</span>
+            <span className="text-white font-extrabold flex items-center gap-1">
+              <span>{assignedStudent.avatar}</span>
+              <span>{assignedStudent.name}</span>
+            </span>
+            {onSelectStudent && (
+              <button
+                type="button"
+                onClick={() => onSelectStudent(null)}
+                className="text-amber-400 hover:text-amber-200 ml-1 text-[11px] underline cursor-pointer"
+              >
+                (Değiştir)
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 3. MAIN WORKSPACE WITH SIDE AVATAR GRIDS */}
+      <div className="relative z-10 flex-1 flex flex-col xl:flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1650px] mx-auto w-full overflow-y-auto no-scrollbar p-1.5 sm:p-2.5">
+        {/* LEFT STUDENT SIDE GRID */}
+        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+          <div className="hidden xl:flex shrink-0">
+            <StudentAvatarSideGrid
+              slotsStudents={leftStudents}
+              side="left"
+              count={students.length}
+              label="1. Grup (Sol)"
+              selectedStudentId={selectedStudentId || null}
+              onSelectStudent={onSelectStudent}
+              onOpenRosterModal={onOpenRosterModal}
+              playMp3={playMp3}
+            />
+          </div>
+        )}
+
+        <main className="flex-1 max-w-4xl w-full flex flex-col items-center justify-between gap-2.5">
         
         {/* SINIF SEÇİCİ SEKMELERİ (1. Sınıf: 3 Kelime, 2. Sınıf: 4 Kelime, 3. Sınıf: 5 Kelime, 4. Sınıf: 6 Kelime) */}
         <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2.5 shrink-0 pt-0.5 flex-wrap">
@@ -949,6 +1013,23 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         </div>
 
       </main>
+
+        {/* RIGHT STUDENT SIDE GRID */}
+        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+          <div className="hidden xl:flex shrink-0">
+            <StudentAvatarSideGrid
+              slotsStudents={rightStudents}
+              side="right"
+              count={students.length}
+              label="2. Grup (Sağ)"
+              selectedStudentId={selectedStudentId || null}
+              onSelectStudent={onSelectStudent}
+              onOpenRosterModal={onOpenRosterModal}
+              playMp3={playMp3}
+            />
+          </div>
+        )}
+      </div>
 
       {/* HINT MODAL */}
       {showHintModal && (

@@ -9,7 +9,8 @@ import {
   Filter,
   Calendar,
   Sparkles,
-  Search
+  Search,
+  RotateCcw
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { getTopicInfo, getCurriculumTopicsForGrade } from '../utils/topicHelper';
@@ -18,6 +19,7 @@ import { exportStudentsToPDF } from '../utils/studentPdfExport';
 interface StudentTopicStatsDetailProps {
   student: Student;
   onResetScore?: (studentId: string) => void;
+  onResetTopicScore?: (studentId: string, topicKey: string) => void;
   playMp3?: (src: string) => void;
   compact?: boolean;
 }
@@ -25,6 +27,7 @@ interface StudentTopicStatsDetailProps {
 export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = ({
   student,
   onResetScore,
+  onResetTopicScore,
   playMp3,
   compact = false
 }) => {
@@ -32,6 +35,7 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
   const [topicSearch, setTopicSearch] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmResetTopicKey, setConfirmResetTopicKey] = useState<string | null>(null);
 
   const topicEntries = Object.entries(student.topicStats || {});
   const curriculumTopics = getCurriculumTopicsForGrade(student.grade);
@@ -313,16 +317,64 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
                     )}
                   </div>
 
-                  {/* SUCCESS BADGE */}
-                  {hasData ? (
-                    <span className={`px-2 py-0.5 rounded-lg border text-[11px] font-black shrink-0 ${badgeBg}`}>
-                      %{item.successRate}
-                    </span>
-                  ) : (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-500 shrink-0">
-                      Çözülmedi
-                    </span>
-                  )}
+                  {/* SUCCESS BADGE & TOPIC RESET */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {hasData ? (
+                      <>
+                        <span className={`px-2 py-0.5 rounded-lg border text-[11px] font-black shrink-0 ${badgeBg}`}>
+                          %{item.successRate}
+                        </span>
+
+                        {onResetTopicScore && (
+                          confirmResetTopicKey === item.key ? (
+                            <div className="flex items-center gap-1 bg-rose-950/90 border border-rose-500/80 rounded-lg px-1.5 py-0.5 shadow-sm animate-fadeIn">
+                              <span className="text-[9px] font-bold text-rose-200">Sıfırla?</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  playMp3?.('/op.mp3');
+                                  onResetTopicScore(student.id, item.key);
+                                  setConfirmResetTopicKey(null);
+                                }}
+                                className="px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-black text-[9px] cursor-pointer shadow-xs transition"
+                                title="Evet, bu konuyu sıfırla"
+                              >
+                                Evet
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirmResetTopicKey(null);
+                                }}
+                                className="px-1 py-0.5 text-slate-400 hover:text-white text-[9px] cursor-pointer"
+                                title="İptal"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmResetTopicKey(item.key);
+                              }}
+                              className="p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-950/50 border border-transparent hover:border-rose-700/40 transition cursor-pointer"
+                              title="Bu konunun istatistiğini sıfırla"
+                            >
+                              <RotateCcw size={11} />
+                            </button>
+                          )
+                        )}
+                      </>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-900 border border-slate-800 text-slate-500 shrink-0">
+                        Çözülmedi
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* STATS ROW & PROGRESS BAR */}

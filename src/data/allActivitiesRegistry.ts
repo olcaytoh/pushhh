@@ -267,20 +267,6 @@ ALL_ACTIVITIES_LIST.push({
   title: 'Aynısını Bul (2 Kişilik)',
   categoryLabel: '2. Sınıf Diğer Oyunlar'
 });
-ALL_ACTIVITIES_LIST.push({
-  id: 'g2_sozluk_sirala',
-  type: 'sozluk_sirala',
-  grade: 2,
-  title: 'Sözlük Sıralama (Alfabe Portalı)',
-  categoryLabel: '2. Sınıf Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'g2_kuralli_cumle',
-  type: 'kuralli_cumle',
-  grade: 2,
-  title: 'Kurallı Cümle Oluştur (2. Sınıf)',
-  categoryLabel: '2. Sınıf Diğer Oyunlar'
-});
 
 // ==========================================
 // 2. SINIF TÜRKÇE DERSİ ETKİNLİKLERİ
@@ -658,6 +644,12 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_hece_sayisi',
+  type: 'hece_sayisi',
+  title: 'Kelimelerin Hece Sayısını Belirleme',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
   wordGameType: 'ingilizce',
@@ -666,26 +658,45 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
-  if (type === 'sozluk_sirala' || topicKey === 'sozluk_sirala') {
+  if (type === 'hece_sayisi' || topicKey === 'turkce_hece_sayisi' || topicKey === 'hece_sayisi') {
     if (grade) {
-      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sozluk_sirala' || a.id === `g${grade}_sozluk_sirala`) && a.grade === grade);
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'hece_sayisi' || a.id.includes('hece_sayisi')) && a.grade === grade);
       if (idx !== -1) return idx;
     }
-    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sozluk_sirala' || a.id === 'other_sozluk_sirala');
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'hece_sayisi' || a.id.includes('hece_sayisi'));
     if (idx !== -1) return idx;
   }
-  if (type === 'kuralli_cumle' || topicKey === 'kuralli_cumle') {
+  if (type === 'sozluk_sirala' || topicKey === 'sozluk_sirala' || topicKey === 'turkce_sozluk_sirala') {
     if (grade) {
-      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kuralli_cumle' || a.id === `g${grade}_kuralli_cumle`) && a.grade === grade);
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sozluk_sirala' || a.id.includes('sozluk_sirala')) && a.grade === grade);
       if (idx !== -1) return idx;
     }
-    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'kuralli_cumle' || a.id === 'other_kuralli_cumle');
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sozluk_sirala' || a.id.includes('sozluk_sirala'));
     if (idx !== -1) return idx;
+  }
+  if (type === 'kuralli_cumle' || topicKey === 'kuralli_cumle' || topicKey === 'turkce_kuralli_cumle') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kuralli_cumle' || a.id.includes('kuralli_cumle')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'kuralli_cumle' || a.id.includes('kuralli_cumle'));
+    if (idx !== -1) return idx;
+  }
+  if (type === 'word_game' || wordGameType || topicKey === 'turkce_zit_anlam' || topicKey === 'turkce_es_anlam') {
+    const effectiveWgType = wordGameType || (topicKey === 'turkce_zit_anlam' ? 'zit_anlam' : topicKey === 'turkce_es_anlam' ? 'es_anlam' : null);
+    if (effectiveWgType) {
+      if (grade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'word_game' && a.wordGameType === effectiveWgType && a.grade === grade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'word_game' && a.wordGameType === effectiveWgType);
+      if (idx !== -1) return idx;
+    }
   }
   if (type === 'geometric_nets' || topicKey === 'cisimler_acilimi') {
     if (grade) {
@@ -693,10 +704,6 @@ export const findActivityIndex = (
       if (idx !== -1) return idx;
     }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'geometric_nets' || a.topicKey === 'cisimler_acilimi');
-    if (idx !== -1) return idx;
-  }
-  if (type === 'word_game' && wordGameType) {
-    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'word_game' && a.wordGameType === wordGameType);
     if (idx !== -1) return idx;
   }
   if (type === 'xox') {

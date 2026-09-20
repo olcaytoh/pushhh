@@ -27,7 +27,7 @@ import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types'
 import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
-import { resetSingleStudentStat } from '../utils/studentStore';
+import { resetSingleStudentStat, resetSingleStudentTopicStat } from '../utils/studentStore';
 import { loadHomeworkData, getTodayDateString } from '../utils/homeworkStore';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
@@ -83,6 +83,11 @@ interface ModernStatsViewProps {
 
 const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
   turkce_sozluk_sirala: {
+    title: 'Sözcük Sıralama (Alfabe Portalı)',
+    desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
+    icon: '/MENUIKON/grid_icon_25.png',
+  },
+  turkce_sozcuk_sirala: {
     title: 'Sözcük Sıralama (Alfabe Portalı)',
     desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
     icon: '/MENUIKON/grid_icon_25.png',
@@ -176,6 +181,11 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   const handleResetSingleStudent = (studentId: string) => {
     const updated = resetSingleStudentStat(studentId);
+    setLocalStudents(updated);
+  };
+
+  const handleResetSingleStudentTopic = (studentId: string, topicKey: string) => {
+    const updated = resetSingleStudentTopicStat(studentId, topicKey);
     setLocalStudents(updated);
   };
 
@@ -871,6 +881,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                             <StudentTopicStatsDetail
                               student={student}
                               onResetScore={handleResetSingleStudent}
+                              onResetTopicScore={handleResetSingleStudentTopic}
                             />
                           </div>
                         )}
