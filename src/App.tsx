@@ -25,6 +25,7 @@ import { XOXGame } from './components/XOXGame';
 import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
+import { HeceSayisiActivity } from './components/HeceSayisiActivity';
 import { SozlukSiralaGame } from './components/SozlukSiralaGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
@@ -43,6 +44,7 @@ import {
 } from './utils/studentStore';
 import { StudentAvatarDock } from './components/StudentAvatarDock';
 import { StudentRosterModal } from './components/StudentRosterModal';
+import { OdevAkvaryumuModal } from './components/OdevAkvaryumuModal';
 import { 
   ClassCountersData, 
   loadCounters, 
@@ -2641,6 +2643,7 @@ export default function App() {
   });
   const [gameState, setGameState] = useState<'welcome' | 'playing' | 'gameover'>('welcome');
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<'matematik' | 'turkce'>('matematik');
   const [lastSelectedGrade, setLastSelectedGrade] = useState<number | null>(1);
   const [showIntro, setShowIntro] = useState(true);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -2968,6 +2971,7 @@ export default function App() {
     }
   });
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showOdevAkvaryumu, setShowOdevAkvaryumu] = useState(false);
   const [show3DLab, setShow3DLab] = useState(false);
   const [showGeoboard, setShowGeoboard] = useState(false);
   const [showGeometricNets, setShowGeometricNets] = useState(false);
@@ -2977,6 +2981,7 @@ export default function App() {
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
+  const [showHeceSayisi, setShowHeceSayisi] = useState(false);
   const [showSozlukSirala, setShowSozlukSirala] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
@@ -3785,6 +3790,31 @@ export default function App() {
       setShowGeometricNets(true);
       return;
     }
+    if (topicKey === 'turkce_hece_sayisi' || topicKey === 'hece_sayisi') {
+      setCurrentTopic('turkce_hece_sayisi');
+      setShowHeceSayisi(true);
+      return;
+    }
+    if (topicKey === 'turkce_sozluk_sirala' || topicKey === 'sozluk_sirala') {
+      setCurrentTopic('turkce_sozluk_sirala');
+      setShowSozlukSirala(true);
+      return;
+    }
+    if (topicKey === 'turkce_zit_anlam' || topicKey === 'zit_anlam') {
+      setCurrentTopic('turkce_zit_anlam');
+      setWordGameType('zit_anlam');
+      return;
+    }
+    if (topicKey === 'turkce_es_anlam' || topicKey === 'es_anlam') {
+      setCurrentTopic('turkce_es_anlam');
+      setWordGameType('es_anlam');
+      return;
+    }
+    if (topicKey === 'turkce_kuralli_cumle' || topicKey === 'kuralli_cumle') {
+      setCurrentTopic('turkce_kuralli_cumle');
+      setShowKuralliCumle(true);
+      return;
+    }
     setCurrentTopic(topicKey);
     setQuestionTimeLeft(10);
     setHasHad3StreakInSession(false);
@@ -3925,7 +3955,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -4519,6 +4549,7 @@ export default function App() {
     if (showXOXGame) return 'Matematik XOX Oyunu';
     if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
+    if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
     if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
@@ -4582,12 +4613,9 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-3 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
-          {/* SOL DENGELEYİCİ BOŞLUK (GENİŞ EKRANDA BUTONLARI OPTİK OLARAK TAM ORTADA TUTAR) */}
-          <div className="shrink-0 hidden lg:flex items-center w-24 xl:w-28 pointer-events-none opacity-0" aria-hidden="true" />
-
-          {/* ORTADAKİ TÜM BUTONLAR GRUBU */}
-          <div className="flex-1 flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0">
+        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-2 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+          {/* ORTADAKİ TÜM BUTONLAR GRUBU (SOLA TAŞMAYI VE 1. SINIF BUTONUNUN KESİLMESİNİ ÖNLEYEN YAPI) */}
+          <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-1">
           {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
@@ -4708,10 +4736,17 @@ export default function App() {
               showAynisiniBul || 
               showXOXGame || 
               showKuralliCumle ||
+              showHeceSayisi ||
               showSozlukSirala ||
               wordGameType !== null
             ) {
               handlePrevActivity();
+              return;
+            }
+
+            // 0.04 If inside Hece Sayısı
+            if (showHeceSayisi) {
+              setShowHeceSayisi(false);
               return;
             }
 
@@ -4854,6 +4889,7 @@ export default function App() {
               showAynisiniBul || 
               showXOXGame || 
               showKuralliCumle ||
+              showHeceSayisi ||
               showSozlukSirala ||
               wordGameType !== null
             ) {
@@ -5065,7 +5101,7 @@ export default function App() {
       </div>
 
       {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ */}
-      <div className="shrink-0 flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 z-20">
+      <div className="shrink-0 flex flex-col justify-center gap-1 pl-1 sm:pl-1.5 z-20">
         {/* GOOGLE AUTH & CLOUD SYNC BUTTON */}
         <button
           onClick={() => {
@@ -5074,10 +5110,10 @@ export default function App() {
           }}
           title={currentUser ? `Google Bulut Senkronizasyonu: ${currentUser.displayName || currentUser.email}` : "Google ile Giriş Yap & Öğrenci/İstatistikleri Buluta Yedekle"}
           aria-label="Google Bulut Eşitleme"
-          className={`group flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 h-8 xs:h-9 sm:h-11 rounded-lg sm:rounded-xl shadow-md transition-all cursor-pointer shrink-0 border ${
+          className={`group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] rounded-md sm:rounded-lg shadow-sm transition-all cursor-pointer shrink-0 border w-full ${
             currentUser
-              ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.35)]'
-              : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_12px_rgba(59,130,246,0.35)]'
+              ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_8px_rgba(16,185,129,0.35)]'
+              : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_8px_rgba(59,130,246,0.35)]'
           }`}
         >
           {currentUser ? (
@@ -5086,27 +5122,22 @@ export default function App() {
                 <img
                   src={currentUser.photoURL}
                   alt={currentUser.displayName || 'Google'}
-                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-emerald-400/80 object-cover shrink-0"
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-emerald-400/80 object-cover shrink-0"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[10px] sm:text-xs shrink-0">
+                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[9px] shrink-0">
                   {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
                 </div>
               )}
-              <div className="flex flex-col items-start leading-none hidden sm:flex">
-                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
-                  {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
-                </span>
-                <span className="text-[8px] text-emerald-400/80 font-medium flex items-center gap-0.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
-                  {isCloudSyncing ? 'Eşitleniyor' : 'Bulut Aktif'}
-                </span>
-              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
+                {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
+              </span>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
             </>
           ) : (
             <>
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -5124,7 +5155,7 @@ export default function App() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span className="text-[11px] sm:text-xs font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap hidden sm:inline">
+              <span className="text-[10px] sm:text-[11px] font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap">
                 Google Giriş
               </span>
             </>
@@ -5139,10 +5170,10 @@ export default function App() {
           }}
           title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
           aria-label="Görüş Bildir"
-          className="group flex items-center gap-1.5 px-2 sm:px-2.5 h-8 xs:h-9 sm:h-11 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-lg sm:rounded-xl shadow-md hover:shadow-[0_0_12px_rgba(245,158,11,0.3)] transition-all cursor-pointer shrink-0"
+          className="group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-md sm:rounded-lg shadow-sm hover:shadow-[0_0_8px_rgba(245,158,11,0.3)] transition-all cursor-pointer shrink-0 w-full"
         >
-          <Mail size={15} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
-          <span className="text-[11px] sm:text-xs font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap hidden sm:inline">
+          <Mail size={12} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
+          <span className="text-[10px] sm:text-[11px] font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap">
             Görüş Bildir
           </span>
         </button>
@@ -5226,35 +5257,71 @@ export default function App() {
                   </div>
                 </button>
 
-                {/* 2. SINIF */}
-                <button
-                  onClick={() => {
-                    playMp3('/op.mp3');
-                    setSelectedGrade(2);
-                    setLastSelectedGrade(2);
-                    handleClassClick('grade2');
-                  }}
-                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
-                >
-                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_2.png" alt="2. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
-                    <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
-                      <span className="text-amber-400">★★☆☆</span>
-                      <span className="text-slate-400 font-medium">Temel Seviye</span>
+                {/* 2. SINIF ESKİ YERİNDE 2'YE BÖLÜNEN ALAN: SOLDA MATEMATİK, SAĞDA TÜRKÇE (2. SINIF YAZISI SİLİNDİ, TÜM KELİME 3 NOKTASIZ GÖRÜNÜR) */}
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
+                  {/* SOL BUTON: MATEMATİK */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(2);
+                      setSelectedSubject('matematik');
+                      setLastSelectedGrade(2);
+                      handleClassClick('grade2');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img 
+                        src="/icon_2.png" 
+                        alt="Matematik" 
+                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
+                      />
                     </div>
-                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
-                      2. Sınıf Matematik
-                    </h3>
-                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
-                      Geometri, Sayılar, İşlemler, Veri, Zeka Oyunları & 3D Lab
-                    </p>
-                  </div>
-                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
-                  </div>
-                </button>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                      </div>
+                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                        MATEMATİK
+                      </h3>
+                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Sayılar, İşlemler, Geometri
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* SAĞ BUTON: TÜRKÇE */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(2);
+                      setSelectedSubject('turkce');
+                      setLastSelectedGrade(2);
+                      handleClassClick('grade2');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img 
+                        src="/icon_2.png" 
+                        alt="Türkçe" 
+                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(295deg)_saturate(1.3)]" 
+                      />
+                      <span className="absolute -bottom-1 -right-1 text-xs sm:text-sm drop-shadow">📖</span>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                      </div>
+                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                        TÜRKÇE
+                      </h3>
+                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Sözcük, Cümle, Hece
+                      </p>
+                    </div>
+                  </button>
+                </div>
 
                 {/* 3. SINIF */}
                 <button
@@ -5379,7 +5446,7 @@ export default function App() {
             /* CATEGORY CARDS SCREEN */
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-1.5">
               {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
-              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+              <div className="w-full relative flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
                   <div className="flex items-center gap-2 sm:gap-3.5">
@@ -5393,6 +5460,24 @@ export default function App() {
                   </div>
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
                 </div>
+
+                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
+                {[1, 2, 3, 4].includes(selectedGrade) && (
+                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowOdevAkvaryumu(true);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
+                    >
+                      <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
+                      <span className="hidden xs:inline tracking-tight drop-shadow font-extrabold">Ödev Akvaryumu</span>
+                      <span className="xs:hidden font-black">Ödev</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* 4. SINIF: 4 MAIN THEME CARDS (2x2 GRID) */}
@@ -5853,9 +5938,223 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+              ) : selectedGrade === 2 && selectedSubject === 'turkce' ? (
+                /* MAIN CATEGORY CARDS - 2. SINIF TÜRKÇE */
+                <div className="w-full max-w-6xl mx-auto space-y-2.5">
+                  {/* DERS DEĞİŞTİRME VE BİLGİ SEKMESİ */}
+                  <div className="w-full flex items-center justify-between bg-[#121c2e] border-2 border-rose-500/60 border-l-4 border-l-rose-500 rounded-2xl p-2.5 sm:p-3 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
+                    <div className="flex items-center gap-2.5 sm:gap-3.5">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-xl sm:text-2xl shrink-0">
+                        📖
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-white text-xs sm:text-sm md:text-base font-black uppercase tracking-wider">
+                            2. Sınıf Türkçe Dersi
+                          </h3>
+                          <span className="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase">
+                            5 Etkinlik
+                          </span>
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-rose-300 font-medium mt-0.5">
+                          Sözcük Sıralama, Zıt & Eş Anlam, Kurallı Cümle & Hece Sayısı
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedSubject('matematik');
+                      }}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
+                    >
+                      <span>📐</span>
+                      <span className="hidden xs:inline">Matematik Dersi</span>
+                      <span className="xs:hidden">Matematik</span>
+                    </button>
+                  </div>
+
+                  {/* 5 TÜRKÇE ETKİNLİĞİ GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: SÖZCÜK SIRALAMA PORTALI */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowSozlukSirala(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1c0d28] via-[#2d1440] to-[#1c0d28] hover:from-[#251136] hover:via-[#3a1954] hover:to-[#251136] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-purple-400/90 border-l-4 border-l-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_25.png" alt="Sözcük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Sözcük Sıralama
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-purple-200/70 mt-0.5 break-words leading-tight">
+                          Alfabe Portalı (2 & 3 Kişilik Yarış)
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-purple-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-purple-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-purple-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 2: ZIT ANLAMLI KELİMELER */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setWordGameType('zit_anlam');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f1f] via-[#45142f] to-[#2c0f1f] hover:from-[#3a1329] hover:via-[#57193b] hover:to-[#3a1329] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)] hover:shadow-[0_0_25px_rgba(244,63,94,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_27.png" alt="Zıt Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Zıt Anlamlı Kelimeler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
+                          Karşıt Anlamlar & Çok Oyunculu Düello
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-rose-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-rose-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: EŞ ANLAMLI KELİMELER */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setWordGameType('es_anlam');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2a1708] via-[#43230b] to-[#2a1708] hover:from-[#361d0a] hover:via-[#522b0e] hover:to-[#361d0a] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:shadow-[0_0_25px_rgba(251,191,36,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Eş Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. Eş Anlamlı Kelimeler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Anlamdaş Kelimeleri Bulma & Yarışma
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 4: KURALLI CÜMLE OLUŞTURMA */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowKuralliCumle(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_28.png" alt="Kurallı Cümle" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Kurallı Cümle Oluşturma
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Kelimeleri Kurallı ve Anlamlı Sıraya Dizme
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 5: KELİMELERİN HECE SAYISINI BELİRLEME (ORTALANMIŞ YA DA GENİŞLETİLMİŞ) */}
+                    <div className="sm:col-span-2 flex justify-center">
+                      <button
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setShowHeceSayisi(true);
+                        }}
+                        className="group relative w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)] bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      >
+                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                          <img src="/MENUIKON/grid_icon_05.png" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
+                          </div>
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            5. Kelimelerin Hece Sayısı
+                          </h3>
+                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                            Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
+                          </p>
+                        </div>
+                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                            ▶
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                /* MAIN CATEGORY CARDS - 2. SINIF (ALTERNATİF 1: RENK KODLU CANLI KARTLAR) */
-                <div className="w-full max-w-6xl mx-auto">
+                /* MAIN CATEGORY CARDS - 2. SINIF MATEMATİK (TÜM MEVCUT ETKİNLİKLER) */
+                <div className="w-full max-w-6xl mx-auto space-y-2.5">
+                  {selectedGrade === 2 && (
+                    /* 2. SINIF MATEMATİK İÇİN DERS DEĞİŞTİRME SEKMESİ */
+                    <div className="w-full flex items-center justify-between bg-[#121c2e] border-2 border-orange-500/60 border-l-4 border-l-orange-500 rounded-2xl p-2.5 sm:p-3 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
+                      <div className="flex items-center gap-2.5 sm:gap-3.5">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-xl sm:text-2xl shrink-0">
+                          📐
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-white text-xs sm:text-sm md:text-base font-black uppercase tracking-wider">
+                              2. Sınıf Matematik Dersi
+                            </h3>
+                            <span className="bg-orange-500/30 text-orange-200 border border-orange-400/50 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase">
+                              Tüm Konular
+                            </span>
+                          </div>
+                          <p className="text-[10px] sm:text-xs text-orange-300 font-medium mt-0.5">
+                            Geometri, Sayılar, İşlemler, Veri, Zeka Oyunları & 3D Lab
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setSelectedSubject('turkce');
+                        }}
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/50 text-rose-300 text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
+                      >
+                        <span>📖</span>
+                        <span className="hidden xs:inline">Türkçe Dersi (5 Etkinlik)</span>
+                        <span className="xs:hidden">Türkçe</span>
+                      </button>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* CARD 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
@@ -6041,7 +6340,7 @@ export default function App() {
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-2">
               
               {/* GLOWING HEADER BADGE - KATEGORİ VE ETKİNLİK SEÇİMİ */}
-              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+              <div className="w-full relative flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 {(() => {
                   const cat = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
                   if (!cat) return null;
@@ -6180,6 +6479,24 @@ export default function App() {
                     </div>
                   );
                 })()}
+
+                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
+                {[1, 2, 3, 4].includes(selectedGrade) && (
+                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowOdevAkvaryumu(true);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
+                    >
+                      <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
+                      <span className="hidden xs:inline tracking-tight drop-shadow font-extrabold">Ödev Akvaryumu</span>
+                      <span className="xs:hidden font-black">Ödev</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* SUB-TOPICS RENDERED AS PILL BUTTONS IN A 2-COLUMN GRID (REFERENCE STYLE) */}
@@ -7906,6 +8223,10 @@ export default function App() {
             }}
             currentUser={currentUser}
             onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+            onOpenOdevAkvaryumu={() => {
+              setShowStatsModal(false);
+              setShowOdevAkvaryumu(true);
+            }}
           />
         );
       })()}
@@ -8098,6 +8419,25 @@ export default function App() {
         />
       )}
 
+      {/* KELİMELERİN HECE SAYISINI BELİRLEME ETKİNLİĞİ */}
+      {showHeceSayisi && (
+        <HeceSayisiActivity
+          onClose={() => {
+            setShowHeceSayisi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          onQuestionAnswered={(isCorrect) => {
+            kaydetIstatistik('turkce_hece_sayisi', isCorrect);
+          }}
+        />
+      )}
+
       {/* SÖZLÜK SIRALAMA OYUNU (ALFABE PORTALI - 2 & 3 KİŞİLİK) */}
       {showSozlukSirala && (
         <SozlukSiralaGame
@@ -8282,6 +8622,15 @@ export default function App() {
         currentGrade={selectedGrade}
         currentTopicTitle={getCurrentActivityTitle()}
         playerCount={isHalatCekmeTopic(currentTopic) ? 2 : playerCountMode}
+        playMp3={playMp3}
+      />
+
+      {/* ÖDEV KONTROL AKVARYUMU (1, 2, 3 ve 4. SINIFLAR) */}
+      <OdevAkvaryumuModal
+        isOpen={showOdevAkvaryumu}
+        onClose={() => setShowOdevAkvaryumu(false)}
+        students={students}
+        initialGrade={selectedGrade || 4}
         playMp3={playMp3}
       />
     </div>

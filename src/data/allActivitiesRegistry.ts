@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -280,6 +280,47 @@ ALL_ACTIVITIES_LIST.push({
   grade: 2,
   title: 'Kurallı Cümle Oluştur (2. Sınıf)',
   categoryLabel: '2. Sınıf Diğer Oyunlar'
+});
+
+// ==========================================
+// 2. SINIF TÜRKÇE DERSİ ETKİNLİKLERİ
+// ==========================================
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_sozluk_sirala',
+  type: 'sozluk_sirala',
+  grade: 2,
+  title: 'Sözcük Sıralama (Alfabe Portalı)',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_zit_anlam',
+  type: 'word_game',
+  wordGameType: 'zit_anlam',
+  grade: 2,
+  title: 'Zıt Anlamlı Kelimeler',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_es_anlam',
+  type: 'word_game',
+  wordGameType: 'es_anlam',
+  grade: 2,
+  title: 'Eş Anlamlı Kelimeler',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_kuralli_cumle',
+  type: 'kuralli_cumle',
+  grade: 2,
+  title: 'Kurallı Cümle Oluşturma',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_hece_sayisi',
+  type: 'hece_sayisi',
+  grade: 2,
+  title: 'Kelimelerin Hece Sayısını Belirleme',
+  categoryLabel: '2. Sınıf Türkçe'
 });
 const g2Diger = [
   'halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2',

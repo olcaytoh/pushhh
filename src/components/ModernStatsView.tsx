@@ -28,6 +28,7 @@ import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
 import { resetSingleStudentStat } from '../utils/studentStore';
+import { loadHomeworkData, getTodayDateString } from '../utils/homeworkStore';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
@@ -77,7 +78,36 @@ interface ModernStatsViewProps {
   onClose: () => void;
   currentUser?: User | null;
   onOpenCloudSync?: () => void;
+  onOpenOdevAkvaryumu?: () => void;
 }
+
+const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
+  turkce_sozluk_sirala: {
+    title: 'Sözcük Sıralama (Alfabe Portalı)',
+    desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
+    icon: '/MENUIKON/grid_icon_25.png',
+  },
+  turkce_zit_anlam: {
+    title: 'Zıt Anlamlı Kelimeler',
+    desc: 'Karşıt anlamlı sözcükleri eşleştirme & çok oyunculu düello',
+    icon: '/MENUIKON/grid_icon_27.png',
+  },
+  turkce_es_anlam: {
+    title: 'Eş Anlamlı Kelimeler',
+    desc: 'Anlamdaş kelimeleri bulma & yarışma modu',
+    icon: '/MENUIKON/grid_icon_21.png',
+  },
+  turkce_kuralli_cumle: {
+    title: 'Kurallı Cümle Oluşturma',
+    desc: 'Kelimeleri kurallı ve anlamlı şekilde doğru sıraya dizme',
+    icon: '/MENUIKON/grid_icon_28.png',
+  },
+  turkce_hece_sayisi: {
+    title: 'Kelimelerin Hece Sayısını Belirleme',
+    desc: 'Sözcükleri hecelerine ayırma & sesli harfe göre hece sayma',
+    icon: '/MENUIKON/grid_icon_05.png',
+  },
+};
 
 export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   statsData = {},
@@ -98,7 +128,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   setConfirmReset: propSetConfirmReset,
   onClose,
   currentUser,
-  onOpenCloudSync
+  onOpenCloudSync,
+  onOpenOdevAkvaryumu
 }) => {
   // Active grade tab: defaults to currently chosen grade in the app, or 2nd grade
   const initialGrade = (activeGrade && [1, 2, 3, 4].includes(activeGrade)) ? activeGrade : 2;
@@ -124,6 +155,12 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState<string>('');
+  const [homeworkMap, setHomeworkMap] = useState<Record<string, any>>(() => loadHomeworkData());
+  const todayStr = getTodayDateString();
+
+  useEffect(() => {
+    setHomeworkMap(loadHomeworkData());
+  }, [viewMode, currentGrade]);
 
   const gradeStudents = localStudents.filter(s => s.grade === currentGrade);
   const studentTotalCorrect = gradeStudents.reduce((sum, s) => sum + (s.totalCorrect || 0), 0);
@@ -170,8 +207,13 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   };
 
   // Grade-specific topics
-  const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = 
+  const baseGradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = 
     (topicsByGrade && topicsByGrade[currentGrade as 1 | 2 | 3 | 4]) || topics;
+
+  const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> =
+    currentGrade === 2
+      ? { ...baseGradeTopics, ...TURKCE_2ND_GRADE_TOPICS }
+      : baseGradeTopics;
 
   const topicKeys = Object.keys(gradeTopics);
 
@@ -213,6 +255,14 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       return 'sayilar';
     }
     if (grade === 2) {
+      if (
+        key.startsWith('turkce_') ||
+        key === 'sozluk_sirala' ||
+        key === 'zit_anlam' ||
+        key === 'es_anlam' ||
+        key === 'kuralli_cumle' ||
+        key === 'hece_sayisi'
+      ) return 'turkce';
       if (key.includes('problem')) return 'problemler';
       if (key.includes('cisim') || key.includes('geometri') || key.includes('simetri') || (key.includes('oruntu') && !key.includes('sayi'))) return 'geometri';
       if (key.includes('saat') || key.includes('takvim') || key.includes('zaman') || key.includes('uzunluk') || key.includes('sivi') || key.includes('tartma') || key.includes('paralar')) return 'zaman_olcme';
@@ -254,6 +304,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     if (grade === 2) {
       return [
         { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
+        { id: 'turkce', label: '📖 2. Sınıf Türkçe (5)', icon: '/MENUIKON/grid_icon_28.png' },
         { id: 'sayilar', label: 'Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_05.png' },
         { id: 'toplama', label: 'Toplama İşlemi', icon: '/MENUIKON/grid_icon_04.png' },
         { id: 'cikarma', label: 'Çıkarma İşlemi', icon: '/MENUIKON/grid_icon_11.png' },
@@ -455,6 +506,17 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               >
                 <FileText size={12} className="text-rose-200 shrink-0" />
                 <span>{isPdfExporting ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
+              </button>
+            )}
+
+            {onOpenOdevAkvaryumu && (
+              <button
+                onClick={onOpenOdevAkvaryumu}
+                className="px-2 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1 bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white shadow ring-1 ring-cyan-300 transition-all cursor-pointer active:scale-95"
+                title="Ödev Kontrol Akvaryumunu Aç (1-4. Sınıflar)"
+              >
+                <span className="text-xs">🐠</span>
+                <span>Ödev Akvaryumu</span>
               </button>
             )}
 
@@ -748,6 +810,31 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
                           {/* STATS CAPSULES */}
                           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            {[1, 2, 3, 4].includes(student.grade) && (
+                              <div
+                                onClick={(e) => {
+                                  if (onOpenOdevAkvaryumu) {
+                                    e.stopPropagation();
+                                    onOpenOdevAkvaryumu();
+                                  }
+                                }}
+                                className={`px-2 py-1 rounded-xl border flex items-center gap-1 text-[10px] sm:text-xs font-black cursor-pointer transition hover:scale-105 ${
+                                  homeworkMap[student.id]?.lastCompletedDate === todayStr
+                                    ? 'bg-emerald-950/80 border-emerald-400 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                                    : 'bg-cyan-950/60 border-cyan-500/40 text-cyan-200 hover:border-cyan-400'
+                                }`}
+                                title="Ödev Akvaryumunu Aç"
+                              >
+                                <span>🐠</span>
+                                <span>{homeworkMap[student.id]?.homeworkCount || 0} Ödev</span>
+                                {homeworkMap[student.id]?.lastCompletedDate === todayStr ? (
+                                  <span className="text-emerald-400 font-black">✔</span>
+                                ) : (
+                                  <span className="text-slate-400 text-[9px]">bekliyor</span>
+                                )}
+                              </div>
+                            )}
+
                             <div className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 text-[11px] sm:text-xs font-black">
                               <CheckCircle2 size={13} />
                               <span>{student.totalCorrect}</span>
@@ -869,15 +956,52 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                 else if (g3Dogru === maxDogruInTopic && g3Dogru > g1Dogru && g3Dogru > g2Dogru) leaderName = '3. GRUP LİDER';
               }
 
+              const isTurkce = key.startsWith('turkce_') || ['sozluk_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(key);
+              const prevKey = idx > 0 ? filteredTopicKeys[idx - 1] : null;
+              const prevIsTurkce = prevKey ? (prevKey.startsWith('turkce_') || ['sozluk_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(prevKey)) : false;
+              const showTurkceHeader = currentGrade === 2 && isTurkce && (!prevIsTurkce || idx === 0);
+              const showMatematikHeader = currentGrade === 2 && !isTurkce && idx === 0 && categoryFilter === 'hepsi';
+
               return (
-                <div
-                  key={key}
-                  onClick={() => {
-                    onSelectTopic(key, currentGrade);
-                    onClose();
-                  }}
-                  className="bg-gradient-to-b from-[#2e1882] to-[#221069] hover:from-[#371e98] hover:to-[#29147d] border-2 border-purple-400/30 rounded-2xl p-2.5 sm:p-3 transition-all shadow-md relative overflow-hidden group cursor-pointer"
-                >
+                <React.Fragment key={key}>
+                  {showMatematikHeader && (
+                    <div className="w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-transparent border border-amber-400/40 flex items-center justify-between my-2 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">📐</span>
+                        <span className="text-amber-300 text-xs sm:text-sm font-black uppercase tracking-wider">
+                          2. Sınıf Matematik Dersi Etkinlikleri
+                        </span>
+                      </div>
+                      <span className="text-[10px] bg-amber-400/20 text-amber-200 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold">
+                        Matematik
+                      </span>
+                    </div>
+                  )}
+                  {showTurkceHeader && (
+                    <div className="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-rose-900/40 via-red-800/30 to-rose-950/40 border-2 border-rose-500/60 shadow-[0_0_15px_rgba(244,63,94,0.3)] flex items-center justify-between my-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📖</span>
+                        <div>
+                          <h4 className="text-rose-200 text-xs sm:text-sm font-black uppercase tracking-wider">
+                            2. Sınıf Türkçe Dersi Etkinlikleri (Yeni Ders)
+                          </h4>
+                          <p className="text-[10px] text-rose-300/80 font-medium">
+                            Sözcük Sıralama, Zıt Anlam, Eş Anlam, Kurallı Cümle & Hece Sayısı
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] bg-rose-500/30 text-rose-200 border border-rose-400/50 px-2.5 py-0.5 rounded-full font-bold uppercase shrink-0">
+                        5 Türkçe Etkinliği
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    onClick={() => {
+                      onSelectTopic(key, currentGrade);
+                      onClose();
+                    }}
+                    className={`bg-gradient-to-b ${isTurkce ? 'from-[#38102a] to-[#250a1b] hover:from-[#471536] hover:to-[#310d24] border-rose-400/40' : 'from-[#2e1882] to-[#221069] hover:from-[#371e98] hover:to-[#29147d] border-purple-400/30'} border-2 rounded-2xl p-2.5 sm:p-3 transition-all shadow-md relative overflow-hidden group cursor-pointer`}
+                  >
                   {/* TOPIC HEADER ROW */}
                   <div className="flex items-center gap-2.5 sm:gap-3 mb-2 pb-2 border-b border-purple-400/20">
                     <div className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 p-0.5 flex items-center justify-center shadow-md border border-amber-300 overflow-hidden">
@@ -1079,8 +1203,9 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                     </div>
                   )}
                 </div>
-              );
-            })}
+              </React.Fragment>
+            );
+          })}
           </div>
             </>
           )}
