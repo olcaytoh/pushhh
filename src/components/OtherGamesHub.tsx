@@ -14,6 +14,7 @@ interface OtherGamesHubProps {
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
   onOpenSozlukSirala?: () => void;
+  onOpenGeometrikSekilleriBul?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -29,6 +30,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenGeometricNets,
   onOpenKuralliCumle,
   onOpenSozlukSirala,
+  onOpenGeometrikSekilleriBul,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -120,6 +122,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenKuralliCumle) onOpenKuralliCumle();
+      },
+    },
+    {
+      id: 'geometrik_sekilleri_bul',
+      title: 'Geometrik Şekilleri Bul',
+      subtitle: 'Günlük Hayat Eşyaları, 20 Sn Sprint & 2-3 Kişilik Kapışma',
+      icon: '/MENUIKON/grid_icon_39.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenGeometrikSekilleriBul) onOpenGeometrikSekilleriBul();
       },
     }
   ];

@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -126,6 +126,13 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: '1. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'g1_geometrik_sekilleri_bul',
+  type: 'geometrik_sekilleri_bul',
+  grade: 1,
+  title: 'Geometrik Şekilleri Bul',
+  categoryLabel: '1. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'g1_sozluk_sirala',
   type: 'sozluk_sirala',
   grade: 1,
@@ -137,6 +144,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'kuralli_cumle',
   grade: 1,
   title: 'Kurallı Cümle Oluştur (1. Sınıf)',
+  categoryLabel: '1. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g1_hece_sayisi',
+  type: 'hece_sayisi',
+  grade: 1,
+  title: 'Kelimelerin Hece Sayısı (1. Sınıf)',
   categoryLabel: '1. Sınıf Diğer Oyunlar'
 });
 const g1Diger = [
@@ -265,6 +279,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'aynisini_bul',
   grade: 2,
   title: 'Aynısını Bul (2 Kişilik)',
+  categoryLabel: '2. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_geometrik_sekilleri_bul',
+  type: 'geometrik_sekilleri_bul',
+  grade: 2,
+  title: 'Geometrik Şekilleri Bul',
   categoryLabel: '2. Sınıf Diğer Oyunlar'
 });
 
@@ -431,6 +452,13 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: '3. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'g3_geometrik_sekilleri_bul',
+  type: 'geometrik_sekilleri_bul',
+  grade: 3,
+  title: 'Geometrik Şekilleri Bul',
+  categoryLabel: '3. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'g3_sozluk_sirala',
   type: 'sozluk_sirala',
   grade: 3,
@@ -442,6 +470,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'kuralli_cumle',
   grade: 3,
   title: 'Kurallı Cümle Oluştur (3. Sınıf)',
+  categoryLabel: '3. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g3_hece_sayisi',
+  type: 'hece_sayisi',
+  grade: 3,
+  title: 'Kelimelerin Hece Sayısı (3. Sınıf)',
   categoryLabel: '3. Sınıf Diğer Oyunlar'
 });
 const g3Diger = [
@@ -555,6 +590,13 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: '4. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'g4_geometrik_sekilleri_bul',
+  type: 'geometrik_sekilleri_bul',
+  grade: 4,
+  title: 'Geometrik Şekilleri Bul',
+  categoryLabel: '4. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'g4_sozluk_sirala',
   type: 'sozluk_sirala',
   grade: 4,
@@ -566,6 +608,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'kuralli_cumle',
   grade: 4,
   title: 'Kurallı Cümle Oluştur (4. Sınıf)',
+  categoryLabel: '4. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g4_hece_sayisi',
+  type: 'hece_sayisi',
+  grade: 4,
+  title: 'Kelimelerin Hece Sayısı (4. Sınıf)',
   categoryLabel: '4. Sınıf Diğer Oyunlar'
 });
 const g4Diger = [
@@ -650,6 +699,12 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_geometrik_sekilleri_bul',
+  type: 'geometrik_sekilleri_bul',
+  title: 'Geometrik Cisimleri Bul',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
   wordGameType: 'ingilizce',
@@ -658,11 +713,19 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
+  if (type === 'geometrik_sekilleri_bul' || topicKey === 'geometrik_sekilleri_bul') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'geometrik_sekilleri_bul' || a.id.includes('geometrik_sekilleri_bul')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'geometrik_sekilleri_bul' || a.id.includes('geometrik_sekilleri_bul'));
+    if (idx !== -1) return idx;
+  }
   if (type === 'hece_sayisi' || topicKey === 'turkce_hece_sayisi' || topicKey === 'hece_sayisi') {
     if (grade) {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'hece_sayisi' || a.id.includes('hece_sayisi')) && a.grade === grade);

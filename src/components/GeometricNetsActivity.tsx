@@ -813,10 +813,15 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
 
   return (
     <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white">
-      {/* 1. BACKGROUND GRADIENT & DYNAMIC PARTICLES */}
+      {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#080d1a] via-[#0d162d] to-[#060a14]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.15),rgba(255,255,255,0))]" />
+        <img 
+          src="/dere3.jpg" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
+        />
+        <div className="absolute inset-0 bg-slate-950/70 pointer-events-none" />
       </div>
 
       {/* 2. TOP APP BAR */}

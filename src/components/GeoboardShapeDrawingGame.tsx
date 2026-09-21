@@ -630,9 +630,20 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto">
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-50 bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto relative">
+      {/* Background Image /dere3.jpg */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.jpg" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
+        />
+        <div className="absolute inset-0 bg-slate-950/65 pointer-events-none" />
+      </div>
+
       {/* ÜST BAŞLIK VE SKOR ÇUBUĞU */}
-      <div className="w-full max-w-2xl flex items-center justify-between gap-2 shrink-0 py-1">
+      <div className="relative z-10 w-full max-w-2xl flex items-center justify-between gap-2 shrink-0 py-1">
         <button
           onClick={onClose}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs sm:text-sm font-bold transition-transform active:scale-95"

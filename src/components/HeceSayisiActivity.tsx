@@ -6,8 +6,8 @@ import {
   Swords, User, Users, BookOpen, Lightbulb, Zap, VolumeX
 } from 'lucide-react';
 import { Student } from '../types/student';
-import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrack';
 
 export interface HeceSayisiActivityProps {
@@ -135,7 +135,7 @@ const PLAYER_THEMES = [
     containerBorder: 'border-blue-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)]',
     avatarBg: 'bg-[#080e1d] text-blue-300',
     avatarBorder: 'border-2 border-blue-400',
-    buttonDefault: 'bg-gradient-to-b from-[#101b3b] via-[#0d1630] to-[#070c1d] hover:from-[#172552] hover:via-[#111e40] hover:to-[#0b1329] active:from-[#0a1228] active:to-[#050914] text-blue-50/95 border-2 border-blue-500/35 hover:border-blue-400/70 shadow-md',
+    buttonDefault: 'bg-gradient-to-b from-[#162957] via-[#102044] to-[#09142c] hover:from-[#203b78] hover:via-[#172d5c] hover:to-[#0d1d3d] active:from-[#0a1228] active:to-[#050914] text-blue-50/95 border-2 border-blue-300/90 hover:border-blue-200 shadow-[0_3px_0_rgba(59,130,246,0.65),0_5px_12px_rgba(0,0,0,0.5)]',
     buttonGlare: 'from-blue-300/10 to-transparent'
   },
   {
@@ -148,7 +148,7 @@ const PLAYER_THEMES = [
     containerBorder: 'border-rose-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(244,63,94,0.15)]',
     avatarBg: 'bg-[#080e1d] text-rose-300',
     avatarBorder: 'border-2 border-rose-400',
-    buttonDefault: 'bg-gradient-to-b from-[#2e101d] via-[#240c16] to-[#14060c] hover:from-[#3d1627] hover:via-[#30101e] hover:to-[#1c0911] active:from-[#18070f] active:to-[#0d0308] text-rose-50/95 border-2 border-rose-500/35 hover:border-rose-400/70 shadow-md',
+    buttonDefault: 'bg-gradient-to-b from-[#421526] via-[#32101f] to-[#1b080f] hover:from-[#5b1d36] hover:via-[#43152a] hover:to-[#250b16] active:from-[#18070f] active:to-[#0d0308] text-rose-50/95 border-2 border-rose-300/90 hover:border-rose-200 shadow-[0_3px_0_rgba(244,63,94,0.65),0_5px_12px_rgba(0,0,0,0.5)]',
     buttonGlare: 'from-rose-300/10 to-transparent'
   },
   {
@@ -161,7 +161,7 @@ const PLAYER_THEMES = [
     containerBorder: 'border-emerald-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(16,185,129,0.15)]',
     avatarBg: 'bg-[#080e1d] text-emerald-300',
     avatarBorder: 'border-2 border-emerald-400',
-    buttonDefault: 'bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95 border-2 border-emerald-500/35 hover:border-emerald-400/70 shadow-md',
+    buttonDefault: 'bg-gradient-to-b from-[#193b2e] via-[#123025] to-[#0a1c15] hover:from-[#24563f] hover:via-[#1a402f] hover:to-[#0d281c] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95 border-2 border-emerald-300/90 hover:border-emerald-200 shadow-[0_3px_0_rgba(16,185,129,0.65),0_5px_12px_rgba(0,0,0,0.5)]',
     buttonGlare: 'from-emerald-300/10 to-transparent'
   }
 ];
@@ -184,6 +184,54 @@ function generateDuelQuestion(pool: WordSyllableItem[], excludeId?: string): Hec
     options
   };
 }
+
+const SINGLE_HECE_CHOICES = [
+  {
+    count: 1,
+    label: '1 HECE',
+    bg: 'from-sky-500 via-blue-600 to-indigo-800',
+    border: 'border-sky-300',
+    badge: 'bg-sky-300 text-slate-950',
+    shadow: 'shadow-[0_5px_0_#1e3a8a,0_10px_20px_rgba(0,0,0,0.5)]',
+    hoverRing: 'hover:ring-4 hover:ring-sky-400/60'
+  },
+  {
+    count: 2,
+    label: '2 HECE',
+    bg: 'from-emerald-500 via-teal-600 to-emerald-800',
+    border: 'border-emerald-300',
+    badge: 'bg-emerald-300 text-slate-950',
+    shadow: 'shadow-[0_5px_0_#064e3b,0_10px_20px_rgba(0,0,0,0.5)]',
+    hoverRing: 'hover:ring-4 hover:ring-emerald-400/60'
+  },
+  {
+    count: 3,
+    label: '3 HECE',
+    bg: 'from-amber-500 via-amber-600 to-orange-800',
+    border: 'border-yellow-300',
+    badge: 'bg-yellow-300 text-slate-950',
+    shadow: 'shadow-[0_5px_0_#7c2d12,0_10px_20px_rgba(0,0,0,0.5)]',
+    hoverRing: 'hover:ring-4 hover:ring-yellow-400/60'
+  },
+  {
+    count: 4,
+    label: '4 HECE',
+    bg: 'from-purple-500 via-violet-600 to-purple-900',
+    border: 'border-fuchsia-300',
+    badge: 'bg-fuchsia-300 text-slate-950',
+    shadow: 'shadow-[0_5px_0_#4c1d95,0_10px_20px_rgba(0,0,0,0.5)]',
+    hoverRing: 'hover:ring-4 hover:ring-fuchsia-400/60'
+  },
+  {
+    count: 5,
+    label: '5 HECE',
+    bg: 'from-rose-500 via-rose-600 to-red-800',
+    border: 'border-rose-300',
+    badge: 'bg-rose-300 text-slate-950',
+    shadow: 'shadow-[0_5px_0_#881337,0_10px_20px_rgba(0,0,0,0.5)]',
+    hoverRing: 'hover:ring-4 hover:ring-rose-400/60'
+  }
+];
 
 export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   onClose,
@@ -211,25 +259,33 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       setActiveMode('quiz1');
     } else if (playerCountMode === 2 && activeMode !== 'duel2') {
       setActiveMode('duel2');
+      setDuelPlayers(prev => (prev && prev.length >= 3) ? prev : createInitialDuelPlayers(3));
     } else if (playerCountMode === 3 && activeMode !== 'duel3') {
       setActiveMode('duel3');
+      setDuelPlayers(prev => (prev && prev.length >= 3) ? prev : createInitialDuelPlayers(3));
     }
   }, [playerCountMode]);
 
   const handleModeChange = (newCount: 1 | 2 | 3) => {
-    if (newCount === 1) setActiveMode('quiz1');
-    else if (newCount === 2) setActiveMode('duel2');
-    else if (newCount === 3) setActiveMode('duel3');
+    if (newCount === 1) {
+      setActiveMode('quiz1');
+    } else if (newCount === 2) {
+      setActiveMode('duel2');
+      setDuelPlayers(prev => (prev && prev.length >= 3) ? prev : createInitialDuelPlayers(3));
+    } else if (newCount === 3) {
+      setActiveMode('duel3');
+      setDuelPlayers(prev => (prev && prev.length >= 3) ? prev : createInitialDuelPlayers(3));
+    }
 
     if (onSwitchPlayerCountMode) {
       onSwitchPlayerCountMode(newCount);
     }
   };
 
-  // Student list split into 1st group (left) and 2nd group (right)
+  const assignedStudent = useMemo(() => students?.find(s => s.id === selectedStudentId), [students, selectedStudentId]);
+
   const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
   const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
-  const assignedStudent = useMemo(() => students?.find(s => s.id === selectedStudentId), [students, selectedStudentId]);
 
   const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([
     selectedStudentId || null,
@@ -350,11 +406,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   // 2. MULTIPLAYER DUEL (2 & 3 PLAYERS) STATE & LOGIC
   // =========================================================================
   const duelTargetScore = 10;
-  const numDuelPlayers = activeMode === 'duel3' ? 3 : 2;
 
-  const createInitialDuelPlayers = useCallback((num: number): HeceDuelPlayer[] => {
+  const createInitialDuelPlayers = useCallback((num: number = 3): HeceDuelPlayer[] => {
+    const count = Math.max(3, num);
     const list: HeceDuelPlayer[] = [];
-    for (let i = 0; i < num; i++) {
+    for (let i = 0; i < count; i++) {
       list.push({
         id: i,
         name: PLAYER_THEMES[i].name,
@@ -371,17 +427,17 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     return list;
   }, []);
 
-  const [duelPlayers, setDuelPlayers] = useState<HeceDuelPlayer[]>(() => createInitialDuelPlayers(numDuelPlayers));
+  const [duelPlayers, setDuelPlayers] = useState<HeceDuelPlayer[]>(() => createInitialDuelPlayers(3));
   const [duelWinnerIndex, setDuelWinnerIndex] = useState<number | null>(null);
   const [trackVictoryVideoActive, setTrackVictoryVideoActive] = useState(false);
   const [isDuelFinished, setIsDuelFinished] = useState(false);
 
   const initDuelGame = useCallback(() => {
-    setDuelPlayers(createInitialDuelPlayers(numDuelPlayers));
+    setDuelPlayers(createInitialDuelPlayers(3));
     setDuelWinnerIndex(null);
     setTrackVictoryVideoActive(false);
     setIsDuelFinished(false);
-  }, [numDuelPlayers, createInitialDuelPlayers]);
+  }, [createInitialDuelPlayers]);
 
   useEffect(() => {
     if (activeMode === 'duel2' || activeMode === 'duel3') {
@@ -517,7 +573,8 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   };
 
   // Helper to render duel player card
-  const renderDuelPlayerCard = (p: HeceDuelPlayer, pIdx: number) => {
+  const renderDuelPlayerCard = (p: HeceDuelPlayer | undefined, pIdx: number) => {
+    if (!p) return null;
     const theme = PLAYER_THEMES[pIdx] || PLAYER_THEMES[0];
     const isWinnerGroup = trackVictoryVideoActive && duelWinnerIndex === pIdx;
     const isOtherGroup = trackVictoryVideoActive && duelWinnerIndex !== null && duelWinnerIndex !== pIdx;
@@ -605,8 +662,8 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       ? (students?.find(s => s.id === selectedStudentIds[pIdx]) || null)
       : (pIdx === 0 ? assignedStudent : null);
 
-    const optHeightClasses = activeMode === 'duel3' ? 'h-10 sm:h-11 md:h-12' : 'h-11 sm:h-12 md:h-14';
-    const optFontClass = activeMode === 'duel3' ? 'text-xs sm:text-sm md:text-base' : 'text-sm sm:text-base md:text-lg';
+    const optHeightClasses = activeMode === 'duel3' ? 'h-9 sm:h-10 md:h-11' : 'h-10 sm:h-11 md:h-12';
+    const optFontClass = activeMode === 'duel3' ? 'text-xs sm:text-sm' : 'text-sm sm:text-base';
 
     return (
       <div
@@ -649,7 +706,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
         </div>
 
         {/* QUESTION DISPLAY CONTAINER */}
-        <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-cyan-300/60 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] ${activeMode === 'duel3' ? 'px-1.5 py-1.5 sm:px-2 sm:py-2 my-0.5' : 'px-3 py-2 sm:px-4 sm:py-3 my-1'} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
+        <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-cyan-300/60 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] ${activeMode === 'duel3' ? 'px-1.5 py-1 sm:px-2 sm:py-1.5 my-0.5' : 'px-2.5 py-1.5 sm:px-3 sm:py-2 my-0.5'} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
           <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
           {p.isEliminated || p.lives <= 0 ? (
@@ -664,13 +721,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             </div>
           ) : p.currentQuestion ? (
             <div className="relative z-10 flex flex-col items-center justify-center text-center px-2 sm:px-3 w-full max-h-full overflow-hidden my-auto">
-              <div className="text-xs sm:text-sm md:text-base font-black uppercase text-amber-300 tracking-wider mb-2 drop-shadow-[0_2px_4px_#000] [text-shadow:0_2px_4px_#000]">
+              <div className="text-[11px] sm:text-xs md:text-sm font-black uppercase text-amber-300 tracking-wider mb-1 drop-shadow-[0_2px_4px_#000]">
                 BU KELİME KAÇ HECE?
               </div>
 
               {/* TARGET WORD DISPLAY */}
-              <div className="px-5 py-2 sm:px-7 sm:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-wide uppercase shadow-[0_8px_20px_rgba(245,158,11,0.4)] border-2 sm:border-3 border-white flex items-center justify-center gap-2 max-w-full">
-                <span className="text-xl sm:text-2xl md:text-3xl shrink-0 filter drop-shadow-sm">{p.currentQuestion.item.emoji}</span>
+              <div className="px-3 py-1 sm:px-5 sm:py-1.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-sm xs:text-base sm:text-lg md:text-xl tracking-wide uppercase shadow-[0_6px_16px_rgba(245,158,11,0.35)] border-2 border-white flex items-center justify-center gap-1.5 max-w-full">
+                <span className="text-lg sm:text-xl shrink-0 filter drop-shadow-sm">{p.currentQuestion.item.emoji}</span>
                 <span className="truncate">{p.currentQuestion.item.word}</span>
                 <button
                   type="button"
@@ -678,10 +735,10 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                     e.stopPropagation();
                     speakWord(p.currentQuestion!.item.word);
                   }}
-                  className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-slate-950 transition active:scale-90 ml-1 cursor-pointer"
+                  className="p-1 rounded-full bg-black/20 hover:bg-black/40 text-slate-950 transition active:scale-90 ml-1 cursor-pointer"
                   title="Seslendir"
                 >
-                  <Volume2 size={18} />
+                  <Volume2 size={16} />
                 </button>
               </div>
             </div>
@@ -690,7 +747,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
 
         {/* 4 CHOICES GRID UNDER THE QUESTION */}
         {!p.isEliminated && p.lives > 0 && p.currentQuestion && (
-          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full mx-auto shrink-0 z-10">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 w-full mx-auto shrink-0 z-10 my-0.5">
             {p.currentQuestion.options.map((opt, oIdx) => {
               const isSelected = p.selectedOption === opt;
               const isCorrectOpt = opt === p.currentQuestion?.correct;
@@ -711,17 +768,47 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                   key={oIdx}
                   disabled={p.feedback !== 'none' || p.isEliminated || p.lives <= 0}
                   onClick={() => handleDuelAnswer(pIdx, opt)}
+                  style={{
+                    border: `3px solid ${p.feedback === 'none'
+                      ? pIdx === 0
+                        ? '#60a5fa'
+                        : pIdx === 1
+                          ? '#fb7185'
+                          : '#34d399'
+                      : isCorrectOpt
+                        ? '#86efac'
+                        : isSelected
+                          ? '#fda4af'
+                          : '#64748b'}`,
+                    background: p.feedback !== 'none'
+                      ? isCorrectOpt
+                        ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.92), rgba(13, 148, 136, 0.92))'
+                        : isSelected
+                          ? 'linear-gradient(180deg, rgba(225, 29, 72, 0.92), rgba(185, 28, 28, 0.92))'
+                          : 'linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.92))'
+                      : pIdx === 0
+                        ? 'linear-gradient(180deg, rgba(30, 64, 125, 0.96), rgba(16, 38, 82, 0.96))'
+                        : pIdx === 1
+                          ? 'linear-gradient(180deg, rgba(104, 35, 59, 0.96), rgba(58, 18, 35, 0.96))'
+                          : 'linear-gradient(180deg, rgba(31, 91, 68, 0.96), rgba(16, 52, 39, 0.96))',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -5px 10px rgba(0,0,0,0.22), 0 3px 0 rgba(0, 0, 0, 0.35), 0 5px 12px rgba(0, 0, 0, 0.45)'
+                  }}
                   className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
                 >
                   <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${theme.buttonGlare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
-                  <span className={`relative z-10 px-1 max-w-full leading-tight flex items-center justify-center text-center ${optFontClass} text-white font-black truncate`}>
-                    {opt} Hece
-                  </span>
+                  <div className="relative z-10 flex items-center justify-center gap-1.5 px-2">
+                    <span className="text-base sm:text-lg md:text-xl text-white font-black drop-shadow-sm">
+                      {opt}
+                    </span>
+                    <span className="text-[10px] sm:text-xs font-black uppercase text-amber-200 tracking-wider">
+                      HECE
+                    </span>
+                  </div>
                   {p.feedback !== 'none' && isCorrectOpt && (
-                    <CheckCircle2 size={18} className="absolute right-2 text-emerald-300 shrink-0 filter drop-shadow-md" />
+                    <CheckCircle2 size={16} className="absolute right-1.5 text-emerald-300 shrink-0 filter drop-shadow-md" />
                   )}
                   {p.feedback !== 'none' && isSelected && !isCorrectOpt && (
-                    <XCircle size={18} className="absolute right-2 text-rose-300 shrink-0 filter drop-shadow-md" />
+                    <XCircle size={16} className="absolute right-1.5 text-rose-300 shrink-0 filter drop-shadow-md" />
                   )}
                 </button>
               );
@@ -734,8 +821,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
 
   return (
     <div 
-      style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
       {/* 1. BACKGROUND IMAGE (/dere3.jpg) WITH BLUR */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -883,29 +969,9 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
         </div>
       </header>
 
-      {/* ACTIVE STUDENT NOTIFICATION BADGE (IF ASSIGNED) */}
-      {assignedStudent && (
-        <div className="w-full bg-amber-500/15 border-b border-amber-400/30 px-3 py-1 flex items-center justify-center gap-2 text-xs font-bold text-amber-200">
-          <span>🎮 Oynayan Öğrenci:</span>
-          <span className="text-white font-extrabold flex items-center gap-1">
-            <span>{assignedStudent.avatar}</span>
-            <span>{assignedStudent.name}</span>
-          </span>
-          {onSelectStudent && (
-            <button
-              type="button"
-              onClick={() => onSelectStudent(null)}
-              className="text-amber-400 hover:text-amber-200 ml-1 text-[11px] underline cursor-pointer"
-            >
-              (Değiştir)
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* MAIN CONTENT AREA WITH SYMMETRICAL SIDE STUDENT AVATAR GRIDS */}
-      <div className="flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-2 sm:px-3 py-1.5 sm:py-2">
-        {/* LEFT STUDENT SIDE GRID - ONLY IN 1-PLAYER MODE */}
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-2 sm:px-3 py-1 sm:py-1.5">
+        {/* LEFT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
         {activeMode === 'quiz1' && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
           <div className="hidden xl:flex shrink-0 self-center">
             <StudentAvatarSideGrid
@@ -916,7 +982,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
               selectedStudentId={selectedStudentId || null}
               onSelectStudent={onSelectStudent}
               onOpenRosterModal={onOpenRosterModal}
-              playMp3={playMp3}
+              playMp3={triggerSound}
             />
           </div>
         )}
@@ -924,8 +990,8 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
         {/* CENTER ACTIVITY CONTENT */}
         <div className="flex-1 flex flex-col items-center justify-center h-full min-h-0 min-w-0 max-w-full overflow-hidden">
           {activeMode === 'quiz1' ? (
-            /* 1 PLAYER QUIZ MODE */
-            <div className="w-full max-w-2xl bg-gradient-to-b from-[#111c3a] via-[#0d162e] to-[#080e1e] border-2 sm:border-3 border-indigo-400/50 rounded-3xl p-4 sm:p-5 shadow-[0_0_30px_rgba(99,102,241,0.25)] flex flex-col items-center justify-between max-h-full overflow-y-auto no-scrollbar">
+            /* 1 PLAYER QUIZ MODE - DİĞER ETKİNLİKLERDEKİ GİBİ ŞIK VE ÇERÇEVELİ SORU ALANI */
+            <div className="w-full max-w-xl lg:max-w-2xl bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_20px_rgba(59,130,246,0.18)] rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-between max-h-full overflow-y-auto relative my-auto">
               {roundCompleted ? (
                 /* COMPLETION CELEBRATION */
                 <div className="w-full text-center py-6 animate-fadeIn">
@@ -972,28 +1038,41 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                 </div>
               ) : (
                 <>
-                  {/* PROGRESS & STATUS BAR */}
-                  <div className="w-full flex items-center justify-between gap-2 mb-2 pb-2 border-b border-indigo-500/30 text-xs font-bold shrink-0">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-950/90 text-indigo-300 border border-indigo-400/40">
+                  {/* UNIFORM TOP STATUS BAR */}
+                  <div className="w-full flex items-center justify-between gap-1.5 sm:gap-2 mb-2 pb-2 border-b border-indigo-500/30 text-xs font-bold shrink-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {assignedStudent ? (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/60 text-amber-200">
+                          <span className="text-sm">{assignedStudent.avatar}</span>
+                          <span className="text-xs font-black text-white truncate max-w-[90px] sm:max-w-[120px]">{assignedStudent.name}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300">
+                          <span className="text-xs font-bold">1. Oyuncu</span>
+                        </div>
+                      )}
+
+                      <span className="px-2.5 py-1 rounded-xl bg-indigo-950/90 text-indigo-300 border border-indigo-400/40 text-xs font-bold">
                         Soru {questionIndex + 1} / 10
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-950/90 text-amber-300 border border-amber-400/40 flex items-center gap-1">
+
+                      <span className="px-2.5 py-1 rounded-xl bg-amber-950/90 text-amber-300 border border-amber-400/40 flex items-center gap-1 text-xs font-bold">
                         <Star size={12} className="text-amber-400 fill-amber-400" />
                         <span>{score} Puan</span>
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {streak > 1 && (
-                        <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-[10px] flex items-center gap-0.5 animate-pulse">
+                        <span className="px-2 py-1 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-[10px] flex items-center gap-0.5 animate-pulse">
                           <Zap size={11} fill="currentColor" />
-                          <span>{streak}x Seri</span>
+                          <span>{streak}x</span>
                         </span>
                       )}
                       <button
                         onClick={() => setShowRuleCard(!showRuleCard)}
-                        className="px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-400/50 text-purple-300 text-[11px] font-bold flex items-center gap-1 hover:bg-purple-900 transition cursor-pointer"
+                        className="px-2.5 py-1 rounded-xl bg-purple-950/80 border border-purple-400/50 text-purple-300 text-[11px] font-bold flex items-center gap-1 hover:bg-purple-900 transition cursor-pointer"
+                        title="Kuralı Gör"
                       >
                         <Lightbulb size={12} />
                         <span>Kural</span>
@@ -1022,96 +1101,150 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                     </div>
                   )}
 
-                  {/* TARGET WORD CARD */}
-                  <div className="w-full py-4 sm:py-6 my-1 rounded-2xl bg-[#081024] border-2 border-indigo-400/40 flex flex-col items-center justify-center relative overflow-hidden shadow-inner shrink-0">
-                    <div className="text-4xl sm:text-5xl mb-1 filter drop-shadow">
-                      {currentWord.emoji}
-                    </div>
+                  {/* 100% OPAQUE SOLID QUESTION CONTAINER (DİĞER ETKİNLİKLERDEKİ GİBİ ŞIK VE BELİRGİN ÇERÇEVE) */}
+                  <div className="w-full my-1.5 sm:my-2 shrink-0">
+                    <div className="relative w-full rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-indigo-400/60 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden">
+                      {/* Subtle top inner gradient glare */}
+                      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-indigo-400/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
-                    <div className="flex items-center justify-center gap-1 text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-wider my-0.5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                      {currentWord.word.split('').map((char, idx) => {
-                        const isVowel = VOWELS.has(char);
-                        return (
-                          <span
-                            key={idx}
-                            className={`transition-colors duration-300 ${
-                              isAnswered && showExplanation && isVowel
-                                ? 'text-amber-300 underline decoration-amber-400 decoration-wavy decoration-2'
-                                : 'text-white'
-                            }`}
-                          >
-                            {char}
+                      <div className="relative z-10 flex flex-col items-center justify-center w-full">
+                        <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest mb-1.5 [text-shadow:_0_2px_4px_#000] flex items-center gap-1.5">
+                          <span>📖</span>
+                          <span>BU KELİME KAÇ HECEDEN OLUŞUR?</span>
+                        </span>
+
+                        {/* LARGE GOLDEN PLAQUE FOR THE WORD (KART / LEVHA) */}
+                        <div className="w-full max-w-sm sm:max-w-md py-2.5 sm:py-3 px-4 sm:px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_6px_20px_rgba(245,158,11,0.45)] border-2 sm:border-3 border-white flex items-center justify-center gap-3 my-1">
+                          <span className="text-3xl sm:text-4xl filter drop-shadow-md">
+                            {currentWord.emoji}
                           </span>
-                        );
-                      })}
-                    </div>
+                          <div className="flex items-center justify-center gap-1 text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-slate-950 drop-shadow-xs">
+                            {currentWord.word.split('').map((char, idx) => {
+                              const isVowel = VOWELS.has(char);
+                              return (
+                                <span
+                                  key={idx}
+                                  className={`transition-all duration-300 ${
+                                    isAnswered && showExplanation && isVowel
+                                      ? 'text-rose-700 underline decoration-rose-600 decoration-wavy decoration-3 font-black scale-105'
+                                      : 'text-slate-950'
+                                  }`}
+                                >
+                                  {char}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                    <button
-                      onClick={() => speakWord(currentWord.word)}
-                      className="mt-1.5 flex items-center gap-1 px-3 py-1 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/40 text-indigo-300 text-[11px] font-bold transition active:scale-95 cursor-pointer"
-                      title="Kelimeyi Dinle"
-                    >
-                      <Volume2 size={13} />
-                      <span>Seslendir</span>
-                    </button>
+                        {/* AUDIO VOICE BUTTON */}
+                        <button
+                          onClick={() => speakWord(currentWord.word)}
+                          className="mt-1.5 flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/50 text-indigo-200 text-[11px] font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                          title="Kelimeyi Dinle"
+                        >
+                          <Volume2 size={13} className="text-cyan-400" />
+                          <span>Seslendir</span>
+                        </button>
 
-                    {/* SYLLABLE BREAKDOWN DISPLAY AFTER ANSWER */}
-                    {isAnswered && (
-                      <div className="mt-3 flex flex-col items-center animate-fadeIn">
-                        <div className="text-[10px] text-slate-400 font-semibold mb-1">
-                          Hecelerine Ayrılışı:
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-wrap justify-center">
-                          {currentWord.syllables.map((syl, sIdx) => (
-                            <span
-                              key={sIdx}
-                              className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-base sm:text-lg shadow-md border border-indigo-300"
-                            >
-                              {syl}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="mt-1.5 text-xs font-bold text-amber-300">
-                          {currentWord.hint}
-                        </div>
+                        {/* SYLLABLE BREAKDOWN DISPLAY AFTER ANSWER */}
+                        {isAnswered && (
+                          <div className="mt-2.5 flex flex-col items-center animate-fadeIn">
+                            <div className="text-[10px] sm:text-[11px] text-slate-400 font-semibold mb-1">
+                              Hecelerine Ayrılışı:
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                              {currentWord.syllables.map((syl, sIdx) => (
+                                <span
+                                  key={sIdx}
+                                  className="px-2.5 py-0.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm sm:text-base shadow-md border border-indigo-300"
+                                >
+                                  {syl}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="mt-1 text-xs font-bold text-amber-300">
+                              {currentWord.hint}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  {/* PROMPT */}
-                  <div className="text-center my-1.5 shrink-0">
-                    <span className="text-xs sm:text-sm font-extrabold text-indigo-200">
-                      Bu kelime kaç heceden oluşmaktadır?
-                    </span>
+                    </div>
                   </div>
 
                   {/* 5 SYLLABLE OPTION BUTTONS */}
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5 w-full max-w-md my-1.5 shrink-0">
-                    {[1, 2, 3, 4, 5].map(opt => {
-                      const isSelected = selectedOption === opt;
-                      const isCorrectChoice = opt === currentWord.count;
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3 w-full max-w-xl my-1.5 shrink-0">
+                    {SINGLE_HECE_CHOICES.map(opt => {
+                      const isSelected = selectedOption === opt.count;
+                      const isCorrectChoice = opt.count === currentWord.count;
 
-                      let btnStyle = 'bg-gradient-to-b from-[#1c2c54] to-[#121c38] hover:from-[#253b70] hover:to-[#17254a] text-white border-indigo-400/50 hover:border-cyan-300';
-                      if (isAnswered) {
-                        if (isCorrectChoice) {
-                          btnStyle = 'bg-gradient-to-b from-emerald-500 to-teal-600 text-white border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)] ring-2 ring-emerald-300 scale-105';
-                        } else if (isSelected && !isCorrectChoice) {
-                          btnStyle = 'bg-gradient-to-b from-rose-600 to-red-700 text-white border-rose-300 opacity-80';
-                        } else {
-                          btnStyle = 'bg-slate-900/60 text-slate-500 border-slate-700 opacity-50';
-                        }
+                      if (!isAnswered) {
+                        return (
+                          <button
+                            key={opt.count}
+                            onClick={() => handleSelectOption(opt.count)}
+                            className={`relative group py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-[3.5px] transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gradient-to-b ${opt.bg} ${opt.border} ${opt.shadow} ${opt.hoverRing} overflow-hidden`}
+                          >
+                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
+                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                              {opt.count}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full ${opt.badge} font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-xs`}>
+                              {opt.label}
+                            </span>
+                          </button>
+                        );
+                      }
+
+                      if (isCorrectChoice) {
+                        return (
+                          <button
+                            key={opt.count}
+                            disabled={true}
+                            className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-4 border-emerald-200 bg-gradient-to-b from-emerald-500 via-teal-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.9)] ring-4 ring-emerald-400 scale-105 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden animate-pulse"
+                          >
+                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-xl" />
+                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                              {opt.count}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-white text-emerald-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-0.5">
+                              <CheckCircle2 size={12} className="text-emerald-600" />
+                              <span>DOĞRU</span>
+                            </span>
+                          </button>
+                        );
+                      }
+
+                      if (isSelected && !isCorrectChoice) {
+                        return (
+                          <button
+                            key={opt.count}
+                            disabled={true}
+                            className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-4 border-rose-200 bg-gradient-to-b from-rose-600 via-red-700 to-rose-900 text-white shadow-[0_0_25px_rgba(225,29,72,0.9)] ring-4 ring-rose-400 scale-100 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden"
+                          >
+                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
+                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                              {opt.count}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-white text-rose-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-0.5">
+                              <XCircle size={12} className="text-rose-600" />
+                              <span>YANLIŞ</span>
+                            </span>
+                          </button>
+                        );
                       }
 
                       return (
                         <button
-                          key={opt}
-                          onClick={() => handleSelectOption(opt)}
-                          disabled={isAnswered}
-                          className={`py-2.5 sm:py-3.5 rounded-2xl font-black text-lg sm:text-2xl border-2 transition-all transform active:scale-95 shadow-md flex flex-col items-center justify-center gap-0.5 cursor-pointer ${btnStyle}`}
+                          key={opt.count}
+                          disabled={true}
+                          className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-2 border-slate-700 bg-slate-900/80 text-slate-400 opacity-40 flex flex-col items-center justify-center gap-1 cursor-default"
                         >
-                          <span>{opt}</span>
-                          <span className="text-[9px] font-bold uppercase opacity-80">
-                            Hece
+                          <span className="text-2xl sm:text-3xl font-black text-slate-400 leading-none">
+                            {opt.count}
+                          </span>
+                          <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                            {opt.label}
                           </span>
                         </button>
                       );
@@ -1265,33 +1398,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
-              {students && students.length > 0 && (
-                <StudentAvatarDock
-                  students={students}
-                  currentGrade={2}
-                  playerCount={activeMode === 'duel3' ? 3 : 2}
-                  selectedStudentIds={selectedStudentIds}
-                  onSelectStudentForPlayer={(pIdx, studentId) => {
-                    setSelectedStudentIds(prev => {
-                      const updated = [...prev];
-                      updated[pIdx] = studentId;
-                      return updated;
-                    });
-                    triggerSound('/coin.mp3');
-                  }}
-                  onOpenRosterModal={() => {
-                    onOpenRosterModal?.();
-                  }}
-                  playMp3={playMp3}
-                />
-              )}
             </div>
           )}
         </div>
 
-        {/* RIGHT STUDENT SIDE GRID - ONLY IN 1-PLAYER MODE */}
+        {/* RIGHT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
         {activeMode === 'quiz1' && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
           <div className="hidden xl:flex shrink-0 self-center">
             <StudentAvatarSideGrid
@@ -1302,11 +1413,33 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
               selectedStudentId={selectedStudentId || null}
               onSelectStudent={onSelectStudent}
               onOpenRosterModal={onOpenRosterModal}
-              playMp3={playMp3}
+              playMp3={triggerSound}
             />
           </div>
         )}
       </div>
+
+      {/* 4. EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - SADECE 2 VE 3 KİŞİLİK MODDA (KAYDIRMA ÇUBUĞU OLMADAN SIĞDIRILDI) */}
+      {activeMode !== 'quiz1' && students && students.length > 0 && onOpenRosterModal && (
+        <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            playerCount={activeMode === 'duel3' ? 3 : 2}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={(pIdx, studentId) => {
+              setSelectedStudentIds(prev => {
+                const updated = [...prev];
+                updated[pIdx] = studentId;
+                return updated;
+              });
+              triggerSound('/coin.mp3');
+            }}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
 
       {/* FOOTER TIP BAR */}
       <div className="w-full bg-[#091024] border-t border-slate-800 px-3 py-1 flex items-center justify-center text-[10px] sm:text-[11px] text-slate-400 gap-1.5 shrink-0">

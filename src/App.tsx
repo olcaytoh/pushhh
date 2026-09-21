@@ -27,6 +27,7 @@ import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { HeceSayisiActivity } from './components/HeceSayisiActivity';
 import { SozlukSiralaGame } from './components/SozlukSiralaGame';
+import { GeometrikSekilleriBulActivity } from './components/GeometrikSekilleriBulActivity';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -2983,6 +2984,7 @@ export default function App() {
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
   const [showHeceSayisi, setShowHeceSayisi] = useState(false);
   const [showSozlukSirala, setShowSozlukSirala] = useState(false);
+  const [showGeometrikSekilleriBul, setShowGeometrikSekilleriBul] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
   const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
@@ -3967,7 +3969,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showGeometrikSekilleriBul && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -4014,6 +4016,7 @@ export default function App() {
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4070,6 +4073,9 @@ export default function App() {
       }
       setGameState('welcome');
       setShowHeceSayisi(true);
+    } else if (entry.type === 'geometrik_sekilleri_bul' || entry.id.includes('geometrik_sekilleri_bul')) {
+      setGameState('welcome');
+      setShowGeometrikSekilleriBul(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4123,6 +4129,7 @@ export default function App() {
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -4572,6 +4579,7 @@ export default function App() {
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
     if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
+    if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul (20 Sn Sprint & Kapışma)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
@@ -4641,8 +4649,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showHeceSayisi && !showGeometrikSekilleriBul && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || showHeceSayisi || showGeometrikSekilleriBul || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
               const iconSrc = `/icon_${g}.png`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -4668,6 +4676,7 @@ export default function App() {
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
                       setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4683,6 +4692,7 @@ export default function App() {
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
                       setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4701,6 +4711,7 @@ export default function App() {
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
                       setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -4763,9 +4774,19 @@ export default function App() {
               showKuralliCumle ||
               showHeceSayisi ||
               showSozlukSirala ||
+              showGeometrikSekilleriBul ||
               wordGameType !== null
             ) {
               handlePrevActivity();
+              return;
+            }
+
+            // 0.035 If inside Geometrik Cisimleri Bul
+            if (showGeometrikSekilleriBul) {
+              setShowGeometrikSekilleriBul(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
               return;
             }
 
@@ -4916,6 +4937,7 @@ export default function App() {
               showKuralliCumle ||
               showHeceSayisi ||
               showSozlukSirala ||
+              showGeometrikSekilleriBul ||
               wordGameType !== null
             ) {
               handleNextActivity();
@@ -6794,6 +6816,46 @@ export default function App() {
                       </button>
                     </div>
 
+                    {/* YENİ OYUN: 🔷 GEOMETRİK ŞEKİLLERİ BUL */}
+                    <div className="w-full">
+                      <button
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          const gsbIdx = findActivityIndex('geometrik_sekilleri_bul', undefined, selectedGrade || 1);
+                          if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
+                          setShowGeometrikSekilleriBul(true);
+                        }}
+                        className="group relative w-full bg-gradient-to-r from-[#13283a] via-[#1a3854] to-[#13283a] hover:from-[#18334b] hover:via-[#22486c] hover:to-[#18334b] border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:shadow-[0_0_25px_rgba(34,211,238,0.45)] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      >
+                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                          <img src="/MENUIKON/grid_icon_39.png" alt="Geometrik Şekilleri Bul" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0 py-0.5 z-10">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-400/20 border border-cyan-400/60 text-cyan-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block shrink-0 animate-pulse" />
+                              <span>1, 2 ve 3 Kişilik</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/50 text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wider shadow-xs">
+                              <span>Günlük Hayat Eşyaları</span>
+                            </span>
+                          </div>
+                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-cyan-300 transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
+                            Geometrik Şekilleri Bul
+                          </h3>
+                          <p className="text-[10px] sm:text-xs text-cyan-200/70 line-clamp-1 mt-0.5 font-medium">
+                            Küp, silindir, koni, küre... Günlük yaşamdaki eşyaları doğru geometrik cisimle eşleştir!
+                          </p>
+                        </div>
+                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                            ▶
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+
                     {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {(selectedGrade === 1
@@ -8372,7 +8434,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showGeometrikSekilleriBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -8433,6 +8495,12 @@ export default function App() {
             if (gnIdx !== -1) setCurrentActivityIndex(gnIdx);
             setShowGeometricNets(true);
           }}
+          onOpenGeometrikSekilleriBul={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gsbIdx = findActivityIndex('geometrik_sekilleri_bul');
+            if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
+            setShowGeometrikSekilleriBul(true);
+          }}
           playMp3={playMp3}
         />
       )}
@@ -8451,8 +8519,11 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGrade={selectedGrade || 1}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
           students={currentGradeStudents}
           selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
             setSelectedStudentIds(prev => [
               prev[0] === id ? null : id,
@@ -8545,6 +8616,47 @@ export default function App() {
             kaydetIstatistik('turkce_sozluk_sirala', isCorrect);
             if (selectedStudentIds[0]) {
               setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_sozluk_sirala', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* GEOMETRİK CİSİMLERİ BUL (GÜNLÜK HAYATTAN ÖRNEKLER - 1, 2, 3 KİŞİLİK) */}
+      {showGeometrikSekilleriBul && (
+        <GeometrikSekilleriBulActivity
+          onClose={() => {
+            setShowGeometrikSekilleriBul(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          soundEnabled={soundEnabled}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onOpenRosterModal={() => {
+            setRosterModalGrade(selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('geometrik_sekilleri_bul', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'geometrik_sekilleri_bul', isCorrect));
             }
           }}
         />

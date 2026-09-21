@@ -277,7 +277,18 @@ export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) =>
 
   return (
     <div className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 border-3 border-amber-400/80 rounded-3xl max-w-4xl w-full p-2.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-white flex flex-col max-h-[calc(100vh-90px)] sm:max-h-[calc(100vh-100px)] overflow-hidden relative">
+      {/* Background Image /dere3.jpg */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.jpg" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105 blur-[1px]"
+        />
+        <div className="absolute inset-0 bg-slate-950/70 pointer-events-none" />
+      </div>
+
+      <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 border-3 border-amber-400/80 rounded-3xl max-w-4xl w-full p-2.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-white flex flex-col max-h-[calc(100vh-90px)] sm:max-h-[calc(100vh-100px)] overflow-hidden relative z-10">
         
         {/* HEADER BAR */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-2.5 shrink-0">
