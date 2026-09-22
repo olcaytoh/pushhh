@@ -30,7 +30,8 @@ export interface GeometrikSekilleriBulProps {
   selectedStudentId?: string | null;
   selectedStudentIds?: (string | null)[];
   onSelectStudent?: (id: string | null) => void;
-  onOpenRosterModal?: () => void;
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
   onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
@@ -124,6 +125,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
   selectedStudentId,
   selectedStudentIds = [null, null, null],
   onSelectStudent,
+  onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered
 }) => {
@@ -899,20 +901,23 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       {/* ===================================================================== */}
       <div className="shrink-0 w-full bg-slate-950/95 border-t border-white/10 flex flex-col items-center justify-center z-30 pt-1 pb-1.5 px-2 gap-1">
         
-        {/* ÖĞRENCİ DOCK PANELİ - SADECE 2 VE 3 KİŞİLİK MODDA (KAYDIRMA ÇUBUĞU OLMADAN SIĞDIRILDI) */}
-        {activePlayerMode >= 2 && students && students.length > 0 && onSelectStudent && (
-          <div className="w-full max-w-5xl flex items-center justify-center scale-90 sm:scale-95 origin-bottom py-0.5">
+        {/* ÖĞRENCİ DOCK PANELİ - SADECE 2 VE 3 KİŞİLİK MODDA */}
+        {activePlayerMode >= 2 && students && students.length > 0 && onOpenRosterModal && (
+          <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
             <StudentAvatarDock
               students={students}
+              currentGrade={2}
               playerCount={activePlayerMode}
-              selectedStudentIds={selectedStudentIds}
-              onSelectStudentForPlayer={(_pIdx, sId) => {
-                if (onSelectStudent) {
+              selectedStudentIds={selectedStudentIds || []}
+              onSelectStudentForPlayer={(pIdx, sId) => {
+                if (onSelectStudentForPlayer) {
+                  onSelectStudentForPlayer(pIdx, sId);
+                } else if (onSelectStudent) {
                   onSelectStudent(sId);
                 }
               }}
-              onOpenRosterModal={() => {
-                if (onOpenRosterModal) onOpenRosterModal();
+              onOpenRosterModal={(grade) => {
+                if (onOpenRosterModal) onOpenRosterModal(grade || 2);
               }}
               playMp3={playMp3}
             />

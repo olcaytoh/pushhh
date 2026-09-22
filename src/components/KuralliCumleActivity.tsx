@@ -24,7 +24,8 @@ export interface KuralliCumleActivityProps {
   selectedStudentId?: string | null;
   selectedStudentIds?: (string | null)[];
   onSelectStudent?: (id: string | null) => void;
-  onOpenRosterModal?: () => void;
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
   onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
@@ -380,6 +381,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   selectedStudentId,
   selectedStudentIds = [null, null, null],
   onSelectStudent,
+  onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered
 }) => {
@@ -394,7 +396,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   }, [playerCountMode]);
 
   const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
-  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
 
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(() => {
     if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
@@ -1338,22 +1340,25 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         )}
 
         {/* 4. ALT DOCK - SADECE 2 VE 3 KİŞİLİK MODDA (ÖĞRENCİ LİSTESİ) */}
-        {activePlayerMode >= 2 && students && students.length > 0 && onSelectStudent && (
-          <div className="w-full shrink-0 flex items-center justify-center pt-1 pb-0.5">
-            <div className="w-full max-w-5xl flex items-center justify-center scale-90 sm:scale-95 origin-bottom">
-              <StudentAvatarDock
-                students={students}
-                playerCount={activePlayerMode}
-                selectedStudentIds={selectedStudentIds}
-                onSelectStudentForPlayer={(_pIdx, sId) => {
-                  if (onSelectStudent) onSelectStudent(sId);
-                }}
-                onOpenRosterModal={() => {
-                  if (onOpenRosterModal) onOpenRosterModal();
-                }}
-                playMp3={playMp3}
-              />
-            </div>
+        {activePlayerMode >= 2 && students && students.length > 0 && onOpenRosterModal && (
+          <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
+            <StudentAvatarDock
+              students={students}
+              currentGrade={selectedGrade}
+              playerCount={activePlayerMode}
+              selectedStudentIds={selectedStudentIds || []}
+              onSelectStudentForPlayer={(pIdx, sId) => {
+                if (onSelectStudentForPlayer) {
+                  onSelectStudentForPlayer(pIdx, sId);
+                } else if (onSelectStudent) {
+                  onSelectStudent(sId);
+                }
+              }}
+              onOpenRosterModal={(grade) => {
+                if (onOpenRosterModal) onOpenRosterModal(grade || selectedGrade);
+              }}
+              playMp3={playMp3}
+            />
           </div>
         )}
       </div>

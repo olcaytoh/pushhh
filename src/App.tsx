@@ -2041,6 +2041,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   sayi_dedektifi: '/MENUIKON/grid_icon_36.png',
   ritim_labirent: '/MENUIKON/grid_icon_17.png',
   geometri_eslestirme: '/MENUIKON/grid_icon_39.png',
+  geometrik_sekilleri_bul: '/MENUIKON/grid_icon_39.png',
   aynisini_bul: '/MENUIKON/grid_icon_20.png',
 
   // 3. SINIF TEMA 1 (Sayılar ve Nicelikler 1) - HER BUTON FARKLI!
@@ -2234,7 +2235,8 @@ const TopicButtonReferenceStyle: React.FC<{
   onClick: () => void;
   compact?: boolean;
   categoryTheme?: string;
-}> = ({ topicKey, title, onClick, compact, categoryTheme }) => {
+  badgeText?: string;
+}> = ({ topicKey, title, onClick, compact, categoryTheme, badgeText }) => {
   const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.png';
   const accent = getIconAccentColor(iconUrl);
 
@@ -2376,7 +2378,7 @@ const TopicButtonReferenceStyle: React.FC<{
               : 'bg-[#091122] border border-slate-700/70 text-slate-300'
           } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs`}>
             <span className={`w-1.5 h-1.5 rounded-full ${activeTheme ? activeTheme.dot : accent.dot} inline-block shrink-0`} />
-            <span>Alıştırma & Oyun</span>
+            <span>{badgeText || 'Alıştırma & Oyun'}</span>
           </span>
         </div>
       </div>
@@ -5246,7 +5248,7 @@ export default function App() {
 
       {/* MAIN SCREEN ROUTING - GRADE SELECTION (1, 2, 3, 4) OR GRADE-SPECIFIC DASHBOARD */}
       {gameState === 'welcome' && (
-        <div className="flex-1 flex flex-col items-center justify-start pt-3 sm:pt-5 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-start pt-0 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
           {selectedGrade === null ? (
             /* GRADE / CLASS SELECTION SCREEN (1. SINIF, 2. SINIF, 3. SINIF, 4. SINIF) */
             <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
@@ -5491,14 +5493,20 @@ export default function App() {
             </div>
           ) : selectedCategoryId === null ? (
             /* CATEGORY CARDS SCREEN */
-            <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-1.5">
+            <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-0">
               {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
-              <div className="w-full relative flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+              <div className="w-full relative flex items-center justify-center mb-0 px-2 shrink-0 z-20">
                 <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
                   <div className="flex items-center gap-2 sm:gap-3.5">
                     <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                      {selectedGrade === 1 ? '1. SINIF MATEMATİK' : selectedGrade === 2 ? '2. SINIF MATEMATİK' : selectedGrade === 3 ? '3. SINIF MATEMATİK' : '4. SINIF MATEMATİK'}
+                      {selectedGrade === 1
+                        ? '1. SINIF MATEMATİK'
+                        : selectedGrade === 2
+                          ? (selectedSubject === 'turkce' ? '2. SINIF TÜRKÇE' : '2. SINIF MATEMATİK')
+                          : selectedGrade === 3
+                            ? '3. SINIF MATEMATİK'
+                            : '4. SINIF MATEMATİK'}
                     </h2>
                     <span className="text-amber-400/60 font-bold">•</span>
                     <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
@@ -5987,40 +5995,7 @@ export default function App() {
                 </div>
               ) : selectedGrade === 2 && selectedSubject === 'turkce' ? (
                 /* MAIN CATEGORY CARDS - 2. SINIF TÜRKÇE */
-                <div className="w-full max-w-6xl mx-auto space-y-2.5">
-                  {/* DERS DEĞİŞTİRME VE BİLGİ SEKMESİ */}
-                  <div className="w-full flex items-center justify-between bg-[#121c2e] border-2 border-rose-500/60 border-l-4 border-l-rose-500 rounded-2xl p-2.5 sm:p-3 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
-                    <div className="flex items-center gap-2.5 sm:gap-3.5">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-xl sm:text-2xl shrink-0">
-                        📖
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-white text-xs sm:text-sm md:text-base font-black uppercase tracking-wider">
-                            2. Sınıf Türkçe Dersi
-                          </h3>
-                          <span className="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase">
-                            5 Etkinlik
-                          </span>
-                        </div>
-                        <p className="text-[10px] sm:text-xs text-rose-300 font-medium mt-0.5">
-                          Sözcük Sıralama, Zıt & Eş Anlam, Kurallı Cümle & Hece Sayısı
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        playMp3('/op.mp3');
-                        setSelectedSubject('matematik');
-                      }}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-300 text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
-                    >
-                      <span>📐</span>
-                      <span className="hidden xs:inline">Matematik Dersi</span>
-                      <span className="xs:hidden">Matematik</span>
-                    </button>
-                  </div>
-
+                <div className="w-full max-w-6xl mx-auto">
                   {/* 5 TÜRKÇE ETKİNLİĞİ GRID */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* CARD 1: SÖZCÜK SIRALAMA PORTALI */}
@@ -6177,41 +6152,6 @@ export default function App() {
               ) : (
                 /* MAIN CATEGORY CARDS - 2. SINIF MATEMATİK (TÜM MEVCUT ETKİNLİKLER) */
                 <div className="w-full max-w-6xl mx-auto space-y-2.5">
-                  {selectedGrade === 2 && (
-                    /* 2. SINIF MATEMATİK İÇİN DERS DEĞİŞTİRME SEKMESİ */
-                    <div className="w-full flex items-center justify-between bg-[#121c2e] border-2 border-orange-500/60 border-l-4 border-l-orange-500 rounded-2xl p-2.5 sm:p-3 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
-                      <div className="flex items-center gap-2.5 sm:gap-3.5">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-xl sm:text-2xl shrink-0">
-                          📐
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-white text-xs sm:text-sm md:text-base font-black uppercase tracking-wider">
-                              2. Sınıf Matematik Dersi
-                            </h3>
-                            <span className="bg-orange-500/30 text-orange-200 border border-orange-400/50 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase">
-                              Tüm Konular
-                            </span>
-                          </div>
-                          <p className="text-[10px] sm:text-xs text-orange-300 font-medium mt-0.5">
-                            Geometri, Sayılar, İşlemler, Veri, Zeka Oyunları & 3D Lab
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setSelectedSubject('turkce');
-                        }}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/50 text-rose-300 text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 shrink-0"
-                      >
-                        <span>📖</span>
-                        <span className="hidden xs:inline">Türkçe Dersi (5 Etkinlik)</span>
-                        <span className="xs:hidden">Türkçe</span>
-                      </button>
-                    </div>
-                  )}
-
                   <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* CARD 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
@@ -6776,84 +6716,33 @@ export default function App() {
                 {/* 5. DİĞER OYUNLAR (TÜM SINIF SEVİYELERİ İÇİN) */}
                 {selectedCategoryId === 'diger_oyunlar' && (
                   <div className="space-y-3 sm:space-y-4">
-                    {/* YENİ 2 KİŞİLİK OYUN: 🔍 AYNISINI BUL (HEDEF 10 PUAN) */}
-                    <div className="w-full">
-                      <button
+                    {/* ÖZEL KAPIŞMA OYUNLARI: 🔍 AYNISINI BUL & 🔷 GEOMETRİK ŞEKİLLERİ BUL (YAN YANA 2'Lİ IZGARA) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      <TopicButtonReferenceStyle
+                        topicKey="aynisini_bul"
+                        title="Aynısını Bul"
+                        categoryTheme="diger_oyunlar"
+                        badgeText="2 Kişilik Kapışma"
                         onClick={() => {
                           playMp3('/op.mp3');
                           const aIdx = findActivityIndex('aynisini_bul', undefined, selectedGrade || 1);
                           if (aIdx !== -1) setCurrentActivityIndex(aIdx);
                           setShowAynisiniBul(true);
                         }}
-                        className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_20.png" alt="Aynısını Bul" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
-                        </div>
-                        <div className="flex-1 text-left min-w-0 py-0.5 z-10">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-pink-400/20 border border-pink-400/60 text-pink-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block shrink-0 animate-pulse" />
-                              <span>2 Kişilik Kapışma</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/50 text-[10px] sm:text-xs text-rose-300 font-bold uppercase tracking-wider shadow-xs">
-                              <span>Hedef 7 Doğru (3 Hata Elenir)</span>
-                            </span>
-                          </div>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-pink-300 transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
-                            Aynısını Bul
-                          </h3>
-                          <p className="text-[10px] sm:text-xs text-pink-200/70 line-clamp-1 mt-0.5 font-medium">
-                            Kırmızı ve Mavi ekran! Ortak aynı nesneyi ilk bulan puanı kapar!
-                          </p>
-                        </div>
-                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                            ▶
-                          </div>
-                        </div>
-                      </button>
-                    </div>
+                      />
 
-                    {/* YENİ OYUN: 🔷 GEOMETRİK ŞEKİLLERİ BUL */}
-                    <div className="w-full">
-                      <button
+                      <TopicButtonReferenceStyle
+                        topicKey="geometrik_sekilleri_bul"
+                        title="Geometrik Şekilleri Bul"
+                        categoryTheme="diger_oyunlar"
+                        badgeText="1, 2 ve 3 Kişilik"
                         onClick={() => {
                           playMp3('/op.mp3');
                           const gsbIdx = findActivityIndex('geometrik_sekilleri_bul', undefined, selectedGrade || 1);
                           if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
                           setShowGeometrikSekilleriBul(true);
                         }}
-                        className="group relative w-full bg-gradient-to-r from-[#13283a] via-[#1a3854] to-[#13283a] hover:from-[#18334b] hover:via-[#22486c] hover:to-[#18334b] border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:shadow-[0_0_25px_rgba(34,211,238,0.45)] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_39.png" alt="Geometrik Şekilleri Bul" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
-                        </div>
-                        <div className="flex-1 text-left min-w-0 py-0.5 z-10">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-400/20 border border-cyan-400/60 text-cyan-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block shrink-0 animate-pulse" />
-                              <span>1, 2 ve 3 Kişilik</span>
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/50 text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wider shadow-xs">
-                              <span>Günlük Hayat Eşyaları</span>
-                            </span>
-                          </div>
-                          <h3 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-cyan-300 transition-colors leading-snug drop-shadow-xs uppercase tracking-wide mt-1">
-                            Geometrik Şekilleri Bul
-                          </h3>
-                          <p className="text-[10px] sm:text-xs text-cyan-200/70 line-clamp-1 mt-0.5 font-medium">
-                            Küp, silindir, koni, küre... Günlük yaşamdaki eşyaları doğru geometrik cisimle eşleştir!
-                          </p>
-                        </div>
-                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                            ▶
-                          </div>
-                        </div>
-                      </button>
+                      />
                     </div>
 
                     {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
@@ -8531,8 +8420,15 @@ export default function App() {
               prev[2] || null
             ]);
           }}
-          onOpenRosterModal={() => {
-            setRosterModalGrade(selectedGrade || 1);
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 1);
             setShowStudentRosterModal(true);
           }}
           onQuestionAnswered={(isCorrect) => {
@@ -8570,6 +8466,7 @@ export default function App() {
           }}
           students={currentGradeStudents}
           selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
             setSelectedStudentIds(prev => [
               prev[0] === id ? null : id,
@@ -8577,14 +8474,21 @@ export default function App() {
               prev[2] || null
             ]);
           }}
-          onOpenRosterModal={() => {
-            setRosterModalGrade(selectedGrade || 2);
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
         />
       )}
 
-      {/* SÖZLÜK SIRALAMA OYUNU (ALFABE PORTALI - 2 & 3 KİŞİLİK) */}
+      {/* SÖZLÜK SIRALAMA OYUNU (ALFABE PORTALI - 1, 2 & 3 KİŞİLİK) */}
       {showSozlukSirala && (
         <SozlukSiralaGame
           onClose={() => {
@@ -8598,16 +8502,33 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
           students={currentGradeStudents}
           selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
-            setSelectedStudentIds(id ? [id] : []);
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
             if (id) {
               playMp3?.('/ding.mp3');
             }
           }}
-          onOpenRosterModal={() => {
-            setRosterModalGrade(selectedGrade || 2);
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
           onQuestionAnswered={(isCorrect) => {
@@ -8647,8 +8568,15 @@ export default function App() {
               prev[2] || null
             ]);
           }}
-          onOpenRosterModal={() => {
-            setRosterModalGrade(selectedGrade || 2);
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
           onQuestionAnswered={(isCorrect) => {
@@ -8734,14 +8662,29 @@ export default function App() {
           soundEnabled={soundEnabled}
           students={currentGradeStudents}
           selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
-            setSelectedStudentIds(id ? [id] : []);
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
             if (id) {
               playMp3?.('/ding.mp3');
             }
           }}
-          onOpenRosterModal={() => {
-            setRosterModalGrade(selectedGrade || 2);
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
           onQuestionAnswered={(isCorrect, gType) => {

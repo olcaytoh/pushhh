@@ -21,8 +21,10 @@ interface WordGameModalProps {
   onQuestionAnswered?: (isCorrect: boolean, gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce') => void;
   students?: Student[];
   selectedStudentId?: string | null;
+  selectedStudentIds?: (string | null)[];
   onSelectStudent?: (id: string | null) => void;
-  onOpenRosterModal?: () => void;
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 type GameMode = 'duel2' | 'duel3' | 'quiz1' | 'matching';
@@ -184,12 +186,14 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   onQuestionAnswered,
   students,
   selectedStudentId,
+  selectedStudentIds: propSelectedStudentIds,
   onSelectStudent,
+  onSelectStudentForPlayer,
   onOpenRosterModal,
 }) => {
-  // Split students into Left (12) and Right (11) slots
+  // Split students into Left (12) and Right (12) slots
   const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
-  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
   const assignedStudent = useMemo(
     () => students?.find(s => s.id === selectedStudentId) || null,
     [students, selectedStudentId]
@@ -200,6 +204,13 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
     null,
     null
   ]);
+
+  const effectiveSelectedStudentIds = useMemo(() => {
+    if (propSelectedStudentIds && propSelectedStudentIds.length >= 3) {
+      return propSelectedStudentIds;
+    }
+    return selectedStudentIds;
+  }, [propSelectedStudentIds, selectedStudentIds]);
 
   useEffect(() => {
     if (selectedStudentId !== undefined) {
@@ -761,8 +772,8 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       );
     }
 
-    const assignedPlayerStudent = selectedStudentIds[pIdx]
-      ? (students?.find(s => s.id === selectedStudentIds[pIdx]) || null)
+    const assignedPlayerStudent = effectiveSelectedStudentIds[pIdx]
+      ? (students?.find(s => s.id === effectiveSelectedStudentIds[pIdx]) || null)
       : (pIdx === 0 ? assignedStudent : null);
 
     return (
@@ -1225,28 +1236,6 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                     </div>
                   </div>
                 )}
-
-                {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
-                {students && students.length > 0 && (
-                  <StudentAvatarDock
-                    students={students}
-                    currentGrade={2}
-                    playerCount={activeMode === 'duel3' ? 3 : 2}
-                    selectedStudentIds={selectedStudentIds}
-                    onSelectStudentForPlayer={(pIdx, studentId) => {
-                      setSelectedStudentIds(prev => {
-                        const updated = [...prev];
-                        updated[pIdx] = studentId;
-                        return updated;
-                      });
-                      if (studentId) playSound('click');
-                    }}
-                    onOpenRosterModal={() => {
-                      onOpenRosterModal?.();
-                    }}
-                    playMp3={playMp3}
-                  />
-                )}
               </div>
             )}
 
@@ -1470,6 +1459,31 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           </div>
         )}
       </main>
+
+      {/* EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - SADECE 2 VE 3 KİŞİLİK MODDA */}
+      {(activeMode === 'duel2' || activeMode === 'duel3') && students && students.length > 0 && onOpenRosterModal && (
+        <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            playerCount={activeMode === 'duel3' ? 3 : 2}
+            selectedStudentIds={effectiveSelectedStudentIds}
+            onSelectStudentForPlayer={(pIdx, studentId) => {
+              if (onSelectStudentForPlayer) {
+                onSelectStudentForPlayer(pIdx, studentId);
+              }
+              setSelectedStudentIds(prev => {
+                const updated = [...prev];
+                updated[pIdx] = studentId;
+                return updated;
+              });
+              playSound('click');
+            }}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };

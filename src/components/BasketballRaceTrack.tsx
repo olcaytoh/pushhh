@@ -170,10 +170,10 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
               const progressRatio = currentScore / targetScore;
               const isWinner = currentScore >= targetScore;
 
-              // Mascot sizing without circular frame (larger and arcade-like, tailored for lane widths)
+              // Mascot sizing without circular frame (100% enlarged for clear visibility)
               const mascotSize = activeCount === 2 
-                ? 'w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14' 
-                : 'w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10';
+                ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' 
+                : 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20';
 
               return (
                 <div
@@ -189,12 +189,12 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
                   <div className="relative flex flex-col items-center">
                     {/* WINNER SLAM DUNK BADGE AT HOOP */}
                     {isWinner && (
-                      <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-amber-400 text-slate-950 font-black text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full border border-white shadow-md animate-bounce uppercase tracking-wider z-40">
+                      <div className="absolute -top-7 sm:-top-8 md:-top-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[10px] md:text-xs px-2.5 py-0.5 rounded-full border-2 border-white shadow-xl animate-bounce uppercase tracking-wider z-40">
                         BASKET! 🎯
                       </div>
                     )}
 
-                    {/* CHARACTER IMAGE (FRAMELSS & ENLARGED) */}
+                    {/* CHARACTER IMAGE (FRAMELESS & 100% ENLARGED) */}
                     <div
                       className={`relative ${mascotSize} flex items-center justify-center shrink-0 transition-transform ${
                         isWinner ? 'scale-125 animate-pulse' : ''
@@ -203,19 +203,19 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
                       <img
                         src={cfg.img}
                         alt={cfg.character}
-                        className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
+                        className="w-full h-full object-contain filter drop-shadow-[0_6px_14px_rgba(0,0,0,0.85)]"
                         loading="eager"
                         decoding="async"
                       />
 
                       {/* SCORE BADGE */}
-                      <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 font-black text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full border border-white leading-none shadow-md z-10">
+                      <span className="absolute -top-2 -right-2 bg-amber-400 text-slate-950 font-black text-[10px] sm:text-xs md:text-sm px-2 py-0.5 rounded-full border-2 border-white leading-none shadow-lg z-10">
                         {currentScore}
                       </span>
                     </div>
 
                     {/* STATIC BASKETBALL (SABİT TOP) */}
-                    <div className="text-[11px] sm:text-[13px] filter drop-shadow-md select-none -mt-1.5">
+                    <div className="text-lg sm:text-2xl md:text-3xl filter drop-shadow-md select-none -mt-2">
                       🏀
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
             const currentScore = Math.max(0, Math.min(targetScore, player?.score || 0));
             const progressRatio = currentScore / targetScore;
             const isWinner = currentScore >= targetScore;
-            const mascotSize = activeCount === 2 ? 'w-8 h-8 sm:w-10 sm:h-10' : 'w-7 h-7 sm:w-9 sm:h-9';
+            const mascotSize = activeCount === 2 ? 'w-16 h-16 sm:w-20 sm:h-20' : 'w-14 h-14 sm:w-18 sm:h-18';
 
             return (
               <div
@@ -304,12 +304,12 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
               >
                 <div className="relative flex items-center">
                   <div className={`relative ${mascotSize} flex items-center justify-center shrink-0 ${isWinner ? 'scale-125 animate-pulse' : ''}`}>
-                    <img src={cfg.img} alt={cfg.character} className="w-full h-full object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]" loading="eager" decoding="async" />
-                    <span className="absolute -top-1 -right-1 bg-amber-400 text-blue-950 font-black text-[7px] sm:text-[8px] px-1 py-0.5 rounded-full border border-white leading-none shadow-xs">
+                    <img src={cfg.img} alt={cfg.character} className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" loading="eager" decoding="async" />
+                    <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-blue-950 font-black text-[9px] sm:text-[11px] px-1.5 py-0.5 rounded-full border border-white leading-none shadow-sm">
                       {currentScore}
                     </span>
                   </div>
-                  <div className="relative -ml-1 text-[10px] sm:text-[12px] filter drop-shadow-sm select-none">
+                  <div className="relative -ml-1 text-base sm:text-xl filter drop-shadow-sm select-none">
                     🏀
                   </div>
                 </div>
@@ -400,29 +400,29 @@ export const SingleBasketballTrack: React.FC<SingleBasketballTrackProps> = ({
           >
             {/* Basket! indicator when target reached */}
             {reachedGoal && (
-              <div className="animate-bounce -mb-1 px-1.5 py-0.5 rounded-full bg-yellow-400 border border-white text-slate-950 font-black text-[8px] sm:text-[9px] shadow-lg whitespace-nowrap">
+              <div className="animate-bounce -mb-1 px-2 py-0.5 rounded-full bg-yellow-400 border-2 border-white text-slate-950 font-black text-[9px] sm:text-[10px] md:text-xs shadow-lg whitespace-nowrap">
                 BASKET! 🎯
               </div>
             )}
 
-            {/* Mascot Character with score pill */}
+            {/* Mascot Character with score pill (100% enlarged) */}
             <div className="relative flex flex-col items-center">
-              <div className={`relative w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center shrink-0 ${reachedGoal ? 'scale-125 animate-pulse' : ''}`}>
+              <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0 ${reachedGoal ? 'scale-125 animate-pulse' : ''}`}>
                 <img
                   src={cfg.img}
                   alt={cfg.character}
-                  className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]"
+                  className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]"
                   loading="eager"
                   decoding="async"
                 />
                 {/* Score badge */}
-                <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 font-black text-[8px] sm:text-[9px] px-1 py-0.5 rounded-full border border-white leading-none shadow-md z-10">
+                <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 font-black text-[9px] sm:text-[11px] md:text-xs px-2 py-0.5 rounded-full border-2 border-white leading-none shadow-md z-10">
                   {currentScore}
                 </span>
               </div>
 
               {/* Basketball emoji under mascot feet */}
-              <div className="text-[10px] sm:text-[12px] filter drop-shadow-sm select-none leading-none -mt-0.5">
+              <div className="text-lg sm:text-xl md:text-2xl filter drop-shadow-sm select-none leading-none -mt-1.5">
                 🏀
               </div>
             </div>

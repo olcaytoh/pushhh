@@ -74,6 +74,10 @@ export async function signInWithGoogle(): Promise<User> {
       throw new Error('Giriş işlemi iptal edildi.');
     } else if (error?.code === 'auth/cancelled-popup-request') {
       throw new Error('Giriş isteği iptal edildi.');
+    } else if (error?.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      const err = new Error('auth/unauthorized-domain');
+      (err as any).code = 'auth/unauthorized-domain';
+      throw err;
     }
     throw new Error(error?.message || 'Google ile giriş yapılırken bir sorun oluştu.');
   }

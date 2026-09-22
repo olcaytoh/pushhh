@@ -13,6 +13,7 @@ import {
 } from '../data/sozlukSiralaData';
 import { Student } from '../types/student';
 import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface SozlukSiralaGameProps {
   onClose: () => void;
@@ -21,15 +22,19 @@ interface SozlukSiralaGameProps {
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialGradeGroup?: '1-2' | '3-4';
+  playerCountMode?: 1 | 2 | 3;
+  onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
   students?: Student[];
   selectedStudentId?: string | null;
+  selectedStudentIds?: (string | null)[];
   onSelectStudent?: (id: string | null) => void;
-  onOpenRosterModal?: () => void;
+  onSelectStudentForPlayer?: (pIdx: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
   onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
 type GradeGroup = '1-2' | '3-4';
-type PlayerMode = 2 | 3;
+type PlayerMode = 1 | 2 | 3;
 
 interface PlayerState {
   id: number;
@@ -49,20 +54,16 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   onNextActivity,
   playMp3,
   initialGradeGroup = '1-2',
+  playerCountMode = 2,
+  onSwitchPlayerCountMode,
   students,
   selectedStudentId,
+  selectedStudentIds,
   onSelectStudent,
+  onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered,
 }) => {
-  // Split students into Left (12) and Right (11) slots
-  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
-  const rightStudents = useMemo(() => (students || []).slice(12, 23), [students]);
-  const assignedStudent = useMemo(
-    () => students?.find(s => s.id === selectedStudentId) || null,
-    [students, selectedStudentId]
-  );
-
   // Config state
   const [gradeGroup, setGradeGroup] = useState<GradeGroup>(initialGradeGroup);
 
@@ -74,7 +75,51 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       setRoundWinner(null);
     }
   }, [initialGradeGroup]);
-  const [playerMode, setPlayerMode] = useState<PlayerMode>(2);
+
+  const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 2);
+
+  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
+  const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
+
+  // Local student selection state
+  const [internalSelectedIds, setInternalSelectedIds] = useState<(string | null)[]>([
+    selectedStudentIds?.[0] || selectedStudentId || null,
+    selectedStudentIds?.[1] || null,
+    selectedStudentIds?.[2] || null
+  ]);
+
+  useEffect(() => {
+    if (selectedStudentIds && selectedStudentIds.length > 0) {
+      setInternalSelectedIds([
+        selectedStudentIds[0] || null,
+        selectedStudentIds[1] || null,
+        selectedStudentIds[2] || null
+      ]);
+    } else if (selectedStudentId !== undefined) {
+      setInternalSelectedIds(prev => [selectedStudentId, prev[1] || null, prev[2] || null]);
+    }
+  }, [selectedStudentIds, selectedStudentId]);
+
+  const effectiveSelectedStudentIds = useMemo(() => {
+    if (selectedStudentIds && selectedStudentIds.length > 0) {
+      return selectedStudentIds;
+    }
+    return internalSelectedIds;
+  }, [selectedStudentIds, internalSelectedIds]);
+
+  const handleSelectStudentForPlayer = (pIdx: number, studentId: string | null) => {
+    setInternalSelectedIds(prev => {
+      const updated = [...prev];
+      updated[pIdx] = studentId;
+      return updated;
+    });
+    if (onSelectStudentForPlayer) {
+      onSelectStudentForPlayer(pIdx, studentId);
+    } else if (pIdx === 0 && onSelectStudent) {
+      onSelectStudent(studentId);
+    }
+    triggerSound('/op.mp3');
+  };
   const [currentRound, setCurrentRound] = useState<number>(1);
   const totalRounds = 5;
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -84,7 +129,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
   // Round data
-  const letterCount: 4 | 5 = gradeGroup === '1-2' ? 4 : 5;
+  const letterCount: 3 | 4 = gradeGroup === '1-2' ? 3 : 4;
   const [roundLetters, setRoundLetters] = useState<string[]>([]);
   const [sortedRoundLetters, setSortedRoundLetters] = useState<string[]>([]);
 
@@ -99,6 +144,21 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
 
   // Players initial configuration
   const createInitialPlayers = useCallback((mode: PlayerMode, letters: string[], count: number): PlayerState[] => {
+    if (mode === 1) {
+      return [
+        {
+          id: 1,
+          name: '1. Oyuncu',
+          colorName: 'blue',
+          score: 0,
+          upperSlots: Array(count).fill(null),
+          availableLetters: [...letters],
+          status: 'idle',
+          shake: false
+        }
+      ];
+    }
+
     const list: PlayerState[] = [
       {
         id: 1,
@@ -112,7 +172,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       },
       {
         id: 2,
-        name: mode === 2 ? '2. Oyuncu' : '2. Oyuncu',
+        name: '2. Oyuncu',
         colorName: mode === 2 ? 'pink' : 'orange',
         score: 0,
         upperSlots: Array(count).fill(null),
@@ -142,7 +202,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
 
   // Start new round
   const startNewRound = useCallback((roundNum: number, grade: GradeGroup, mode: PlayerMode, resetScores = false) => {
-    const count: 4 | 5 = grade === '1-2' ? 4 : 5;
+    const count: 3 | 4 = grade === '1-2' ? 3 : 4;
     const { originalSorted, scrambled } = generateRoundLetters(count);
     setRoundLetters(scrambled);
     setSortedRoundLetters(originalSorted);
@@ -164,6 +224,17 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
     startNewRound(1, gradeGroup, playerMode, true);
   }, []);
 
+  // Synchronize playerMode when playerCountMode prop changes
+  useEffect(() => {
+    if (playerCountMode && (playerCountMode === 1 || playerCountMode === 2 || playerCountMode === 3)) {
+      if (playerCountMode !== playerMode) {
+        setPlayerMode(playerCountMode);
+        setGameOver(false);
+        startNewRound(1, gradeGroup, playerCountMode, true);
+      }
+    }
+  }, [playerCountMode, playerMode, gradeGroup, startNewRound]);
+
   // Handle Grade Change
   const handleGradeChange = (newGrade: GradeGroup) => {
     triggerSound('/op.mp3');
@@ -176,6 +247,9 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   const handlePlayerModeChange = (newMode: PlayerMode) => {
     triggerSound('/op.mp3');
     setPlayerMode(newMode);
+    if (onSwitchPlayerCountMode) {
+      onSwitchPlayerCountMode(newMode);
+    }
     setGameOver(false);
     startNewRound(1, gradeGroup, newMode, true);
   };
@@ -571,8 +645,18 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
             </button>
           </div>
 
-          {/* Player Mode toggle (2 Kişilik vs 3 Kişilik) */}
+          {/* Player Mode toggle (1, 2, 3 Kişilik) */}
           <div className="hidden md:flex items-center p-0.5 bg-slate-900 rounded-xl border border-slate-700 shadow-inner">
+            <button
+              onClick={() => handlePlayerModeChange(1)}
+              className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                playerMode === 1
+                  ? 'bg-amber-400 text-slate-950 shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              1 Kişilik
+            </button>
             <button
               onClick={() => handlePlayerModeChange(2)}
               className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
@@ -661,39 +745,17 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
         </div>
       )}
 
-      {/* ACTIVE STUDENT NOTIFICATION BADGE IF ANY */}
-      {assignedStudent && (
-        <div className="relative z-20 mt-1 flex items-center justify-center shrink-0">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold shadow animate-fadeIn">
-            <span>🎮 Oynayan Öğrenci:</span>
-            <span className="text-white font-extrabold flex items-center gap-1">
-              <span>{assignedStudent.avatar}</span>
-              <span>{assignedStudent.name}</span>
-            </span>
-            {onSelectStudent && (
-              <button
-                type="button"
-                onClick={() => onSelectStudent(null)}
-                className="text-amber-400 hover:text-amber-200 ml-1 text-[11px] underline cursor-pointer"
-              >
-                (Değiştir)
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 3. MAIN WORKSPACE WITH SIDE AVATAR GRIDS */}
-      <div className="relative z-10 flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden p-1 sm:p-2">
-        {/* LEFT STUDENT SIDE GRID */}
-        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+      {/* 3. MAIN WORKSPACE WITH BATTLE ARENA */}
+      <div className="relative z-10 flex-1 flex flex-row items-center justify-center gap-1 sm:gap-2 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-1 sm:px-2 py-0.5 sm:py-1">
+        {/* LEFT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
+        {playerMode === 1 && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
           <div className="hidden xl:flex shrink-0 self-center">
             <StudentAvatarSideGrid
               slotsStudents={leftStudents}
               side="left"
               count={students.length}
               label="1. Grup (Sol)"
-              selectedStudentId={selectedStudentId || null}
+              selectedStudentId={effectiveSelectedStudentIds[0] || selectedStudentId || null}
               onSelectStudent={onSelectStudent}
               onOpenRosterModal={onOpenRosterModal}
               playMp3={triggerSound}
@@ -701,17 +763,20 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
           </div>
         )}
 
-        {/* CENTER BATTLE ARENA (EXACT SPLIT FROM PHOTO) */}
+        {/* CENTER BATTLE ARENA */}
         <div className="flex-1 flex flex-row relative min-h-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800 shadow-2xl">
           {players.map((player, pIdx) => {
             const theme = getPlayerTheme(player.colorName);
             const isWinnerThisRound = roundWinner === pIdx;
+            const assignedPlayerStudent = effectiveSelectedStudentIds[pIdx]
+              ? students?.find(s => s.id === effectiveSelectedStudentIds[pIdx])
+              : null;
 
             return (
               <React.Fragment key={player.id}>
                 {/* Individual Player Screen Panel */}
                 <div 
-                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 px-2 sm:px-4 py-2 sm:py-3 transition-transform ${
+                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 ${playerMode === 3 ? 'px-1 sm:px-2 py-1 sm:py-1.5' : 'px-2 sm:px-4 py-2 sm:py-3'} transition-transform ${
                     player.shake ? 'animate-shake' : ''
                   }`}
                 >
@@ -721,11 +786,11 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                   {/* Player Header Info & Score */}
                   <div className="relative z-10 flex items-center justify-between w-full max-w-lg mx-auto mb-1 shrink-0">
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-xl bg-black/40 text-white font-black text-xs sm:text-sm border border-white/30 backdrop-blur-sm shadow-sm flex items-center gap-1.5">
-                        {pIdx === 0 && assignedStudent ? (
+                      <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-black/40 text-white font-black text-xs sm:text-sm border border-white/30 backdrop-blur-sm shadow-sm flex items-center gap-1.5">
+                        {assignedPlayerStudent ? (
                           <>
-                            <span>{assignedStudent.avatar}</span>
-                            <span>{assignedStudent.name}</span>
+                            <span className="text-sm sm:text-base">{assignedPlayerStudent.avatar}</span>
+                            <span className="font-extrabold text-amber-200">{assignedPlayerStudent.name}</span>
                           </>
                         ) : (
                           player.name
@@ -733,169 +798,202 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </span>
                     </div>
 
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/50 border border-amber-400/70 shadow-md">
-                    <Trophy className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs sm:text-sm font-black text-amber-300">
-                      {player.score} Puan
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3.1 ALFABE PORTALI (CONCENTRIC GLOWING CIRCLES - EXACT MATCH TO USER'S PHOTO) */}
-                <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-[110px] max-h-[220px] shrink-0 my-auto">
-                  <div className="relative flex items-center justify-center w-28 h-28 xs:w-36 xs:h-36 sm:w-44 sm:h-44 md:w-48 md:h-48">
-                    {/* Outer segmented tick marks ring */}
-                    <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/40 animate-[spin_30s_linear_infinite]" />
-
-                    {/* Outer glow ring with white arc */}
-                    <div className={`absolute inset-2 rounded-full border-4 ${theme.portalRing1} ${theme.portalGlow} animate-pulse`} />
-
-                    {/* Inner glowing radial portal */}
-                    <div className={`absolute inset-4 rounded-full ${theme.portalInner} flex items-center justify-center shadow-inner overflow-hidden`}>
-                      {/* Swirling energy effect */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent animate-[spin_8s_linear_infinite]" />
-
-                      {/* Concentric middle ring */}
-                      <div className="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/60 flex items-center justify-center bg-white/10 backdrop-blur-xs">
-                        {/* Center core pulse */}
-                        <div className={`w-7 h-7 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-full bg-white ${theme.coreRing} flex items-center justify-center animate-ping`} />
-                        <div className="absolute w-5 h-5 xs:w-7 xs:h-7 sm:w-9 sm:h-9 rounded-full bg-white shadow-[0_0_15px_#fff]" />
-                      </div>
+                    <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-black/50 border border-amber-400/70 shadow-md">
+                      <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                      <span className="text-xs sm:text-sm font-black text-amber-300">
+                        {player.score} Puan
+                      </span>
                     </div>
-
-                    {/* Win celebration badge over portal */}
-                    {isWinnerThisRound && (
-                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-200">
-                        <CheckCircle2 className="w-12 h-12 text-emerald-400 drop-shadow-md animate-bounce" />
-                        <span className="text-white font-black text-xs sm:text-sm uppercase tracking-wider">DOĞRU!</span>
-                      </div>
-                    )}
-
-                    {/* Wrong buzzer badge over portal */}
-                    {player.status === 'wrong' && (
-                      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-rose-950/80 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-150">
-                        <XCircle className="w-12 h-12 text-rose-400 drop-shadow-md animate-bounce" />
-                        <span className="text-white font-black text-xs sm:text-sm uppercase tracking-wider">TEKRAR DENE</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3.2 MAIN INTERACTIVE LETTER CONSOLE CONTAINER */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center gap-2 sm:gap-3 shrink-0 pb-1">
-                  {/* Console Header Pill Badge (Matching photo: "HARFLERİ SIRALA") */}
-                  <div className={`px-4 sm:px-6 py-1 rounded-full font-black text-xs sm:text-sm uppercase tracking-wider border shadow-md ${theme.pillHeader}`}>
-                    HARFLERİ SIRALA
                   </div>
 
-                  {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                  <div className={`w-full rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 border backdrop-blur-md shadow-2xl flex flex-col gap-2.5 sm:gap-3.5 ${theme.cardBg}`}>
-                    {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR ALPHABETICAL ORDER */}
-                    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 w-full">
-                      {player.upperSlots.map((letter, slotIdx) => (
-                        <div
-                          key={`upper_${slotIdx}`}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => handleDropOnTarget(e, pIdx, slotIdx)}
-                          onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
-                          draggable={letter !== null}
-                          onDragStart={(e) => letter && handleDragStartTarget(e, pIdx, letter, slotIdx)}
-                          className={`flex-1 max-w-[76px] aspect-square rounded-xl sm:rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer font-black text-2xl xs:text-3xl sm:text-4xl select-none ${
-                            letter 
-                              ? `${theme.slotFilled} hover:scale-105 active:scale-95` 
-                              : `${theme.slotEmpty} border-dashed hover:border-white/80`
-                          }`}
-                        >
-                          {letter ? (
-                            <span>{letter}</span>
-                          ) : (
-                            <span className="text-white/30 text-xs sm:text-sm font-bold">
-                              {slotIdx + 1}
-                            </span>
-                          )}
+                  {/* 3.1 ALFABE PORTALI (CONCENTRIC GLOWING CIRCLES) */}
+                  <div className={`relative z-10 flex-1 flex flex-col items-center justify-center shrink-0 my-auto ${
+                    playerMode === 3 
+                      ? 'min-h-[40px] max-h-[64px]' 
+                      : playerMode === 1 
+                      ? 'min-h-[90px] max-h-[170px]' 
+                      : 'min-h-[65px] max-h-[125px]'
+                  }`}>
+                    <div className={`relative flex items-center justify-center ${
+                      playerMode === 3 
+                        ? 'w-12 h-12 sm:w-14 sm:h-14' 
+                        : playerMode === 1 
+                        ? 'w-28 h-28 sm:w-36 sm:h-36' 
+                        : 'w-20 h-20 sm:w-26 sm:h-26'
+                    }`}>
+                      {/* Outer segmented tick marks ring */}
+                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/40 animate-[spin_30s_linear_infinite]" />
+
+                      {/* Outer glow ring with white arc */}
+                      <div className={`absolute inset-1 sm:inset-2 rounded-full border-2 sm:border-4 ${theme.portalRing1} ${theme.portalGlow} animate-pulse`} />
+
+                      {/* Inner glowing radial portal */}
+                      <div className={`absolute inset-2 sm:inset-3 rounded-full ${theme.portalInner} flex items-center justify-center shadow-inner overflow-hidden`}>
+                        {/* Swirling energy effect */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent animate-[spin_8s_linear_infinite]" />
+
+                        {/* Concentric middle ring */}
+                        <div className={`${playerMode === 3 ? 'w-8 h-8' : 'w-12 h-12 sm:w-16 sm:h-16'} rounded-full border border-white/60 flex items-center justify-center bg-white/10 backdrop-blur-xs`}>
+                          {/* Center core pulse */}
+                          <div className={`${playerMode === 3 ? 'w-4 h-4' : 'w-6 h-6 sm:w-8 sm:h-8'} rounded-full bg-white ${theme.coreRing} flex items-center justify-center animate-ping`} />
+                          <div className={`absolute ${playerMode === 3 ? 'w-3 h-3' : 'w-5 h-5 sm:w-6 sm:h-6'} rounded-full bg-white shadow-[0_0_12px_#fff]`} />
                         </div>
-                      ))}
-                    </div>
+                      </div>
 
-                    {/* DIVIDER LINE WITH HELPFUL TIP */}
-                    <div className="w-full flex items-center justify-between px-1 text-[10px] sm:text-xs font-semibold text-white/70">
-                      <span>Aşağıdaki harflere dokun veya sürükle:</span>
-                      {player.upperSlots.some(s => s !== null) && (
-                        <button
-                          onClick={() => handleResetPlayerSlots(pIdx)}
-                          className="text-white/90 hover:text-white underline font-bold transition-colors cursor-pointer"
-                        >
-                          Sıfırla
-                        </button>
+                      {/* Win celebration badge over portal */}
+                      {isWinnerThisRound && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-200">
+                          <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 drop-shadow-md animate-bounce" />
+                          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-wider">DOĞRU!</span>
+                        </div>
+                      )}
+
+                      {/* Wrong buzzer badge over portal */}
+                      {player.status === 'wrong' && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-rose-950/80 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-150">
+                          <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-rose-400 drop-shadow-md animate-bounce" />
+                          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-wider">TEKRAR</span>
+                        </div>
                       )}
                     </div>
+                  </div>
 
-                    {/* LOWER SOURCE ROW: SCRAMBLED LETTERS AVAILABLE */}
-                    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 w-full min-h-[48px] xs:min-h-[56px] sm:min-h-[64px]">
-                      {/* Fixed length slots to keep alignment steady */}
-                      {Array.from({ length: letterCount }).map((_, letterIdx) => {
-                        const letter = player.availableLetters[letterIdx];
-                        return (
+                  {/* 3.2 MAIN INTERACTIVE LETTER CONSOLE CONTAINER */}
+                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-xl' : 'max-w-lg'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-1.5 sm:gap-2 pb-1'}`}>
+                    {/* Console Header Pill Badge */}
+                    <div className={`px-3 sm:px-4 py-0.5 rounded-full font-black ${playerMode === 3 ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} uppercase tracking-wider border shadow-md ${theme.pillHeader}`}>
+                      HARFLERİ SIRALA
+                    </div>
+
+                    {/* Glassy Card holding Upper Target Slots and Lower Tray */}
+                    <div className={`w-full rounded-xl sm:rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1 sm:p-1.5 gap-1' : 'p-2 sm:p-3 gap-2'} ${theme.cardBg}`}>
+                      {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR ALPHABETICAL ORDER */}
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-0.5 sm:gap-1' : 'gap-1.5 sm:gap-2'}`}>
+                        {player.upperSlots.map((letter, slotIdx) => (
                           <div
-                            key={`source_slot_${letterIdx}`}
-                            className="flex-1 max-w-[76px] aspect-square flex items-center justify-center"
+                            key={`upper_${slotIdx}`}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => handleDropOnTarget(e, pIdx, slotIdx)}
+                            onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
+                            draggable={letter !== null}
+                            onDragStart={(e) => letter && handleDragStartTarget(e, pIdx, letter, slotIdx)}
+                            className={`flex-1 ${
+                              playerMode === 3 
+                                ? 'max-w-[42px] sm:max-w-[48px] rounded-lg text-base xs:text-lg sm:text-xl' 
+                                : playerMode === 1 
+                                ? 'max-w-[74px] rounded-xl text-3xl sm:text-4xl' 
+                                : 'max-w-[62px] rounded-xl text-2xl sm:text-3xl'
+                            } aspect-square border-2 flex items-center justify-center transition-all cursor-pointer font-black select-none ${
+                              letter 
+                                ? `${theme.slotFilled} hover:scale-105 active:scale-95` 
+                                : `${theme.slotEmpty} border-dashed hover:border-white/80`
+                            }`}
                           >
                             {letter ? (
-                              <div
-                                draggable
-                                onDragStart={(e) => handleDragStartSource(e, pIdx, letter, letterIdx)}
-                                onClick={() => handleTapSourceLetter(pIdx, letter, letterIdx)}
-                                className="w-full h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 border-slate-100 shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black text-2xl xs:text-3xl sm:text-4xl cursor-pointer select-none"
-                              >
-                                {letter}
-                              </div>
+                              <span>{letter}</span>
                             ) : (
-                              <div className="w-full h-full rounded-xl sm:rounded-2xl bg-black/20 border border-white/10" />
+                              <span className="text-white/30 text-xs font-bold">
+                                {slotIdx + 1}
+                              </span>
                             )}
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
+
+                      {/* DIVIDER LINE WITH HELPFUL TIP */}
+                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-xs'}`}>
+                        <span>Harflere dokun:</span>
+                        {player.upperSlots.some(s => s !== null) && (
+                          <button
+                            onClick={() => handleResetPlayerSlots(pIdx)}
+                            className="text-white/90 hover:text-white underline font-bold transition-colors cursor-pointer"
+                          >
+                            Sıfırla
+                          </button>
+                        )}
+                      </div>
+
+                      {/* LOWER SOURCE ROW: SCRAMBLED LETTERS AVAILABLE */}
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-0.5 sm:gap-1 min-h-[30px] sm:min-h-[36px]' : 'gap-1.5 sm:gap-2 min-h-[44px] sm:min-h-[54px]'}`}>
+                        {Array.from({ length: letterCount }).map((_, letterIdx) => {
+                          const letter = player.availableLetters[letterIdx];
+                          return (
+                            <div
+                              key={`source_slot_${letterIdx}`}
+                              className={`flex-1 ${
+                                playerMode === 3 
+                                  ? 'max-w-[42px] sm:max-w-[48px]' 
+                                  : playerMode === 1 
+                                  ? 'max-w-[74px]' 
+                                  : 'max-w-[62px]'
+                              } aspect-square flex items-center justify-center`}
+                            >
+                              {letter ? (
+                                <div
+                                  draggable
+                                  onDragStart={(e) => handleDragStartSource(e, pIdx, letter, letterIdx)}
+                                  onClick={() => handleTapSourceLetter(pIdx, letter, letterIdx)}
+                                  className={`w-full h-full ${
+                                    playerMode === 3 
+                                      ? 'rounded-lg text-base xs:text-lg sm:text-xl' 
+                                      : playerMode === 1 
+                                      ? 'rounded-xl text-3xl sm:text-4xl' 
+                                      : 'rounded-xl text-2xl sm:text-3xl'
+                                  } bg-white text-slate-900 border-2 border-slate-100 shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black cursor-pointer select-none`}
+                                >
+                                  {letter}
+                                </div>
+                              ) : (
+                                <div className="w-full h-full rounded-lg sm:rounded-xl bg-black/20 border border-white/10" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 3.3 BOTTOM ACTION BUTTON: "ÇALIŞTIR" */}
+                    <button
+                      onClick={() => handleExecuteCheck(pIdx)}
+                      disabled={roundWinner !== null}
+                      className={`w-full ${playerMode === 1 ? 'max-w-md' : 'max-w-sm'} ${
+                        playerMode === 3 
+                          ? 'py-1 sm:py-1.5 px-3 text-[11px] sm:text-xs' 
+                          : 'py-2 sm:py-2.5 px-6 text-sm sm:text-base'
+                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 ${
+                        theme.runBtn
+                      } ${
+                        roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      ÇALIŞTIR
+                    </button>
+                  </div>
+                </div>
+
+                {/* VS DIVIDER BADGE BETWEEN PLAYERS */}
+                {pIdx < players.length - 1 && (
+                  <div className="relative z-20 flex flex-col items-center justify-center shrink-0 w-0">
+                    <div className="w-[2px] sm:w-[3px] h-full bg-white/40 shadow-sm" />
+                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 px-2 py-1 rounded-xl bg-slate-950 text-white font-black text-[10px] sm:text-xs tracking-widest border-2 border-white shadow-[0_0_15px_rgba(0,0,0,0.8)] z-30">
+                      VS
                     </div>
                   </div>
-
-                  {/* 3.3 BOTTOM ACTION BUTTON: "ÇALIŞTIR" (EXACT MATCH TO PHOTO) */}
-                  <button
-                    onClick={() => handleExecuteCheck(pIdx)}
-                    disabled={roundWinner !== null}
-                    className={`w-full max-w-sm py-2.5 sm:py-3.5 px-6 rounded-full font-black text-sm sm:text-base md:text-lg tracking-widest uppercase transition-all cursor-pointer border-2 ${
-                      theme.runBtn
-                    } ${
-                      roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    ÇALIŞTIR
-                  </button>
-                </div>
-              </div>
-
-              {/* VS DIVIDER BADGE BETWEEN PLAYERS (EXACT FROM PHOTO) */}
-              {pIdx < players.length - 1 && (
-                <div className="relative z-20 flex flex-col items-center justify-center shrink-0 w-0">
-                  <div className="w-[3px] h-full bg-white/40 shadow-sm" />
-                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 px-2.5 py-1.5 rounded-xl bg-slate-950 text-white font-black text-xs sm:text-sm tracking-widest border-2 border-white shadow-[0_0_15px_rgba(0,0,0,0.8)] z-30">
-                    VS
-                  </div>
-                </div>
-              )}
-            </React.Fragment>
-          );
-        })}
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
 
-        {/* RIGHT STUDENT SIDE GRID */}
-        {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
+        {/* RIGHT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
+        {playerMode === 1 && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
           <div className="hidden xl:flex shrink-0 self-center">
             <StudentAvatarSideGrid
               slotsStudents={rightStudents}
               side="right"
               count={students.length}
               label="2. Grup (Sağ)"
-              selectedStudentId={selectedStudentId || null}
+              selectedStudentId={effectiveSelectedStudentIds[0] || selectedStudentId || null}
               onSelectStudent={onSelectStudent}
               onOpenRosterModal={onOpenRosterModal}
               playMp3={triggerSound}
@@ -903,6 +1001,21 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
           </div>
         )}
       </div>
+
+      {/* ÖĞRENCİ LİSTESİ DOCK'U - SADECE 2 VE 3 KİŞİLİK MODDA */}
+      {playerMode >= 2 && students && students.length > 0 && onOpenRosterModal && (
+        <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={gradeGroup === '3-4' ? 3 : 2}
+            playerCount={playerMode}
+            selectedStudentIds={effectiveSelectedStudentIds}
+            onSelectStudentForPlayer={handleSelectStudentForPlayer}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={triggerSound}
+          />
+        </div>
+      )}
 
       {/* 4. ROUND VICTORY OVERLAY BANNER */}
       {roundWinner !== null && !gameOver && (

@@ -1,12 +1,12 @@
 {
-  "projectId": "trans-mountain-st8c4",
-  "appId": "1:594112650739:web:1fadca515434a66b168686",
-  "apiKey": "AIzaSyAwVLep22u5f9RvkR3dK312A0UUZbUTkbQ",
-  "authDomain": "trans-mountain-st8c4.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-pushh-db1a9a06-cc10-4cb0-8b98-3267c15cf636",
-  "storageBucket": "trans-mountain-st8c4.firebasestorage.app",
-  "messagingSenderId": "594112650739",
-  "measurementId": "",
-  "oAuthClientId": "594112650739-elng93qjiva7acd8gtbbspoe1ovolsjb.apps.googleusercontent.com",
+  "projectId": "project-5907939659831290660",
+  "appId": "1:65110114428:web:a2c34cfbe689764ce0c9f9",
+  "apiKey": "AIzaSyB7O5ZYRMqoFlg9AXuAzSpiOIt6WxQXnlg",
+  "authDomain": "project-5907939659831290660.firebaseapp.com",
+  "firestoreDatabaseId": "",
+  "storageBucket": "project-5907939659831290660.firebasestorage.app",
+  "messagingSenderId": "65110114428",
+  "measurementId": "G-3WTWNXC6LN",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }

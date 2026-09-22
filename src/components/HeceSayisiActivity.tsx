@@ -22,8 +22,10 @@ export interface HeceSayisiActivityProps {
   soundEnabled?: boolean;
   students?: Student[];
   selectedStudentId?: string | null;
+  selectedStudentIds?: (string | null)[];
   onSelectStudent?: (id: string | null) => void;
-  onOpenRosterModal?: () => void;
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 export interface WordSyllableItem {
@@ -245,7 +247,9 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   soundEnabled = true,
   students,
   selectedStudentId,
+  selectedStudentIds: propSelectedStudentIds,
   onSelectStudent,
+  onSelectStudentForPlayer,
   onOpenRosterModal
 }) => {
   // Current active mode (1: Single Quiz, 2: 2-Player duel, 3: 3-Player duel)
@@ -292,6 +296,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     null,
     null
   ]);
+
+  const effectiveSelectedStudentIds = useMemo(() => {
+    if (propSelectedStudentIds && propSelectedStudentIds.length >= 3) {
+      return propSelectedStudentIds;
+    }
+    return selectedStudentIds;
+  }, [propSelectedStudentIds, selectedStudentIds]);
 
   useEffect(() => {
     if (selectedStudentId !== undefined) {
@@ -1426,8 +1437,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             students={students}
             currentGrade={2}
             playerCount={activeMode === 'duel3' ? 3 : 2}
-            selectedStudentIds={selectedStudentIds}
+            selectedStudentIds={effectiveSelectedStudentIds}
             onSelectStudentForPlayer={(pIdx, studentId) => {
+              if (onSelectStudentForPlayer) {
+                onSelectStudentForPlayer(pIdx, studentId);
+              }
               setSelectedStudentIds(prev => {
                 const updated = [...prev];
                 updated[pIdx] = studentId;

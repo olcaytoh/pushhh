@@ -58,6 +58,20 @@ function shuffleArray<T>(arr: T[]): T[] {
  * including tricky Turkish letters (ç, ğ, ı, i, ö, ş, ü)
  */
 const CURATED_LETTER_SETS: Record<number, string[][]> = {
+  3: [
+    ['a', 'c', 'ç'],
+    ['d', 'e', 'f'],
+    ['g', 'ğ', 'h'],
+    ['ı', 'i', 'j'],
+    ['k', 'l', 'm'],
+    ['n', 'o', 'ö'],
+    ['p', 'r', 's'],
+    ['ş', 't', 'u'],
+    ['ü', 'v', 'y'],
+    ['b', 'm', 'z'],
+    ['c', 'k', 'p'],
+    ['e', 'i', 'u']
+  ],
   4: [
     ['d', 'e', 'ı', 'i'],
     ['a', 'c', 'ç', 'd'],
@@ -106,9 +120,9 @@ const CURATED_LETTER_SETS: Record<number, string[][]> = {
 
 /**
  * Generates a shuffled set of letters for a round
- * @param count 4 for 1-2. Sınıf, 5 for 3-4. Sınıf
+ * @param count 3 for 1-2. Sınıf, 4 for 3-4. Sınıf
  */
-export const generateRoundLetters = (count: 4 | 5): { originalSorted: string[]; scrambled: string[] } => {
+export const generateRoundLetters = (count: 3 | 4): { originalSorted: string[]; scrambled: string[] } => {
   const curated = CURATED_LETTER_SETS[count];
   let picked: string[];
 

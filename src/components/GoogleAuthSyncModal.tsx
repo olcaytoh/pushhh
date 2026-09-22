@@ -12,7 +12,11 @@ import {
   ShieldCheck, 
   Users, 
   BarChart3,
-  Sparkles
+  Sparkles,
+  ExternalLink,
+  Copy,
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { User } from '../firebase';
 import { 
@@ -22,6 +26,7 @@ import {
 } from '../services/cloudSyncService';
 import { Student } from '../types/student';
 import { ClassCountersData } from '../utils/counterStorage';
+import firebaseConfigData from '../../firebase-applet-config.json';
 
 export interface GoogleAuthSyncModalProps {
   isOpen: boolean;
@@ -57,6 +62,8 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   if (!isOpen) return null;
 
@@ -76,6 +83,7 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
   const handleSignIn = async () => {
     setIsLoading(true);
     setActionMessage(null);
+    setUnauthorizedDomain(null);
     playMp3?.('/op.mp3');
     try {
       if (onSignIn) {
@@ -89,10 +97,17 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
         type: 'success'
       });
     } catch (err: any) {
-      setActionMessage({
-        text: err.message || 'Giriş yapılamadı. Lütfen tekrar deneyin.',
-        type: 'error'
-      });
+      const code = err?.code || '';
+      const msg = err?.message || '';
+      if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+        setUnauthorizedDomain(domain || 'alan-adiniz.com');
+      } else {
+        setActionMessage({
+          text: err.message || 'Giriş yapılamadı. Lütfen tekrar deneyin.',
+          type: 'error'
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -231,6 +246,76 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
             {actionMessage.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />}
             {actionMessage.type === 'info' && <ShieldCheck className="w-4 h-4 shrink-0 text-blue-400 mt-0.5" />}
             <span>{actionMessage.text}</span>
+          </div>
+        )}
+
+        {/* Unauthorized Domain Guide Card */}
+        {unauthorizedDomain && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border-2 border-amber-500/60 text-slate-100 shadow-xl space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-300">
+                  Firebase Yetkili Alan Adı İzni Gerekli
+                </h4>
+                <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                  Sitenizi kendi alan adınıza taşıdığınızda, Google OAuth güvenlik protokolü gereği bu alan adının Firebase paneline 1 kez eklenmesi gerekir.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] text-slate-400 block font-medium">Eklenecek Alan Adınız:</span>
+                <span className="text-xs font-mono font-bold text-amber-200 truncate block select-all">
+                  {unauthorizedDomain}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(unauthorizedDomain);
+                  setCopiedDomain(true);
+                  setTimeout(() => setCopiedDomain(false), 2500);
+                }}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition-all cursor-pointer"
+              >
+                {copiedDomain ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedDomain ? 'Kopyalandı!' : 'Kopyala'}</span>
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-300 space-y-1.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+              <p className="font-bold text-amber-300">
+                30 Saniyede Çözüm Adımları:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-300 leading-normal">
+                <li>Aşağıdaki mavi butona basarak <strong>Firebase Authentication Ayarları</strong>'nı açın.</li>
+                <li>Sayfadaki <strong>Authorized domains (Yetkili alan adları)</strong> bölümüne inin.</li>
+                <li><strong>"Add domain" (Alan adı ekle)</strong> butonuna tıklayıp kopyaladığınız adresi yapıştırın ve kaydedin.</li>
+              </ol>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <a
+                href={`https://console.firebase.google.com/project/${firebaseConfigData.projectId}/authentication/settings`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Firebase Ayarlarını Aç ({firebaseConfigData.projectId})
+              </a>
+              <button
+                type="button"
+                onClick={handleSignIn}
+                disabled={isLoading}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                Tekrar Giriş Yap
+              </button>
+            </div>
           </div>
         )}
 
