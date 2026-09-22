@@ -27,6 +27,9 @@ import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { HeceSayisiActivity } from './components/HeceSayisiActivity';
 import { SozlukSiralaGame } from './components/SozlukSiralaGame';
+import { KelimeSiralaGame } from './components/KelimeSiralaGame';
+import { HeceMakasiGame } from './components/HeceMakasiGame';
+import { YazimDedektifiGame } from './components/YazimDedektifiGame';
 import { GeometrikSekilleriBulActivity } from './components/GeometrikSekilleriBulActivity';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
@@ -2986,6 +2989,9 @@ export default function App() {
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
   const [showHeceSayisi, setShowHeceSayisi] = useState(false);
   const [showSozlukSirala, setShowSozlukSirala] = useState(false);
+  const [showKelimeSirala, setShowKelimeSirala] = useState(false);
+  const [showHeceMakasi, setShowHeceMakasi] = useState(false);
+  const [showYazimDedektifi, setShowYazimDedektifi] = useState(false);
   const [showGeometrikSekilleriBul, setShowGeometrikSekilleriBul] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
@@ -3793,6 +3799,9 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
     setShowHeceSayisi(false);
     setWordGameType(null);
 
@@ -3811,9 +3820,14 @@ export default function App() {
       setShowHeceSayisi(true);
       return;
     }
-    if (topicKey === 'turkce_sozluk_sirala' || topicKey === 'sozluk_sirala') {
+    if (topicKey === 'turkce_sozluk_sirala' || topicKey === 'sozluk_sirala' || topicKey === 'turkce_sozcuk_sirala') {
       setCurrentTopic('turkce_sozluk_sirala');
       setShowSozlukSirala(true);
+      return;
+    }
+    if (topicKey === 'turkce_kelime_sirala' || topicKey === 'kelime_sirala') {
+      setCurrentTopic('turkce_kelime_sirala');
+      setShowKelimeSirala(true);
       return;
     }
     if (topicKey === 'turkce_zit_anlam' || topicKey === 'zit_anlam') {
@@ -4017,6 +4031,9 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
     setShowHeceSayisi(false);
     setShowGeometrikSekilleriBul(false);
     setShowOtherGamesModal(false);
@@ -4068,6 +4085,27 @@ export default function App() {
       }
       setGameState('welcome');
       setShowSozlukSirala(true);
+    } else if (entry.type === 'kelime_sirala' || entry.id.includes('kelime_sirala')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowKelimeSirala(true);
+    } else if (entry.type === 'hece_makasi' || entry.id.includes('hece_makasi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowHeceMakasi(true);
+    } else if (entry.type === 'yazim_dedektifi' || entry.id.includes('yazim_dedektifi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowYazimDedektifi(true);
     } else if (entry.type === 'hece_sayisi' || entry.id.includes('hece_sayisi')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4130,6 +4168,9 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
     setShowHeceSayisi(false);
     setShowGeometrikSekilleriBul(false);
     setWordGameType(null);
@@ -4581,6 +4622,9 @@ export default function App() {
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
     if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
+    if (showKelimeSirala) return 'Kelime Sıralama (Sözlük Sırası)';
+    if (showHeceMakasi) return 'Hece Makası (Hecelere Ayırma)';
+    if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
     if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul (20 Sn Sprint & Kapışma)';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
@@ -4651,8 +4695,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showHeceSayisi && !showGeometrikSekilleriBul && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || showHeceSayisi || showGeometrikSekilleriBul || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
               const iconSrc = `/icon_${g}.png`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -4677,6 +4721,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
                       setShowHeceSayisi(false);
                       setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
@@ -4693,6 +4738,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
                       setShowHeceSayisi(false);
                       setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
@@ -4712,6 +4758,7 @@ export default function App() {
                       setShowAynisiniBul(false);
                       setShowKuralliCumle(false);
                       setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
                       setShowHeceSayisi(false);
                       setShowGeometrikSekilleriBul(false);
                       setWordGameType(null);
@@ -4776,6 +4823,9 @@ export default function App() {
               showKuralliCumle ||
               showHeceSayisi ||
               showSozlukSirala ||
+              showKelimeSirala ||
+              showHeceMakasi ||
+              showYazimDedektifi ||
               showGeometrikSekilleriBul ||
               wordGameType !== null
             ) {
@@ -4801,6 +4851,33 @@ export default function App() {
             // 0.05 If inside Sözlük Sıralama
             if (showSozlukSirala) {
               setShowSozlukSirala(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.055 If inside Kelime Sıralama
+            if (showKelimeSirala) {
+              setShowKelimeSirala(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.056 If inside Hece Makası
+            if (showHeceMakasi) {
+              setShowHeceMakasi(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.057 If inside Yazım Yanlışı Dedektifi
+            if (showYazimDedektifi) {
+              setShowYazimDedektifi(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
                 setShowOtherGamesModal(true);
               }
@@ -4939,6 +5016,9 @@ export default function App() {
               showKuralliCumle ||
               showHeceSayisi ||
               showSozlukSirala ||
+              showKelimeSirala ||
+              showHeceMakasi ||
+              showYazimDedektifi ||
               showGeometrikSekilleriBul ||
               wordGameType !== null
             ) {
@@ -5597,6 +5677,64 @@ export default function App() {
                       </div>
                     </button>
 
+                    {/* CARD 7: HECE MAKASI (Hecelere Ayırma & Kesme) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('hece_makasi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowHeceMakasi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#07242e] via-[#0d3b4b] to-[#07242e] hover:from-[#0b3341] hover:via-[#124d62] hover:to-[#0b3341] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_35.png" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          7. Hece Makası
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
+                          Sözcükleri Hecelerine Ayırma & Makasla Kesme
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 8: YAZIM YANLIŞI DEDEKTİFİ */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('yazim_dedektifi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowYazimDedektifi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c1d07] via-[#452d0a] to-[#2c1d07] hover:from-[#3a2709] hover:via-[#59390c] hover:to-[#3a2709] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          8. Yazım Yanlışı Dedektifi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
                     {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
                     <button
                       onClick={() => {
@@ -5996,9 +6134,9 @@ export default function App() {
               ) : selectedGrade === 2 && selectedSubject === 'turkce' ? (
                 /* MAIN CATEGORY CARDS - 2. SINIF TÜRKÇE */
                 <div className="w-full max-w-6xl mx-auto">
-                  {/* 5 TÜRKÇE ETKİNLİĞİ GRID */}
+                  {/* 6 TÜRKÇE ETKİNLİĞİ GRID */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
-                    {/* CARD 1: SÖZCÜK SIRALAMA PORTALI */}
+                    {/* CARD 1: SÖZLÜK SIRALAMA PORTALI */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -6009,14 +6147,14 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1c0d28] via-[#2d1440] to-[#1c0d28] hover:from-[#251136] hover:via-[#3a1954] hover:to-[#251136] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-purple-400/90 border-l-4 border-l-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_25.png" alt="Sözcük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_25.png" alt="Sözlük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          1. Sözcük Sıralama
+                          1. Sözlük Sıralama
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-purple-200/70 mt-0.5 break-words leading-tight">
-                          Alfabe Portalı (2 & 3 Kişilik Yarış)
+                          Alfabe Portalı (1, 2 & 3 Kişilik Yarış)
                         </p>
                       </div>
                       <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-purple-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
@@ -6027,7 +6165,39 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 2: ZIT ANLAMLI KELİMELER */}
+                    {/* CARD 2: KELİME SIRALAMA (SÖZLÜK SIRASI) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('kelime_sirala', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowKelimeSirala(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#181135] via-[#24174d] to-[#181135] hover:from-[#1f1543] hover:via-[#2e1d62] hover:to-[#1f1543] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_26.png" alt="Kelime Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Kelime Sıralama
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Sözlük Sırasına Göre Dizme (1, 2 & 3 Kişilik)
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: ZIT ANLAMLI KELİMELER */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -6042,7 +6212,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          2. Zıt Anlamlı Kelimeler
+                          3. Zıt Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
                           Karşıt Anlamlar & Çok Oyunculu Düello
@@ -6056,7 +6226,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 3: EŞ ANLAMLI KELİMELER */}
+                    {/* CARD 4: EŞ ANLAMLI KELİMELER */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -6071,7 +6241,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          3. Eş Anlamlı Kelimeler
+                          4. Eş Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Anlamdaş Kelimeleri Bulma & Yarışma
@@ -6085,7 +6255,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 4: KURALLI CÜMLE OLUŞTURMA */}
+                    {/* CARD 5: KURALLI CÜMLE OLUŞTURMA */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -6100,7 +6270,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          4. Kurallı Cümle Oluşturma
+                          5. Kurallı Cümle Oluşturma
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           Kelimeleri Kurallı ve Anlamlı Sıraya Dizme
@@ -6114,39 +6284,63 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 5: KELİMELERİN HECE SAYISINI BELİRLEME (ORTALANMIŞ YA DA GENİŞLETİLMİŞ) */}
-                    <div className="sm:col-span-2 flex justify-center">
-                      <button
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          const idx = findActivityIndex('hece_sayisi', undefined, 2);
-                          if (idx !== -1) setCurrentActivityIndex(idx);
-                          setShowHeceSayisi(true);
-                        }}
-                        className="group relative w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)] bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_05.png" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                    {/* CARD 6: KELİMELERİN HECE SAYISINI BELİRLEME */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('hece_sayisi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowHeceSayisi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_05.png" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          6. Kelimelerin Hece Sayısı
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
                         </div>
-                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
-                          </div>
-                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                            5. Kelimelerin Hece Sayısı
-                          </h3>
-                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
-                            Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
-                          </p>
+                      </div>
+                    </button>
+
+                    {/* CARD 7: HECE MAKASI (Hecelere Ayırma & Makasla Kesme) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('hece_makasi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowHeceMakasi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#07242e] via-[#0d3b4b] to-[#07242e] hover:from-[#0b3341] hover:via-[#124d62] hover:to-[#0b3341] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_35.png" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          7. Hece Makası
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
+                          Sözcükleri Hecelerine Ayırma & Makasla Kesme
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
                         </div>
-                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                            ▶
-                          </div>
-                        </div>
-                      </button>
-                    </div>
+                      </div>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -8323,7 +8517,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showGeometrikSekilleriBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showGeometrikSekilleriBul && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -8335,6 +8529,18 @@ export default function App() {
             const ssIdx = findActivityIndex('sozluk_sirala', undefined, selectedGrade || undefined);
             if (ssIdx !== -1) setCurrentActivityIndex(ssIdx);
             setShowSozlukSirala(true);
+          }}
+          onOpenKelimeSirala={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ksIdx = findActivityIndex('kelime_sirala', undefined, selectedGrade || undefined);
+            if (ksIdx !== -1) setCurrentActivityIndex(ksIdx);
+            setShowKelimeSirala(true);
+          }}
+          onOpenHeceMakasi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const hmIdx = findActivityIndex('hece_makasi', undefined, selectedGrade || 2);
+            if (hmIdx !== -1) setCurrentActivityIndex(hmIdx);
+            setShowHeceMakasi(true);
           }}
           onOpenAynisiniBul={() => {
             setOpenedFromOtherGamesModal(true);
@@ -8537,6 +8743,167 @@ export default function App() {
             kaydetIstatistik('turkce_sozluk_sirala', isCorrect);
             if (selectedStudentIds[0]) {
               setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_sozluk_sirala', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* KELİME SIRALAMA OYUNU (SÖZLÜK SIRASI - 1, 2 & 3 KİŞİLİK) */}
+      {showKelimeSirala && (
+        <KelimeSiralaGame
+          onClose={() => {
+            setShowKelimeSirala(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_kelime_sirala', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kelime_sirala', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* HECE MAKASI OYUNU (Hecelere Ayırma & Kesme - 1, 2 & 3 KİŞİLİK) */}
+      {showHeceMakasi && (
+        <HeceMakasiGame
+          onClose={() => {
+            setShowHeceMakasi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGradeGroup="1-2"
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_hece_makasi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_makasi', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* YAZIM YANLIŞI DEDEKTİFİ (1, 2 & 3 KİŞİLİK) */}
+      {showYazimDedektifi && (
+        <YazimDedektifiGame
+          onClose={() => {
+            setShowYazimDedektifi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_yazim_dedektifi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_yazim_dedektifi', isCorrect));
             }
           }}
         />

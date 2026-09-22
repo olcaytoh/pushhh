@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -137,6 +137,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'sozluk_sirala',
   grade: 1,
   title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '1. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g1_kelime_sirala',
+  type: 'kelime_sirala',
+  grade: 1,
+  title: 'Kelime Sıralama (Sözlük Sırası)',
   categoryLabel: '1. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -296,7 +303,14 @@ ALL_ACTIVITIES_LIST.push({
   id: 'g2_turkce_sozluk_sirala',
   type: 'sozluk_sirala',
   grade: 2,
-  title: 'Sözcük Sıralama (Alfabe Portalı)',
+  title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_kelime_sirala',
+  type: 'kelime_sirala',
+  grade: 2,
+  title: 'Kelime Sıralama (Sözlük Sırası)',
   categoryLabel: '2. Sınıf Türkçe'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -327,6 +341,20 @@ ALL_ACTIVITIES_LIST.push({
   type: 'hece_sayisi',
   grade: 2,
   title: 'Kelimelerin Hece Sayısını Belirleme',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_hece_makasi',
+  type: 'hece_makasi',
+  grade: 2,
+  title: 'Hece Makası (Hecelere Ayırma)',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_yazim_dedektifi',
+  type: 'yazim_dedektifi',
+  grade: 2,
+  title: 'Yazım Yanlışı Dedektifi',
   categoryLabel: '2. Sınıf Türkçe'
 });
 const g2Diger = [
@@ -463,6 +491,13 @@ ALL_ACTIVITIES_LIST.push({
   type: 'sozluk_sirala',
   grade: 3,
   title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: '3. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g3_kelime_sirala',
+  type: 'kelime_sirala',
+  grade: 3,
+  title: 'Kelime Sıralama (Sözlük Sırası)',
   categoryLabel: '3. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -604,6 +639,13 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: '4. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'g4_kelime_sirala',
+  type: 'kelime_sirala',
+  grade: 4,
+  title: 'Kelime Sıralama (Sözlük Sırası)',
+  categoryLabel: '4. Sınıf Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'g4_kuralli_cumle',
   type: 'kuralli_cumle',
   grade: 4,
@@ -640,6 +682,12 @@ ALL_ACTIVITIES_LIST.push({
   id: 'other_sozluk_sirala',
   type: 'sozluk_sirala',
   title: 'Sözlük Sıralama (Alfabe Portalı)',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_kelime_sirala',
+  type: 'kelime_sirala',
+  title: 'Kelime Sıralama (Sözlük Sırası)',
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -713,11 +761,27 @@ ALL_ACTIVITIES_LIST.push({
 });
 
 export const findActivityIndex = (
-  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul',
+  type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi',
   topicKey?: string,
   grade?: number | null,
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
 ): number => {
+  if (type === 'yazim_dedektifi' || topicKey === 'yazim_dedektifi' || topicKey === 'turkce_yazim_dedektifi') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'yazim_dedektifi' || a.id.includes('yazim_dedektifi')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'yazim_dedektifi' || a.id.includes('yazim_dedektifi'));
+    if (idx !== -1) return idx;
+  }
+  if (type === 'hece_makasi' || topicKey === 'hece_makasi' || topicKey === 'turkce_hece_makasi') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'hece_makasi' || a.id.includes('hece_makasi')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'hece_makasi' || a.id.includes('hece_makasi'));
+    if (idx !== -1) return idx;
+  }
   if (type === 'geometrik_sekilleri_bul' || topicKey === 'geometrik_sekilleri_bul') {
     if (grade) {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'geometrik_sekilleri_bul' || a.id.includes('geometrik_sekilleri_bul')) && a.grade === grade);
@@ -740,6 +804,14 @@ export const findActivityIndex = (
       if (idx !== -1) return idx;
     }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sozluk_sirala' || a.id.includes('sozluk_sirala'));
+    if (idx !== -1) return idx;
+  }
+  if (type === 'kelime_sirala' || topicKey === 'kelime_sirala' || topicKey === 'turkce_kelime_sirala') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kelime_sirala' || a.id.includes('kelime_sirala')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'kelime_sirala' || a.id.includes('kelime_sirala'));
     if (idx !== -1) return idx;
   }
   if (type === 'kuralli_cumle' || topicKey === 'kuralli_cumle' || topicKey === 'turkce_kuralli_cumle') {

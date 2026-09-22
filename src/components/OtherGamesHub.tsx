@@ -14,6 +14,9 @@ interface OtherGamesHubProps {
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
   onOpenSozlukSirala?: () => void;
+  onOpenKelimeSirala?: () => void;
+  onOpenHeceMakasi?: () => void;
+  onOpenYazimDedektifi?: () => void;
   onOpenGeometrikSekilleriBul?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
@@ -30,6 +33,9 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenGeometricNets,
   onOpenKuralliCumle,
   onOpenSozlukSirala,
+  onOpenKelimeSirala,
+  onOpenHeceMakasi,
+  onOpenYazimDedektifi,
   onOpenGeometrikSekilleriBul,
   playMp3
 }) => {
@@ -43,11 +49,41 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
     {
       id: 'sozluk_sirala',
       title: 'Sözlük Sıralama (Alfabe Portalı)',
-      subtitle: '2 ve 3 Kişilik Alfabetik Harf Sıralama Yarışı (1-2. Sınıf: 4 Harf, 3-4. Sınıf: 5 Harf)',
+      subtitle: '1, 2 ve 3 Kişilik Alfabetik Harf Sıralama Yarışı (1-2. Sınıf: 3 Harf, 3-4. Sınıf: 4 Harf)',
       icon: '/MENUIKON/grid_icon_25.png',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenSozlukSirala) onOpenSozlukSirala();
+      },
+    },
+    {
+      id: 'kelime_sirala',
+      title: 'Kelime Sıralama (Sözlük Sırası)',
+      subtitle: '1, 2 ve 3 Kişilik Sözlük Sırasına Göre Kelime Dizme (1-2. Sınıf: 3 Kelime, 3-4. Sınıf: 4 Kelime)',
+      icon: '/MENUIKON/grid_icon_26.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenKelimeSirala) onOpenKelimeSirala();
+      },
+    },
+    {
+      id: 'hece_makasi',
+      title: 'Hece Makası (Hecelere Ayırma)',
+      subtitle: '1, 2 ve 3 Kişilik Sözcükleri Doğru Yerden Keserek Hecelerine Ayırma Oyunu',
+      icon: '/MENUIKON/grid_icon_35.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenHeceMakasi) onOpenHeceMakasi();
+      },
+    },
+    {
+      id: 'yazim_dedektifi',
+      title: 'Yazım Yanlışı Dedektifi',
+      subtitle: '1, 2 ve 3 Kişilik Hatalı Sözcüğü Bulup Doğru Yazılışını Çözme Oyunu',
+      icon: '/MENUIKON/grid_icon_21.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenYazimDedektifi) onOpenYazimDedektifi();
       },
     },
     {

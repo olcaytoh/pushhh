@@ -9,9 +9,11 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   turkce_zit_anlam: { title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', icon: '⚡' },
   es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
   turkce_es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
-  turkce_sozcuk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
-  turkce_sozluk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
-  sozluk_sirala: { title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', icon: '🔤' },
+  turkce_sozcuk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
+  turkce_sozluk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
+  sozluk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
+  turkce_kelime_sirala: { title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', icon: '📚' },
+  kelime_sirala: { title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', icon: '📚' },
   turkce_kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
   kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
   turkce_hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', icon: '🗣️' },
@@ -108,7 +110,8 @@ export function getCurriculumTopicsForGrade(grade: number): TopicInfo[] {
     const turkceTopics: TopicInfo[] = [
       { key: 'turkce_hece_sayisi', title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', grade: 2 },
       { key: 'turkce_kuralli_cumle', title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', grade: 2 },
-      { key: 'turkce_sozcuk_sirala', title: 'Sözcük Sıralama (Alfabe)', desc: 'Kelimeleri alfabetik sıraya dizme', grade: 2 },
+      { key: 'turkce_sozluk_sirala', title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', grade: 2 },
+      { key: 'turkce_kelime_sirala', title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', grade: 2 },
       { key: 'turkce_zit_anlam', title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', grade: 2 },
       { key: 'turkce_es_anlam', title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', grade: 2 }
     ];

@@ -83,12 +83,17 @@ interface ModernStatsViewProps {
 
 const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
   turkce_sozluk_sirala: {
-    title: 'Sözcük Sıralama (Alfabe Portalı)',
+    title: 'Sözlük Sıralama (Alfabe Portalı)',
     desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
     icon: '/MENUIKON/grid_icon_25.png',
   },
+  turkce_kelime_sirala: {
+    title: 'Kelime Sıralama (Sözlük Sırası)',
+    desc: 'Kelimeleri sözlük sırasına göre dizme portalı (1, 2 & 3 Kişilik Yarış)',
+    icon: '/MENUIKON/grid_icon_26.png',
+  },
   turkce_sozcuk_sirala: {
-    title: 'Sözcük Sıralama (Alfabe Portalı)',
+    title: 'Sözlük Sıralama (Alfabe Portalı)',
     desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
     icon: '/MENUIKON/grid_icon_25.png',
   },
@@ -268,6 +273,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       if (
         key.startsWith('turkce_') ||
         key === 'sozluk_sirala' ||
+        key === 'kelime_sirala' ||
         key === 'zit_anlam' ||
         key === 'es_anlam' ||
         key === 'kuralli_cumle' ||
@@ -967,9 +973,9 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                 else if (g3Dogru === maxDogruInTopic && g3Dogru > g1Dogru && g3Dogru > g2Dogru) leaderName = '3. GRUP LİDER';
               }
 
-              const isTurkce = key.startsWith('turkce_') || ['sozluk_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(key);
+              const isTurkce = key.startsWith('turkce_') || ['sozluk_sirala', 'kelime_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(key);
               const prevKey = idx > 0 ? filteredTopicKeys[idx - 1] : null;
-              const prevIsTurkce = prevKey ? (prevKey.startsWith('turkce_') || ['sozluk_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(prevKey)) : false;
+              const prevIsTurkce = prevKey ? (prevKey.startsWith('turkce_') || ['sozluk_sirala', 'kelime_sirala', 'zit_anlam', 'es_anlam', 'kuralli_cumle', 'hece_sayisi'].includes(prevKey)) : false;
               const showTurkceHeader = currentGrade === 2 && isTurkce && (!prevIsTurkce || idx === 0);
               const showMatematikHeader = currentGrade === 2 && !isTurkce && idx === 0 && categoryFilter === 'hepsi';
 
@@ -997,12 +1003,12 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                             2. Sınıf Türkçe Dersi Etkinlikleri (Yeni Ders)
                           </h4>
                           <p className="text-[10px] text-rose-300/80 font-medium">
-                            Sözcük Sıralama, Zıt Anlam, Eş Anlam, Kurallı Cümle & Hece Sayısı
+                            Sözlük Sıralama, Kelime Sıralama, Zıt Anlam, Eş Anlam, Kurallı Cümle & Hece Sayısı
                           </p>
                         </div>
                       </div>
                       <span className="text-[10px] bg-rose-500/30 text-rose-200 border border-rose-400/50 px-2.5 py-0.5 rounded-full font-bold uppercase shrink-0">
-                        5 Türkçe Etkinliği
+                        6 Türkçe Etkinliği
                       </span>
                     </div>
                   )}
