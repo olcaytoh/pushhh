@@ -3800,8 +3800,6 @@ export default function App() {
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
-    setShowHeceMakasi(false);
-    setShowYazimDedektifi(false);
     setShowHeceSayisi(false);
     setWordGameType(null);
 
@@ -5677,64 +5675,6 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 7: HECE MAKASI (Hecelere Ayırma & Kesme) */}
-                    <button
-                      onClick={() => {
-                        playMp3('/op.mp3');
-                        const idx = findActivityIndex('hece_makasi', undefined, 2);
-                        if (idx !== -1) setCurrentActivityIndex(idx);
-                        setShowHeceMakasi(true);
-                      }}
-                      className="group relative w-full bg-gradient-to-r from-[#07242e] via-[#0d3b4b] to-[#07242e] hover:from-[#0b3341] hover:via-[#124d62] hover:to-[#0b3341] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                    >
-                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_35.png" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
-                      </div>
-                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          7. Hece Makası
-                        </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
-                          Sözcükleri Hecelerine Ayırma & Makasla Kesme
-                        </p>
-                      </div>
-                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                          ▶
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* CARD 8: YAZIM YANLIŞI DEDEKTİFİ */}
-                    <button
-                      onClick={() => {
-                        playMp3('/op.mp3');
-                        const idx = findActivityIndex('yazim_dedektifi', undefined, 2);
-                        if (idx !== -1) setCurrentActivityIndex(idx);
-                        setShowYazimDedektifi(true);
-                      }}
-                      className="group relative w-full bg-gradient-to-r from-[#2c1d07] via-[#452d0a] to-[#2c1d07] hover:from-[#3a2709] hover:via-[#59390c] hover:to-[#3a2709] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                    >
-                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
-                      </div>
-                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          8. Yazım Yanlışı Dedektifi
-                        </h3>
-                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
-                          Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
-                        </p>
-                      </div>
-                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                          ▶
-                        </div>
-                      </div>
-                    </button>
-
                     {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
                     <button
                       onClick={() => {
@@ -6337,6 +6277,35 @@ export default function App() {
                       <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
                         <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
                         <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 8: YAZIM YANLIŞI DEDEKTİFİ */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('yazim_dedektifi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowYazimDedektifi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c1d07] via-[#452d0a] to-[#2c1d07] hover:from-[#3a2709] hover:via-[#59390c] hover:to-[#3a2709] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          8. Yazım Yanlışı Dedektifi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
                           ▶
                         </div>
                       </div>
@@ -8541,6 +8510,12 @@ export default function App() {
             const hmIdx = findActivityIndex('hece_makasi', undefined, selectedGrade || 2);
             if (hmIdx !== -1) setCurrentActivityIndex(hmIdx);
             setShowHeceMakasi(true);
+          }}
+          onOpenYazimDedektifi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ydIdx = findActivityIndex('yazim_dedektifi', undefined, selectedGrade || 2);
+            if (ydIdx !== -1) setCurrentActivityIndex(ydIdx);
+            setShowYazimDedektifi(true);
           }}
           onOpenAynisiniBul={() => {
             setOpenedFromOtherGamesModal(true);
