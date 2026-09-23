@@ -49,6 +49,7 @@ import {
 import { StudentAvatarDock } from './components/StudentAvatarDock';
 import { StudentRosterModal } from './components/StudentRosterModal';
 import { OdevAkvaryumuModal } from './components/OdevAkvaryumuModal';
+import { AndroidAppsModal } from './components/AndroidAppsModal';
 import { 
   ClassCountersData, 
   loadCounters, 
@@ -2979,6 +2980,7 @@ export default function App() {
   });
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showOdevAkvaryumu, setShowOdevAkvaryumu] = useState(false);
+  const [showAndroidAppsModal, setShowAndroidAppsModal] = useState(false);
   const [show3DLab, setShow3DLab] = useState(false);
   const [showGeoboard, setShowGeoboard] = useState(false);
   const [showGeometricNets, setShowGeometricNets] = useState(false);
@@ -4165,6 +4167,8 @@ export default function App() {
     setLastSelectedCategoryId(null);
     setShowTopicModal(false);
     setShowStatsModal(false);
+    setShowOdevAkvaryumu(false);
+    setShowAndroidAppsModal(false);
     setShow3DLab(false);
     setShowGeoboard(false);
     setShowGeometricNets(false);
@@ -4819,6 +4823,10 @@ export default function App() {
             playMp3('/op.mp3');
 
             // 0. If inside an active game/activity, navigate to previous activity sequentially!
+            if (showAndroidAppsModal) {
+              setShowAndroidAppsModal(false);
+              return;
+            }
             if (
               gameState === 'playing' || 
               gameState === 'gameover' || 
@@ -5576,6 +5584,139 @@ export default function App() {
                     <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
                   </div>
                 </button>
+
+                {/* 7. MADDE: ANDROID UYGULAMALARIM (UZUN KART - sm:col-span-2) */}
+                <div
+                  onClick={() => {
+                    playMp3('/coin.mp3');
+                    setShowAndroidAppsModal(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      playMp3('/coin.mp3');
+                      setShowAndroidAppsModal(true);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className="group relative w-full sm:col-span-2 bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-emerald-400 hover:border-emerald-400/70 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-green-500 border border-emerald-300/80 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <svg className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-slate-950 fill-current drop-shadow" viewBox="0 0 24 24">
+                          <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5842 8.3542 13.8437 8 12 8s-3.5842.3542-5.1368.9507L4.841 5.4477a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="text-emerald-400">🤖</span>
+                        <span className="text-emerald-300 font-bold">Google Play Store</span>
+                        <span className="text-slate-500">•</span>
+                        <span className="text-slate-400 font-medium">Telefon & Tablet</span>
+                        <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
+                          Mobil Uygulamalar
+                        </span>
+                      </div>
+                      <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wider transition-colors flex items-center gap-2">
+                        <span>7. Android Uygulamalarım</span>
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* 1, 2, 3, 4 UYGULAMA GÖRSEL BUTONLARI */}
+                  <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2.5 w-full md:w-auto justify-end pt-1 md:pt-0 border-t md:border-t-0 border-slate-800 flex-wrap sm:flex-nowrap">
+                    {/* 1. Uygulama Butonu */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/op.mp3');
+                        window.open('https://play.google.com/store/apps/details?id=co.median.android.mbajmzn', '_blank', 'noopener,noreferrer');
+                      }}
+                      className="group/b1 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-emerald-950/80 border border-emerald-500/40 hover:border-emerald-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="1. Uygulama: 2. Sınıf Matematik Oyunu (Google Play'de Aç)"
+                    >
+                      <img 
+                        src="/2snf.webp" 
+                        alt="2. Sınıf Matematik Oyunu" 
+                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-emerald-400/40 group-hover/b1:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider">1. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b1:text-emerald-200 leading-tight">2. Sınıf Mat.</div>
+                      </div>
+                    </div>
+
+                    {/* 2. Uygulama Butonu */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/op.mp3');
+                        window.open('https://play.google.com/store/apps/details?id=com.aistudio.kronometre.zqvxkp', '_blank', 'noopener,noreferrer');
+                      }}
+                      className="group/b2 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-amber-950/80 border border-amber-500/40 hover:border-amber-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="2. Uygulama: Kronometre & Zamanlayıcı (Google Play'de Aç)"
+                    >
+                      <img 
+                        src="/kro.webp" 
+                        alt="Kronometre & Zamanlayıcı" 
+                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-amber-400/40 group-hover/b2:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider">2. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b2:text-amber-200 leading-tight">Kronometre</div>
+                      </div>
+                    </div>
+
+                    {/* 3. Uygulama Butonu (1. Sınıf Mat) */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/coin.mp3');
+                        setShowAndroidAppsModal(true);
+                      }}
+                      className="group/b3 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-green-950/80 border border-green-500/40 hover:border-green-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="3. Uygulama: 1. Sınıf Matematik Oyunu (Yakında)"
+                    >
+                      <img 
+                        src="/1sbf.webp?v=3" 
+                        alt="1. Sınıf Matematik Oyunu" 
+                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-green-400/40 group-hover/b3:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-green-400 uppercase tracking-wider">3. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b3:text-green-200 leading-tight">1. Sınıf Mat.</div>
+                      </div>
+                    </div>
+
+                    {/* 4. Uygulama Butonu (Ekran Takibi) */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/coin.mp3');
+                        setShowAndroidAppsModal(true);
+                      }}
+                      className="group/b4 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-cyan-950/80 border border-cyan-500/40 hover:border-cyan-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="4. Uygulama: Ekran Takibi (Yakında)"
+                    >
+                      <img 
+                        src="/ekranlogo.jpeg?v=3" 
+                        alt="Ekran Takibi" 
+                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-cyan-400/40 group-hover/b4:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-cyan-400 uppercase tracking-wider">4. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b4:text-cyan-200 leading-tight">Ekran Takibi</div>
+                      </div>
+                    </div>
+
+                    <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md border border-emerald-300/40 group-hover:scale-105 transition-transform">
+                      <span>Tümü</span>
+                      <span className="text-emerald-200">→</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : selectedCategoryId === null ? (
@@ -5615,8 +5756,7 @@ export default function App() {
                       title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
                     >
                       <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
-                      <span className="hidden xs:inline tracking-tight drop-shadow font-extrabold">Ödev Akvaryumu</span>
-                      <span className="xs:hidden font-black">Ödev</span>
+                      <span className="tracking-tight drop-shadow font-extrabold text-[11px] sm:text-xs">Ödev Akvaryumu</span>
                     </button>
                   </div>
                 )}
@@ -6661,8 +6801,7 @@ export default function App() {
                       title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
                     >
                       <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
-                      <span className="hidden xs:inline tracking-tight drop-shadow font-extrabold">Ödev Akvaryumu</span>
-                      <span className="xs:hidden font-black">Ödev</span>
+                      <span className="tracking-tight drop-shadow font-extrabold text-[11px] sm:text-xs">Ödev Akvaryumu</span>
                     </button>
                   </div>
                 )}
@@ -9153,6 +9292,13 @@ export default function App() {
         onClose={() => setShowOdevAkvaryumu(false)}
         students={students}
         initialGrade={selectedGrade || 4}
+        playMp3={playMp3}
+      />
+
+      {/* ANDROID UYGULAMALARIM MODAL */}
+      <AndroidAppsModal
+        isOpen={showAndroidAppsModal}
+        onClose={() => setShowAndroidAppsModal(false)}
         playMp3={playMp3}
       />
     </div>

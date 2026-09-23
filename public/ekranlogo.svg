@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Lime Green 3D Gradient for EKRAN -->
+    <linearGradient id="limeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bef264"/>
+      <stop offset="25%" stop-color="#a3e635"/>
+      <stop offset="65%" stop-color="#65a30d"/>
+      <stop offset="100%" stop-color="#365314"/>
+    </linearGradient>
+
+    <!-- Cyan Blue 3D Gradient for TAKİBİ -->
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="30%" stop-color="#38bdf8"/>
+      <stop offset="70%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+
+    <!-- Tablet screen gradient -->
+    <linearGradient id="tabScreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Surfboard base gradient -->
+    <linearGradient id="boardGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0d9488"/>
+      <stop offset="40%" stop-color="#2dd4bf"/>
+      <stop offset="70%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Background Plate -->
+  <rect width="500" height="500" rx="52" fill="#020617"/>
+  <rect x="4" y="4" width="492" height="492" rx="48" fill="#030b19" stroke="#0f2647" stroke-width="4"/>
+
+  <!-- Subtle glow ring -->
+  <circle cx="250" cy="250" r="190" fill="#0369a1" opacity="0.12"/>
+
+  <!-- Main Content Group -->
+  <g>
+    <!-- Surfboard Base Underneath (Shadow & Base) -->
+    <path d="M 160 388 Q 250 433 385 373 Q 290 418 160 388 Z" fill="#020617" opacity="0.8"/>
+    <path d="M 160 380 Q 250 425 385 365 Q 290 410 160 380 Z" fill="url(#boardGrad)" stroke="#ffffff" stroke-width="4" stroke-linejoin="round"/>
+
+    <!-- ==================== EKRAN (TOP TEXT) ==================== -->
+    <g transform="translate(250, 185)">
+      <!-- Deep 3D Shadow layer (Dark Navy) -->
+      <text x="0" y="24" font-family="Impact, sans-serif, Arial" font-size="135" font-weight="900" 
+            fill="#06172e" stroke="#06172e" stroke-width="28" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">EKRAN</text>
+      <!-- Thick White Sticker Outline -->
+      <text x="0" y="8" font-family="Impact, sans-serif, Arial" font-size="135" font-weight="900" 
+            fill="#ffffff" stroke="#ffffff" stroke-width="18" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">EKRAN</text>
+      <!-- Inner Dark Contour for depth -->
+      <text x="0" y="4" font-family="Impact, sans-serif, Arial" font-size="135" font-weight="900" 
+            fill="#1e3a8a" stroke="#1e3a8a" stroke-width="6" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">EKRAN</text>
+      <!-- Vibrant Lime Gradient Body -->
+      <text x="0" y="0" font-family="Impact, sans-serif, Arial" font-size="135" font-weight="900" 
+            fill="url(#limeGrad)" text-anchor="middle" letter-spacing="3">EKRAN</text>
+      <!-- Highlight Reflection -->
+      <text x="0" y="-3" font-family="Impact, sans-serif, Arial" font-size="135" font-weight="900" 
+            fill="none" stroke="#f7fee7" stroke-width="2.5" text-anchor="middle" letter-spacing="3" opacity="0.6">EKRAN</text>
+    </g>
+
+    <!-- ==================== TABLET WITH SMILING CLOCK ==================== -->
+    <g transform="translate(135, 215) rotate(-6)">
+      <!-- Drop Shadow -->
+      <rect x="0" y="6" width="138" height="178" rx="28" fill="#020617" opacity="0.6"/>
+      <!-- Dark Blue Outer Outline of Tablet -->
+      <rect x="-4" y="-4" width="138" height="178" rx="28" fill="#06172e" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+      <rect x="0" y="0" width="130" height="170" rx="24" fill="#1e293b" stroke="#334155" stroke-width="3"/>
+      <!-- Tablet Screen -->
+      <rect x="10" y="14" width="110" height="142" rx="16" fill="url(#tabScreen)"/>
+      <!-- Tablet Camera / Speaker notch -->
+      <circle cx="65" cy="8" r="3" fill="#64748b"/>
+      <!-- Screen Bracket Markers [ ] -->
+      <path d="M 22 36 L 22 26 L 32 26" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M 108 36 L 108 26 L 98 26" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M 22 134 L 22 144 L 32 144" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M 108 134 L 108 144 L 98 144" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+
+      <!-- White Clock Circle (with shadow) -->
+      <circle cx="65" cy="88" r="44" fill="#0369a1" opacity="0.4"/>
+      <circle cx="65" cy="85" r="44" fill="#ffffff" stroke="#0284c7" stroke-width="5"/>
+      <circle cx="65" cy="85" r="39" fill="#f8fafc"/>
+
+      <!-- Clock Numbers / Dots -->
+      <text x="65" y="58" font-family="sans-serif, Arial" font-size="12" font-weight="900" fill="#0369a1" text-anchor="middle">12</text>
+      <text x="96" y="89" font-family="sans-serif, Arial" font-size="12" font-weight="900" fill="#0369a1" text-anchor="middle">3</text>
+      <text x="65" y="118" font-family="sans-serif, Arial" font-size="12" font-weight="900" fill="#0369a1" text-anchor="middle">6</text>
+      <text x="35" y="89" font-family="sans-serif, Arial" font-size="12" font-weight="900" fill="#0369a1" text-anchor="middle">9</text>
+
+      <!-- Cute Smiling Face Inside Clock -->
+      <!-- Left Eye -->
+      <ellipse cx="54" cy="79" rx="3.5" ry="4.5" fill="#0f172a"/>
+      <circle cx="53" cy="77" r="1.2" fill="#ffffff"/>
+      <!-- Right Eye -->
+      <ellipse cx="76" cy="79" rx="3.5" ry="4.5" fill="#0f172a"/>
+      <circle cx="75" cy="77" r="1.2" fill="#ffffff"/>
+      <!-- Rosy Cheeks -->
+      <ellipse cx="49" cy="86" rx="4" ry="2" fill="#f43f5e" opacity="0.6"/>
+      <ellipse cx="81" cy="86" rx="4" ry="2" fill="#f43f5e" opacity="0.6"/>
+      <!-- Happy Smile -->
+      <path d="M 59 87 Q 65 94 71 87" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- Clock Hands -->
+      <!-- Center Pin -->
+      <circle cx="65" cy="85" r="5" fill="#0284c7"/>
+      <!-- Hour Hand pointing to 10 -->
+      <line x1="65" y1="85" x2="52" y2="68" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- Minute Hand pointing to 2 -->
+      <line x1="65" y1="85" x2="82" y2="72" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- ==================== TAKİBİ (BOTTOM TEXT) ==================== -->
+    <g transform="translate(345, 335)">
+      <!-- Deep 3D Shadow layer (Dark Navy) -->
+      <text x="0" y="24" font-family="Impact, sans-serif, Arial" font-size="120" font-weight="900" 
+            fill="#06172e" stroke="#06172e" stroke-width="26" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">TAKİBİ</text>
+      <!-- Thick White Sticker Outline -->
+      <text x="0" y="8" font-family="Impact, sans-serif, Arial" font-size="120" font-weight="900" 
+            fill="#ffffff" stroke="#ffffff" stroke-width="16" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">TAKİBİ</text>
+      <!-- Inner Navy Contour -->
+      <text x="0" y="4" font-family="Impact, sans-serif, Arial" font-size="120" font-weight="900" 
+            fill="#0c4a6e" stroke="#0c4a6e" stroke-width="5" stroke-linejoin="round" text-anchor="middle" letter-spacing="3">TAKİBİ</text>
+      <!-- Vibrant Cyan Gradient Body -->
+      <text x="0" y="0" font-family="Impact, sans-serif, Arial" font-size="120" font-weight="900" 
+            fill="url(#cyanGrad)" text-anchor="middle" letter-spacing="3">TAKİBİ</text>
+      <!-- Highlight Reflection -->
+      <text x="0" y="-3" font-family="Impact, sans-serif, Arial" font-size="120" font-weight="900" 
+            fill="none" stroke="#e0f2fe" stroke-width="2" text-anchor="middle" letter-spacing="3" opacity="0.7">TAKİBİ</text>
+    </g>
+  </g>
+</svg>
