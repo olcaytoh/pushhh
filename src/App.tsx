@@ -5634,13 +5634,13 @@ export default function App() {
                         playMp3('/op.mp3');
                         window.open('https://play.google.com/store/apps/details?id=co.median.android.mbajmzn', '_blank', 'noopener,noreferrer');
                       }}
-                      className="group/b1 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-emerald-950/80 border border-emerald-500/40 hover:border-emerald-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      className="group/b1 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-emerald-950/80 border border-emerald-500/40 hover:border-emerald-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                       title="1. Uygulama: 2. Sınıf Matematik Oyunu (Google Play'de Aç)"
                     >
                       <img 
                         src="/2snf.webp" 
                         alt="2. Sınıf Matematik Oyunu" 
-                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-emerald-400/40 group-hover/b1:scale-105 transition-transform" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b1:scale-105 transition-transform" 
                       />
                       <div className="text-left hidden xs:block">
                         <div className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider">1. Uygulama</div>
@@ -5655,13 +5655,13 @@ export default function App() {
                         playMp3('/op.mp3');
                         window.open('https://play.google.com/store/apps/details?id=com.aistudio.kronometre.zqvxkp', '_blank', 'noopener,noreferrer');
                       }}
-                      className="group/b2 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-amber-950/80 border border-amber-500/40 hover:border-amber-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      className="group/b2 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-amber-950/80 border border-amber-500/40 hover:border-amber-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                       title="2. Uygulama: Kronometre & Zamanlayıcı (Google Play'de Aç)"
                     >
                       <img 
                         src="/kro.webp" 
                         alt="Kronometre & Zamanlayıcı" 
-                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-amber-400/40 group-hover/b2:scale-105 transition-transform" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b2:scale-105 transition-transform" 
                       />
                       <div className="text-left hidden xs:block">
                         <div className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider">2. Uygulama</div>
@@ -5676,13 +5676,13 @@ export default function App() {
                         playMp3('/coin.mp3');
                         setShowAndroidAppsModal(true);
                       }}
-                      className="group/b3 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-green-950/80 border border-green-500/40 hover:border-green-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      className="group/b3 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-green-950/80 border border-green-500/40 hover:border-green-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                       title="3. Uygulama: 1. Sınıf Matematik Oyunu (Yakında)"
                     >
                       <img 
                         src="/1sbf.webp?v=3" 
                         alt="1. Sınıf Matematik Oyunu" 
-                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-green-400/40 group-hover/b3:scale-105 transition-transform" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b3:scale-105 transition-transform" 
                       />
                       <div className="text-left hidden xs:block">
                         <div className="text-[9px] sm:text-[10px] font-black text-green-400 uppercase tracking-wider">3. Uygulama</div>
@@ -5697,13 +5697,13 @@ export default function App() {
                         playMp3('/coin.mp3');
                         setShowAndroidAppsModal(true);
                       }}
-                      className="group/b4 flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-cyan-950/80 border border-cyan-500/40 hover:border-cyan-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      className="group/b4 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-cyan-950/80 border border-cyan-500/40 hover:border-cyan-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                       title="4. Uygulama: Ekran Takibi (Yakında)"
                     >
                       <img 
                         src="/ekranlogo.jpeg?v=3" 
                         alt="Ekran Takibi" 
-                        className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl object-cover shadow-md border border-cyan-400/40 group-hover/b4:scale-105 transition-transform" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b4:scale-105 transition-transform" 
                       />
                       <div className="text-left hidden xs:block">
                         <div className="text-[9px] sm:text-[10px] font-black text-cyan-400 uppercase tracking-wider">4. Uygulama</div>
