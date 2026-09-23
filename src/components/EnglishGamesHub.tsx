@@ -1,0 +1,157 @@
+import React from 'react';
+import { Sparkles, Trophy, Languages } from 'lucide-react';
+import { getIconAccentColor } from '../App';
+
+interface EnglishGamesHubProps {
+  onClose: () => void;
+  onOpenWordGame: () => void;
+  playMp3?: (src: string, onEnded?: () => void) => void;
+}
+
+export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
+  onClose,
+  onOpenWordGame,
+  playMp3
+}) => {
+  const triggerSound = (src: string) => {
+    if (playMp3) {
+      playMp3(src);
+    }
+  };
+
+  const games = [
+    {
+      id: 'kelime_oyunlari',
+      title: 'Kelime Oyunları',
+      subtitle: '1, 2 ve 3 Kişilik Türkçe - İngilizce Eşleştirme & Kelime Kapışması',
+      icon: '/MENUIKON/grid_icon_14.png',
+      sound: '/coin.mp3',
+      action: onOpenWordGame,
+      badge: 'ÇOKLU OYUNCU',
+      badgeColor: 'bg-emerald-500 text-white'
+    }
+  ];
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+      {/* 1. CINEMATIC BACKGROUND IMAGE */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img
+          src="/dere3.jpg"
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
+        />
+        <div className="absolute inset-0 bg-slate-950/30 pointer-events-none" />
+      </div>
+
+      {/* 2. SUB-HEADER BAR */}
+      <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.25)] border-l-4 border-l-sky-400">
+            <Languages size={12} className="text-sky-400 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-sky-300 font-bold uppercase tracking-wide">
+              6. BÖLÜM
+            </span>
+            <span className="text-sky-400/60 font-bold">•</span>
+            <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
+              İngilizce Oyunlar
+            </h1>
+            <Sparkles size={12} className="text-sky-400 shrink-0" />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              triggerSound('/op.mp3');
+              onClose();
+            }}
+            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+            title="Kapat"
+          >
+            ✕ Kapat
+          </button>
+        </div>
+      </header>
+
+      {/* 3. GAMES CONTAINER */}
+      <main className="relative z-10 flex-1 p-2 sm:p-4 max-w-4xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-2 sm:gap-2.5 pt-3 sm:pt-4 md:pt-5">
+        {/* GLOWING HEADER BADGE - 6. İNGİLİZCE OYUNLAR */}
+        <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
+          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <img src="/icon_6.png" alt="6. İngilizce Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
+              <span className="text-xs sm:text-sm md:text-base font-black text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+                6. İNGİLİZCE OYUNLAR
+              </span>
+              <span className="text-amber-400/60 font-bold">•</span>
+              <span className="text-[10px] sm:text-xs md:text-sm font-black text-amber-300 tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+                OYUNUNU SEÇ VE BAŞLA
+              </span>
+            </div>
+            <span className="text-amber-400 text-sm sm:text-base animate-pulse">✨</span>
+          </div>
+        </div>
+
+        <div className="w-full flex justify-center py-0.5 mb-1.5 sm:mb-2 shrink-0">
+          <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0c243f]/95 via-[#143359]/95 to-[#0c243f]/95 backdrop-blur-md border border-slate-700/90 shadow-[0_4px_16px_rgba(0,0,0,0.6)] border-b-2 border-b-sky-400/70">
+            <span className="text-base sm:text-lg shrink-0">🎮</span>
+            <p className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+              Oynamak istediğin İngilizce oyununu seç ve başla!
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full max-w-2xl mx-auto">
+          {games.map(game => {
+            const accent = getIconAccentColor(game.icon);
+            return (
+              <button
+                key={game.id}
+                onClick={() => {
+                  triggerSound(game.sound);
+                  game.action();
+                }}
+                className={`group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] border-2 border-sky-500/70 border-l-4 border-l-sky-400 hover:border-sky-400 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 pr-4 min-h-[78px] sm:min-h-[88px] md:min-h-[96px] flex items-center gap-3 sm:gap-4 shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left`}
+              >
+                {/* 3D Icon */}
+                <div className="relative shrink-0 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 md:w-22 md:h-22 -my-1">
+                  <img
+                    src={game.icon}
+                    alt={game.title}
+                    className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform select-none pointer-events-none"
+                  />
+                </div>
+
+                {/* Text Area - FULL TITLE */}
+                <div className="flex-1 min-w-0 py-0.5 z-10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-black/40 text-sky-300 border border-sky-400/40 shadow-xs">
+                      {game.badge}
+                    </span>
+                  </div>
+                  <h4 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 transition-colors leading-snug uppercase tracking-wide break-words">
+                    {game.title}
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-sky-200/70 font-medium mt-1 flex items-center gap-1.5 leading-snug break-words">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block shrink-0" />
+                    <span>{game.subtitle}</span>
+                  </p>
+                </div>
+
+                {/* Modern BAŞLA Button */}
+                <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                  <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                  <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                    ▶
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </main>
+    </div>
+  );
+};

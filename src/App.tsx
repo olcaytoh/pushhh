@@ -1,0 +1,9825 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { 
+  Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
+  ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
+  Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus,
+  Cloud, Globe
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
+import { auth, onAuthStateChanged, User } from './firebase';
+import { GoogleAuthSyncModal } from './components/GoogleAuthSyncModal';
+import {
+  signInWithGoogle,
+  signOutUser,
+  saveUserDataToCloud,
+  loadUserDataFromCloud,
+  getLocalLastSyncedAt
+} from './services/cloudSyncService';
+import { BADGES, BadgeItem, getBadgeRepeatCount } from './badges';
+import { AslanSVG } from './components/Mascot';
+import { Geometry3DLab } from './components/Geometry3DLab';
+import { GeoboardActivity } from './components/GeoboardActivity';
+import { GeometricNetsActivity } from './components/GeometricNetsActivity';
+import { XOXGame } from './components/XOXGame';
+import { AynisiniBulGame } from './components/AynisiniBulGame';
+import { OtherGamesHub } from './components/OtherGamesHub';
+import { KuralliCumleActivity } from './components/KuralliCumleActivity';
+import { HeceSayisiActivity } from './components/HeceSayisiActivity';
+import { SozlukSiralaGame } from './components/SozlukSiralaGame';
+import { KelimeSiralaGame } from './components/KelimeSiralaGame';
+import { HeceMakasiGame } from './components/HeceMakasiGame';
+import { YazimDedektifiGame } from './components/YazimDedektifiGame';
+import { GeometrikSekilleriBulActivity } from './components/GeometrikSekilleriBulActivity';
+import { Dedektif5N1KGame } from './components/Dedektif5N1KGame';
+import { NoktalamaAvcisiGame } from './components/NoktalamaAvcisiGame';
+import { HarfCorbasiGame } from './components/HarfCorbasiGame';
+import { GeriDonusumGame } from './components/GeriDonusumGame';
+import { SaglikliTabakGame } from './components/SaglikliTabakGame';
+import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
+import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
+import { EnglishGamesHub } from './components/EnglishGamesHub';
+import { WordGameModal } from './components/WordGameModal';
+import { FeedbackModal } from './components/FeedbackModal';
+import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIcon, GlossyScreenRotateIcon, GoldCoinDisplayCard } from './components/GameUIButtons';
+import { ModernStatsView, Cute3DStarMascotSVG } from './components/ModernStatsView';
+import { ClassCountersModal } from './components/ClassCountersModal';
+import { Student } from './types/student';
+import { 
+  loadStudents, 
+  saveStudents, 
+  loadSelectedStudentIdsForGrade, 
+  saveSelectedStudentIdsForGrade, 
+  recordStudentAnswer, 
+  recordStudentGameResult 
+} from './utils/studentStore';
+import { StudentAvatarDock } from './components/StudentAvatarDock';
+import { StudentRosterModal } from './components/StudentRosterModal';
+import { OdevAkvaryumuModal } from './components/OdevAkvaryumuModal';
+import { AndroidAppsModal } from './components/AndroidAppsModal';
+import { 
+  ClassCountersData, 
+  loadCounters, 
+  recordSiteVisit, 
+  recordClassClick, 
+  recordClassQuestionSolved,
+  syncHistoricalQuestions,
+  GradeCategoryKey 
+} from './utils/counterStorage';
+import { syncAndRecordGlobalVisit, refreshWorldwideVisitorCount } from './utils/globalVisitorTracker';
+import { ChromaKeyVideo } from './components/ChromaKeyVideo';
+import { AutoFitQuestionBox } from './components/AutoFitQuestionBox';
+import { AutoFitOptionContent } from './components/AutoFitOptionContent';
+import { BasketballRaceTrack, SingleBasketballTrack } from './components/BasketballRaceTrack';
+import { TugOfWarTrack } from './components/TugOfWarTrack';
+import { topics1stGrade } from './data/topics1stGrade';
+import { topics2ndGrade } from './data/topics2ndGrade';
+import { topics3rdGrade } from './data/topics3rdGrade';
+import { topics4thGrade } from './data/topics4thGrade';
+import { halatCekmeTopics, sureliExtraTopics } from './data/halatCekmeTopics';
+import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA } from './data/wordPairsData';
+import { ALL_ACTIVITIES_LIST, findActivityIndex } from './data/allActivitiesRegistry';
+
+// --- TOPICS FOR OTHER WORD GAMES (STANDARDIZED WITH ALL OTHER ACTIVITIES) ---
+const topicsWordGames: Record<string, { title: string; desc: string; icon?: string; generate: () => QuestionData }> = {
+  other_zit_anlam: {
+    title: "Zıt Anlamlı Kelimeler",
+    desc: "Verilen kelimenin zıt (karşıt) anlamlısını bulma.",
+    icon: "/MENUIKON/grid_icon_27.png",
+    generate: () => {
+      const secilen = ZIT_ANLAM_DATA[Math.floor(Math.random() * ZIT_ANLAM_DATA.length)];
+      const yanlislar = ZIT_ANLAM_DATA
+        .filter(d => d.word !== secilen.word && d.match !== secilen.match)
+        .map(d => d.match)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      const soru = `"${secilen.word}" kelimesinin ZIT (KARŞIT) anlamlısı hangisidir?`;
+      const soruHTML = `
+        <div class="flex flex-col items-center justify-center gap-1.5 sm:gap-2 my-auto">
+          <div class="px-5 py-1.5 sm:py-2 rounded-2xl bg-amber-400 text-slate-950 font-black text-2xl xs:text-3xl sm:text-4xl border-2 border-white shadow-lg drop-shadow-md">
+            ${secilen.emoji ? `${secilen.emoji} ` : ''}${secilen.word}
+          </div>
+          <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
+            kelimesinin <b>ZIT (KARŞIT)</b> anlamlısı hangisidir?
+          </div>
+        </div>
+      `;
+      return {
+        question: soru,
+        questionHTML: soruHTML,
+        correct: secilen.match,
+        wrong: yanlislar,
+        isLong: false
+      };
+    }
+  },
+  other_es_anlam: {
+    title: "Eş Anlamlı Kelimeler",
+    desc: "Verilen kelimenin eş (anlamdaş) anlamlısını bulma.",
+    icon: "/MENUIKON/grid_icon_21.png",
+    generate: () => {
+      const secilen = ES_ANLAM_DATA[Math.floor(Math.random() * ES_ANLAM_DATA.length)];
+      const yanlislar = ES_ANLAM_DATA
+        .filter(d => d.word !== secilen.word && d.match !== secilen.match)
+        .map(d => d.match)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      const soru = `"${secilen.word}" kelimesinin EŞ (ANLAMDAŞ) anlamlısı hangisidir?`;
+      const soruHTML = `
+        <div class="flex flex-col items-center justify-center gap-1.5 sm:gap-2 my-auto">
+          <div class="px-5 py-1.5 sm:py-2 rounded-2xl bg-emerald-400 text-slate-950 font-black text-2xl xs:text-3xl sm:text-4xl border-2 border-white shadow-lg drop-shadow-md">
+            ${secilen.emoji ? `${secilen.emoji} ` : ''}${secilen.word}
+          </div>
+          <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
+            kelimesinin <b>EŞ (ANLAMDAŞ)</b> anlamlısı hangisidir?
+          </div>
+        </div>
+      `;
+      return {
+        question: soru,
+        questionHTML: soruHTML,
+        correct: secilen.match,
+        wrong: yanlislar,
+        isLong: false
+      };
+    }
+  },
+  other_ingilizce: {
+    title: "İngilizce Kelime Oyunu",
+    desc: "İngilizce kelimelerin Türkçe karşılıklarını bulma.",
+    icon: "/MENUIKON/grid_icon_14.png",
+    generate: () => {
+      const secilen = INGILIZCE_DATA[Math.floor(Math.random() * INGILIZCE_DATA.length)];
+      const yanlislar = INGILIZCE_DATA
+        .filter(d => d.word !== secilen.word && d.match !== secilen.match)
+        .map(d => d.match)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      const soru = `"${secilen.word}" kelimesinin TÜRKÇE karşılığı hangisidir?`;
+      const soruHTML = `
+        <div class="flex flex-col items-center justify-center gap-1.5 sm:gap-2 my-auto">
+          <div class="px-5 py-1.5 sm:py-2 rounded-2xl bg-cyan-400 text-slate-950 font-black text-2xl xs:text-3xl sm:text-4xl border-2 border-white shadow-lg drop-shadow-md">
+            🇬🇧 ${secilen.word}
+          </div>
+          <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
+            kelimesinin <b>TÜRKÇE</b> karşılığı hangisidir?
+          </div>
+        </div>
+      `;
+      return {
+        question: soru,
+        questionHTML: soruHTML,
+        correct: secilen.match,
+        wrong: yanlislar,
+        isLong: false
+      };
+    }
+  }
+};
+
+// --- SVG & IMAGE DATA & HELPERS ---
+const SINIF_OGRENCILERI = [
+  "AYBÜKE", "BETÜL SARE", "BUĞLEM", "ÇINAR EYMEN", "DERİN DEFNE", "EFEKAN",
+  "ELİF SU", "ESLEM", "EYMEN", "GÜNEŞ", "HARUN", "MİRAÇ", "MUHAMMED EYMEN",
+  "OSMAN EMİR", "ÖMER ASAF", "ÖMER FARUK", "RAVZA", "SUDEM", "UMUT", "ZEYNEP",
+  "ZİLAN", "ÖYKÜ LİYA", "HARUN ALİ"
+];
+
+function toTitleCaseTR(str: string): string {
+  return str
+    .split(' ')
+    .map(word => {
+      if (!word) return '';
+      const lower = word.toLocaleLowerCase('tr-TR');
+      return lower.charAt(0).toLocaleUpperCase('tr-TR') + lower.slice(1);
+    })
+    .join(' ');
+}
+
+function getRastgeleOgrenci(): string {
+  const raw = SINIF_OGRENCILERI[Math.floor(Math.random() * SINIF_OGRENCILERI.length)];
+  return toTitleCaseTR(raw);
+}
+
+// DYNAMIC QUESTION FONT SIZING HELPER (RESPONSIVE & AUTO-ADAPTIVE)
+function getDynamicQuestionFontClass(
+  questionText: string = '',
+  hasHTML: boolean = false,
+  mode: 1 | 2 | 3 = 1
+): string {
+  const cleanText = (questionText || '').replace(/<[^>]*>?/gm, '').trim();
+  const len = cleanText.length;
+
+  if (mode === 1) {
+    if (hasHTML) {
+      return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    }
+    if (len <= 25) return "text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black tracking-wide leading-tight";
+    if (len <= 65) return "text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black tracking-wide leading-tight";
+    if (len <= 125) return "text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-snug";
+    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+  }
+
+  if (mode === 2) {
+    if (hasHTML) {
+      return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    }
+    if (len <= 35) return "text-xl sm:text-2xl md:text-3xl font-black tracking-wide leading-tight";
+    if (len <= 85) return "text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+  }
+
+  // mode === 3 (3 Players)
+  if (hasHTML) {
+    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+  }
+  if (len <= 35) return "text-xl sm:text-2xl md:text-3xl font-black tracking-wide leading-tight";
+  if (len <= 85) return "text-lg sm:text-xl md:text-2xl font-black leading-snug";
+  // Problem soruları ve her türlü soru metni için görsel sorularla birebir aynı büyük, net font boyutu:
+  return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+}
+
+// GUARANTEED EXACTLY 4 DISTINCT OPTIONS HELPER (PREVENTS MISSING 4TH OPTION)
+export function ensureFourOptions(correct: string | number, wrong: (string | number)[] = []): (string | number)[] {
+  const correctStr = String(correct ?? '').trim();
+  const uniqueWrong: (string | number)[] = [];
+  const seen = new Set<string>();
+  seen.add(correctStr);
+
+  for (const w of wrong) {
+    const wStr = String(w ?? '').trim();
+    if (wStr && !seen.has(wStr)) {
+      seen.add(wStr);
+      uniqueWrong.push(w);
+      if (uniqueWrong.length === 3) break;
+    }
+  }
+
+  if (uniqueWrong.length < 3) {
+    const match = correctStr.match(/^([+-]?\d+(?:[.,]\d+)?)\s*(.*)$/);
+    if (match) {
+      const baseNum = parseFloat(match[1].replace(',', '.'));
+      const unit = match[2] ? ` ${match[2]}` : '';
+      const isInteger = Number.isInteger(baseNum);
+      const deltas = [1, -1, 2, -2, 3, -3, 5, -5, 10, -10, 4, -4, 20, -20];
+
+      for (const d of deltas) {
+        if (uniqueWrong.length >= 3) break;
+        const candidateNum = baseNum + d;
+        if (candidateNum > 0 || (baseNum <= 0 && candidateNum !== baseNum)) {
+          const candidateStr = isInteger ? `${Math.round(candidateNum)}${unit}` : `${candidateNum}${unit}`;
+          if (!seen.has(candidateStr)) {
+            seen.add(candidateStr);
+            uniqueWrong.push(typeof correct === 'number' && !unit ? candidateNum : candidateStr);
+          }
+        }
+      }
+    } else {
+      const fallbacks = ["A", "B", "C", "D", "E"];
+      for (const fb of fallbacks) {
+        if (uniqueWrong.length >= 3) break;
+        if (!seen.has(fb)) {
+          seen.add(fb);
+          uniqueWrong.push(fb);
+        }
+      }
+    }
+  }
+
+  return [correct, ...uniqueWrong.slice(0, 3)];
+}
+
+// UNIFORM OPTION FONT SIZING HELPER (PROPORTIONALLY SCALED TO PREVENT TEXT CLIPPING)
+function getDynamicOptionFontClass(
+  options: (string | number)[] = [],
+  mode: 1 | 2 | 3 = 1,
+  grade: number = 2
+): string {
+  const maxLen: number = options.reduce<number>((max, opt) => {
+    const clean = String(opt ?? '').replace(/<[^>]*>/g, '').trim();
+    if ((mode === 3 || mode === 2) && clean.includes(' ')) {
+      const words = clean.split(/\s+/);
+      return Math.max(max, ...words.map(w => w.length));
+    }
+    return Math.max(max, clean.length);
+  }, 0);
+
+  // 4. SINIF: 4K Akıllı Tahta için şık yazıları belirgin şekilde büyütülür
+  if (grade === 4) {
+    if (mode === 1) {
+      if (maxLen <= 3) return "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-snug";
+      if (maxLen <= 6) return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-snug";
+      if (maxLen <= 12) return "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black leading-snug";
+      if (maxLen <= 20) return "text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold leading-snug";
+      if (maxLen <= 30) return "text-base sm:text-lg md:text-xl lg:text-2xl font-bold leading-snug";
+      return "text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-snug";
+    }
+
+    if (mode === 2) {
+      if (maxLen <= 3) return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black leading-snug";
+      if (maxLen <= 6) return "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black leading-snug";
+      if (maxLen <= 12) return "text-lg sm:text-xl md:text-2xl lg:text-3xl font-black leading-snug";
+      if (maxLen <= 20) return "text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold leading-snug";
+      if (maxLen <= 30) return "text-sm sm:text-base md:text-lg lg:text-xl font-bold leading-snug";
+      return "text-xs sm:text-sm md:text-base lg:text-lg font-bold leading-snug";
+    }
+
+    // 3 Players
+    if (maxLen <= 3) return "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black leading-snug";
+    if (maxLen <= 6) return "text-lg sm:text-xl md:text-2xl lg:text-3xl font-black leading-snug";
+    if (maxLen <= 12) return "text-base sm:text-lg md:text-xl lg:text-2xl font-black leading-snug";
+    if (maxLen <= 20) return "text-sm sm:text-base md:text-lg lg:text-xl font-extrabold leading-snug";
+    return "text-xs sm:text-sm md:text-base lg:text-lg font-bold leading-snug";
+  }
+
+  if (mode === 1) {
+    if (maxLen <= 3) return "text-xl xs:text-2xl sm:text-3xl font-black leading-snug";
+    if (maxLen <= 6) return "text-lg xs:text-xl sm:text-2xl font-black leading-snug";
+    if (maxLen <= 9) return "text-base xs:text-lg sm:text-xl font-black leading-snug";
+    if (maxLen <= 14) return "text-sm xs:text-base sm:text-lg font-black leading-snug";
+    if (maxLen <= 20) return "text-xs xs:text-sm sm:text-base font-extrabold leading-snug";
+    return "text-[11px] xs:text-xs sm:text-sm font-bold leading-snug";
+  }
+
+  if (mode === 2) {
+    if (maxLen <= 3) return "text-base sm:text-lg md:text-xl font-black leading-snug";
+    if (maxLen <= 6) return "text-sm sm:text-base md:text-lg font-black leading-snug";
+    if (maxLen <= 10) return "text-xs sm:text-sm md:text-base font-bold leading-snug";
+    if (maxLen <= 16) return "text-[11px] sm:text-xs font-bold leading-snug";
+    return "text-[10px] sm:text-[11px] font-bold leading-snug";
+  }
+
+  // 3 Players: Şıklar alt alta kaysın, yazı büyüklüğü korunsun
+  if (maxLen <= 3) return "text-base sm:text-lg md:text-xl font-black leading-snug";
+  if (maxLen <= 6) return "text-sm sm:text-base md:text-lg font-black leading-snug";
+  if (maxLen <= 10) return "text-xs sm:text-sm md:text-base font-black leading-snug";
+  if (maxLen <= 14) return "text-[11px] sm:text-xs md:text-sm font-black leading-snug";
+  return "text-[10px] sm:text-[11px] md:text-xs font-bold leading-snug";
+}
+
+// KULLANICI KURALI: "tüm kesirleri alt alta yaz, pay altında kesir çizgisi onunda altında payda. yan yana yazma."
+export function renderFractionHTML(pay: string | number, payda: string | number, tam?: string | number, isGrade4: boolean = false): string {
+  const tamClass = isGrade4
+    ? "text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-amber-300 mr-1"
+    : "text-base sm:text-lg md:text-xl font-black text-amber-300 mr-0.5";
+  const numClass = isGrade4
+    ? "text-sm sm:text-base md:text-lg lg:text-xl font-black px-1.5 leading-none py-0.5"
+    : "text-xs sm:text-sm md:text-base font-black px-1 leading-none py-0.5";
+  const lineClass = isGrade4
+    ? "w-full h-[2px] sm:h-[3px] bg-white rounded-full my-[1px] min-w-[18px]"
+    : "w-full h-[2px] bg-white rounded-full my-[1.5px] min-w-[14px]";
+
+  return `<span class="inline-flex items-center justify-center gap-1.5 font-black align-middle select-none">${
+    tam ? `<span class="${tamClass}">${tam}</span>` : ''
+  }<span class="inline-flex flex-col items-center justify-center leading-none text-center"><span class="${numClass}">${pay}</span><span class="${lineClass}"></span><span class="${numClass}">${payda}</span></span></span>`;
+}
+
+// KULLANICI KURALI: Şıkta hem yazı hem görsel olmasın; hangisi yeterliyse o olsun.
+export function cleanOptionForDisplay(opt: string | number, isGrade4: boolean = false): string | number {
+  if (typeof opt !== 'string') {
+    return opt;
+  }
+
+  // KULLANICI KURALI: Şıkların üstüne A, B, C, D yazılmasın (A), B), C), D) kaldırılır)
+  opt = opt.replace(/^[A-Da-d][\)\.]\s*/, '');
+
+  // KULLANICI KURALI: Tüm kesirler alt alta: pay, kesir çizgisi, payda
+  const pureFractionMatch = opt.trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (pureFractionMatch) {
+    return renderFractionHTML(pureFractionMatch[1], pureFractionMatch[2], undefined, isGrade4);
+  }
+
+  const mixedFractionMatch = opt.trim().match(/^(\d+)\s+(?:tam\s+)?(\d+)\s*\/\s*(\d+)$/i);
+  if (mixedFractionMatch) {
+    return renderFractionHTML(mixedFractionMatch[2], mixedFractionMatch[3], mixedFractionMatch[1], isGrade4);
+  }
+
+  if (/\b\d+\s*\/\s*\d+\b/.test(opt) && !opt.includes('<')) {
+    return opt.replace(/(\d+)\s*\/\s*(\d+)/g, (_, p, d) => renderFractionHTML(p, d, undefined, isGrade4));
+  }
+
+  if (!opt.includes('<')) {
+    return opt;
+  }
+  const hasImgOrSvg = opt.includes('<img') || opt.includes('<svg');
+  if (!hasImgOrSvg) {
+    return opt;
+  }
+
+  // HTML etiketlerini ayıklayarak saf metin var mı bakalım
+  const textContent = opt.replace(/<[^>]*>/g, '').trim();
+  if (!textContent) {
+    // Sadece görsel var, yazı yok -> görsel tek başına yeterlidir
+    return opt;
+  }
+
+  // Hem görsel hem yazı var: Hangisi yeterliyse o kalmalı!
+  // Eğer soru bir sıra / derece / numara sorusu ise (örn: "1.", "1. (Birinci)", "Birinci", "2. Sıra"):
+  // Cevap sıra yazısıdır, nesne görseli fuzulidir -> sadece metin yeterlidir:
+  if (/(\d+\.|\b(birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu|sıra)\b)/i.test(textContent)) {
+    return textContent;
+  }
+
+  // Eğer nesne/şekil sorusu ise nesnenin görseli tek başına yeterlidir, yanındaki isim metni fuzulidir -> sadece görsel:
+  const imgMatch = opt.match(/<img[^>]*>|<svg[\s\S]*?<\/svg>/i);
+  if (imgMatch) {
+    return imgMatch[0];
+  }
+
+  return opt;
+}
+
+const CISIM_SVG: Record<string, string> = {
+  kup: '<img src="/geos/kups.png" alt="Küp" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  kure: '<img src="/geos/kures.png" alt="Küre" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  silindir: '<img src="/geos/slndrs.png" alt="Silindir" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  dikdortgen_prizma: '<img src="/geos/dikdprz.png" alt="Dikdörtgenler Prizması" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  kare_prizma: '<img src="/geos/kareprz.png" alt="Kare Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  ucgen_prizma: '<img src="/geos/ucgenprz.png" alt="Üçgen Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />'
+};
+
+const CISIM_OZELLIK: Record<string, { ad: string; yüz: number; ayrıt: number; köşe: number }> = {
+  kup: { ad: 'Küp', yüz: 6, ayrıt: 12, köşe: 8 },
+  kure: { ad: 'Küre', yüz: 1, ayrıt: 0, köşe: 0 },
+  silindir: { ad: 'Silindir', yüz: 3, ayrıt: 0, köşe: 0 },
+  dikdortgen_prizma: { ad: 'Dikdörtgenler Prizması', yüz: 6, ayrıt: 12, köşe: 8 },
+  kare_prizma: { ad: 'Kare Prizma', yüz: 6, ayrıt: 12, köşe: 8 },
+  ucgen_prizma: { ad: 'Üçgen Prizma', yüz: 5, ayrıt: 9, köşe: 6 }
+};
+
+function getCisimTamlayan(ad: string): string {
+  switch (ad) {
+    case 'Küp': return "Küp'ün";
+    case 'Küre': return "Kürenin";
+    case 'Silindir': return "Silindirin";
+    case 'Dikdörtgenler Prizması': return "Dikdörtgenler Prizmasının";
+    case 'Kare Prizma': return "Kare Prizmasının";
+    case 'Üçgen Prizma': return "Üçgen Prizmanın";
+    default: return `${ad}'nin`;
+  }
+}
+
+function getIsimTamlayan(isim: string): string {
+  const clean = toTitleCaseTR(isim.trim());
+  if (!clean) return isim;
+
+  // "Su" istisnası (ör. Elif Su -> Elif Su'yun)
+  if (clean.endsWith("Su")) {
+    return `${clean}'yun`;
+  }
+
+  const vowels = ['a', 'e', 'ı', 'i', 'o', 'ö', 'u', 'ü'];
+  const lastChar = clean.slice(-1).toLowerCase();
+  const isVowel = vowels.includes(lastChar);
+
+  let lastVowel = 'i';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    const char = clean[i].toLowerCase();
+    if (vowels.includes(char)) {
+      lastVowel = char;
+      break;
+    }
+  }
+
+  let suffix = '';
+  if (['a', 'ı'].includes(lastVowel)) suffix = isVowel ? 'nın' : 'ın';
+  else if (['e', 'i'].includes(lastVowel)) suffix = isVowel ? 'nin' : 'in';
+  else if (['o', 'u'].includes(lastVowel)) suffix = isVowel ? 'nun' : 'un';
+  else if (['ö', 'ü'].includes(lastVowel)) suffix = isVowel ? 'nün' : 'ün';
+
+  return `${clean}'${suffix}`;
+}
+
+// Cins isimlerde kesme işareti KULLANILMAZ ve ünsüz yumuşaması/ses uyumları uygulanır
+function getNesneBelirtme(nesne: string): string {
+  const dict: Record<string, string> = {
+    "kitap": "kitabı",
+    "oyuncak": "oyuncağı",
+    "kalem": "kalemi",
+    "defter": "defteri",
+    "top": "topu",
+    "şapka": "şapkayı",
+    "çanta": "çantayı",
+    "kalemlik": "kalemliği",
+    "silgi": "silgiyi",
+    "elma": "elmayı",
+    "karpuz": "karpuzu",
+    "domates": "domatesi",
+    "pizza": "pizzayı",
+    "waffle": "waffle'ı",
+    "biber": "biberi",
+    "portakal": "portakalı",
+    "kivi": "kiviyi",
+    "armut": "armudu",
+    "çilek": "çileği",
+    "cilek": "çileği",
+    "muz": "muzu",
+    "limon": "limonu",
+    "üzüm": "üzümü",
+    "uzum": "üzümü",
+    "şeftali": "şeftaliyi",
+    "seftali": "şeftaliyi",
+    "ananas": "ananası",
+    "kiraz": "kirazı",
+    "kavun": "kavunu",
+    "mandalina": "mandalinayı",
+    "erik": "eriği",
+    "kurabiye": "kurabiyeyi",
+    "donut": "donutu",
+    "ceviz": "cevizi",
+    "fındık": "fındığı",
+    "bilye": "bilyeyi",
+    "balon": "balonu",
+    "çıkartma": "çıkartmayı",
+    "ekmek": "ekmeği",
+    "pasta": "pastayı"
+  };
+  const key = nesne.toLowerCase().trim();
+  if (dict[key]) return dict[key];
+
+  const clean = nesne.trim();
+  const vowels = ['a', 'e', 'ı', 'i', 'o', 'ö', 'u', 'ü'];
+  const lastChar = clean.slice(-1).toLowerCase();
+  const isVowel = vowels.includes(lastChar);
+
+  let stem = clean;
+  if (!isVowel) {
+    if (stem.endsWith('k') || stem.endsWith('K')) stem = stem.slice(0, -1) + 'ğ';
+    else if (stem.endsWith('p') || stem.endsWith('P')) stem = stem.slice(0, -1) + 'b';
+    else if (stem.endsWith('ç') || stem.endsWith('Ç')) stem = stem.slice(0, -1) + 'c';
+    else if (stem.endsWith('t') || stem.endsWith('T')) stem = stem.slice(0, -1) + 'd';
+  }
+
+  let lastVowel = 'i';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    const char = clean[i].toLowerCase();
+    if (vowels.includes(char)) {
+      lastVowel = char;
+      break;
+    }
+  }
+
+  let suffix = '';
+  if (['a', 'ı'].includes(lastVowel)) suffix = isVowel ? 'yı' : 'ı';
+  else if (['e', 'i'].includes(lastVowel)) suffix = isVowel ? 'yi' : 'i';
+  else if (['o', 'u'].includes(lastVowel)) suffix = isVowel ? 'yu' : 'u';
+  else if (['ö', 'ü'].includes(lastVowel)) suffix = isVowel ? 'yü' : 'ü';
+
+  return stem + suffix;
+}
+
+function getNesneAyrilma(nesne: string): string {
+  const dict: Record<string, string> = {
+    "kitap": "kitaptan",
+    "oyuncak": "oyuncaktan",
+    "kalem": "kalemden",
+    "defter": "defterden",
+    "top": "toptan",
+    "şapka": "şapkadan",
+    "çanta": "çantadan",
+    "kalemlik": "kalemlikten",
+    "silgi": "silgiden",
+    "elma": "elmadan",
+    "karpuz": "karpuzdan",
+    "domates": "domatesten",
+    "pizza": "pizzadan",
+    "waffle": "waffle'dan",
+    "biber": "biberden",
+    "portakal": "portakaldan",
+    "kivi": "kividen",
+    "armut": "armuttan",
+    "çilek": "çilekten",
+    "cilek": "çilekten",
+    "muz": "muzdan",
+    "limon": "limondan",
+    "üzüm": "üzümden",
+    "uzum": "üzümden",
+    "şeftali": "şeftaliden",
+    "seftali": "şeftaliden",
+    "ananas": "ananasdan",
+    "kiraz": "kirazdan",
+    "kavun": "kavundan",
+    "mandalina": "mandalinadan",
+    "erik": "erikten",
+    "kurabiye": "kurabiyeden",
+    "donut": "donuttan",
+    "ceviz": "cevizden",
+    "fındık": "fındıktan",
+    "bilye": "bilyeden",
+    "balon": "balondan",
+    "çıkartma": "çıkartmadan"
+  };
+  const key = nesne.toLowerCase().trim();
+  if (dict[key]) return dict[key];
+
+  const clean = nesne.trim();
+  const fistikci = ['f', 's', 't', 'k', 'ç', 'ş', 'h', 'p'];
+  const vowels = ['a', 'e', 'ı', 'i', 'o', 'ö', 'u', 'ü'];
+  const lastChar = clean.slice(-1).toLowerCase();
+
+  let lastVowel = 'i';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    const char = clean[i].toLowerCase();
+    if (vowels.includes(char)) {
+      lastVowel = char;
+      break;
+    }
+  }
+
+  const startChar = fistikci.includes(lastChar) ? 't' : 'd';
+  const endChar = ['a', 'ı', 'o', 'u'].includes(lastVowel) ? 'an' : 'en';
+
+  return clean + startChar + endChar;
+}
+
+function getNesneYonelme(nesne: string): string {
+  const dict: Record<string, string> = {
+    "kitap": "kitaba",
+    "oyuncak": "oyuncağa",
+    "kalem": "kaleme",
+    "defter": "deftere",
+    "top": "topa",
+    "şapka": "şapkaya",
+    "çanta": "çantaya",
+    "kalemlik": "kalemliğe",
+    "silgi": "silgiye",
+    "elma": "elmaya",
+    "karpuz": "karpuza",
+    "domates": "domatese",
+    "pizza": "pizzaya",
+    "waffle": "waffle'a",
+    "biber": "bibere",
+    "portakal": "portakala",
+    "kivi": "kiviye",
+    "armut": "armuda",
+    "çilek": "çileğe",
+    "cilek": "çileğe",
+    "muz": "muza",
+    "limon": "limona",
+    "üzüm": "üzüme",
+    "uzum": "üzüme",
+    "şeftali": "şeftaliye",
+    "seftali": "şeftaliye",
+    "ananas": "ananasa",
+    "kiraz": "kiraza",
+    "kavun": "kavuna",
+    "mandalina": "mandalinaya",
+    "erik": "eriğe",
+    "kurabiye": "kurabiyeye",
+    "donut": "donuta",
+    "ceviz": "cevize",
+    "fındık": "fındığa",
+    "bilye": "bilyeye",
+    "balon": "balona"
+  };
+  const key = nesne.toLowerCase().trim();
+  if (dict[key]) return dict[key];
+
+  const clean = nesne.trim();
+  const vowels = ['a', 'e', 'ı', 'i', 'o', 'ö', 'u', 'ü'];
+  const lastChar = clean.slice(-1).toLowerCase();
+  const isVowel = vowels.includes(lastChar);
+
+  let stem = clean;
+  if (!isVowel) {
+    if (stem.endsWith('k') || stem.endsWith('K')) stem = stem.slice(0, -1) + 'ğ';
+    else if (stem.endsWith('p') || stem.endsWith('P')) stem = stem.slice(0, -1) + 'b';
+    else if (stem.endsWith('ç') || stem.endsWith('Ç')) stem = stem.slice(0, -1) + 'c';
+    else if (stem.endsWith('t') || stem.endsWith('T')) stem = stem.slice(0, -1) + 'd';
+  }
+
+  let lastVowel = 'i';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    const char = clean[i].toLowerCase();
+    if (vowels.includes(char)) {
+      lastVowel = char;
+      break;
+    }
+  }
+
+  const suffix = ['a', 'ı', 'o', 'u'].includes(lastVowel) ? (isVowel ? 'ya' : 'a') : (isVowel ? 'ye' : 'e');
+  return stem + suffix;
+}
+
+function getNesneIyelik(nesne: string): string {
+  const dict: Record<string, string> = {
+    "bilye": "bilyesi",
+    "fındık": "fındığı",
+    "kalem": "kalemi",
+    "çıkartma": "çıkartması",
+    "balon": "balonu",
+    "elma": "elması",
+    "karpuz": "karpuzu",
+    "domates": "domatesi",
+    "pizza": "pizzası",
+    "waffle": "waffle'ı",
+    "biber": "biberi",
+    "portakal": "portakalı",
+    "kivi": "kivisi",
+    "armut": "armudu",
+    "çilek": "çileği",
+    "cilek": "çileği",
+    "muz": "muzu",
+    "limon": "limonu",
+    "üzüm": "üzümü",
+    "uzum": "üzümü",
+    "şeftali": "şeftalisi",
+    "seftali": "şeftalisi",
+    "ananas": "ananası",
+    "kiraz": "kirazı",
+    "kavun": "kavunu",
+    "mandalina": "mandalinası",
+    "erik": "eriği",
+    "kurabiye": "kurabiyesi",
+    "donut": "donutu",
+    "ceviz": "cevizi",
+    "oyuncak": "oyuncağı",
+    "top": "topu",
+    "kitap": "kitabı",
+    "silgi": "silgisi",
+    "kalemlik": "kalemliği"
+  };
+  const key = nesne.toLowerCase().trim();
+  if (dict[key]) return dict[key];
+
+  const clean = nesne.trim();
+  const vowels = ['a', 'e', 'ı', 'i', 'o', 'ö', 'u', 'ü'];
+  const lastChar = clean.slice(-1).toLowerCase();
+  const isVowel = vowels.includes(lastChar);
+
+  let stem = clean;
+  if (stem.endsWith('k') || stem.endsWith('K')) {
+    stem = stem.slice(0, -1) + 'ğ';
+  } else if (stem.endsWith('p') || stem.endsWith('P')) {
+    stem = stem.slice(0, -1) + 'b';
+  } else if (stem.endsWith('ç') || stem.endsWith('Ç')) {
+    stem = stem.slice(0, -1) + 'c';
+  } else if (stem.endsWith('t') || stem.endsWith('T')) {
+    stem = stem.slice(0, -1) + 'd';
+  }
+
+  let lastVowel = 'i';
+  for (let i = clean.length - 1; i >= 0; i--) {
+    const char = clean[i].toLowerCase();
+    if (vowels.includes(char)) {
+      lastVowel = char;
+      break;
+    }
+  }
+
+  let suffix = '';
+  if (['a', 'ı'].includes(lastVowel)) suffix = isVowel ? 'sı' : 'ı';
+  else if (['e', 'i'].includes(lastVowel)) suffix = isVowel ? 'si' : 'i';
+  else if (['o', 'u'].includes(lastVowel)) suffix = isVowel ? 'su' : 'u';
+  else if (['ö', 'ü'].includes(lastVowel)) suffix = isVowel ? 'sü' : 'ü';
+
+  return stem + suffix;
+}
+
+const OZELLIK_EK: Record<string, { buyuk: string; kucuk: string }> = {
+  yüz: { buyuk: 'YÜZÜ', kucuk: 'yüzü' },
+  ayrıt: { buyuk: 'AYRITI', kucuk: 'ayrıtı' },
+  köşe: { buyuk: 'KÖŞESİ', kucuk: 'köşesi' }
+};
+
+function generateClockSVG(hour: number, minute: number): string {
+  const hourAngle = ((hour % 12) + minute / 60) * 30;
+  const minuteAngle = minute * 6;
+
+  const hRad = (hourAngle - 90) * (Math.PI / 180);
+  const mRad = (minuteAngle - 90) * (Math.PI / 180);
+
+  const hX = 50 + 22 * Math.cos(hRad);
+  const hY = 50 + 22 * Math.sin(hRad);
+
+  const mX = 50 + 32 * Math.cos(mRad);
+  const mY = 50 + 32 * Math.sin(mRad);
+
+  let numbersHTML = '';
+  for (let h = 1; h <= 12; h++) {
+    const angleRad = (h * 30 - 90) * (Math.PI / 180);
+    const nx = 50 + 36 * Math.cos(angleRad);
+    const ny = 50 + 36 * Math.sin(angleRad);
+    numbersHTML += `<text x="${nx.toFixed(1)}" y="${ny.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7.5" font-weight="900" fill="#1E293B">${h}</text>`;
+  }
+
+  let ticksHTML = '';
+  for (let m = 0; m < 60; m++) {
+    if (m % 5 === 0) continue;
+    const angleRad = (m * 6 - 90) * (Math.PI / 180);
+    const x1 = 50 + 44 * Math.cos(angleRad);
+    const y1 = 50 + 44 * Math.sin(angleRad);
+    const x2 = 50 + 46 * Math.cos(angleRad);
+    const y2 = 50 + 46 * Math.sin(angleRad);
+    ticksHTML += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94A3B8" stroke-width="0.8" />`;
+  }
+
+  return `
+    <svg viewBox="0 0 100 100" class="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 drop-shadow-md mx-auto">
+      <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#2563EB" stroke-width="3" />
+      <circle cx="50" cy="50" r="44" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
+      ${ticksHTML}
+      ${numbersHTML}
+      <!-- Akrep (Hour Hand - Red) -->
+      <line x1="50" y1="50" x2="${hX.toFixed(1)}" y2="${hY.toFixed(1)}" stroke="#DC2626" stroke-width="3.5" stroke-linecap="round" />
+      <!-- Yelkovan (Minute Hand - Blue) -->
+      <line x1="50" y1="50" x2="${mX.toFixed(1)}" y2="${mY.toFixed(1)}" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="50" cy="50" r="3" fill="#1E293B" stroke="#FFFFFF" stroke-width="1" />
+      <circle cx="50" cy="50" r="1.2" fill="#F59E0B" />
+    </svg>
+  `;
+}
+
+function benzersizYanlislar(correct: number, adaylar: number[], minVal = 0): number[] {
+  // İlkokul müfredatında eksi sayı kavramı yoktur: adaylar ve sonuçlar daima pozitif olmalıdır!
+  const safeMin = Math.max(0, minVal);
+  const sonuc: number[] = [];
+  const gorulen = new Set<number>([correct]);
+  for (const aday of adaylar) {
+    if (sonuc.length === 3) break;
+    if (!gorulen.has(aday) && aday >= safeMin) {
+      gorulen.add(aday);
+      sonuc.push(aday);
+    }
+  }
+  let ek = 1;
+  while (sonuc.length < 3) {
+    const aday = Math.max(safeMin, correct) + 10 + ek;
+    if (!gorulen.has(aday) && aday >= safeMin) {
+      gorulen.add(aday);
+      sonuc.push(aday);
+    }
+    ek++;
+  }
+  return sonuc;
+}
+
+const MEYVE_KESIR_LISTESI = [
+  { key: 'elma', ad: 'elma' },
+  { key: 'karpuz', ad: 'karpuz' },
+  { key: 'portakal', ad: 'portakal' },
+  { key: 'armut', ad: 'armut' },
+  { key: 'kivi', ad: 'kivi' },
+  { key: 'cilek', ad: 'çilek' },
+  { key: 'muz', ad: 'muz' },
+  { key: 'limon', ad: 'limon' },
+  { key: 'uzum', ad: 'üzüm' },
+  { key: 'seftali', ad: 'şeftali' },
+  { key: 'ananas', ad: 'ananas' },
+  { key: 'kiraz', ad: 'kiraz' },
+  { key: 'kavun', ad: 'kavun' },
+  { key: 'mandalina', ad: 'mandalina' },
+  { key: 'erik', ad: 'erik' },
+  { key: 'pizza', ad: 'pizza' },
+  { key: 'kurabiye', ad: 'kurabiye' },
+  { key: 'donut', ad: 'donut' },
+  { key: 'waffle', ad: 'waffle' },
+  { key: 'domates', ad: 'domates' },
+  { key: 'biber', ad: 'biber' }
+];
+
+function benzersizYanlislarString(correctStr: string, adaylar: string[]): string[] {
+  const sonuc: string[] = [];
+  const gorulen = new Set<string>([correctStr]);
+  for (const aday of adaylar) {
+    if (sonuc.length === 3) break;
+    if (aday && !gorulen.has(aday)) {
+      gorulen.add(aday);
+      sonuc.push(aday);
+    }
+  }
+  let fallbackCount = 1;
+  while (sonuc.length < 3) {
+    const fallback = `${fallbackCount} Bütün`;
+    if (!gorulen.has(fallback)) {
+      gorulen.add(fallback);
+      sonuc.push(fallback);
+    }
+    fallbackCount++;
+  }
+  return sonuc;
+}
+
+function getMeyveKesirSVG(key: string, durum: 'bütün' | 'yarım' | 'çeyrek', size = 80): string {
+  const s = size;
+  const wrap = (content: string) => `
+    <svg width="${s}" height="${s}" viewBox="0 0 100 100" class="filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] hover:scale-105 transition-transform inline-block" xmlns="http://www.w3.org/2000/svg">
+      ${content}
+    </svg>
+  `;
+
+  switch (key) {
+    case 'elma':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 50 22 C 40 10, 18 15, 18 45 C 18 78, 42 90, 50 88 C 58 90, 82 78, 82 45 C 82 15, 60 10, 50 22 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 22 Q 52 10 58 6" stroke="#5a3825" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M 56 10 Q 70 8 68 18 Q 58 18 56 10 Z" fill="#38a169"/>
+          <ellipse cx="32" cy="35" rx="5" ry="12" fill="#ffffff" opacity="0.35" transform="rotate(-20 32 35)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 15 C 20 15, 18 50, 20 85 L 50 85 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 17 L 50 83 C 25 83, 23 50, 50 17 Z" fill="#fefcbf" stroke="#e53e3e" stroke-width="1.5"/>
+          <ellipse cx="38" cy="45" rx="2" ry="4" fill="#4a2e19" transform="rotate(-15 38 45)"/>
+          <ellipse cx="42" cy="55" rx="2" ry="4" fill="#4a2e19" transform="rotate(-10 42 55)"/>
+          <path d="M 50 17 Q 52 10 56 7" stroke="#5a3825" stroke-width="3" fill="none"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 50 20 C 35 25, 25 45, 30 75 L 50 75 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 22 L 50 73 L 34 73 C 30 50, 38 32, 50 22 Z" fill="#fefcbf" stroke="#e53e3e" stroke-width="1.5"/>
+          <ellipse cx="42" cy="50" rx="2" ry="3.5" fill="#4a2e19" transform="rotate(-15 42 50)"/>
+        `);
+      }
+
+    case 'karpuz':
+      if (durum === 'bütün') {
+        return wrap(`
+          <ellipse cx="50" cy="50" rx="42" ry="38" fill="#276749" stroke="#1c4532" stroke-width="2"/>
+          <path d="M 20 20 Q 25 50 20 80" stroke="#1c4532" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M 38 14 Q 42 50 38 86" stroke="#1c4532" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M 62 14 Q 58 50 62 86" stroke="#1c4532" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M 80 20 Q 75 50 80 80" stroke="#1c4532" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="32" cy="32" rx="4" ry="10" fill="#ffffff" opacity="0.25" transform="rotate(-25 32 32)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 Z" fill="#276749" stroke="#1c4532" stroke-width="2"/>
+          <path d="M 15 50 A 35 35 0 0 0 85 50 Z" fill="#f0fff4"/>
+          <path d="M 18 50 A 32 32 0 0 0 82 50 Z" fill="#e53e3e"/>
+          <ellipse cx="32" cy="62" rx="2" ry="3.5" fill="#1a202c" transform="rotate(-15 32 62)"/>
+          <ellipse cx="45" cy="70" rx="2" ry="3.5" fill="#1a202c" transform="rotate(-5 45 70)"/>
+          <ellipse cx="58" cy="70" rx="2" ry="3.5" fill="#1a202c" transform="rotate(5 58 70)"/>
+          <ellipse cx="70" cy="62" rx="2" ry="3.5" fill="#1a202c" transform="rotate(15 70 62)"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#276749"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#f0fff4"/>
+          <path d="M 27 73 L 73 73 A 46 46 0 0 0 27 27 Z" fill="#e53e3e"/>
+          <ellipse cx="42" cy="55" rx="2" ry="3.5" fill="#1a202c" transform="rotate(-25 42 55)"/>
+          <ellipse cx="55" cy="65" rx="2" ry="3.5" fill="#1a202c" transform="rotate(10 55 65)"/>
+        `);
+      }
+
+    case 'portakal':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="52" r="38" fill="#ed8936" stroke="#c05621" stroke-width="2"/>
+          <path d="M 50 14 Q 52 8 58 4" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <path d="M 56 8 Q 70 6 66 16 Q 56 16 56 8 Z" fill="#38a169"/>
+          <circle cx="35" cy="38" r="1.5" fill="#c05621"/>
+          <circle cx="65" cy="42" r="1.5" fill="#c05621"/>
+          <circle cx="48" cy="68" r="1.5" fill="#c05621"/>
+          <ellipse cx="36" cy="36" rx="4" ry="9" fill="#ffffff" opacity="0.3" transform="rotate(-20 36 36)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#fbd38d"/>
+          <circle cx="50" cy="50" r="31" fill="#ed8936"/>
+          <circle cx="50" cy="50" r="4" fill="#fbd38d"/>
+          <line x1="50" y1="19" x2="50" y2="81" stroke="#fbd38d" stroke-width="2"/>
+          <line x1="19" y1="50" x2="81" y2="50" stroke="#fbd38d" stroke-width="2"/>
+          <line x1="28" y1="28" x2="72" y2="72" stroke="#fbd38d" stroke-width="2"/>
+          <line x1="28" y1="72" x2="72" y2="28" stroke="#fbd38d" stroke-width="2"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#dd6b20"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#fbd38d"/>
+          <path d="M 27 73 L 73 73 A 46 46 0 0 0 27 27 Z" fill="#ed8936"/>
+          <line x1="27" y1="73" x2="62" y2="38" stroke="#fbd38d" stroke-width="2"/>
+        `);
+      }
+
+    case 'kivi':
+      if (durum === 'bütün') {
+        return wrap(`
+          <ellipse cx="50" cy="50" rx="42" ry="32" fill="#744210" stroke="#4a2e19" stroke-width="2"/>
+          <ellipse cx="50" cy="50" rx="40" ry="30" fill="#975a16" opacity="0.6"/>
+          <circle cx="30" cy="40" r="1" fill="#4a2e19"/>
+          <circle cx="65" cy="55" r="1" fill="#4a2e19"/>
+          <circle cx="45" cy="62" r="1" fill="#4a2e19"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#744210" stroke="#4a2e19" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#48bb78"/>
+          <ellipse cx="50" cy="50" rx="10" ry="14" fill="#fefcbf"/>
+          <circle cx="50" cy="32" r="1.5" fill="#1a202c"/>
+          <circle cx="63" cy="37" r="1.5" fill="#1a202c"/>
+          <circle cx="68" cy="50" r="1.5" fill="#1a202c"/>
+          <circle cx="63" cy="63" r="1.5" fill="#1a202c"/>
+          <circle cx="50" cy="68" r="1.5" fill="#1a202c"/>
+          <circle cx="37" cy="63" r="1.5" fill="#1a202c"/>
+          <circle cx="32" cy="50" r="1.5" fill="#1a202c"/>
+          <circle cx="37" cy="37" r="1.5" fill="#1a202c"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#744210"/>
+          <path d="M 25 75 L 75 75 A 50 50 0 0 0 25 25 Z" fill="#48bb78"/>
+          <path d="M 25 75 L 42 75 A 17 17 0 0 0 25 58 Z" fill="#fefcbf"/>
+          <circle cx="38" cy="58" r="1.5" fill="#1a202c"/>
+          <circle cx="48" cy="65" r="1.5" fill="#1a202c"/>
+          <circle cx="32" cy="48" r="1.5" fill="#1a202c"/>
+        `);
+      }
+
+    case 'armut':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 50 18 C 42 18, 38 32, 28 48 C 18 64, 22 86, 50 86 C 78 86, 82 64, 72 48 C 62 32, 58 18, 50 18 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 50 18 Q 52 10 58 6" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <path d="M 56 10 Q 70 8 66 18 Q 56 18 56 10 Z" fill="#38a169"/>
+          <ellipse cx="36" cy="58" rx="4" ry="10" fill="#ffffff" opacity="0.3" transform="rotate(-15 36 58)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 18 C 38 18, 22 50, 22 84 L 50 84 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 50 20 L 50 82 C 26 82, 26 50, 48 20 Z" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+          <ellipse cx="38" cy="58" rx="2" ry="4" fill="#4a2e19" transform="rotate(-10 38 58)"/>
+          <path d="M 50 20 Q 52 12 56 8" stroke="#5a3825" stroke-width="3" fill="none"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 50 25 C 38 32, 28 55, 30 80 L 50 80 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 50 27 L 50 78 L 34 78 C 32 58, 40 36, 50 27 Z" fill="#fefcbf" stroke="#d69e2e" stroke-width="1.5"/>
+          <ellipse cx="42" cy="60" rx="2" ry="3.5" fill="#4a2e19" transform="rotate(-10 42 60)"/>
+        `);
+      }
+
+    case 'cilek':
+    case 'çilek':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 50 25 C 20 25 15 55 35 85 C 45 95 55 95 65 85 C 85 55 80 25 50 25 Z" fill="#e53e3e" stroke="#c53030" stroke-width="2"/>
+          <path d="M 50 25 L 42 12 L 50 18 L 58 12 Z" fill="#38a169"/>
+          <path d="M 38 25 L 28 15 L 36 22 Z" fill="#38a169"/>
+          <path d="M 62 25 L 72 15 L 64 22 Z" fill="#38a169"/>
+          <circle cx="35" cy="40" r="1.5" fill="#f6e05e"/>
+          <circle cx="50" cy="45" r="1.5" fill="#f6e05e"/>
+          <circle cx="65" cy="40" r="1.5" fill="#f6e05e"/>
+          <circle cx="40" cy="60" r="1.5" fill="#f6e05e"/>
+          <circle cx="60" cy="60" r="1.5" fill="#f6e05e"/>
+          <circle cx="50" cy="75" r="1.5" fill="#f6e05e"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 25 C 20 25 15 55 35 85 C 45 95 50 95 50 95 L 50 25 Z" fill="#e53e3e" stroke="#c53030" stroke-width="2"/>
+          <path d="M 50 27 L 50 90 C 42 90 22 60 22 30 C 22 27 35 27 50 27 Z" fill="#fff5f5"/>
+          <path d="M 50 35 Q 35 50 50 75 Z" fill="#fed7d7"/>
+          <circle cx="35" cy="42" r="1.5" fill="#f6e05e"/>
+          <circle cx="38" cy="62" r="1.5" fill="#f6e05e"/>
+          <path d="M 50 25 L 42 12 L 50 18 Z" fill="#38a169"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 50 25 C 30 28 20 50 30 80 L 50 80 Z" fill="#e53e3e" stroke="#c53030" stroke-width="2"/>
+          <path d="M 50 28 L 50 78 L 33 78 C 26 55 35 32 50 28 Z" fill="#fff5f5"/>
+          <circle cx="38" cy="50" r="1.5" fill="#f6e05e"/>
+        `);
+      }
+
+    case 'muz':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 20 30 Q 30 80 80 70 Q 50 90 15 40 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 80 70 L 86 68" stroke="#744210" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 20 30 L 15 22" stroke="#744210" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 22 35 Q 32 75 75 68" stroke="#d69e2e" stroke-width="1.5" fill="none"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 20 30 Q 30 75 50 75 L 50 50 Q 25 45 20 30 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 50 50 L 50 75 C 38 75 28 58 20 30 Z" fill="#fefcbf"/>
+          <circle cx="42" cy="60" r="2" fill="#744210"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 25 35 Q 30 65 50 65 L 50 50 Z" fill="#ecc94b" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 50 50 L 50 65 C 38 65 30 52 25 35 Z" fill="#fefcbf"/>
+        `);
+      }
+
+    case 'limon':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 15 50 C 15 25 35 18 50 18 C 65 18 85 25 85 50 C 85 75 65 82 50 82 C 35 82 15 75 15 50 Z" fill="#f6e05e" stroke="#d69e2e" stroke-width="2"/>
+          <path d="M 12 50 C 10 45 10 55 12 50 Z" stroke="#d69e2e" stroke-width="3"/>
+          <path d="M 88 50 C 90 45 90 55 88 50 Z" stroke="#d69e2e" stroke-width="3"/>
+          <ellipse cx="38" cy="38" rx="5" ry="10" fill="#ffffff" opacity="0.3" transform="rotate(-20 38 38)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#fefcbf"/>
+          <circle cx="50" cy="50" r="31" fill="#f6e05e"/>
+          <circle cx="50" cy="50" r="4" fill="#fefcbf"/>
+          <line x1="50" y1="19" x2="50" y2="81" stroke="#fefcbf" stroke-width="2"/>
+          <line x1="19" y1="50" x2="81" y2="50" stroke="#fefcbf" stroke-width="2"/>
+          <line x1="28" y1="28" x2="72" y2="72" stroke="#fefcbf" stroke-width="2"/>
+          <line x1="28" y1="72" x2="72" y2="28" stroke="#fefcbf" stroke-width="2"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#d69e2e"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#fefcbf"/>
+          <path d="M 27 73 L 73 73 A 46 46 0 0 0 27 27 Z" fill="#f6e05e"/>
+          <line x1="27" y1="73" x2="62" y2="38" stroke="#fefcbf" stroke-width="2"/>
+        `);
+      }
+
+    case 'uzum':
+    case 'üzüm':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 50 20 Q 52 10 58 5" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <path d="M 55 8 Q 70 5 65 18 Z" fill="#38a169"/>
+          <circle cx="38" cy="35" r="11" fill="#805ad5"/>
+          <circle cx="62" cy="35" r="11" fill="#805ad5"/>
+          <circle cx="50" cy="32" r="12" fill="#6b46c1"/>
+          <circle cx="40" cy="52" r="11" fill="#6b46c1"/>
+          <circle cx="60" cy="52" r="11" fill="#6b46c1"/>
+          <circle cx="50" cy="55" r="11" fill="#553c9a"/>
+          <circle cx="45" cy="70" r="10" fill="#553c9a"/>
+          <circle cx="55" cy="70" r="10" fill="#553c9a"/>
+          <circle cx="50" cy="83" r="8" fill="#44337a"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 20 Q 52 10 58 5" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <circle cx="38" cy="35" r="11" fill="#805ad5"/>
+          <circle cx="50" cy="32" r="12" fill="#6b46c1"/>
+          <circle cx="40" cy="52" r="11" fill="#6b46c1"/>
+          <circle cx="50" cy="55" r="11" fill="#553c9a"/>
+          <circle cx="45" cy="70" r="10" fill="#553c9a"/>
+          <line x1="50" y1="15" x2="50" y2="85" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3"/>
+        `);
+      } else {
+        return wrap(`
+          <circle cx="40" cy="52" r="11" fill="#6b46c1"/>
+          <circle cx="50" cy="55" r="11" fill="#553c9a"/>
+          <circle cx="45" cy="70" r="10" fill="#553c9a"/>
+        `);
+      }
+
+    case 'seftali':
+    case 'şeftali':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="52" r="38" fill="#ed8936" stroke="#dd6b20" stroke-width="2"/>
+          <path d="M 50 14 C 38 25 38 75 50 88" stroke="#c05621" stroke-width="2.5" fill="none"/>
+          <path d="M 50 14 Q 52 8 58 4" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <path d="M 56 8 Q 70 6 66 16 Q 56 16 56 8 Z" fill="#38a169"/>
+          <ellipse cx="34" cy="38" rx="5" ry="12" fill="#ffffff" opacity="0.3" transform="rotate(-20 34 38)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#feebc8"/>
+          <circle cx="50" cy="50" r="28" fill="#fbd38d"/>
+          <ellipse cx="50" cy="50" rx="10" ry="14" fill="#744210"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#dd6b20"/>
+          <path d="M 25 75 L 75 75 A 50 50 0 0 0 25 25 Z" fill="#fbd38d"/>
+          <ellipse cx="40" cy="60" rx="7" ry="10" fill="#744210" transform="rotate(-20 40 60)"/>
+        `);
+      }
+
+    case 'ananas':
+      if (durum === 'bütün') {
+        return wrap(`
+          <ellipse cx="50" cy="60" rx="32" ry="32" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <!-- Spiky crown -->
+          <path d="M 50 30 L 40 5 L 48 20 L 50 0 L 52 20 L 60 5 L 50 30 Z" fill="#2f855a"/>
+          <path d="M 42 30 L 30 12 L 40 22 Z" fill="#38a169"/>
+          <path d="M 58 30 L 70 12 L 60 22 Z" fill="#38a169"/>
+          <!-- Pattern -->
+          <path d="M 25 50 L 75 70 M 20 62 L 72 80 M 28 40 L 78 60" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 75 50 L 25 70 M 80 62 L 28 80 M 72 40 L 22 60" stroke="#b7791f" stroke-width="2"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 30 C 25 30 20 50 20 85 L 50 85 Z" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 50 32 L 50 83 C 25 83 25 50 48 32 Z" fill="#fefcbf"/>
+          <line x1="50" y1="32" x2="50" y2="83" stroke="#d69e2e" stroke-width="3"/>
+          <path d="M 50 30 L 40 5 L 48 20 L 50 0 Z" fill="#2f855a"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 50 35 C 32 40 25 60 28 80 L 50 80 Z" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 50 38 L 50 78 L 33 78 C 30 60 38 42 50 38 Z" fill="#fefcbf"/>
+        `);
+      }
+
+    case 'kiraz':
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 50 10 Q 30 25 32 50" stroke="#2f855a" stroke-width="3" fill="none"/>
+          <path d="M 50 10 Q 70 25 68 50" stroke="#2f855a" stroke-width="3" fill="none"/>
+          <circle cx="50" cy="10" r="3" fill="#2f855a"/>
+          <circle cx="30" cy="62" r="18" fill="#9b2c2c" stroke="#742a2a" stroke-width="2"/>
+          <circle cx="70" cy="62" r="18" fill="#9b2c2c" stroke="#742a2a" stroke-width="2"/>
+          <ellipse cx="24" cy="55" rx="3" ry="6" fill="#ffffff" opacity="0.35" transform="rotate(-20 24 55)"/>
+          <ellipse cx="64" cy="55" rx="3" ry="6" fill="#ffffff" opacity="0.35" transform="rotate(-20 64 55)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 10 Q 30 25 32 50" stroke="#2f855a" stroke-width="3" fill="none"/>
+          <circle cx="30" cy="62" r="18" fill="#9b2c2c" stroke="#742a2a" stroke-width="2"/>
+          <circle cx="30" cy="62" r="14" fill="#e53e3e"/>
+          <circle cx="30" cy="62" r="5" fill="#744210"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 30 80 L 70 80 A 40 40 0 0 0 30 40 Z" fill="#9b2c2c"/>
+          <path d="M 33 77 L 67 77 A 34 34 0 0 0 33 43 Z" fill="#e53e3e"/>
+          <circle cx="45" cy="68" r="4" fill="#744210"/>
+        `);
+      }
+
+    case 'kavun':
+      if (durum === 'bütün') {
+        return wrap(`
+          <ellipse cx="50" cy="52" rx="42" ry="34" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <ellipse cx="50" cy="52" rx="39" ry="31" fill="#ecc94b" opacity="0.7"/>
+          <path d="M 20 35 Q 50 40 80 35 M 15 52 Q 50 58 85 52 M 20 70 Q 50 75 80 70" stroke="#fefcbf" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 Z" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 15 50 A 35 35 0 0 0 85 50 Z" fill="#fefcbf"/>
+          <path d="M 20 50 A 30 30 0 0 0 80 50 Z" fill="#feebc8"/>
+          <ellipse cx="50" cy="60" rx="15" ry="6" fill="#d69e2e"/>
+          <circle cx="42" cy="60" r="1.5" fill="#744210"/>
+          <circle cx="50" cy="61" r="1.5" fill="#744210"/>
+          <circle cx="58" cy="60" r="1.5" fill="#744210"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#d69e2e"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#feebc8"/>
+          <circle cx="40" cy="60" r="1.5" fill="#744210"/>
+          <circle cx="48" cy="65" r="1.5" fill="#744210"/>
+        `);
+      }
+
+    case 'mandalina':
+      if (durum === 'bütün') {
+        return wrap(`
+          <ellipse cx="50" cy="54" rx="40" ry="32" fill="#ed8936" stroke="#dd6b20" stroke-width="2"/>
+          <path d="M 50 22 Q 52 14 58 8" stroke="#5a3825" stroke-width="3" fill="none"/>
+          <path d="M 56 12 Q 70 10 66 20 Q 56 20 56 12 Z" fill="#38a169"/>
+          <circle cx="35" cy="42" r="1" fill="#c05621"/>
+          <circle cx="65" cy="46" r="1" fill="#c05621"/>
+          <circle cx="48" cy="68" r="1" fill="#c05621"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#feebc8"/>
+          <circle cx="50" cy="50" r="31" fill="#ed8936"/>
+          <circle cx="50" cy="50" r="4" fill="#feebc8"/>
+          <line x1="50" y1="19" x2="50" y2="81" stroke="#feebc8" stroke-width="2"/>
+          <line x1="19" y1="50" x2="81" y2="50" stroke="#feebc8" stroke-width="2"/>
+          <line x1="28" y1="28" x2="72" y2="72" stroke="#feebc8" stroke-width="2"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#dd6b20"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#feebc8"/>
+          <path d="M 27 73 L 73 73 A 46 46 0 0 0 27 27 Z" fill="#ed8936"/>
+        `);
+      }
+
+    case 'erik':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="52" r="38" fill="#553c9a" stroke="#322659" stroke-width="2"/>
+          <path d="M 50 14 C 40 25 40 75 50 88" stroke="#322659" stroke-width="2" fill="none"/>
+          <ellipse cx="34" cy="38" rx="5" ry="12" fill="#ffffff" opacity="0.3" transform="rotate(-20 34 38)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#553c9a" stroke="#322659" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#feebc8"/>
+          <circle cx="50" cy="50" r="28" fill="#d69e2e"/>
+          <ellipse cx="50" cy="50" rx="9" ry="12" fill="#744210"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#553c9a"/>
+          <path d="M 25 75 L 75 75 A 50 50 0 0 0 25 25 Z" fill="#d69e2e"/>
+        `);
+      }
+
+    case 'pizza':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="50" r="42" fill="#d69e2e" stroke="#b7791f" stroke-width="3"/>
+          <circle cx="50" cy="50" r="36" fill="#ecc94b"/>
+          <circle cx="35" cy="35" r="7" fill="#c53030"/>
+          <circle cx="65" cy="35" r="7" fill="#c53030"/>
+          <circle cx="50" cy="55" r="7" fill="#c53030"/>
+          <circle cx="32" cy="62" r="6" fill="#c53030"/>
+          <circle cx="68" cy="62" r="6" fill="#c53030"/>
+          <circle cx="48" cy="38" r="2" fill="#2f855a"/>
+          <circle cx="58" cy="48" r="2" fill="#2f855a"/>
+          <circle cx="40" cy="50" r="2" fill="#2f855a"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 Z" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 14 50 A 36 36 0 0 0 86 50 Z" fill="#ecc94b"/>
+          <circle cx="35" cy="65" r="6.5" fill="#c53030"/>
+          <circle cx="65" cy="65" r="6.5" fill="#c53030"/>
+          <circle cx="50" cy="72" r="6.5" fill="#c53030"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#d69e2e"/>
+          <path d="M 24 76 L 76 76 A 52 52 0 0 0 24 24 Z" fill="#ecc94b"/>
+          <circle cx="42" cy="58" r="6" fill="#c53030"/>
+          <circle cx="58" cy="68" r="6" fill="#c53030"/>
+        `);
+      }
+
+    case 'kurabiye':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="32" cy="38" r="4.5" fill="#2d3748"/>
+          <circle cx="55" cy="32" r="4" fill="#2d3748"/>
+          <circle cx="65" cy="52" r="4.5" fill="#2d3748"/>
+          <circle cx="42" cy="58" r="5" fill="#2d3748"/>
+          <circle cx="55" cy="68" r="4" fill="#2d3748"/>
+          <circle cx="30" cy="62" r="3.5" fill="#2d3748"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 Z" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="32" cy="62" r="4.5" fill="#2d3748"/>
+          <circle cx="50" cy="70" r="5" fill="#2d3748"/>
+          <circle cx="68" cy="62" r="4.5" fill="#2d3748"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#dd6b20"/>
+          <circle cx="42" cy="60" r="4.5" fill="#2d3748"/>
+          <circle cx="58" cy="68" r="4" fill="#2d3748"/>
+        `);
+      }
+
+    case 'donut':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="50" r="40" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+          <circle cx="50" cy="50" r="34" fill="#ed64a6"/>
+          <circle cx="50" cy="50" r="14" fill="#1a202c"/>
+          <rect x="30" y="30" width="6" height="2" fill="#ffffff" rx="1" transform="rotate(20 30 30)"/>
+          <rect x="62" y="32" width="6" height="2" fill="#f6ad55" rx="1" transform="rotate(-30 62 32)"/>
+          <rect x="32" y="65" width="6" height="2" fill="#63b3ed" rx="1" transform="rotate(45 32 65)"/>
+          <rect x="65" y="62" width="6" height="2" fill="#68d391" rx="1" transform="rotate(-15 65 62)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 L 64 50 A 14 14 0 0 1 36 50 Z" fill="#ed64a6" stroke="#c05621" stroke-width="2"/>
+          <rect x="28" y="62" width="6" height="2" fill="#ffffff" rx="1" transform="rotate(20 28 62)"/>
+          <rect x="50" y="72" width="6" height="2" fill="#f6ad55" rx="1" transform="rotate(-30 50 72)"/>
+          <rect x="70" y="62" width="6" height="2" fill="#68d391" rx="1" transform="rotate(-15 70 62)"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 L 20 50 A 30 30 0 0 1 50 80 Z" fill="#ed64a6"/>
+          <rect x="42" y="62" width="6" height="2" fill="#ffffff" rx="1" transform="rotate(20 42 62)"/>
+          <rect x="62" y="70" width="6" height="2" fill="#68d391" rx="1" transform="rotate(-15 62 70)"/>
+        `);
+      }
+
+    case 'waffle':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="50" r="40" fill="#d69e2e" stroke="#b7791f" stroke-width="3"/>
+          <path d="M 25 25 H 75 M 25 38 H 75 M 25 50 H 75 M 25 62 H 75 M 25 75 H 75" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 25 25 V 75 M 38 25 V 75 M 50 25 V 75 M 62 25 V 75 M 75 25 V 75" stroke="#b7791f" stroke-width="2"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 10 50 A 40 40 0 0 0 90 50 Z" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 20 62 H 80 M 25 75 H 75" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 32 50 V 78 M 50 50 V 90 M 68 50 V 78" stroke="#b7791f" stroke-width="2"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#d69e2e"/>
+          <path d="M 20 62 H 72 M 20 42 H 58" stroke="#b7791f" stroke-width="2"/>
+          <path d="M 38 80 V 28 M 58 80 V 42" stroke="#b7791f" stroke-width="2"/>
+        `);
+      }
+
+    case 'domates':
+      if (durum === 'bütün') {
+        return wrap(`
+          <circle cx="50" cy="52" r="38" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 14 L 46 22 L 36 16 L 42 24 L 32 28 L 44 28 L 50 14 Z" fill="#38a169"/>
+          <path d="M 50 14 L 54 22 L 64 16 L 58 24 L 68 28 L 56 28 L 50 14 Z" fill="#38a169"/>
+          <ellipse cx="34" cy="38" rx="4" ry="10" fill="#ffffff" opacity="0.35" transform="rotate(-20 34 38)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <circle cx="50" cy="50" r="38" fill="#c53030" stroke="#9b1c1c" stroke-width="2"/>
+          <circle cx="50" cy="50" r="33" fill="#e53e3e"/>
+          <circle cx="36" cy="42" r="8" fill="#9b1c1c"/>
+          <circle cx="64" cy="42" r="8" fill="#9b1c1c"/>
+          <circle cx="50" cy="65" r="9" fill="#9b1c1c"/>
+          <circle cx="36" cy="42" r="1.5" fill="#ecc94b"/>
+          <circle cx="64" cy="42" r="1.5" fill="#ecc94b"/>
+          <circle cx="50" cy="65" r="1.5" fill="#ecc94b"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 20 80 L 80 80 A 60 60 0 0 0 20 20 Z" fill="#c53030"/>
+          <path d="M 25 75 L 75 75 A 50 50 0 0 0 25 25 Z" fill="#e53e3e"/>
+          <circle cx="45" cy="58" r="7" fill="#9b1c1c"/>
+          <circle cx="45" cy="58" r="1.5" fill="#ecc94b"/>
+        `);
+      }
+
+    case 'biber':
+    default:
+      if (durum === 'bütün') {
+        return wrap(`
+          <path d="M 30 25 C 20 30, 20 75, 32 85 C 40 90, 48 82, 50 82 C 52 82, 60 90, 68 85 C 80 75, 80 30, 70 25 C 60 20, 40 20, 30 25 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 22 L 50 10 C 50 8, 58 6, 56 12 Z" stroke="#2f855a" stroke-width="4" fill="none"/>
+          <ellipse cx="36" cy="42" rx="4" ry="12" fill="#ffffff" opacity="0.3" transform="rotate(-15 36 42)"/>
+        `);
+      } else if (durum === 'yarım') {
+        return wrap(`
+          <path d="M 50 20 C 25 20, 20 50, 22 84 L 50 84 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 23 L 50 82 C 28 82, 28 50, 46 23 Z" fill="#feb2b2"/>
+          <circle cx="42" cy="45" r="4" fill="#ffffff"/>
+          <circle cx="42" cy="45" r="1.5" fill="#d69e2e"/>
+        `);
+      } else {
+        return wrap(`
+          <path d="M 50 25 C 38 32, 28 55, 30 80 L 50 80 Z" fill="#e53e3e" stroke="#9b1c1c" stroke-width="2"/>
+          <path d="M 50 28 L 50 78 L 34 78 C 32 58, 40 36, 50 28 Z" fill="#feb2b2"/>
+        `);
+      }
+  }
+}
+
+function rastgeleSec<T>(dizi: T[], adet: number): T[] {
+  const kopya = [...dizi];
+  for (let i = kopya.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [kopya[i], kopya[j]] = [kopya[j], kopya[i]];
+  }
+  return kopya.slice(0, adet);
+}
+
+const RITMIK_KARE_RENKLERI = [
+  { emoji: '🟥', ad: 'kırmızı kare', bgClass: 'from-rose-500 via-red-500 to-rose-600 border-rose-200' },
+  { emoji: '🟦', ad: 'mavi kare', bgClass: 'from-blue-500 via-indigo-500 to-sky-600 border-blue-200' },
+  { emoji: '🟩', ad: 'yeşil kare', bgClass: 'from-emerald-500 via-green-500 to-teal-600 border-emerald-200' },
+  { emoji: '🟧', ad: 'turuncu kare', bgClass: 'from-amber-500 via-orange-500 to-amber-600 border-amber-200' },
+  { emoji: '🟪', ad: 'mor kare', bgClass: 'from-purple-500 via-fuchsia-500 to-violet-600 border-purple-200' },
+];
+
+function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
+  const maxBaslangicKati = Math.max(Math.floor((ustSinir - adim * 4) / adim), 1);
+  const kat = Math.floor(Math.random() * maxBaslangicKati) + 1;
+  const baslangic = kat * adim;
+  const dizi = [baslangic, baslangic + adim, baslangic + adim * 2, baslangic + adim * 3, baslangic + adim * 4];
+  const boslukIndex = Math.floor(Math.random() * 3) + 1;
+  const dogruCevap = dizi[boslukIndex];
+  
+  const secilenKare = RITMIK_KARE_RENKLERI[Math.floor(Math.random() * RITMIK_KARE_RENKLERI.length)];
+  const gosterilecek = [...dizi];
+  (gosterilecek as (number | string)[])[boslukIndex] = secilenKare.emoji;
+
+  const sequenceHTML = dizi.map((val, idx) => {
+    if (idx === boslukIndex) {
+      return `<div class="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-lg sm:rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border text-white font-black flex items-center justify-center shadow-md animate-pulse text-xs xs:text-sm sm:text-lg ring-2 ring-white/30 shrink-0">${secilenKare.emoji}</div>`;
+    }
+    return `<div class="px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-blue-600/90 via-indigo-700/90 to-slate-800/90 border border-blue-300/80 text-white font-black text-[11px] xs:text-xs sm:text-sm md:text-base shadow-sm shrink-0 min-w-[22px] xs:min-w-[26px] sm:min-w-[32px] text-center">${val}</div>`;
+  }).join('<span class="text-amber-300 font-extrabold text-[9px] xs:text-[11px] sm:text-xs md:text-sm mx-0.5 shrink-0">-</span>');
+
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
+      Aşağıdaki ritmik sayma zincirinde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+    </div>
+    <div class="flex items-center justify-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-nowrap max-w-full px-0.5">
+      ${sequenceHTML}
+    </div>
+  </div>`;
+
+  return {
+    question: `Aşağıdaki ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
+    questionHTML: soruHTML,
+    correct: dogruCevap,
+    wrong: benzersizYanlislar(dogruCevap, [dogruCevap + adim, dogruCevap - adim, dogruCevap + 1, dogruCevap - 1, dogruCevap + adim * 2], 1),
+    isLong: true
+  };
+}
+
+function ritmikGeriUret(adim: number): QuestionData {
+  const minBaslangic = adim * 4 + adim;
+  const baslangicKati = Math.floor(Math.random() * Math.floor((100 - minBaslangic) / adim + 1)) + Math.ceil(minBaslangic / adim);
+  const baslangic = Math.min(baslangicKati * adim, 100);
+  const dizi = [baslangic, baslangic - adim, baslangic - adim * 2, baslangic - adim * 3, baslangic - adim * 4];
+  const boslukIndex = Math.floor(Math.random() * 3) + 1;
+  const dogruCevap = dizi[boslukIndex];
+
+  const secilenKare = RITMIK_KARE_RENKLERI[Math.floor(Math.random() * RITMIK_KARE_RENKLERI.length)];
+  const gosterilecek = [...dizi];
+  (gosterilecek as (number | string)[])[boslukIndex] = secilenKare.emoji;
+
+  const sequenceHTML = dizi.map((val, idx) => {
+    if (idx === boslukIndex) {
+      return `<div class="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-lg sm:rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border text-white font-black flex items-center justify-center shadow-md animate-pulse text-xs xs:text-sm sm:text-lg ring-2 ring-white/30 shrink-0">${secilenKare.emoji}</div>`;
+    }
+    return `<div class="px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-blue-600/90 via-indigo-700/90 to-slate-800/90 border border-blue-300/80 text-white font-black text-[11px] xs:text-xs sm:text-sm md:text-base shadow-sm shrink-0 min-w-[22px] xs:min-w-[26px] sm:min-w-[32px] text-center">${val}</div>`;
+  }).join('<span class="text-amber-300 font-extrabold text-[9px] xs:text-[11px] sm:text-xs md:text-sm mx-0.5 shrink-0">-</span>');
+
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
+      Aşağıdaki geriye ritmik sayma zincirinde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+    </div>
+    <div class="flex items-center justify-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-nowrap max-w-full px-0.5">
+      ${sequenceHTML}
+    </div>
+  </div>`;
+
+  return {
+    question: `Aşağıdaki geriye ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
+    questionHTML: soruHTML,
+    correct: dogruCevap,
+    wrong: benzersizYanlislar(dogruCevap, [dogruCevap + adim, dogruCevap - adim, dogruCevap - 1, dogruCevap + 1, dogruCevap - adim * 2], 0),
+    isLong: true
+  };
+}
+
+function toplamaUret(minToplam: number, maxToplam: number, eldeli: boolean) {
+  let s1 = 0, s2 = 0, correct = 0, deneme = 0;
+  do {
+    s1 = Math.floor(Math.random() * 80) + 10;
+    s2 = Math.floor(Math.random() * 80) + 10;
+    correct = s1 + s2;
+    deneme++;
+  } while (deneme < 1500 && (
+    correct < minToplam || correct > maxToplam ||
+    (eldeli ? ((s1 % 10 + s2 % 10) < 10) : ((s1 % 10 + s2 % 10) >= 10))
+  ));
+  return { s1, s2, correct };
+}
+
+function cikarmaUret(minEksilen: number, maxEksilen: number, onlukBoz: boolean) {
+  let s1 = 0, s2 = 0, correct = 0, deneme = 0;
+  do {
+    s1 = Math.floor(Math.random() * (maxEksilen - minEksilen + 1)) + minEksilen;
+    s2 = Math.floor(Math.random() * 40) + 10;
+    correct = s1 - s2;
+    deneme++;
+  } while (deneme < 1500 && (
+    correct <= 0 ||
+    (onlukBoz ? ((s1 % 10) >= (s2 % 10)) : ((s1 % 10) < (s2 % 10)))
+  ));
+  return { s1, s2, correct };
+}
+
+function ritmikIleri1Uret(): QuestionData {
+  const baslangic = Math.floor(Math.random() * 46) + 1; // 1..46 (en fazla 50)
+  const dizi = [baslangic, baslangic + 1, baslangic + 2, baslangic + 3, baslangic + 4];
+  const boslukIndex = Math.floor(Math.random() * 3) + 1;
+  const dogruCevap = dizi[boslukIndex];
+
+  const secilenKare = RITMIK_KARE_RENKLERI[Math.floor(Math.random() * RITMIK_KARE_RENKLERI.length)];
+  const gosterilecek = [...dizi];
+  (gosterilecek as (number | string)[])[boslukIndex] = secilenKare.emoji;
+
+  const sequenceHTML = dizi.map((val, idx) => {
+    if (idx === boslukIndex) {
+      return `<div class="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-lg sm:rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border text-white font-black flex items-center justify-center shadow-md animate-pulse text-xs xs:text-sm sm:text-lg ring-2 ring-white/30 shrink-0">${secilenKare.emoji}</div>`;
+    }
+    return `<div class="px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-blue-600/90 via-indigo-700/90 to-slate-800/90 border border-blue-300/80 text-white font-black text-[11px] xs:text-xs sm:text-sm md:text-base shadow-sm shrink-0 min-w-[22px] xs:min-w-[26px] sm:min-w-[32px] text-center">${val}</div>`;
+  }).join('<span class="text-amber-300 font-extrabold text-[9px] xs:text-[11px] sm:text-xs md:text-sm mx-0.5 shrink-0">-</span>');
+
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
+      Aşağıdaki ritmik sayma zincirinde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+    </div>
+    <div class="flex items-center justify-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-nowrap max-w-full px-0.5">
+      ${sequenceHTML}
+    </div>
+  </div>`;
+
+  return {
+    question: `Aşağıdaki ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
+    questionHTML: soruHTML,
+    correct: dogruCevap,
+    wrong: benzersizYanlislar(dogruCevap, [dogruCevap + 1, dogruCevap - 1, dogruCevap + 2, dogruCevap - 2], 1),
+    isLong: true
+  };
+}
+
+function ritmikGeri1Uret(): QuestionData {
+  const baslangic = Math.floor(Math.random() * 16) + 5; // 5..20 (20'den geriye 1'erli)
+  const dizi = [baslangic, baslangic - 1, baslangic - 2, baslangic - 3, baslangic - 4];
+  const boslukIndex = Math.floor(Math.random() * 3) + 1;
+  const dogruCevap = dizi[boslukIndex];
+
+  const secilenKare = RITMIK_KARE_RENKLERI[Math.floor(Math.random() * RITMIK_KARE_RENKLERI.length)];
+  const gosterilecek = [...dizi];
+  (gosterilecek as (number | string)[])[boslukIndex] = secilenKare.emoji;
+
+  const sequenceHTML = dizi.map((val, idx) => {
+    if (idx === boslukIndex) {
+      return `<div class="w-6 h-6 xs:w-7 xs:h-7 sm:w-9 sm:h-9 md:w-11 md:h-11 rounded-lg sm:rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border text-white font-black flex items-center justify-center shadow-md animate-pulse text-xs xs:text-sm sm:text-lg ring-2 ring-white/30 shrink-0">${secilenKare.emoji}</div>`;
+    }
+    return `<div class="px-1 py-0.5 xs:px-1.5 xs:py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-gradient-to-b from-blue-600/90 via-indigo-700/90 to-slate-800/90 border border-blue-300/80 text-white font-black text-[11px] xs:text-xs sm:text-sm md:text-base shadow-sm shrink-0 min-w-[22px] xs:min-w-[26px] sm:min-w-[32px] text-center">${val}</div>`;
+  }).join('<span class="text-amber-300 font-extrabold text-[9px] xs:text-[11px] sm:text-xs md:text-sm mx-0.5 shrink-0">-</span>');
+
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+    <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
+      Aşağıdaki geriye ritmik sayma zincirinde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+    </div>
+    <div class="flex items-center justify-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-nowrap max-w-full px-0.5">
+      ${sequenceHTML}
+    </div>
+  </div>`;
+
+  return {
+    question: `Aşağıdaki geriye ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
+    questionHTML: soruHTML,
+    correct: dogruCevap,
+    wrong: benzersizYanlislar(dogruCevap, [dogruCevap + 1, dogruCevap - 1, dogruCevap + 2, dogruCevap - 2], 0),
+    isLong: true
+  };
+}
+
+const CATEGORY_MAP = [
+  {
+    id: 'geometri',
+    name: "1. Nesnelerin Geometrisi",
+    shortName: "Geometri",
+    icon: "/MENUIKON/grid_icon_39.png",
+    keys: ["uzamsal_iliskiler", "es_nesneler", "geometrik_sekil_cisim", "geometri_tahtasi", "yuz_ayrit_kose", "geometrik_oruntu", "uzamsal_iliskiler_simetri", "sivi_olcme", "tartma_olcme"]
+  },
+  {
+    id: 'sayilar',
+    name: "2. Sayılar ve Nicelikler",
+    shortName: "Sayılar",
+    icon: "/MENUIKON/grid_icon_09.png",
+    keys: [
+      "nesne_sayisi", "sira_sayilari", "cok_az_esit", "sayi_basamak_degeri", "deste_duzine", "kesirler",
+      "ritmik_ileri_1", "ritmik_ileri_2", "ritmik_ileri_3", "ritmik_ileri_4", "ritmik_ileri_5", "ritmik_ileri_10",
+      "ritmik_geri_1", "ritmik_geri_2", "ritmik_geri_10",
+      "sayi_karsilastirma", "paralarimiz", "zaman_olcme",
+      "saat_tam", "saat_yarim", "saat_ceyrek_gece", "saat_ceyrek_kala", "uzunluk_olcme", "tartma", "sayi_sekil_oruntusu"
+    ]
+  },
+  {
+    id: 'islemler',
+    name: "3. İşlemlerden Cebirsel Düşünmeye",
+    shortName: "İşlemler ve Cebir",
+    icon: "/MENUIKON/grid_icon_22.png",
+    keys: [
+      "tek_islem_toplama_problemleri", "iki_islem_toplama_problemleri",
+      "toplama_eldesiz_50", "toplama_eldeli_50", "verilmeyen_toplanani_bul",
+      "tek_islem_cikarma_problemleri", "iki_islem_cikarma_problemleri", "toplama_cikarma_problemleri",
+      "cikarma_onluksuz_50", "cikarma_onluklu_50",
+      "zihinden_toplama", "zihinden_cikarma",
+      "ardisik_toplama", "ritmik_carpim", "esit_paylastirma", "ardisik_cikarma", "kalansiz_bolme"
+    ]
+  },
+  {
+    id: 'olcme',
+    name: "4. Veri İşleme & Ölçme",
+    shortName: "Veri ve Ölçme",
+    icon: "/MENUIKON/grid_icon_14.png",
+    keys: ["veri_grafik", "takvim_olcme"]
+  },
+  {
+    id: 'diger_oyunlar',
+    name: "5. Diğer Oyunlar",
+    shortName: "Diğer Oyunlar",
+    icon: "/MENUIKON/grid_icon_17.png",
+    keys: [
+      "halat_toplama_1", "halat_cikarma_1",
+      "halat_toplama_2", "halat_cikarma_2", "halat_carpma_2", "halat_bolme_2",
+      "halat_toplama_3", "halat_cikarma_3", "halat_carpma_3", "halat_bolme_3",
+      "halat_toplama_4", "halat_cikarma_4", "halat_carpma_4", "halat_bolme_4",
+      "sureli_toplama_cikarma", "sureli_on_tamamlama", "sureli_carpma_bolme",
+      "sureli_carpma_3", "sureli_bolme_3", "sureli_carpma_4", "sureli_bolme_4",
+      "aynisini_bul",
+      "balon_patlatma_mat",
+      "matematik_hafiza",
+      "hizli_islem_carki",
+      "sayi_dedektifi",
+      "ritim_labirent",
+      "geometri_eslestirme"
+    ]
+  },
+  // 3. Sınıf Müfredatı 4 Ana Tema
+  {
+    id: 'g3_tema1',
+    name: "1. Sayılar ve Nicelikler (1)",
+    shortName: "Sayılar (1)",
+    icon: "/MENUIKON/grid_icon_21.png",
+    keys: [
+      "g3_uc_basamakli_okuma_yazma",
+      "g3_sayi_cozumleme",
+      "g3_sayi_siralama_karsilastirma",
+      "g3_en_yakin_onluga_yuvarlama_100",
+      "g3_en_yakin_onluga_yuvarlama",
+      "g3_en_yakin_yuzluge_yuvarlama",
+      "g3_ritmik_6",
+      "g3_ritmik_7",
+      "g3_ritmik_8",
+      "g3_ritmik_9",
+      "g3_ritmik_10",
+      "g3_ritmik_100",
+      "g3_tek_cift_20ye_kadar_islemler",
+      "g3_tek_cift_sayilar",
+      "g3_sayi_sekil_oruntuleri",
+      "g3_nesne_tahmin_karsilastirma"
+    ]
+  },
+  {
+    id: 'g3_tema2',
+    name: "2. Sayılar ve Nicelikler (2)",
+    shortName: "Sayılar (2)",
+    icon: "/MENUIKON/grid_icon_11.png",
+    keys: [
+      "g3_birim_kesirler",
+      "g3_pay_payda_modelleme",
+      "g3_payda_10_100_kesir",
+      "g3_zaman_olcme",
+      "g3_uzunluk_kutle_sivi",
+      "g3_paralarimiz_lira_kurus"
+    ]
+  },
+  {
+    id: 'g3_tema3',
+    name: "3. İşlemlerden Cebirsel Düşünmeye",
+    shortName: "İşlemler ve Cebir",
+    icon: "/MENUIKON/grid_icon_04.png",
+    keys: [
+      "g3_zihinden_toplama_cikarma_tahmin",
+      "g3_toplama_cikarma_problemleri",
+      "g3_carpma_bolme_pratik",
+      "g3_verilmeyen_ogeyi_bulma"
+    ]
+  },
+  {
+    id: 'g3_tema4',
+    name: "4. Nesnelerin Geometrisi ve Ölçme",
+    shortName: "Geometri ve Ölçme",
+    icon: "/MENUIKON/grid_icon_39.png",
+    keys: [
+      "g3_geometrik_cisimler_ozellikleri",
+      "g3_temel_geometri_kavramlari",
+      "g3_cevre_ve_olculebilir_nitelikler"
+    ]
+  },
+
+  // 4. Sınıf Müfredatı 4 Ana Tema
+  {
+    id: 'g4_tema1',
+    name: "1. Sayılar ve Nicelikler (1)",
+    shortName: "Sayılar (1)",
+    icon: "/MENUIKON/grid_icon_21.png",
+    keys: [
+      "g4_sayi_okuma_yazma",
+      "g4_basamak_ve_cozumleme",
+      "g4_sayi_siralama",
+      "g4_en_yakin_onluk_yuzluk",
+      "g4_ritmik_yuzer_biner",
+      "g4_sayi_sekil_oruntuleri"
+    ]
+  },
+  {
+    id: 'g4_tema2',
+    name: "2. Sayılar ve Nicelikler (2)",
+    shortName: "Sayılar (2)",
+    icon: "/MENUIKON/grid_icon_11.png",
+    keys: [
+      "g4_kesir_cesitleri_modelleme",
+      "g4_birim_kesirler_karsilastirma",
+      "g4_paydalari_esit_kesir_islemleri",
+      "g4_uzunluk_olculeri_donusum",
+      "g4_kutle_olculeri_ton_kg_g"
+    ]
+  },
+  {
+    id: 'g4_tema3',
+    name: "3. İşlemlerden Cebirsel Düşünmeye",
+    shortName: "İşlemler ve Cebir",
+    icon: "/MENUIKON/grid_icon_04.png",
+    keys: [
+      "g4_dort_islem_toplama_cikarma",
+      "g4_carpma_islemi_3basamakli",
+      "g4_kisa_yoldan_carpma_5",
+      "g4_kisa_yoldan_carpma_50",
+      "g4_kisa_yoldan_carpma_25",
+      "g4_bolme_islemi_4basamakli",
+      "g4_zihinden_carpma_bolme_10_100_1000",
+      "g4_esitlik_ve_verilmeyen_deger"
+    ]
+  },
+  {
+    id: 'g4_tema4',
+    name: "4. Geometri, Veri ve Olasılık",
+    shortName: "Geometri ve Veri",
+    icon: "/MENUIKON/grid_icon_39.png",
+    keys: [
+      "g4_geometrik_cisimler",
+      "g4_cevre_uzunlugu",
+      "g4_alan_tahmini_ve_birim_kare",
+      "g4_dogru_isin_dogru_parcasi_acilar",
+      "g4_simetri_dogrulari",
+      "g4_sutun_grafigi_ve_tablolar",
+      "g4_olaylarin_olasiligi"
+    ]
+  }
+];
+
+const getTopicIconVisual = (key: string) => {
+  if (key.includes('geometrik_sekil_cisim') || key.includes('yuz_ayrit')) {
+    return { emoji: '📐', bg: 'bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500' };
+  }
+  if (key.includes('oruntu')) {
+    return { emoji: '🔷', bg: 'bg-gradient-to-br from-cyan-400 via-sky-400 to-blue-500' };
+  }
+  if (key.includes('simetri')) {
+    return { emoji: '🪞', bg: 'bg-gradient-to-br from-pink-400 via-fuchsia-400 to-purple-500' };
+  }
+  if (key.includes('sivi')) {
+    return { emoji: '🧪', bg: 'bg-gradient-to-br from-teal-300 via-emerald-400 to-cyan-500' };
+  }
+  if (key.includes('tartma')) {
+    return { emoji: '⚖️', bg: 'bg-gradient-to-br from-purple-400 via-indigo-500 to-blue-500' };
+  }
+  if (key.includes('ritmik')) {
+    return { emoji: '🔢', bg: 'bg-gradient-to-br from-emerald-400 via-teal-400 to-green-500' };
+  }
+  if (key.includes('saat') || key.includes('zaman')) {
+    return { emoji: '⏰', bg: 'bg-gradient-to-br from-sky-400 via-cyan-400 to-blue-500' };
+  }
+  if (key.includes('para')) {
+    return { emoji: '🪙', bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500' };
+  }
+  if (key.includes('kesir')) {
+    return { emoji: '🍕', bg: 'bg-gradient-to-br from-rose-400 via-red-400 to-amber-400' };
+  }
+  if (key.includes('toplama')) {
+    return { emoji: '➕', bg: 'bg-gradient-to-br from-green-400 via-emerald-400 to-teal-500' };
+  }
+  if (key.includes('cikarma')) {
+    return { emoji: '➖', bg: 'bg-gradient-to-br from-rose-400 via-pink-400 to-red-500' };
+  }
+  if (key.includes('carp') || key.includes('bol') || key.includes('paylas')) {
+    return { emoji: '✖️', bg: 'bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-600' };
+  }
+  if (key.includes('veri') || key.includes('grafik')) {
+    return { emoji: '📊', bg: 'bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-400' };
+  }
+  if (key.includes('uzunluk')) {
+    return { emoji: '📏', bg: 'bg-gradient-to-br from-yellow-300 via-lime-400 to-emerald-400' };
+  }
+  if (key.includes('basamak') || key.includes('deste') || key.includes('nesne')) {
+    return { emoji: '🔢', bg: 'bg-gradient-to-br from-teal-400 via-cyan-400 to-blue-500' };
+  }
+  return { emoji: '⭐', bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-400' };
+};
+
+const getTopicEmoji = (key: string) => getTopicIconVisual(key).emoji;
+
+const getCategoryIdForTopic = (topicKey: string): string => {
+  if (topicKey.startsWith('halat_') || topicKey.startsWith('sureli_')) {
+    return 'diger_oyunlar';
+  }
+  for (const cat of CATEGORY_MAP) {
+    if (cat.keys.includes(topicKey)) {
+      return cat.id;
+    }
+  }
+  return 'diger_oyunlar';
+};
+
+const getGradeIconForTopic = (topicKey: string, currentGrade: number | null): string => {
+  if (topicKey.startsWith('ing_') || topicKey === 'other_ingilizce') return '/icon_6.png';
+  if (
+    topicKey.startsWith('other_') ||
+    topicKey === 'balon_patlatma_mat' ||
+    topicKey === 'matematik_hafiza' ||
+    topicKey === 'hizli_islem_carki' ||
+    topicKey === 'sayi_dedektifi' ||
+    topicKey === 'ritim_labirent' ||
+    topicKey === 'geometri_eslestirme'
+  ) {
+    return '/icon_5.png';
+  }
+  if (topicKey.startsWith('g4_') || topicKey.endsWith('_4')) return '/icon_4.png';
+  if (topicKey.startsWith('g3_') || topicKey.endsWith('_3')) return '/icon_3.png';
+  if (topicKey.endsWith('_1')) return '/icon_1.png';
+  if (topicKey.endsWith('_2')) return '/icon_2.png';
+  if (currentGrade === 1) return '/icon_1.png';
+  if (currentGrade === 3) return '/icon_3.png';
+  if (currentGrade === 4) return '/icon_4.png';
+  return '/icon_2.png';
+};
+
+export const TOPIC_3D_ICONS: Record<string, string> = {
+  // 1. NESNELERİN GEOMETRİSİ (1. ve 2. Sınıf)
+  uzamsal_iliskiler: '/MENUIKON/grid_icon_29.png',
+  es_nesneler: '/MENUIKON/grid_icon_27.png',
+  geometrik_sekil_cisim: '/MENUIKON/grid_icon_39.png',
+  geometri_tahtasi: '/MENUIKON/grid_icon_10.png',
+  cisimler_acilimi: '/MENUIKON/grid_icon_10.png',
+  yuz_ayrit_kose: '/MENUIKON/grid_icon_16.png',
+  geometrik_oruntu: '/MENUIKON/grid_icon_19.png',
+  uzamsal_iliskiler_simetri: '/MENUIKON/grid_icon_07.png',
+  sivi_olcme: '/MENUIKON/grid_icon_37.png',
+  tartma_olcme: '/MENUIKON/grid_icon_40.png',
+
+  // 2. SAYILAR VE NİCELİKLER (1. ve 2. Sınıf)
+  nesne_sayisi: '/MENUIKON/grid_icon_18.png',
+  sira_sayilari: '/MENUIKON/grid_icon_24.png',
+  cok_az_esit: '/MENUIKON/grid_icon_07.png',
+  sayi_basamak_degeri: '/MENUIKON/grid_icon_21.png',
+  deste_duzine: '/MENUIKON/grid_icon_27.png',
+  kesirler: '/MENUIKON/grid_icon_11.png',
+  sayi_karsilastirma: '/MENUIKON/grid_icon_07.png',
+  paralarimiz: '/MENUIKON/grid_icon_13.png',
+  zaman_olcme: '/MENUIKON/grid_icon_12.png',
+  uzunluk_olcme: '/MENUIKON/grid_icon_34.png',
+  tartma: '/MENUIKON/grid_icon_40.png',
+  takvim_olcme: '/MENUIKON/grid_icon_32.png',
+  sayi_sekil_oruntusu: '/MENUIKON/grid_icon_19.png',
+  en_yakin_onluk: '/MENUIKON/grid_icon_09.png',
+
+  // Ritmik Saymalar (1. ve 2. Sınıf)
+  ritmik_ileri_1: '/MENUIKON/grid_icon_09.png',
+  ritmik_ileri_2: '/MENUIKON/grid_icon_23.png',
+  ritmik_ileri_3: '/MENUIKON/grid_icon_03.png',
+  ritmik_ileri_4: '/MENUIKON/grid_icon_14.png',
+  ritmik_ileri_5: '/MENUIKON/grid_icon_05.png',
+  ritmik_ileri_10: '/MENUIKON/grid_icon_25.png',
+  ritmik_geri_1: '/MENUIKON/grid_icon_28.png',
+  ritmik_geri_2: '/MENUIKON/grid_icon_17.png',
+  ritmik_geri_10: '/MENUIKON/grid_icon_20.png',
+
+  // Saati Okuma (2. Sınıf)
+  saat_tam: '/MENUIKON/grid_icon_16.png',
+  saat_yarim: '/MENUIKON/grid_icon_29.png',
+  saat_ceyrek_gece: '/MENUIKON/grid_icon_38.png',
+  saat_ceyrek_kala: '/MENUIKON/grid_icon_35.png',
+
+  // 3. İŞLEMLER VE CEBİR - TOPLAMA (1. ve 2. Sınıf)
+  toplama_20_ici: '/MENUIKON/grid_icon_08.png',
+  toplama_onluk: '/MENUIKON/grid_icon_24.png',
+  verilmeyen_toplanan: '/MENUIKON/grid_icon_26.png',
+  toplama_eldesiz_50: '/MENUIKON/grid_icon_08.png',
+  toplama_eldeli_50: '/MENUIKON/grid_icon_24.png',
+  verilmeyen_toplanani_bul: '/MENUIKON/grid_icon_26.png',
+  zihinden_toplama: '/MENUIKON/grid_icon_05.png',
+  tek_islem_toplama_problemleri: '/MENUIKON/grid_icon_14.png',
+  iki_islem_toplama_problemleri: '/MENUIKON/grid_icon_33.png',
+
+  // ÇIKARMA (1. ve 2. Sınıf) - HER BUTON FARKLI!
+  cikarma_20_ici: '/MENUIKON/grid_icon_30.png',
+  cikarma_onluk: '/MENUIKON/grid_icon_06.png',
+  cikarma_onluksuz_50: '/MENUIKON/grid_icon_31.png',
+  cikarma_onluklu_50: '/MENUIKON/grid_icon_06.png',
+  zihinden_cikarma: '/MENUIKON/grid_icon_35.png',
+  tek_islem_cikarma_problemleri: '/MENUIKON/grid_icon_16.png',
+  iki_islem_cikarma_problemleri: '/MENUIKON/grid_icon_36.png',
+
+  // KARMA / ÇARPMA / BÖLME (2. Sınıf)
+  toplama_cikarma_problemleri: '/MENUIKON/grid_icon_04.png',
+  ardisik_toplama: '/MENUIKON/grid_icon_28.png',
+  ritmik_carpim: '/MENUIKON/grid_icon_15.png',
+  esit_paylastirma: '/MENUIKON/grid_icon_27.png',
+  ardisik_cikarma: '/MENUIKON/grid_icon_30.png',
+  kalansiz_bolme: '/MENUIKON/grid_icon_03.png',
+
+  // 4. VERİ İŞLEME & ÖLÇME
+  veri_grafik: '/MENUIKON/grid_icon_14.png',
+
+  // 5. DİĞER OYUNLAR (TÜM SINIFLAR)
+  xox: '/MENUIKON/grid_icon_32.png',
+  other_xox: '/MENUIKON/grid_icon_32.png',
+  zit_anlam: '/MENUIKON/grid_icon_27.png',
+  other_zit_anlam: '/MENUIKON/grid_icon_27.png',
+  es_anlam: '/MENUIKON/grid_icon_21.png',
+  other_es_anlam: '/MENUIKON/grid_icon_21.png',
+  ingilizce: '/MENUIKON/grid_icon_14.png',
+  other_ingilizce: '/MENUIKON/grid_icon_14.png',
+  lab3d: '/MENUIKON/grid_icon_38.png',
+  geoboard: '/MENUIKON/grid_icon_29.png',
+  sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.png',
+  sureli_on_tamamlama: '/MENUIKON/grid_icon_09.png',
+  sureli_carpma: '/MENUIKON/grid_icon_04.png',
+  sureli_bolme: '/MENUIKON/grid_icon_05.png',
+  sureli_carpma_bolme: '/MENUIKON/grid_icon_28.png',
+  sureli_carpma_3: '/MENUIKON/grid_icon_04.png',
+  sureli_bolme_3: '/MENUIKON/grid_icon_05.png',
+  sureli_carpma_4: '/MENUIKON/grid_icon_04.png',
+  sureli_bolme_4: '/MENUIKON/grid_icon_05.png',
+  halat_toplama_1: '/MENUIKON/grid_icon_08.png',
+  halat_cikarma_1: '/MENUIKON/grid_icon_30.png',
+  halat_toplama_2: '/MENUIKON/grid_icon_08.png',
+  halat_cikarma_2: '/MENUIKON/grid_icon_30.png',
+  halat_carpma_2: '/MENUIKON/grid_icon_32.png',
+  halat_bolme_2: '/MENUIKON/grid_icon_03.png',
+  halat_toplama_3: '/MENUIKON/grid_icon_08.png',
+  halat_cikarma_3: '/MENUIKON/grid_icon_30.png',
+  halat_carpma_3: '/MENUIKON/grid_icon_32.png',
+  halat_bolme_3: '/MENUIKON/grid_icon_03.png',
+  halat_toplama_4: '/MENUIKON/grid_icon_08.png',
+  halat_cikarma_4: '/MENUIKON/grid_icon_30.png',
+  halat_carpma_4: '/MENUIKON/grid_icon_32.png',
+  halat_bolme_4: '/MENUIKON/grid_icon_03.png',
+  balon_patlatma_mat: '/MENUIKON/grid_icon_35.png',
+  matematik_hafiza: '/MENUIKON/grid_icon_06.png',
+  hizli_islem_carki: '/MENUIKON/grid_icon_10.png',
+  sayi_dedektifi: '/MENUIKON/grid_icon_36.png',
+  ritim_labirent: '/MENUIKON/grid_icon_17.png',
+  geometri_eslestirme: '/MENUIKON/grid_icon_39.png',
+  geometrik_sekilleri_bul: '/MENUIKON/grid_icon_39.png',
+  aynisini_bul: '/MENUIKON/grid_icon_20.png',
+
+  // 3. SINIF TEMA 1 (Sayılar ve Nicelikler 1) - HER BUTON FARKLI!
+  g3_uc_basamakli_okuma_yazma: '/MENUIKON/grid_icon_21.png',
+  g3_sayi_cozumleme: '/MENUIKON/grid_icon_33.png',
+  g3_sayi_siralama_karsilastirma: '/MENUIKON/grid_icon_07.png',
+  g3_en_yakin_onluga_yuvarlama_100: '/MENUIKON/grid_icon_09.png',
+  g3_en_yakin_onluga_yuvarlama: '/MENUIKON/grid_icon_20.png',
+  g3_en_yakin_yuzluge_yuvarlama: '/MENUIKON/grid_icon_28.png',
+
+  // 3. Sınıf Ritmik Saymalar (HER BUTON FARKLI!)
+  g3_ritmik_6: '/MENUIKON/grid_icon_03.png',
+  g3_ritmik_7: '/MENUIKON/grid_icon_05.png',
+  g3_ritmik_8: '/MENUIKON/grid_icon_16.png',
+  g3_ritmik_9: '/MENUIKON/grid_icon_38.png',
+  g3_ritmik_10: '/MENUIKON/grid_icon_14.png',
+  g3_ritmik_100: '/MENUIKON/grid_icon_25.png',
+  g3_ritmik_6_7: '/MENUIKON/grid_icon_03.png',
+  g3_ritmik_8_9: '/MENUIKON/grid_icon_16.png',
+  g3_ritmik_saymalar: '/MENUIKON/grid_icon_23.png',
+
+  // 3. Sınıf Tek-Çift ve Örüntü
+  g3_tek_cift_nesne_toplami: '/MENUIKON/grid_icon_27.png',
+  g3_tek_cift_20ye_kadar_islemler: '/MENUIKON/grid_icon_26.png',
+  g3_tek_cift_sayilar: '/MENUIKON/grid_icon_10.png',
+  g3_tek_cift_islemler: '/MENUIKON/grid_icon_24.png',
+  g3_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.png',
+  g3_nesne_tahmin_karsilastirma: '/MENUIKON/grid_icon_18.png',
+
+  // 3. SINIF TEMA 2 (Sayılar ve Nicelikler 2)
+  g3_birim_kesirler: '/MENUIKON/grid_icon_11.png',
+  g3_pay_payda_modelleme: '/MENUIKON/grid_icon_31.png',
+  g3_payda_10_100_kesir: '/MENUIKON/grid_icon_15.png',
+  g3_zaman_olcme: '/MENUIKON/grid_icon_12.png',
+  g3_uzunluk_kutle_sivi: '/MENUIKON/grid_icon_37.png',
+  g3_paralarimiz_lira_kurus: '/MENUIKON/grid_icon_13.png',
+
+  // 3. SINIF TEMA 3 (İşlemlerden Cebirsel Düşünmeye)
+  g3_zihinden_toplama_cikarma_tahmin: '/MENUIKON/grid_icon_08.png',
+  g3_toplama_cikarma_problemleri: '/MENUIKON/grid_icon_22.png',
+  g3_carpma_bolme_pratik: '/MENUIKON/grid_icon_04.png',
+  g3_verilmeyen_ogeyi_bulma: '/MENUIKON/grid_icon_26.png',
+
+  // 3. SINIF TEMA 4 (Nesnelerin Geometrisi ve Ölçme)
+  g3_geometrik_cisimler_ozellikleri: '/MENUIKON/grid_icon_39.png',
+  g3_temel_geometri_kavramlari: '/MENUIKON/grid_icon_29.png',
+  g3_cevre_ve_olculebilir_nitelikler: '/MENUIKON/grid_icon_40.png',
+
+  // 4. SINIF TEMA 1 (Sayılar ve Nicelikler 1)
+  g4_sayi_okuma_yazma: '/MENUIKON/grid_icon_21.png',
+  g4_basamak_ve_cozumleme: '/MENUIKON/grid_icon_33.png',
+  g4_sayi_siralama: '/MENUIKON/grid_icon_07.png',
+  g4_en_yakin_onluk_yuzluk: '/MENUIKON/grid_icon_09.png',
+  g4_ritmik_yuzer_biner: '/MENUIKON/grid_icon_25.png',
+  g4_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.png',
+
+  // 4. SINIF TEMA 2 (Sayılar ve Nicelikler 2)
+  g4_kesir_cesitleri_modelleme: '/MENUIKON/grid_icon_11.png',
+  g4_birim_kesirler_karsilastirma: '/MENUIKON/grid_icon_31.png',
+  g4_paydalari_esit_kesir_islemleri: '/MENUIKON/grid_icon_15.png',
+  g4_uzunluk_olculeri_donusum: '/MENUIKON/grid_icon_34.png',
+  g4_kutle_olculeri_ton_kg_g: '/MENUIKON/grid_icon_40.png',
+
+  // 4. SINIF TEMA 3 (İşlemlerden Cebirsel Düşünmeye)
+  g4_dort_islem_toplama_cikarma: '/MENUIKON/grid_icon_22.png',
+  g4_carpma_islemi_3basamakli: '/MENUIKON/grid_icon_04.png',
+  g4_kisa_yoldan_carpma_5: '/MENUIKON/grid_icon_05.png',
+  g4_kisa_yoldan_carpma_50: '/MENUIKON/grid_icon_06.png',
+  g4_kisa_yoldan_carpma_25: '/MENUIKON/grid_icon_08.png',
+  g4_bolme_islemi_4basamakli: '/MENUIKON/grid_icon_03.png',
+  g4_zihinden_carpma_bolme_10_100_1000: '/MENUIKON/grid_icon_28.png',
+  g4_esitlik_ve_verilmeyen_deger: '/MENUIKON/grid_icon_26.png',
+
+  // 4. SINIF TEMA 4 (Geometri, Veri ve Olasılık)
+  g4_geometrik_cisimler: '/MENUIKON/grid_icon_39.png',
+  g4_cevre_uzunlugu: '/MENUIKON/grid_icon_10.png',
+  g4_alan_tahmini_ve_birim_kare: '/MENUIKON/grid_icon_40.png',
+  g4_dogru_isin_dogru_parcasi_acilar: '/MENUIKON/grid_icon_29.png',
+  g4_simetri_dogrulari: '/MENUIKON/grid_icon_16.png',
+  g4_sutun_grafigi_ve_tablolar: '/MENUIKON/grid_icon_36.png',
+  g4_olaylarin_olasiligi: '/MENUIKON/grid_icon_35.png',
+};
+
+// Reference 3D Cartoon Game UI Style (Pill Buttons)
+const getTopicBadgeGradient = (topicKey: string) => {
+  if (topicKey.startsWith('halat_')) {
+    return 'from-amber-500 via-orange-500 to-amber-600';
+  }
+  if (topicKey.startsWith('sureli_')) {
+    return 'from-rose-500 via-red-500 to-amber-500';
+  }
+  if (topicKey === 'sureli_on_tamamlama') {
+    return 'from-amber-500 via-orange-500 to-red-600';
+  }
+  if (topicKey === 'sureli_carpma_bolme') {
+    return 'from-amber-500 via-orange-500 to-red-600';
+  }
+  if (topicKey.includes('balon') || topicKey.includes('carki')) {
+    return 'from-fuchsia-400 via-purple-500 to-pink-500';
+  }
+  if (topicKey.includes('hafiza') || topicKey.includes('dedektifi')) {
+    return 'from-violet-400 via-indigo-500 to-purple-600';
+  }
+  if (topicKey.includes('labirent') || topicKey.includes('eslestirme')) {
+    return 'from-cyan-400 via-teal-500 to-blue-600';
+  }
+  if (topicKey.includes('geometrik') || topicKey.includes('yuz') || topicKey.includes('oruntu')) {
+    return 'from-teal-400 via-emerald-400 to-cyan-500';
+  }
+  if (topicKey.includes('ritmik') || topicKey.includes('nesne') || topicKey.includes('basamak')) {
+    return 'from-amber-400 via-orange-400 to-rose-500';
+  }
+  if (topicKey.includes('toplama')) {
+    return 'from-blue-500 via-indigo-500 to-purple-600';
+  }
+  if (topicKey.includes('cikarma')) {
+    return 'from-pink-500 via-rose-500 to-red-500';
+  }
+  if (topicKey.includes('saat') || topicKey.includes('zaman')) {
+    return 'from-yellow-400 via-amber-400 to-amber-600';
+  }
+  if (topicKey.includes('kesir') || topicKey.includes('para') || topicKey.includes('deste')) {
+    return 'from-emerald-400 via-teal-500 to-cyan-600';
+  }
+  if (topicKey.includes('veri') || topicKey.includes('grafik') || topicKey.includes('tartma')) {
+    return 'from-violet-500 via-purple-600 to-indigo-700';
+  }
+  return 'from-sky-400 via-blue-500 to-indigo-600';
+};
+
+export const GRID_ICON_COLORS: Record<string, { border: string; hover: string; dot: string }> = {
+  'grid_icon_03.png': { border: 'border-l-teal-400', hover: 'hover:border-teal-400/60', dot: 'bg-teal-400' },
+  'grid_icon_04.png': { border: 'border-l-fuchsia-400', hover: 'hover:border-fuchsia-400/60', dot: 'bg-fuchsia-400' },
+  'grid_icon_05.png': { border: 'border-l-amber-400', hover: 'hover:border-amber-400/60', dot: 'bg-amber-400' },
+  'grid_icon_06.png': { border: 'border-l-rose-400', hover: 'hover:border-rose-400/60', dot: 'bg-rose-400' },
+  'grid_icon_07.png': { border: 'border-l-sky-400', hover: 'hover:border-sky-400/60', dot: 'bg-sky-400' },
+  'grid_icon_08.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_09.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_10.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_11.png': { border: 'border-l-rose-400', hover: 'hover:border-rose-400/60', dot: 'bg-rose-400' },
+  'grid_icon_12.png': { border: 'border-l-purple-400', hover: 'hover:border-purple-400/60', dot: 'bg-purple-400' },
+  'grid_icon_13.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_14.png': { border: 'border-l-sky-400', hover: 'hover:border-sky-400/60', dot: 'bg-sky-400' },
+  'grid_icon_15.png': { border: 'border-l-amber-400', hover: 'hover:border-amber-400/60', dot: 'bg-amber-400' },
+  'grid_icon_16.png': { border: 'border-l-sky-400', hover: 'hover:border-sky-400/60', dot: 'bg-sky-400' },
+  'grid_icon_17.png': { border: 'border-l-teal-400', hover: 'hover:border-teal-400/60', dot: 'bg-teal-400' },
+  'grid_icon_18.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_19.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_20.png': { border: 'border-l-blue-400', hover: 'hover:border-blue-400/60', dot: 'bg-blue-400' },
+  'grid_icon_21.png': { border: 'border-l-blue-400', hover: 'hover:border-blue-400/60', dot: 'bg-blue-400' },
+  'grid_icon_22.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_23.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_24.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_25.png': { border: 'border-l-blue-400', hover: 'hover:border-blue-400/60', dot: 'bg-blue-400' },
+  'grid_icon_26.png': { border: 'border-l-rose-400', hover: 'hover:border-rose-400/60', dot: 'bg-rose-400' },
+  'grid_icon_27.png': { border: 'border-l-rose-400', hover: 'hover:border-rose-400/60', dot: 'bg-rose-400' },
+  'grid_icon_28.png': { border: 'border-l-amber-400', hover: 'hover:border-amber-400/60', dot: 'bg-amber-400' },
+  'grid_icon_29.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_30.png': { border: 'border-l-purple-400', hover: 'hover:border-purple-400/60', dot: 'bg-purple-400' },
+  'grid_icon_31.png': { border: 'border-l-rose-400', hover: 'hover:border-rose-400/60', dot: 'bg-rose-400' },
+  'grid_icon_32.png': { border: 'border-l-purple-400', hover: 'hover:border-purple-400/60', dot: 'bg-purple-400' },
+  'grid_icon_33.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+  'grid_icon_34.png': { border: 'border-l-teal-400', hover: 'hover:border-teal-400/60', dot: 'bg-teal-400' },
+  'grid_icon_35.png': { border: 'border-l-fuchsia-400', hover: 'hover:border-fuchsia-400/60', dot: 'bg-fuchsia-400' },
+  'grid_icon_36.png': { border: 'border-l-fuchsia-400', hover: 'hover:border-fuchsia-400/60', dot: 'bg-fuchsia-400' },
+  'grid_icon_37.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_38.png': { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400' },
+  'grid_icon_39.png': { border: 'border-l-purple-400', hover: 'hover:border-purple-400/60', dot: 'bg-purple-400' },
+  'grid_icon_40.png': { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400' },
+};
+
+export const getIconAccentColor = (iconUrl: string): { border: string; hover: string; dot: string; text: string } => {
+  const filename = iconUrl.split('/').pop() || '';
+  if (GRID_ICON_COLORS[filename]) {
+    const item = GRID_ICON_COLORS[filename];
+    const textColor = item.border.replace('border-l-', 'text-').replace('-400', '-300');
+    return { ...item, text: textColor };
+  }
+  if (filename === 'icon_1.png') return { border: 'border-l-blue-400', hover: 'hover:border-blue-400/60', dot: 'bg-blue-400', text: 'text-blue-300' };
+  if (filename === 'icon_2.png') return { border: 'border-l-orange-400', hover: 'hover:border-orange-400/60', dot: 'bg-orange-400', text: 'text-orange-300' };
+  if (filename === 'icon_3.png') return { border: 'border-l-emerald-400', hover: 'hover:border-emerald-400/60', dot: 'bg-emerald-400', text: 'text-emerald-300' };
+  if (filename === 'icon_4.png') return { border: 'border-l-purple-400', hover: 'hover:border-purple-400/60', dot: 'bg-purple-400', text: 'text-purple-300' };
+  if (filename === 'icon_5.png') return { border: 'border-l-fuchsia-400', hover: 'hover:border-fuchsia-400/60', dot: 'bg-fuchsia-400', text: 'text-fuchsia-300' };
+  if (filename === 'icon_6.png') return { border: 'border-l-teal-400', hover: 'hover:border-teal-400/60', dot: 'bg-teal-400', text: 'text-teal-300' };
+  return { border: 'border-l-blue-400', hover: 'hover:border-blue-400/60', dot: 'bg-blue-400', text: 'text-blue-300' };
+};
+
+const TopicButtonReferenceStyle: React.FC<{
+  topicKey: string;
+  title: string;
+  onClick: () => void;
+  compact?: boolean;
+  categoryTheme?: string;
+  badgeText?: string;
+}> = ({ topicKey, title, onClick, compact, categoryTheme, badgeText }) => {
+  const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.png';
+  const accent = getIconAccentColor(iconUrl);
+
+  const themeMap: Record<string, {
+    bg: string;
+    border: string;
+    hoverBorder: string;
+    shadow: string;
+    badgeBg: string;
+    badgeBorder: string;
+    badgeText: string;
+    dot: string;
+    btnText: string;
+    btnBg: string;
+  }> = {
+    geometri: {
+      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e]',
+      border: 'border-2 border-emerald-500/70 border-l-4 border-l-emerald-400',
+      hoverBorder: 'hover:border-emerald-400',
+      shadow: 'shadow-[0_0_16px_rgba(16,185,129,0.22)] hover:shadow-[0_0_22px_rgba(16,185,129,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-emerald-400/30',
+      badgeText: 'text-emerald-300',
+      dot: 'bg-emerald-400',
+      btnText: 'text-emerald-300',
+      btnBg: 'bg-emerald-400',
+    },
+    sayilar: {
+      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053]',
+      border: 'border-2 border-sky-500/70 border-l-4 border-l-sky-400',
+      hoverBorder: 'hover:border-sky-400',
+      shadow: 'shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-sky-400/30',
+      badgeText: 'text-sky-300',
+      dot: 'bg-sky-400',
+      btnText: 'text-sky-300',
+      btnBg: 'bg-sky-400',
+    },
+    islemler: {
+      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d]',
+      border: 'border-2 border-amber-500/70 border-l-4 border-l-amber-400',
+      hoverBorder: 'hover:border-amber-400',
+      shadow: 'shadow-[0_0_16px_rgba(245,158,11,0.22)] hover:shadow-[0_0_22px_rgba(245,158,11,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-amber-400/30',
+      badgeText: 'text-amber-300',
+      dot: 'bg-amber-400',
+      btnText: 'text-amber-300',
+      btnBg: 'bg-amber-400',
+    },
+    olcme: {
+      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f]',
+      border: 'border-2 border-indigo-500/70 border-l-4 border-l-indigo-400',
+      hoverBorder: 'hover:border-indigo-400',
+      shadow: 'shadow-[0_0_16px_rgba(129,140,248,0.22)] hover:shadow-[0_0_22px_rgba(129,140,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-indigo-400/30',
+      badgeText: 'text-indigo-300',
+      dot: 'bg-indigo-400',
+      btnText: 'text-indigo-300',
+      btnBg: 'bg-indigo-400',
+    },
+    diger_oyunlar: {
+      bg: 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430]',
+      border: 'border-2 border-pink-500/70 border-l-4 border-l-pink-400',
+      hoverBorder: 'hover:border-pink-400',
+      shadow: 'shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-pink-400/30',
+      badgeText: 'text-pink-300',
+      dot: 'bg-pink-400',
+      btnText: 'text-pink-300',
+      btnBg: 'bg-pink-400',
+    },
+    lab3d: {
+      bg: 'bg-gradient-to-r from-[#141b36] via-[#1a254c] to-[#141b36] hover:from-[#1b2344] hover:via-[#222f60] hover:to-[#1b2344]',
+      border: 'border-2 border-teal-500/70 border-l-4 border-l-teal-400',
+      hoverBorder: 'hover:border-teal-400',
+      shadow: 'shadow-[0_0_16px_rgba(45,212,191,0.22)] hover:shadow-[0_0_22px_rgba(45,212,191,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-teal-400/30',
+      badgeText: 'text-teal-300',
+      dot: 'bg-teal-400',
+      btnText: 'text-teal-300',
+      btnBg: 'bg-teal-400',
+    },
+    ingilizce: {
+      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053]',
+      border: 'border-2 border-sky-500/70 border-l-4 border-l-sky-400',
+      hoverBorder: 'hover:border-sky-400',
+      shadow: 'shadow-[0_0_16px_rgba(56,189,248,0.22)] hover:shadow-[0_0_22px_rgba(56,189,248,0.4)]',
+      badgeBg: 'bg-black/35',
+      badgeBorder: 'border-sky-400/30',
+      badgeText: 'text-sky-300',
+      dot: 'bg-sky-400',
+      btnText: 'text-sky-300',
+      btnBg: 'bg-sky-400',
+    }
+  };
+
+  const activeTheme = categoryTheme ? themeMap[categoryTheme] : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className={`group relative w-full ${
+        activeTheme 
+          ? `${activeTheme.bg} ${activeTheme.border} ${activeTheme.hoverBorder} ${activeTheme.shadow}`
+          : `bg-[#121c2e] hover:bg-[#18263e] border-2 border-slate-700/80 border-l-4 ${accent.border} ${accent.hover} shadow-md hover:shadow-lg`
+      } rounded-xl sm:rounded-2xl ${
+        compact 
+          ? 'px-2 sm:px-2.5 py-1.5 sm:py-2 pr-2.5 sm:pr-3 min-h-[60px] sm:min-h-[70px]' 
+          : 'px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 min-h-[72px] sm:min-h-[82px] md:min-h-[90px]'
+      } flex items-center gap-2.5 sm:gap-3.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
+    >
+      {/* Left 3D Icon - Enlarged 100%, pure 3D borderless icon with rich depth shadow */}
+      <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+        <img 
+          src={iconUrl} 
+          alt={title} 
+          className={`${
+            compact 
+              ? 'w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14' 
+              : 'w-13 h-13 sm:w-15 sm:h-15 md:w-17 md:h-17'
+          } object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform`} 
+        />
+      </div>
+
+      {/* Center Text Body */}
+      <div className="flex-1 text-left min-w-0 py-0.5 z-10">
+        <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide break-words">
+          {title}
+        </h4>
+        <div className="mt-1 flex items-center">
+          <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md ${
+            activeTheme 
+              ? `${activeTheme.badgeBg} ${activeTheme.badgeBorder} ${activeTheme.badgeText}` 
+              : 'bg-[#091122] border border-slate-700/70 text-slate-300'
+          } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${activeTheme ? activeTheme.dot : accent.dot} inline-block shrink-0`} />
+            <span>{badgeText || 'Alıştırma & Oyun'}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Right Action: Clean BAŞLA Action badge if activeTheme, otherwise fallback ply.png */}
+      {activeTheme ? (
+        <div className={`z-10 shrink-0 flex items-center gap-1.5 ${
+          compact ? 'px-2 py-1' : 'px-2.5 sm:px-3 py-1.5'
+        } rounded-xl bg-black/25 group-hover:bg-black/40 border border-white/15 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all`}>
+          <span className={`font-black ${compact ? 'text-[9px] sm:text-[10px]' : 'text-[10px] sm:text-xs'} ${activeTheme.btnText} tracking-wider uppercase drop-shadow`}>
+            BAŞLA
+          </span>
+          <div className={`${
+            compact ? 'w-4 h-4 sm:w-5 sm:h-5 text-[9px]' : 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs'
+          } rounded-md sm:rounded-lg ${activeTheme.btnBg} text-slate-950 flex items-center justify-center font-black shadow group-hover:rotate-6 transition-transform`}>
+            ▶
+          </div>
+        </div>
+      ) : (
+        <div className={`z-10 shrink-0 relative ${
+          compact 
+            ? 'w-[76px] h-[34px] sm:w-[88px] sm:h-[38px] md:w-[100px] md:h-[44px]' 
+            : 'w-[84px] h-[38px] sm:w-[98px] sm:h-[44px] md:w-[112px] md:h-[50px]'
+        } group-hover:scale-105 transition-transform filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center`}>
+          <div 
+            className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
+            style={{ backgroundImage: `url('/ply.png')` }}
+          />
+        </div>
+      )}
+    </button>
+  );
+};
+
+// Helper function for Infinite Level & Trophy Target calculations
+const getPlayerLevelInfo = (statsData: Record<string, StatRecord>, badgeCounts: Record<string, number>, unlockedBadges: string[]) => {
+  const totalCorrect = Object.values(statsData || {}).reduce((sum, item) => sum + ((item && item.dogru) || 0), 0);
+  const totalSolved = Object.values(statsData || {}).reduce((sum, item) => sum + (((item && item.dogru) || 0) + ((item && item.yanlis) || 0)), 0);
+
+  let totalBadgesEarned = (unlockedBadges || []).length;
+  Object.values(badgeCounts || {}).forEach(c => {
+    if (c > 1) totalBadgesEarned += (c - 1);
+  });
+
+  const LEVEL_THRESHOLDS = [
+    { level: 1, title: 'Matematik Çırağı', icon: '/rozets/d5.png', target: 20 },
+    { level: 2, title: 'Sayı Ustası', icon: '/rozets/d9.png', target: 50 },
+    { level: 3, title: 'Geometri Mimarı', icon: '/rozets/d10.png', target: 100 },
+    { level: 4, title: 'Matematik Dâhisi', icon: '/rozets/d11.png', target: 180 },
+    { level: 5, title: 'Şampiyon Kaptan', icon: '/rozets/d12.png', target: 280 },
+    { level: 6, title: 'Galaksi Efsanesi', icon: '/rozets/d13.png', target: 400 },
+    { level: 7, title: 'Galaksi Üstadı', icon: '/rozets/d14.png', target: 550 },
+    { level: 8, title: 'Kozmik Profesör', icon: '/rozets/d15.png', target: 750 },
+    { level: 9, title: 'Kuantum Mantıkçısı', icon: '/rozets/d16.png', target: 1000 },
+  ];
+
+  let currentLevel = 1;
+  let levelTitle = 'Matematik Çırağı';
+  let levelIcon = '/rozets/d5.png';
+  let prevTarget = 0;
+  let currentTarget = 20;
+
+  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+    const stage = LEVEL_THRESHOLDS[i];
+    if (totalCorrect >= stage.target) {
+      currentLevel = stage.level + 1;
+      prevTarget = stage.target;
+      if (i + 1 < LEVEL_THRESHOLDS.length) {
+        currentTarget = LEVEL_THRESHOLDS[i + 1].target;
+        levelTitle = LEVEL_THRESHOLDS[i + 1].title;
+        levelIcon = LEVEL_THRESHOLDS[i + 1].icon;
+      } else {
+        const extraLevels = currentLevel - 9;
+        currentTarget = 1000 + (extraLevels * 300);
+        levelTitle = `Zirve Şampiyon Lvl ${currentLevel}`;
+        levelIcon = '👑';
+      }
+    } else {
+      currentLevel = stage.level;
+      levelTitle = stage.title;
+      levelIcon = stage.icon;
+      currentTarget = stage.target;
+      break;
+    }
+  }
+
+  const levelProgress = Math.max(0, totalCorrect - prevTarget);
+  const levelNeed = Math.max(1, currentTarget - prevTarget);
+  const percent = Math.min(100, Math.round((levelProgress / levelNeed) * 100));
+
+  return {
+    totalCorrect,
+    totalSolved,
+    totalBadgesEarned,
+    currentLevel,
+    levelTitle,
+    levelIcon,
+    prevTarget,
+    currentTarget,
+    percent
+  };
+};
+
+export default function App() {
+  const [isLandscape, setIsLandscape] = useState<boolean>(false);
+  const [showOrientationToast, setShowOrientationToast] = useState<string | null>(null);
+
+  const toggleOrientation = () => {
+    try {
+      const nextState = !isLandscape;
+      setIsLandscape(nextState);
+      const modeName = nextState ? "Yatay Ekran Modu (Landscape)" : "Dikey Ekran Modu (Portrait)";
+      setShowOrientationToast(modeName);
+      setTimeout(() => setShowOrientationToast(null), 2500);
+
+      // Try native Screen Orientation API lock
+      if (typeof window !== 'undefined' && window.screen && window.screen.orientation && typeof (window.screen.orientation as any).lock === 'function') {
+        (window.screen.orientation as any).lock(nextState ? 'landscape' : 'portrait').catch(() => {});
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      return (localStorage.getItem('theme') as 'light' | 'dark') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const [bgImage, setBgImage] = useState<string>(() => {
+    try {
+      return localStorage.getItem('userCustomBg') || '/bg-children.jpg';
+    } catch {
+      return '/bg-children.jpg';
+    }
+  });
+
+  const [customWinVideo, setCustomWinVideo] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('customWinVideo') || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleCustomVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+          const result = uploadEvent.target?.result as string;
+          if (result) {
+            setCustomWinVideo(result);
+            try {
+              localStorage.setItem('customWinVideo', result);
+            } catch {
+              // Ignore
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const [bgOpacity, setBgOpacity] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('bgOpacity');
+      return saved ? parseFloat(saved) : 0.22;
+    } catch {
+      return 0.22;
+    }
+  });
+
+  const handleCustomBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+          const result = uploadEvent.target?.result as string;
+          if (result) {
+            setBgImage(result);
+            try {
+              localStorage.setItem('userCustomBg', result);
+            } catch {
+              // Ignore
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const [selectedCategoryId, setSelectedCategoryIdState] = useState<string | null>(null);
+  const [lastSelectedCategoryId, setLastSelectedCategoryId] = useState<string | null>(null);
+  const setSelectedCategoryId = (cat: string | null) => {
+    setSelectedCategoryIdState(cat);
+    if (cat !== null) {
+      setLastSelectedCategoryId(cat);
+    }
+  };
+  const [showTopicModal, setShowTopicModal] = useState(false);
+  const [expandedModalCategories, setExpandedModalCategories] = useState<Record<string, boolean>>({});
+
+  const toggleModalCategory = (catId: string) => {
+    setExpandedModalCategories(prev => ({
+      ...prev,
+      [catId]: !prev[catId]
+    }));
+  };
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('mathGameSound') !== '0';
+    } catch {
+      return true;
+    }
+  });
+
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+    'cat-geometri': true,
+    'cat-sayilar': true,
+    'cat-islemler': true,
+    'cat-olcme': true
+  });
+
+  const [openSubGroups, setOpenSubGroups] = useState<Record<string, boolean>>({
+    'subgrp-ritmik': true,
+    'subgrp-saat': true,
+    'subgrp-toplama': true,
+    'subgrp-cikarma': true
+  });
+
+  const toggleCategory = (catId: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [catId]: !prev[catId]
+    }));
+  };
+
+  const toggleSubGroup = (subId: string) => {
+    setOpenSubGroups(prev => ({
+      ...prev,
+      [subId]: !prev[subId]
+    }));
+  };
+  const [currentTopic, setCurrentTopic] = useState<string>('nesne_sayisi');
+  const [openedTopics, setOpenedTopics] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('openedTopics_v1');
+      return saved ? JSON.parse(saved) : ['nesne_sayisi'];
+    } catch {
+      return ['nesne_sayisi'];
+    }
+  });
+  const [gameState, setGameState] = useState<'welcome' | 'playing' | 'gameover'>('welcome');
+  const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<'matematik' | 'turkce'>('matematik');
+  const [lastSelectedGrade, setLastSelectedGrade] = useState<number | null>(1);
+  const [showIntro, setShowIntro] = useState(true);
+  const introVideoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    if (showIntro && introVideoRef.current) {
+      const v = introVideoRef.current;
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
+      v.play().catch(() => {});
+    }
+  }, [showIntro]);
+
+  const appHeaderRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (appHeaderRef.current) {
+        const h = appHeaderRef.current.offsetHeight;
+        if (h > 0) {
+          document.documentElement.style.setProperty('--app-header-height', `${h}px`);
+        }
+      }
+    };
+    updateHeaderHeight();
+    const ro = new ResizeObserver(updateHeaderHeight);
+    if (appHeaderRef.current) {
+      ro.observe(appHeaderRef.current);
+    }
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, [showIntro]);
+
+  // Single Player Game State
+  const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [streak, setStreak] = useState(0);
+  const [hasHad3StreakInSession, setHasHad3StreakInSession] = useState(false);
+  const [hasFailedAfter3Streak, setHasFailedAfter3Streak] = useState(false);
+
+  // Player Count & Multi-Player Duel State (1 Oyuncu, 2 Oyuncu Düello, 3 Oyuncu Düello)
+  const [playerCountMode, setPlayerCountMode] = useState<1 | 2 | 3>(1);
+  const [players, setPlayers] = useState<PlayerData[]>([]);
+  const [duelWinnerIndex, setDuelWinnerIndex] = useState<number | null>(null);
+  const [trackVictoryVideoActive, setTrackVictoryVideoActive] = useState(false);
+  const [pendingGameResult, setPendingGameResult] = useState<{
+    reason: 'puan' | 'can';
+    score: number;
+    livesLeft: number;
+    streak?: number;
+    topicWinCount?: number;
+    isThreeStarWin?: boolean;
+  } | null>(null);
+  const [showPodiumVideoModal, setShowPodiumVideoModal] = useState(false);
+
+  // Tam Ekran Durumu
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  useEffect(() => {
+    try {
+      document.documentElement.classList.remove('smartboard-4k-active');
+      localStorage.removeItem('smartboard_4k_mode');
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    try {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    } catch {}
+  };
+
+  // Winner specific celebration video config:
+  // kap.png (1. GRUP, idx 0) -> kap.mp4
+  // ejd.png (2. GRUP, idx 1) -> ejd.mp4
+  // balta.png (3. GRUP, idx 2) -> sog.mp4
+  const getWinnerVideoConfig = (winnerIdx: number | null) => {
+    if (winnerIdx === 0) {
+      return {
+        videoSrc: '/kap.mp4',
+        title: '1. GRUP (KAPLUMBAĞA) ŞAMPİYON! 🏆',
+        img: '/kap.png',
+        badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
+        borderColor: 'border-cyan-400',
+        glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
+      };
+    }
+    if (winnerIdx === 1) {
+      return {
+        videoSrc: '/ejd.mp4',
+        title: '2. GRUP (EJDERHA) ŞAMPİYON! 🏆',
+        img: '/ejd.png',
+        badgeBg: 'from-rose-600 via-pink-500 to-red-600',
+        borderColor: 'border-pink-400',
+        glowColor: 'shadow-[0_0_35px_rgba(244,63,94,0.95)]'
+      };
+    }
+    if (winnerIdx === 2) {
+      return {
+        videoSrc: '/sog.mp4',
+        title: '3. GRUP (SAVAŞÇI) ŞAMPİYON! 🏆',
+        img: '/balta.png',
+        badgeBg: 'from-emerald-600 via-teal-500 to-green-600',
+        borderColor: 'border-emerald-400',
+        glowColor: 'shadow-[0_0_35px_rgba(16,185,129,0.95)]'
+      };
+    }
+    return {
+      videoSrc: '/kap.mp4',
+      title: 'ŞAMPİYON! 🏆',
+      img: '/kap.png',
+      badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
+      borderColor: 'border-cyan-400',
+      glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
+    };
+  };
+
+  const handleTrackVideoComplete = () => {
+    if (pendingGameResult) {
+      setGameResult(pendingGameResult);
+    }
+    setTrackVictoryVideoActive(false);
+    setGameState('gameover');
+  };
+
+  const playSynthSound = (src: string) => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const now = ctx.currentTime;
+
+      if (src.includes('coin') || src.includes('para')) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, now);
+        osc.frequency.setValueAtTime(1318.51, now + 0.08);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (src.includes('tek') || src.includes('dtt')) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.06);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (src.includes('nextlvl') || src.includes('farklilvl') || src.includes('2ci3lude')) {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.3);
+        });
+      }
+    } catch {
+      // Ignore synth audio errors silently
+    }
+  };
+
+  // Cache audio instances for instant playback across browsers
+  const playMp3 = (src: string, onEnded?: () => void) => {
+    if (!soundEnabled) return;
+    try {
+      // Standardize clean path
+      const cleanSrc = src.startsWith('/') ? src : `/${src.replace(/^\.\//, '')}`;
+      const audio = new Audio(cleanSrc);
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+
+      let hasEnded = false;
+      const triggerEnded = () => {
+        if (!hasEnded) {
+          hasEnded = true;
+          if (onEnded) onEnded();
+        }
+      };
+
+      audio.onended = () => {
+        triggerEnded();
+      };
+
+      audio.onerror = () => {
+        playSynthSound(cleanSrc);
+        setTimeout(triggerEnded, 300);
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          playSynthSound(cleanSrc);
+          setTimeout(triggerEnded, 300);
+        });
+      }
+    } catch {
+      playSynthSound(src);
+      if (onEnded) onEnded();
+    }
+  };
+
+  const speakTurkishText = (text: string) => {
+    if (!soundEnabled) return;
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'tr-TR';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch {
+      // Ignore speech synthesis errors
+    }
+  };
+
+  const playCoinSound = (_starCount: 3 | 5 | 7 = 3) => {
+    playMp3('/coin.mp3');
+  };
+
+  const playParaSound = (onEnded?: () => void) => {
+    playMp3('/para.mp3', onEnded);
+  };
+
+  const playTekSound = () => {
+    playMp3('/tek.mp3');
+  };
+
+  const playParaAndTekSound = () => {
+    playMp3('/para.mp3', () => {
+      playMp3('/tek.mp3');
+    });
+  };
+
+  const playCoinAndTekSound = () => {
+    playMp3('/coin.mp3', () => {
+      playMp3('/tek.mp3');
+    });
+  };
+
+  const playGoldCoinSound = (_count = 3) => {
+    // Sentetik ses kaldırıldı
+  };
+
+  const playFireworkSound = () => {
+    // Sentetik ses kaldırıldı
+  };
+
+  const triggerFireworks = () => {
+    // Konfeti efekti performans ve PC kasmasını önlemek için devre dışı bırakıldı
+  };
+  const [askedQuestions, setAskedQuestions] = useState<string[]>([]);
+  const [currentQuestionData, setCurrentQuestionData] = useState<QuestionData | null>(null);
+  const [shuffledOptions, setShuffledOptions] = useState<(string | number)[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | number | null>(null);
+  const [feedbackState, setFeedbackState] = useState<'none' | 'correct' | 'wrong'>('none');
+  const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(10);
+
+  const isTimedTopic = (topicKey: string) => {
+    if (!topicKey) return false;
+    return (
+      topicKey.startsWith('sureli_') ||
+      topicKey.includes('sureli') ||
+      topicKey === 'sureli_toplama_cikarma' ||
+      topicKey === 'sureli_carpma_bolme' ||
+      topicKey === 'sureli_on_tamamlama'
+    );
+  };
+
+  const isHalatCekmeTopic = (topicKey: string) => {
+    if (!topicKey) return false;
+    return topicKey.startsWith('halat_') || topicKey.includes('halat_cekme');
+  };
+
+  // End Game Info
+  const [gameResult, setGameResult] = useState<{
+    reason: 'puan' | 'can';
+    score: number;
+    livesLeft: number;
+    streak?: number;
+    topicWinCount?: number;
+    isThreeStarWin?: boolean;
+  } | null>(null);
+
+  const [topicWinCounts, setTopicWinCounts] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mathGameTopicWins_v1') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showOdevAkvaryumu, setShowOdevAkvaryumu] = useState(false);
+  const [showAndroidAppsModal, setShowAndroidAppsModal] = useState(false);
+  const [show3DLab, setShow3DLab] = useState(false);
+  const [showGeoboard, setShowGeoboard] = useState(false);
+  const [showGeometricNets, setShowGeometricNets] = useState(false);
+  const [showOtherGamesModal, setShowOtherGamesModal] = useState(false);
+  const [showEnglishGamesModal, setShowEnglishGamesModal] = useState(false);
+  const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
+  const [showXOXGame, setShowXOXGame] = useState(false);
+  const [showAynisiniBul, setShowAynisiniBul] = useState(false);
+  const [showKuralliCumle, setShowKuralliCumle] = useState(false);
+  const [showHeceSayisi, setShowHeceSayisi] = useState(false);
+  const [showSozlukSirala, setShowSozlukSirala] = useState(false);
+  const [showKelimeSirala, setShowKelimeSirala] = useState(false);
+  const [showHeceMakasi, setShowHeceMakasi] = useState(false);
+  const [showYazimDedektifi, setShowYazimDedektifi] = useState(false);
+  const [showGeometrikSekilleriBul, setShowGeometrikSekilleriBul] = useState(false);
+  const [showDedektif5N1K, setShowDedektif5N1K] = useState(false);
+  const [showNoktalamaAvcisi, setShowNoktalamaAvcisi] = useState(false);
+  const [showHarfCorbasi, setShowHarfCorbasi] = useState(false);
+  const [showGeriDonusum, setShowGeriDonusum] = useState(false);
+  const [showSaglikliTabak, setShowSaglikliTabak] = useState(false);
+  const [showIstekIhtiyac, setShowIstekIhtiyac] = useState(false);
+  const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
+  const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
+  const [activityToast, setActivityToast] = useState<string | null>(null);
+  const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
+  const [statsModalTab, setStatsModalTab] = useState<'rozetler' | 'istatistik'>('rozetler');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [showCountersModal, setShowCountersModal] = useState(false);
+  const [countersData, setCountersData] = useState<ClassCountersData>(() => loadCounters());
+  const [students, setStudents] = useState<Student[]>(() => loadStudents());
+  const activeGradeNumber: number = (selectedGrade && [1, 2, 3, 4].includes(selectedGrade)) ? selectedGrade : 2;
+  // En başta kimse seçili olmasın: [null, null, null]
+  const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([null, null, null]);
+  const [showStudentRosterModal, setShowStudentRosterModal] = useState(false);
+  const [rosterModalGrade, setRosterModalGrade] = useState<number | null>(null);
+  const [statsModalGrade, setStatsModalGrade] = useState<number | null>(null);
+
+  // Google Auth & Cloud Synchronization States
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showGoogleAuthModal, setShowGoogleAuthModal] = useState(false);
+  const [lastCloudSyncedAt, setLastCloudSyncedAt] = useState<string | null>(() => getLocalLastSyncedAt());
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+
+  // Listen to Firebase Auth state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        setIsCloudSyncing(true);
+        try {
+          const cloudData = await loadUserDataFromCloud(user.uid);
+          if (cloudData) {
+            if (cloudData.students && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+              setStudents(cloudData.students);
+              saveStudents(cloudData.students);
+            }
+            if (cloudData.counters) {
+              setCountersData(cloudData.counters);
+              try {
+                localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+              } catch {}
+            }
+            if (cloudData.lastSyncedAt) {
+              setLastCloudSyncedAt(cloudData.lastSyncedAt);
+            }
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Veriler eşitlendi.`);
+            setTimeout(() => setActivityToast(null), 3500);
+          } else {
+            // First time cloud user: backup current local data to cloud
+            const initialSyncTime = await saveUserDataToCloud(user.uid, students, countersData, selectedStudentIds);
+            setLastCloudSyncedAt(initialSyncTime);
+            setActivityToast('Öğrenci listeniz ve istatistikleriniz Google hesabınıza yedeklendi! ☁️');
+            setTimeout(() => setActivityToast(null), 3500);
+          }
+        } catch (err) {
+          console.error('Cloud auto-sync error on login:', err);
+        } finally {
+          setIsCloudSyncing(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Debounced auto-sync to Cloud when students or counters change and user is logged in
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!currentUser) return;
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsCloudSyncing(true);
+        const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+        setLastCloudSyncedAt(syncTime);
+      } catch (err) {
+        console.error('Debounced cloud sync error:', err);
+      } finally {
+        setIsCloudSyncing(false);
+      }
+    }, 3000);
+
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [students, countersData, currentUser]);
+
+  // Manual Sync Up Handler (Forced upload)
+  const handleManualSyncUp = async () => {
+    if (!currentUser) {
+      setShowGoogleAuthModal(true);
+      return;
+    }
+    setIsCloudSyncing(true);
+    try {
+      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+      setLastCloudSyncedAt(syncTime);
+      setActivityToast('Buluta başarıyla yedeklendi! ☁️');
+      setTimeout(() => setActivityToast(null), 3000);
+    } catch (err) {
+      console.error('Manual sync up error:', err);
+      setActivityToast('Yedekleme sırasında bir hata oluştu.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Manual Sync Down Handler (Forced restore)
+  const handleManualSyncDown = async () => {
+    if (!currentUser) {
+      setShowGoogleAuthModal(true);
+      return;
+    }
+    setIsCloudSyncing(true);
+    try {
+      const cloudData = await loadUserDataFromCloud(currentUser.uid);
+      if (cloudData) {
+        if (cloudData.students && Array.isArray(cloudData.students)) {
+          setStudents(cloudData.students);
+          saveStudents(cloudData.students);
+        }
+        if (cloudData.counters) {
+          setCountersData(cloudData.counters);
+          try {
+            localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+          } catch {}
+        }
+        if (cloudData.selectedStudentIds && Array.isArray(cloudData.selectedStudentIds)) {
+          setSelectedStudentIds(cloudData.selectedStudentIds);
+        }
+        if (cloudData.lastSyncedAt) {
+          setLastCloudSyncedAt(cloudData.lastSyncedAt);
+        }
+        setActivityToast('Buluttan tüm veriler başarıyla geri yüklendi! 📥');
+        setTimeout(() => setActivityToast(null), 3000);
+      } else {
+        setActivityToast('Bulutta henüz kayıtlı veri bulunamadı.');
+        setTimeout(() => setActivityToast(null), 3000);
+      }
+    } catch (err) {
+      console.error('Manual sync down error:', err);
+      setActivityToast('Geri yükleme sırasında bir hata oluştu.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Auto-persist students state changes to localStorage
+  useEffect(() => {
+    saveStudents(students);
+  }, [students]);
+
+  // Sınıf değiştiğinde veya başlangıçta kimse seçili olmasın
+  useEffect(() => {
+    setSelectedStudentIds([null, null, null]);
+  }, [activeGradeNumber]);
+
+  // Clean up selected student slots if a student was deleted from roster
+  useEffect(() => {
+    const validIds = new Set(students.filter(s => s.grade === activeGradeNumber).map(s => s.id));
+    setSelectedStudentIds(prev => {
+      let changed = false;
+      const updated = prev.map(id => {
+        if (id && !validIds.has(id)) {
+          changed = true;
+          return null;
+        }
+        return id;
+      });
+      return changed ? updated : prev;
+    });
+  }, [students, activeGradeNumber]);
+
+  // Memoized students for current active grade
+  const currentGradeStudents = useMemo(() => {
+    return students.filter(s => s.grade === activeGradeNumber);
+  }, [students, activeGradeNumber]);
+
+  const handleClassClick = (category: GradeCategoryKey) => {
+    const updated = recordClassClick(category);
+    setCountersData(updated);
+  };
+
+  const [statsData, setStatsData] = useState<Record<string, StatRecord>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  const DEFAULT_GROUP_STATS: GroupStatsRecord = {
+    grup1: { id: 'grup1', name: '1. GRUP', badge: '🥇', color: 'blue', dogru: 0, yanlis: 0, wins: 0, topicStats: {} },
+    grup2: { id: 'grup2', name: '2. GRUP', badge: '🥈', color: 'rose', dogru: 0, yanlis: 0, wins: 0, topicStats: {} },
+    grup3: { id: 'grup3', name: '3. GRUP', badge: '🥉', color: 'emerald', dogru: 0, yanlis: 0, wins: 0, topicStats: {} },
+  };
+
+  const [groupStatsData, setGroupStatsData] = useState<GroupStatsRecord>(() => {
+    try {
+      const raw = localStorage.getItem('mathGameGroupStats_v1');
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Ignore
+    }
+    return DEFAULT_GROUP_STATS;
+  });
+
+  const DEFAULT_SINGLE_STATS: SinglePlayerStatsRecord = {
+    dogru: 0,
+    yanlis: 0,
+    wins: 0,
+    topicStats: {}
+  };
+
+  const [singleStatsData, setSingleStatsData] = useState<SinglePlayerStatsRecord>(() => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Ignore
+    }
+    return DEFAULT_SINGLE_STATS;
+  });
+
+  const totalCorrect = Object.values(statsData).reduce<number>((sum, item) => sum + ((item as StatRecord)?.dogru || 0), 0);
+  const totalCoins = totalCorrect * 10;
+
+  const [unlockedBadges, setUnlockedBadges] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mathGameBadges_v1') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mathGameBadgeCounts_v1') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [newlyUnlockedBadge, setNewlyUnlockedBadge] = useState<BadgeItem | null>(null);
+
+  const incrementBadgeCount = (badgeId: string, amount = 1) => {
+    try {
+      const existing: Record<string, number> = JSON.parse(localStorage.getItem('mathGameBadgeCounts_v1') || '{}');
+      const updated = {
+        ...existing,
+        [badgeId]: (existing[badgeId] || 0) + amount
+      };
+      localStorage.setItem('mathGameBadgeCounts_v1', JSON.stringify(updated));
+      setBadgeCounts(updated);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const checkAndUnlockBadges = (
+    currentStats: Record<string, StatRecord>,
+    curStreak: number,
+    curScore: number,
+    curLives: number,
+    isWin?: boolean
+  ) => {
+    try {
+      const existing: string[] = JSON.parse(localStorage.getItem('mathGameBadges_v1') || '[]');
+      const newlyUnlocked: string[] = [...existing];
+      let lastUnlockedBadge: BadgeItem | null = null;
+
+      BADGES.forEach(badge => {
+        if (!newlyUnlocked.includes(badge.id)) {
+          const isUnlocked = badge.checkUnlocked(
+            currentStats,
+            curStreak,
+            curScore,
+            curLives,
+            isWin,
+            newlyUnlocked.length
+          );
+          if (isUnlocked) {
+            newlyUnlocked.push(badge.id);
+            lastUnlockedBadge = badge;
+          }
+        }
+      });
+
+      if (newlyUnlocked.length > existing.length) {
+        localStorage.setItem('mathGameBadges_v1', JSON.stringify(newlyUnlocked));
+        setUnlockedBadges(newlyUnlocked);
+        if (lastUnlockedBadge) {
+          setNewlyUnlockedBadge(lastUnlockedBadge);
+          triggerFireworks();
+          setTimeout(() => {
+            setNewlyUnlockedBadge(null);
+          }, 4500);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  useEffect(() => {
+    checkAndUnlockBadges(statsData, streak, score, lives);
+  }, [statsData]);
+
+  // Record site visit & sync existing historical questions into counters
+  useEffect(() => {
+    recordSiteVisit();
+    const synced = syncHistoricalQuestions(
+      statsData,
+      Object.keys(topics1stGrade),
+      Object.keys(topics3rdGrade),
+      Object.keys(topics4thGrade)
+    );
+    setCountersData(synced);
+
+    // Sync worldwide global visitor count across all PCs
+    syncAndRecordGlobalVisit((updatedData) => {
+      setCountersData(prev => ({
+        ...prev,
+        visits: updatedData.visits
+      }));
+    });
+  }, []);
+
+  // Play hata.mp3 audio whenever trytry2.mp4 defeat video screen is shown
+  useEffect(() => {
+    if (gameState === 'gameover' && gameResult && gameResult.reason !== 'puan') {
+      playMp3('/hata.mp3');
+    }
+  }, [gameState, gameResult]);
+
+  // 10-Second Countdown Timer for Timed Challenge Activities (Single Player ONLY)
+  useEffect(() => {
+    if (gameState !== 'playing' || playerCountMode !== 1 || !isTimedTopic(currentTopic) || feedbackState !== 'none' || !currentQuestionData) {
+      return;
+    }
+
+    if (questionTimeLeft <= 0) {
+      playWrongSound();
+      setFeedbackState('wrong');
+      kaydetIstatistik(currentTopic, false);
+      if (playerCountMode === 1) {
+        kaydetSingleIstatistik(currentTopic, false);
+        if (selectedStudentIds[0]) {
+          setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, false));
+        }
+      }
+      setStreak(0);
+
+      setLives(prev => {
+        const nextLives = prev - 1;
+        if (nextLives <= 0) {
+          setTimeout(() => {
+            setGameResult({ reason: 'can', score, livesLeft: 0 });
+            setGameState('gameover');
+          }, 800);
+        } else {
+          setTimeout(() => {
+            nextQuestion(currentTopic);
+          }, 900);
+        }
+        return nextLives;
+      });
+      return;
+    }
+
+    // Play audible warning on last 3 seconds (3, 2, 1) in Single Player ONLY
+    if (questionTimeLeft <= 3 && questionTimeLeft >= 1) {
+      playCountdownWarningSound(questionTimeLeft);
+    }
+
+    const timer = setInterval(() => {
+      setQuestionTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState, currentTopic, feedbackState, questionTimeLeft, currentQuestionData, score, soundEnabled, playerCountMode]);
+
+  // Multi-Player Independent Countdown Timers (Each player has their own 10-second timer, silent to avoid confusion)
+  useEffect(() => {
+    if (gameState !== 'playing' || playerCountMode <= 1 || !isTimedTopic(currentTopic) || trackVictoryVideoActive) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setPlayers(prevPlayers => {
+        if (prevPlayers.length === 0) return prevPlayers;
+
+        const timedOutIndices: number[] = [];
+        let hasChanges = false;
+
+        const updated = prevPlayers.map((p, idx) => {
+          if (p.lives <= 0 || p.feedbackState !== 'none' || !p.currentQuestionData) {
+            return p;
+          }
+
+          const currentTime = p.timeLeft ?? 10;
+          if (currentTime <= 1) {
+            hasChanges = true;
+            timedOutIndices.push(idx);
+            return {
+              ...p,
+              timeLeft: 0,
+              feedbackState: 'wrong' as const,
+              lives: p.lives - 1,
+              streak: 0
+            };
+          } else {
+            hasChanges = true;
+            return {
+              ...p,
+              timeLeft: currentTime - 1
+            };
+          }
+        });
+
+        if (timedOutIndices.length > 0) {
+          // In 2 and 3 player modes, no sounds are played on timeout or time completion to prevent confusion
+
+          timedOutIndices.forEach(idx => {
+            kaydetIstatistik(currentTopic, false);
+            kaydetGrupIstatistik(idx, currentTopic, false);
+          });
+
+          // Check if game ends due to lives running out
+          const alivePlayers = updated.filter(p => p.lives > 0);
+          if (alivePlayers.length <= 1) {
+            let winnerIdx = 0;
+            if (alivePlayers.length === 1) {
+              winnerIdx = updated.findIndex(p => p.id === alivePlayers[0].id);
+            } else {
+              const sorted = [...updated].sort((a, b) => b.score - a.score);
+              winnerIdx = updated.findIndex(p => p.id === sorted[0].id);
+            }
+            if (winnerIdx < 0) winnerIdx = 0;
+
+            // No completion sound on time expiration / timeout
+            triggerFireworks();
+            setDuelWinnerIndex(winnerIdx);
+            kaydetGrupGalibiyet(winnerIdx);
+            if (playerCountMode >= 2) {
+              setPendingGameResult({
+                reason: 'can',
+                score: updated[winnerIdx]?.score || 0,
+                livesLeft: updated[winnerIdx]?.lives || 0
+              });
+              setTrackVictoryVideoActive(true);
+            } else {
+              setGameResult({
+                reason: 'can',
+                score: updated[winnerIdx]?.score || 0,
+                livesLeft: updated[winnerIdx]?.lives || 0
+              });
+              setGameState('gameover');
+            }
+            return updated;
+          }
+
+          // Advance question after 800ms for players who timed out but still have lives left
+          setTimeout(() => {
+            setPlayers(latest => {
+              const nextState = [...latest];
+              timedOutIndices.forEach(idx => {
+                if (idx < nextState.length && nextState[idx].lives > 0) {
+                  const cp = nextState[idx];
+                  const qRes = generateQuestionForPlayer(currentTopic, cp.askedQuestions);
+                  nextState[idx] = {
+                    ...cp,
+                    currentQuestionData: qRes.data,
+                    shuffledOptions: qRes.shuffledOptions,
+                    selectedOption: null,
+                    feedbackState: 'none',
+                    askedQuestions: [...cp.askedQuestions, qRes.signature],
+                    timeLeft: 10
+                  };
+                }
+              });
+              return nextState;
+            });
+          }, 800);
+        }
+
+        return hasChanges ? updated : prevPlayers;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState, playerCountMode, currentTopic, soundEnabled]);
+
+  // Audio Context Ref
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Handle Theme Toggle
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  const toggleSound = () => {
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    localStorage.setItem('mathGameSound', next ? '1' : '0');
+  };
+
+  // Sound Synthesizer (Cevap tıklama ve geri bildirim sesleri)
+  const playTone = (freq: number, duration: number, type: OscillatorType = 'sine', delay = 0, vol = 0.15) => {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t0 = ctx.currentTime + delay;
+      gain.gain.setValueAtTime(vol, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    } catch {
+      // Audio play failed or blocked
+    }
+  };
+
+  const playCorrectSound = () => {
+    playTone(660, 0.12, 'sine', 0, 0.15);
+    playTone(880, 0.16, 'sine', 0.09, 0.15);
+  };
+
+  const playWrongSound = () => {
+    playTone(200, 0.28, 'sawtooth', 0, 0.10);
+  };
+
+  const playWinSound = () => {
+    [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.22, 'sine', i * 0.14, 0.16));
+  };
+
+  const playDttSound = () => {
+    playMp3('/dtt.mp3');
+  };
+
+  const playNextLvlSound = () => {
+    playMp3('/nextlvl.mp3');
+  };
+
+  const playFarkliLvlSound = () => {
+    playMp3('/farklilvl.mp3');
+  };
+
+  const playCountdownWarningSound = (secondsLeft: number) => {
+    if (!soundEnabled) return;
+    try {
+      if (secondsLeft === 3) {
+        playTone(587.33, 0.16, 'sine', 0, 0.4);
+        playMp3('/tek.mp3');
+      } else if (secondsLeft === 2) {
+        playTone(659.25, 0.18, 'sine', 0, 0.45);
+        playMp3('/tek.mp3');
+      } else if (secondsLeft === 1) {
+        playTone(784.00, 0.20, 'sine', 0, 0.5);
+        playMp3('/tek.mp3');
+      }
+    } catch {
+      // Audio error fallback
+    }
+  };
+
+  // Topics configuration (1., 2., 3., 4. Sınıf Seviyeleri ve Diğer Oyunlar)
+  const topics: Record<string, { title: string; desc: string; generate: () => QuestionData }> = {
+    ...halatCekmeTopics,
+    ...sureliExtraTopics,
+    ...topicsWordGames,
+    ...topics4thGrade,
+    ...topics3rdGrade,
+    ...topics2ndGrade,
+    ...topics1stGrade,
+    en_yakin_onluk: topics2ndGrade.en_yakin_onluk || {
+      title: "En Yakın Onluğa Yuvarlama",
+      desc: "Sayıları en yakın onluğa yuvarlama alıştırması yapıyoruz.",
+      generate: () => {
+        const sayi = Math.floor(Math.random() * 89) + 11;
+        const birler = sayi % 10;
+        const onlar = Math.floor(sayi / 10);
+        const dogruOnluk = birler >= 5 ? (onlar + 1) * 10 : onlar * 10;
+        const yanlislar = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100].filter(o => o !== dogruOnluk).sort(() => 0.5 - Math.random()).slice(0, 3);
+        return {
+          question: `${sayi} sayısı hangi onluğa daha yakındır?`,
+          correct: dogruOnluk,
+          wrong: yanlislar,
+          isLong: true
+        };
+      }
+    }
+  };
+
+  // Helper to get topic configuration based on active grade
+  const getCurrentTopicInfo = (topicKey: string, grade?: number | null) => {
+    if (halatCekmeTopics[topicKey]) return halatCekmeTopics[topicKey];
+    if (sureliExtraTopics[topicKey]) return sureliExtraTopics[topicKey];
+    const effectiveGrade = grade !== undefined && grade !== null ? grade : selectedGrade;
+    if (topicsWordGames[topicKey]) return topicsWordGames[topicKey];
+    if (effectiveGrade === 1 && topics1stGrade[topicKey]) return topics1stGrade[topicKey];
+    if (effectiveGrade === 3 && topics3rdGrade[topicKey]) return topics3rdGrade[topicKey];
+    if (effectiveGrade === 4 && topics4thGrade[topicKey]) return topics4thGrade[topicKey];
+    if (effectiveGrade === 2 && topics2ndGrade[topicKey]) return topics2ndGrade[topicKey];
+    if (topics2ndGrade[topicKey]) return topics2ndGrade[topicKey];
+    if (topics1stGrade[topicKey]) return topics1stGrade[topicKey];
+    return topics[topicKey] || { title: 'Etkinlik', desc: '', generate: () => ({ question: '', correct: 0, wrong: [] }) };
+  };
+
+  const generateUniqueQuestion = (targetTopicKey?: string, gradeOverride?: 1 | 2 | 3 | 4): QuestionData => {
+    const topicToUse = targetTopicKey || currentTopic;
+    const effectiveGrade = gradeOverride !== undefined ? gradeOverride : selectedGrade;
+    const currentGradeTopics = effectiveGrade === 1 
+      ? topics1stGrade 
+      : effectiveGrade === 3 
+      ? topics3rdGrade 
+      : effectiveGrade === 4
+      ? topics4thGrade
+      : topics2ndGrade;
+    const topicConfig = halatCekmeTopics[topicToUse] || sureliExtraTopics[topicToUse] || topicsWordGames[topicToUse] || (currentGradeTopics as Record<string, { title: string; desc: string; generate: () => QuestionData }>)[topicToUse] || topics[topicToUse] || topics['nesne_sayisi'] || topics['g4_sayi_okuma_yazma'] || topics['g3_uc_basamakli_okuma_yazma'];
+    let data: QuestionData;
+    let imza: string;
+    let deneme = 0;
+    do {
+      data = topicConfig.generate();
+      imza = data.signature || `${JSON.stringify(data.question)}||${JSON.stringify(data.correct)}`;
+      deneme++;
+    } while (askedQuestions.includes(imza) && deneme < 40);
+
+    setAskedQuestions(prev => [...prev, imza]);
+    return data;
+  };
+
+  const generateQuestionForPlayer = (targetTopicKey: string, askedList: string[], gradeOverride?: 1 | 2 | 3 | 4) => {
+    const topicToUse = targetTopicKey || currentTopic;
+    const effectiveGrade = gradeOverride !== undefined ? gradeOverride : selectedGrade;
+    const currentGradeTopics = effectiveGrade === 1 
+      ? topics1stGrade 
+      : effectiveGrade === 3 
+      ? topics3rdGrade 
+      : effectiveGrade === 4
+      ? topics4thGrade
+      : topics2ndGrade;
+    const topicConfig = halatCekmeTopics[topicToUse] || sureliExtraTopics[topicToUse] || topicsWordGames[topicToUse] || (currentGradeTopics as Record<string, { title: string; desc: string; generate: () => QuestionData }>)[topicToUse] || topics[topicToUse] || topics['nesne_sayisi'] || topics['g4_sayi_okuma_yazma'] || topics['g3_uc_basamakli_okuma_yazma'];
+    let data: QuestionData;
+    let imza: string;
+    let deneme = 0;
+    do {
+      data = topicConfig.generate();
+      imza = data.signature || `${JSON.stringify(data.question)}||${JSON.stringify(data.correct)}`;
+      deneme++;
+    } while (askedList.includes(imza) && deneme < 40);
+
+    const rawOptions = ensureFourOptions(data.correct, data.wrong);
+    data.wrong = rawOptions.filter(x => x !== data.correct);
+    const shuffled = [...rawOptions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return { data, signature: imza, shuffledOptions: shuffled };
+  };
+
+  const setQuestionAndPrepareOptions = (data: QuestionData) => {
+    const rawOptions = ensureFourOptions(data.correct, data.wrong);
+    data.wrong = rawOptions.filter(x => x !== data.correct);
+    setCurrentQuestionData(data);
+    // Fisher-Yates shuffle to randomly order options ONCE per question
+    const shuffled = [...rawOptions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setShuffledOptions(shuffled);
+  };
+
+  const nextQuestion = (targetTopicKey?: string) => {
+    setSelectedOption(null);
+    setFeedbackState('none');
+    setQuestionTimeLeft(10);
+    const data = generateUniqueQuestion(targetTopicKey);
+    setQuestionAndPrepareOptions(data);
+  };
+
+  const switchPlayerCountMode = (newMode: 1 | 2 | 3) => {
+    if (gameState === 'playing' && isHalatCekmeTopic(currentTopic) && newMode !== 2) {
+      return;
+    }
+    setPlayerCountMode(newMode);
+    setSelectedStudentIds([null, null, null]);
+    playMp3('/coin.mp3');
+
+    // If currently in playing mode, dynamically adjust active players
+    if (gameState === 'playing') {
+      const playerConfigs = [
+        {
+          id: 1,
+          name: "1. GRUP",
+          avatar: "🥇 1. GRUP",
+          colorTheme: {
+            bg: "from-blue-950/90 via-indigo-950/90 to-slate-950/90",
+            border: "border-blue-400",
+            text: "text-blue-200",
+            badge: "bg-blue-600 text-white",
+            headerBg: "bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-700"
+          }
+        },
+        {
+          id: 2,
+          name: "2. GRUP",
+          avatar: "🥈 2. GRUP",
+          colorTheme: {
+            bg: "from-rose-950/90 via-red-950/90 to-slate-950/90",
+            border: "border-rose-400",
+            text: "text-rose-200",
+            badge: "bg-rose-600 text-white",
+            headerBg: "bg-gradient-to-r from-rose-600 via-red-600 to-amber-700"
+          }
+        },
+        {
+          id: 3,
+          name: "3. GRUP",
+          avatar: "🥉 3. GRUP",
+          colorTheme: {
+            bg: "from-emerald-950/90 via-teal-950/90 to-slate-950/90",
+            border: "border-emerald-400",
+            text: "text-emerald-200",
+            badge: "bg-emerald-600 text-white",
+            headerBg: "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700"
+          }
+        }
+      ];
+
+      const initialPlayers: PlayerData[] = [];
+      let cumulativeAsked: string[] = [];
+      for (let i = 0; i < newMode; i++) {
+        const qRes = generateQuestionForPlayer(currentTopic, cumulativeAsked);
+        cumulativeAsked.push(qRes.signature);
+        initialPlayers.push({
+          ...playerConfigs[i],
+          score: 0,
+          lives: 3,
+          streak: 0,
+          currentQuestionData: qRes.data,
+          shuffledOptions: qRes.shuffledOptions,
+          selectedOption: null,
+          feedbackState: 'none',
+          askedQuestions: [qRes.signature],
+          timeLeft: 10
+        });
+      }
+
+      setPlayers(initialPlayers);
+
+      if (newMode === 1 && initialPlayers[0]?.currentQuestionData) {
+        setCurrentQuestionData(initialPlayers[0].currentQuestionData);
+        setShuffledOptions(initialPlayers[0].shuffledOptions);
+        setScore(0);
+        setLives(3);
+        setStreak(0);
+        setSelectedOption(null);
+        setFeedbackState('none');
+      }
+    }
+  };
+
+  const selectTopicAndStart = (topicKey: string, gradeOverride?: 1 | 2 | 3 | 4) => {
+    playMp3('/op.mp3');
+    if (gradeOverride !== undefined) {
+      setSelectedGrade(gradeOverride);
+      setLastSelectedGrade(gradeOverride);
+    }
+    const effectiveGrade = gradeOverride !== undefined ? gradeOverride : (selectedGrade || 1);
+    const foundActivityIdx = findActivityIndex(
+      topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
+      topicKey,
+      effectiveGrade
+    );
+    if (foundActivityIdx !== -1) {
+      setCurrentActivityIndex(foundActivityIdx);
+    }
+    if (topicKey !== currentTopic) {
+      playFarkliLvlSound();
+    }
+
+    // Reset all special activity modal views
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceSayisi(false);
+    setWordGameType(null);
+
+    if (topicKey === 'geometri_tahtasi') {
+      setCurrentTopic('geometri_tahtasi');
+      setShowGeoboard(true);
+      return;
+    }
+    if (topicKey === 'cisimler_acilimi') {
+      setCurrentTopic('cisimler_acilimi');
+      setShowGeometricNets(true);
+      return;
+    }
+    if (topicKey === 'turkce_hece_sayisi' || topicKey === 'hece_sayisi') {
+      setCurrentTopic('turkce_hece_sayisi');
+      setShowHeceSayisi(true);
+      return;
+    }
+    if (topicKey === 'turkce_sozluk_sirala' || topicKey === 'sozluk_sirala' || topicKey === 'turkce_sozcuk_sirala') {
+      setCurrentTopic('turkce_sozluk_sirala');
+      setShowSozlukSirala(true);
+      return;
+    }
+    if (topicKey === 'turkce_kelime_sirala' || topicKey === 'kelime_sirala') {
+      setCurrentTopic('turkce_kelime_sirala');
+      setShowKelimeSirala(true);
+      return;
+    }
+    if (topicKey === 'turkce_zit_anlam' || topicKey === 'zit_anlam') {
+      setCurrentTopic('turkce_zit_anlam');
+      setWordGameType('zit_anlam');
+      return;
+    }
+    if (topicKey === 'turkce_es_anlam' || topicKey === 'es_anlam') {
+      setCurrentTopic('turkce_es_anlam');
+      setWordGameType('es_anlam');
+      return;
+    }
+    if (topicKey === 'turkce_kuralli_cumle' || topicKey === 'kuralli_cumle') {
+      setCurrentTopic('turkce_kuralli_cumle');
+      setShowKuralliCumle(true);
+      return;
+    }
+    setCurrentTopic(topicKey);
+    setQuestionTimeLeft(10);
+    setHasHad3StreakInSession(false);
+    setHasFailedAfter3Streak(false);
+    setOpenedTopics(prev => {
+      if (!prev.includes(topicKey)) {
+        const next = [...prev, topicKey];
+        localStorage.setItem('openedTopics_v1', JSON.stringify(next));
+        return next;
+      }
+      return prev;
+    });
+    setScore(0);
+    setLives(3);
+    setStreak(0);
+    setAskedQuestions([]);
+    setSelectedOption(null);
+    setFeedbackState('none');
+    setDuelWinnerIndex(null);
+    setTrackVictoryVideoActive(false);
+    setPendingGameResult(null);
+    setShowPodiumVideoModal(false);
+
+    // Initialize Players based on playerCountMode (or enforce 2 players for Halat Cekme)
+    const isHalat = isHalatCekmeTopic(topicKey);
+    const targetPlayerCount = isHalat ? 2 : playerCountMode;
+    if (isHalat && playerCountMode !== 2) {
+      setPlayerCountMode(2);
+    }
+
+    const initialPlayers: PlayerData[] = [];
+    const playerConfigs = [
+      {
+        id: 1,
+        name: "1. GRUP",
+        avatar: "🥇 1. GRUP",
+        colorTheme: {
+          bg: "from-blue-950/90 via-indigo-950/90 to-slate-950/90",
+          border: "border-blue-400",
+          text: "text-blue-200",
+          badge: "bg-blue-600 text-white",
+          headerBg: "bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-700"
+        }
+      },
+      {
+        id: 2,
+        name: "2. GRUP",
+        avatar: "🥈 2. GRUP",
+        colorTheme: {
+          bg: "from-rose-950/90 via-red-950/90 to-slate-950/90",
+          border: "border-rose-400",
+          text: "text-rose-200",
+          badge: "bg-rose-600 text-white",
+          headerBg: "bg-gradient-to-r from-rose-600 via-red-600 to-amber-700"
+        }
+      },
+      {
+        id: 3,
+        name: "3. GRUP",
+        avatar: "🥉 3. GRUP",
+        colorTheme: {
+          bg: "from-emerald-950/90 via-teal-950/90 to-slate-950/90",
+          border: "border-emerald-400",
+          text: "text-emerald-200",
+          badge: "bg-emerald-600 text-white",
+          headerBg: "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700"
+        }
+      }
+    ];
+
+    let cumulativeAsked: string[] = [];
+    for (let i = 0; i < targetPlayerCount; i++) {
+      const qRes = generateQuestionForPlayer(topicKey, cumulativeAsked, gradeOverride);
+      cumulativeAsked.push(qRes.signature);
+      initialPlayers.push({
+        ...playerConfigs[i],
+        score: 0,
+        lives: 3,
+        streak: 0,
+        currentQuestionData: qRes.data,
+        shuffledOptions: qRes.shuffledOptions,
+        selectedOption: null,
+        feedbackState: 'none',
+        askedQuestions: [qRes.signature],
+        timeLeft: 10
+      });
+    }
+
+    setPlayers(initialPlayers);
+
+    // Single player setup
+    if (targetPlayerCount === 1 && initialPlayers[0]?.currentQuestionData) {
+      setCurrentQuestionData(initialPlayers[0].currentQuestionData);
+      setShuffledOptions(initialPlayers[0].shuffledOptions);
+    }
+
+    // Oyun başında kimse seçili olmasın
+    setSelectedStudentIds([null, null, null]);
+    setGameState('playing');
+  };
+
+  const handleForwardNavigation = () => {
+    // 1. If playing, move to next question
+    if (gameState === 'playing') {
+      if (playerCountMode > 1) {
+        setPlayers(prev => prev.map(p => {
+          const qRes = generateQuestionForPlayer(currentTopic, p.askedQuestions);
+          return {
+            ...p,
+            currentQuestionData: qRes.data,
+            shuffledOptions: qRes.shuffledOptions,
+            selectedOption: null,
+            feedbackState: 'none',
+            askedQuestions: [...p.askedQuestions, qRes.signature],
+            timeLeft: 10
+          };
+        }));
+      } else {
+        nextQuestion(currentTopic);
+      }
+      return;
+    }
+
+    // 2. If on Grade selection screen
+    if (selectedGrade === null) {
+      const g = lastSelectedGrade || 1;
+      setSelectedGrade(g);
+      setLastSelectedGrade(g);
+      return;
+    }
+
+    // 3. If in Grade screen and no category selected
+    if (selectedCategoryId === null) {
+      const cat = lastSelectedCategoryId || (selectedGrade === 4 ? 'g4_tema1' : selectedGrade === 3 ? 'g3_tema1' : 'sayilar');
+      setSelectedCategoryId(cat);
+      setLastSelectedCategoryId(cat);
+      return;
+    }
+
+    // 4. If in category view and topic modal not open
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showGeometrikSekilleriBul && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && wordGameType === null) {
+      if (selectedCategoryId === 'diger_oyunlar') {
+        const firstGame = selectedGrade === 1 
+          ? 'halat_toplama_1' 
+          : selectedGrade === 2 
+          ? 'halat_toplama_2' 
+          : selectedGrade === 3 
+          ? 'halat_toplama_3' 
+          : 'halat_toplama_4';
+        selectTopicAndStart(firstGame, (selectedGrade || 2) as 1 | 2 | 3 | 4);
+        return;
+      }
+      setShowTopicModal(true);
+      return;
+    }
+
+    // 5. If topic modal is open, start game
+    if (showTopicModal) {
+      setShowTopicModal(false);
+      selectTopicAndStart(currentTopic);
+      setGameState('playing');
+      return;
+    }
+  };
+
+  // -------------------------------------------------------------
+  // ALL ACTIVITIES REGISTRY & INSTANT FORWARD/BACKWARD NAVIGATION
+  // (1. Sınıftan 6. İngilizce Oyunlara Kadar Tüm Etkinlikler Sırayla)
+  // -------------------------------------------------------------
+  const allActivitiesList = ALL_ACTIVITIES_LIST;
+
+  const switchToActivityByIndex = (index: number) => {
+    if (index < 0 || index >= ALL_ACTIVITIES_LIST.length) return;
+    const entry = ALL_ACTIVITIES_LIST[index];
+    if (!entry) return;
+
+    setCurrentActivityIndex(index);
+    playFarkliLvlSound();
+
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowNoktalamaAvcisi(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setWordGameType(null);
+
+    if (entry.type === 'grade_topic' && entry.topicKey) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId(getCategoryIdForTopic(entry.topicKey));
+      }
+      selectTopicAndStart(entry.topicKey, entry.grade);
+    } else if (entry.type === 'geometric_nets' || entry.topicKey === 'cisimler_acilimi') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId(getCategoryIdForTopic('geometrik_sekil_cisim'));
+      }
+      setGameState('welcome');
+      setShowGeometricNets(true);
+    } else if (entry.type === '3d_lab') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShow3DLab(true);
+    } else if (entry.type === 'aynisini_bul') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowAynisiniBul(true);
+    } else if (entry.type === 'kuralli_cumle' || entry.id.includes('kuralli_cumle')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowKuralliCumle(true);
+    } else if (entry.type === 'sozluk_sirala' || entry.id.includes('sozluk_sirala')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowSozlukSirala(true);
+    } else if (entry.type === 'kelime_sirala' || entry.id.includes('kelime_sirala')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowKelimeSirala(true);
+    } else if (entry.type === 'hece_makasi' || entry.id.includes('hece_makasi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowHeceMakasi(true);
+    } else if (entry.type === 'yazim_dedektifi' || entry.id.includes('yazim_dedektifi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowYazimDedektifi(true);
+    } else if (entry.type === 'hece_sayisi' || entry.id.includes('hece_sayisi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowHeceSayisi(true);
+    } else if (entry.type === 'geometrik_sekilleri_bul' || entry.id.includes('geometrik_sekilleri_bul')) {
+      setGameState('welcome');
+      setShowGeometrikSekilleriBul(true);
+    } else if (entry.type === 'dedektif_5n1k' || entry.id.includes('dedektif_5n1k')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowDedektif5N1K(true);
+    } else if (entry.type === 'noktalama_avcisi' || entry.id.includes('noktalama_avcisi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowNoktalamaAvcisi(true);
+    } else if (entry.type === 'harf_corbasi' || entry.id.includes('harf_corbasi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowHarfCorbasi(true);
+    } else if (entry.type === 'geri_donusum' || entry.id.includes('geri_donusum')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowGeriDonusum(true);
+    } else if (entry.type === 'saglikli_tabak' || entry.id.includes('saglikli_tabak')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowSaglikliTabak(true);
+    } else if (entry.type === 'istek_ihtiyac' || entry.id.includes('istek_ihtiyac')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowIstekIhtiyac(true);
+    } else if (entry.type === 'mevsim_gardirobu' || entry.id.includes('mevsim_gardirobu')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowMevsimGardirobu(true);
+    } else if (entry.type === 'geoboard') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowGeoboard(true);
+    } else if (entry.type === 'xox') {
+      setGameState('welcome');
+      setShowXOXGame(true);
+    } else if (entry.type === 'word_game' && entry.wordGameType) {
+      setGameState('welcome');
+      setWordGameType(entry.wordGameType);
+    }
+
+    setActivityToast(`[${index + 1}/${ALL_ACTIVITIES_LIST.length}] ${entry.categoryLabel} ➜ ${entry.title}`);
+    setTimeout(() => {
+      setActivityToast(null);
+    }, 2800);
+  };
+
+  const getCurrentActivityIndex = (): number => {
+    return currentActivityIndex;
+  };
+
+  const handlePrevActivity = () => {
+    const prevIdx = (currentActivityIndex - 1 + ALL_ACTIVITIES_LIST.length) % ALL_ACTIVITIES_LIST.length;
+    switchToActivityByIndex(prevIdx);
+  };
+
+  const handleNextActivity = () => {
+    const nextIdx = (currentActivityIndex + 1) % ALL_ACTIVITIES_LIST.length;
+    switchToActivityByIndex(nextIdx);
+  };
+
+  const handleGoHome = () => {
+    playMp3('/op.mp3');
+    setGameState('welcome');
+    setSelectedCategoryId(null);
+    setLastSelectedCategoryId(null);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setShowOdevAkvaryumu(false);
+    setShowAndroidAppsModal(false);
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setOpenedFromOtherGamesModal(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowNoktalamaAvcisi(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setWordGameType(null);
+    setSelectedGrade(null);
+  };
+
+  const kaydetGrupIstatistik = (pIndex: number, topicId: string, dogruMu: boolean) => {
+    try {
+      const groupId = `grup${pIndex + 1}`;
+      const raw = localStorage.getItem('mathGameGroupStats_v1');
+      let currentGroupStats: GroupStatsRecord = raw ? JSON.parse(raw) : DEFAULT_GROUP_STATS;
+
+      if (!currentGroupStats[groupId]) {
+        const names = ['1. GRUP', '2. GRUP', '3. GRUP'];
+        const badges = ['🥇', '🥈', '🥉'];
+        const colors = ['blue', 'rose', 'emerald'];
+        currentGroupStats[groupId] = {
+          id: groupId,
+          name: names[pIndex] || `${pIndex + 1}. GRUP`,
+          badge: badges[pIndex] || '⭐',
+          color: colors[pIndex] || 'amber',
+          dogru: 0,
+          yanlis: 0,
+          wins: 0,
+          topicStats: {}
+        };
+      }
+
+      if (!currentGroupStats[groupId].topicStats) {
+        currentGroupStats[groupId].topicStats = {};
+      }
+
+      if (!currentGroupStats[groupId].topicStats[topicId]) {
+        currentGroupStats[groupId].topicStats[topicId] = { dogru: 0, yanlis: 0 };
+      }
+
+      if (dogruMu) {
+        currentGroupStats[groupId].dogru = (currentGroupStats[groupId].dogru || 0) + 1;
+        currentGroupStats[groupId].topicStats[topicId].dogru += 1;
+      } else {
+        currentGroupStats[groupId].yanlis = (currentGroupStats[groupId].yanlis || 0) + 1;
+        currentGroupStats[groupId].topicStats[topicId].yanlis += 1;
+      }
+
+      localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(currentGroupStats));
+      setGroupStatsData({ ...currentGroupStats });
+    } catch (e) {
+      console.error('Group stat save error:', e);
+    }
+  };
+
+  const kaydetGrupGalibiyet = (winnerIdx: number) => {
+    try {
+      const groupId = `grup${winnerIdx + 1}`;
+      const raw = localStorage.getItem('mathGameGroupStats_v1');
+      const currentGroupStats: GroupStatsRecord = raw ? JSON.parse(raw) : DEFAULT_GROUP_STATS;
+
+      if (currentGroupStats[groupId]) {
+        currentGroupStats[groupId].wins = (currentGroupStats[groupId].wins || 0) + 1;
+        localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(currentGroupStats));
+        setGroupStatsData({ ...currentGroupStats });
+      }
+    } catch (e) {
+      console.error('Group win save error:', e);
+    }
+  };
+
+  const kaydetIstatistik = (topicId: string, dogruMu: boolean) => {
+    try {
+      const stats = JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}') as Record<string, StatRecord>;
+      if (!stats[topicId]) stats[topicId] = { dogru: 0, yanlis: 0 };
+      
+      const oldLevelInfo = getPlayerLevelInfo(stats, badgeCounts, unlockedBadges);
+
+      if (dogruMu) stats[topicId].dogru++;
+      else stats[topicId].yanlis++;
+
+      const newLevelInfo = getPlayerLevelInfo(stats, badgeCounts, unlockedBadges);
+      if (dogruMu && newLevelInfo.currentLevel > oldLevelInfo.currentLevel) {
+        playNextLvlSound();
+      }
+
+      localStorage.setItem('mathGameStats_v1', JSON.stringify(stats));
+      setStatsData(stats);
+
+      // Update class & category counters
+      let gradeKey: GradeCategoryKey = 'grade2';
+      if (selectedGrade === 1 || topicId.startsWith('g1_') || (topics1stGrade && (topics1stGrade as any)[topicId])) {
+        gradeKey = 'grade1';
+      } else if (selectedGrade === 3 || topicId.startsWith('g3_') || (topics3rdGrade && (topics3rdGrade as any)[topicId])) {
+        gradeKey = 'grade3';
+      } else if (selectedGrade === 4 || topicId.startsWith('g4_') || (topics4thGrade && (topics4thGrade as any)[topicId])) {
+        gradeKey = 'grade4';
+      } else if (topicId.startsWith('ing_') || wordGameType === 'ingilizce') {
+        gradeKey = 'englishGames';
+      } else if (['zit_anlam', 'es_anlam', 'xox_matematik', 'other_diger_oyunlar'].includes(topicId) || wordGameType === 'zit_anlam' || wordGameType === 'es_anlam') {
+        gradeKey = 'otherGames';
+      } else {
+        gradeKey = selectedGrade === 1 ? 'grade1' : selectedGrade === 3 ? 'grade3' : selectedGrade === 4 ? 'grade4' : 'grade2';
+      }
+      const updatedCounters = recordClassQuestionSolved(gradeKey, dogruMu);
+      setCountersData(updatedCounters);
+    } catch {
+      // Ignore
+    }
+  };
+
+  const kaydetSingleIstatistik = (topicId: string, dogruMu: boolean) => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      const current: SinglePlayerStatsRecord = raw ? JSON.parse(raw) : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      if (!current.topicStats) current.topicStats = {};
+      if (!current.topicStats[topicId]) current.topicStats[topicId] = { dogru: 0, yanlis: 0 };
+
+      if (dogruMu) {
+        current.dogru = (current.dogru || 0) + 1;
+        current.topicStats[topicId].dogru++;
+      } else {
+        current.yanlis = (current.yanlis || 0) + 1;
+        current.topicStats[topicId].yanlis++;
+      }
+
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(current));
+      setSingleStatsData({ ...current });
+    } catch (e) {
+      console.error('Error saving single player stats:', e);
+    }
+  };
+
+  const incrementSingleWin = () => {
+    try {
+      const raw = localStorage.getItem('mathGameSingleStats_v1');
+      const current: SinglePlayerStatsRecord = raw ? JSON.parse(raw) : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      current.wins = (current.wins || 0) + 1;
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(current));
+      setSingleStatsData({ ...current });
+    } catch (e) {
+      console.error('Error incrementing single win:', e);
+    }
+  };
+
+  const handleAnswer = (option: string | number) => {
+    if (feedbackState !== 'none' || !currentQuestionData) return;
+
+    setSelectedOption(option);
+    const isCorrect = option === currentQuestionData.correct;
+    kaydetIstatistik(currentTopic, isCorrect);
+    if (playerCountMode === 1) {
+      kaydetSingleIstatistik(currentTopic, isCorrect);
+    }
+    if (selectedStudentIds[0]) {
+      setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, isCorrect));
+    }
+
+    if (isCorrect) {
+      playCorrectSound();
+      setFeedbackState('correct');
+      setScore(prev => prev + 1);
+      
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+
+      incrementBadgeCount('ilk_dogru');
+      if (newStreak % 3 === 0) {
+        incrementBadgeCount('seri_3');
+      }
+      if (newStreak % 5 === 0) {
+        incrementBadgeCount('seri_5');
+      }
+      if (newStreak % 7 === 0) {
+        incrementBadgeCount('seri_7');
+      }
+
+      if (newStreak === 3) {
+        triggerFireworks();
+        playParaAndTekSound();
+        if (hasFailedAfter3Streak) {
+          setHasFailedAfter3Streak(false);
+        } else {
+          setHasHad3StreakInSession(true);
+        }
+      } else if (newStreak === 5) {
+        triggerFireworks();
+        playCoinAndTekSound();
+      } else if (newStreak === 7) {
+        triggerFireworks();
+        playParaAndTekSound();
+      }
+
+      const nextScore = score + 1;
+      checkAndUnlockBadges(statsData, newStreak, nextScore, lives, nextScore >= 10);
+
+      if (nextScore >= 10) {
+        // Level tamamlandığında dtt.mp3 sesini hemen çalıştır
+        playDttSound();
+
+        incrementBadgeCount('tam_puan');
+        if (lives === 3) {
+          incrementBadgeCount('kusursuz');
+        }
+
+        if (playerCountMode === 1) {
+          incrementSingleWin();
+        }
+
+        if (selectedStudentIds[0]) {
+          setStudents(recordStudentGameResult(selectedStudentIds[0], true));
+        }
+
+        // Increment topic win count (repeat success counter)
+        const prevWins = topicWinCounts[currentTopic] || 0;
+        const newWins = prevWins + 1;
+        const updatedTopicWins = { ...topicWinCounts, [currentTopic]: newWins };
+        try {
+          localStorage.setItem('mathGameTopicWins_v1', JSON.stringify(updatedTopicWins));
+        } catch {
+          // Ignore
+        }
+        setTopicWinCounts(updatedTopicWins);
+
+        // Success repeated for the 3rd time (or multiples of 3)
+        const isThreeStarWin = newWins >= 3 || newWins % 3 === 0;
+
+        setTimeout(() => {
+          playWinSound();
+          playDttSound();
+          checkAndUnlockBadges(statsData, newStreak, nextScore, lives, true);
+          setGameResult({
+            reason: 'puan',
+            score: nextScore,
+            livesLeft: lives,
+            streak: newStreak,
+            topicWinCount: newWins,
+            isThreeStarWin
+          });
+          setGameState('gameover');
+        }, 800);
+        return;
+      }
+    } else {
+      playWrongSound();
+      setFeedbackState('wrong');
+      setLives(prev => prev - 1);
+      if (hasHad3StreakInSession) {
+        setHasFailedAfter3Streak(true);
+      }
+      setStreak(0);
+
+      const nextLives = lives - 1;
+      if (nextLives <= 0) {
+        setTimeout(() => {
+          setGameResult({ reason: 'can', score, livesLeft: 0 });
+          setGameState('gameover');
+        }, 800);
+        return;
+      }
+    }
+
+    setTimeout(() => {
+      nextQuestion(currentTopic);
+    }, 900);
+  };
+
+  const handlePlayerAnswer = (pIndex: number, option: string | number) => {
+    if (playerCountMode === 1) {
+      handleAnswer(option);
+      return;
+    }
+
+    if (pIndex >= players.length) return;
+    const targetPlayer = players[pIndex];
+    if (targetPlayer.feedbackState !== 'none' || !targetPlayer.currentQuestionData || targetPlayer.lives <= 0) return;
+
+    const isCorrect = option === targetPlayer.currentQuestionData.correct;
+    kaydetIstatistik(currentTopic, isCorrect);
+    kaydetGrupIstatistik(pIndex, currentTopic, isCorrect);
+    if (selectedStudentIds[pIndex]) {
+      setStudents(recordStudentAnswer(selectedStudentIds[pIndex], currentTopic, isCorrect));
+    }
+
+    if (isCorrect) {
+      playCorrectSound();
+      const newScore = targetPlayer.score + 1;
+      const newStreak = targetPlayer.streak + 1;
+
+      setPlayers(prev => {
+        const updated = [...prev];
+        if (pIndex < updated.length) {
+          updated[pIndex] = {
+            ...updated[pIndex],
+            score: newScore,
+            streak: newStreak,
+            selectedOption: option,
+            feedbackState: 'correct'
+          };
+        }
+        return updated;
+      });
+
+      if (newScore >= 10) {
+        playDttSound();
+        playWinSound();
+        triggerFireworks();
+        setDuelWinnerIndex(pIndex);
+        kaydetGrupGalibiyet(pIndex);
+        if (selectedStudentIds[pIndex]) {
+          setStudents(recordStudentGameResult(selectedStudentIds[pIndex], true));
+        }
+        selectedStudentIds.forEach((sId, sIdx) => {
+          if (sId && sIdx !== pIndex && sIdx < playerCountMode) {
+            setStudents(recordStudentGameResult(sId, false));
+          }
+        });
+
+        if (playerCountMode >= 2) {
+          // 2'li veya 3'lü oyunda kazanan grup için parkur üzerinde şampiyonluk videosu oynat:
+          // kap.png -> kap.mp4, ejd.png -> ejd.mp4, balta.png -> sog.mp4
+          setPendingGameResult({
+            reason: 'puan',
+            score: newScore,
+            livesLeft: targetPlayer.lives,
+            streak: newStreak
+          });
+          setTrackVictoryVideoActive(true);
+        } else {
+          setTimeout(() => {
+            setGameResult({
+              reason: 'puan',
+              score: newScore,
+              livesLeft: targetPlayer.lives,
+              streak: newStreak
+            });
+            setGameState('gameover');
+          }, 700);
+        }
+        return;
+      }
+
+      setTimeout(() => {
+        setPlayers(prev => {
+          if (pIndex >= prev.length) return prev;
+          const currentP = prev[pIndex];
+          const qRes = generateQuestionForPlayer(currentTopic, currentP.askedQuestions);
+          const updated = [...prev];
+          updated[pIndex] = {
+            ...currentP,
+            currentQuestionData: qRes.data,
+            shuffledOptions: qRes.shuffledOptions,
+            selectedOption: null,
+            feedbackState: 'none',
+            askedQuestions: [...currentP.askedQuestions, qRes.signature],
+            timeLeft: 10
+          };
+          return updated;
+        });
+      }, 800);
+
+    } else {
+      playWrongSound();
+      const newLives = targetPlayer.lives - 1;
+
+      setPlayers(prev => {
+        const updated = [...prev];
+        if (pIndex < updated.length) {
+          updated[pIndex] = {
+            ...updated[pIndex],
+            lives: newLives,
+            streak: 0,
+            selectedOption: option,
+            feedbackState: 'wrong'
+          };
+        }
+        return updated;
+      });
+
+      setTimeout(() => {
+        setPlayers(prev => {
+          const alivePlayers = prev.filter(p => p.lives > 0);
+          if (alivePlayers.length <= 1) {
+            let winnerIdx = 0;
+            if (alivePlayers.length === 1) {
+              winnerIdx = prev.findIndex(p => p.id === alivePlayers[0].id);
+            } else {
+              const sorted = [...prev].sort((a, b) => b.score - a.score);
+              winnerIdx = prev.findIndex(p => p.id === sorted[0].id);
+            }
+            if (winnerIdx < 0) winnerIdx = 0;
+
+            playDttSound();
+            playWinSound();
+            triggerFireworks();
+            setDuelWinnerIndex(winnerIdx);
+            kaydetGrupGalibiyet(winnerIdx);
+            if (selectedStudentIds[winnerIdx]) {
+              setStudents(recordStudentGameResult(selectedStudentIds[winnerIdx], true));
+            }
+            selectedStudentIds.forEach((sId, sIdx) => {
+              if (sId && sIdx !== winnerIdx && sIdx < playerCountMode) {
+                setStudents(recordStudentGameResult(sId, false));
+              }
+            });
+            if (playerCountMode >= 2) {
+              setPendingGameResult({
+                reason: 'can',
+                score: prev[winnerIdx]?.score || 0,
+                livesLeft: prev[winnerIdx]?.lives || 0
+              });
+              setTrackVictoryVideoActive(true);
+            } else {
+              setGameResult({
+                reason: 'can',
+                score: prev[winnerIdx]?.score || 0,
+                livesLeft: prev[winnerIdx]?.lives || 0
+              });
+              setGameState('gameover');
+            }
+            return prev;
+          }
+
+          if (newLives > 0 && pIndex < prev.length) {
+            const currentP = prev[pIndex];
+            const qRes = generateQuestionForPlayer(currentTopic, currentP.askedQuestions);
+            const updated = [...prev];
+            updated[pIndex] = {
+              ...currentP,
+              currentQuestionData: qRes.data,
+              shuffledOptions: qRes.shuffledOptions,
+              selectedOption: null,
+              feedbackState: 'none',
+              askedQuestions: [...currentP.askedQuestions, qRes.signature],
+              timeLeft: 10
+            };
+            return updated;
+          }
+          return prev;
+        });
+      }, 800);
+    }
+  };
+
+  const optionsList = shuffledOptions;
+
+  const getCurrentActivityTitle = (): string => {
+    if (show3DLab) return '3B Geometri Laboratuvarı';
+    if (showGeoboard) return 'Geometri Tahtası';
+    if (showGeometricNets) return 'Geometrik Cisimler Açılımı';
+    if (showXOXGame) return 'Matematik XOX Oyunu';
+    if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
+    if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
+    if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
+    if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
+    if (showKelimeSirala) return 'Kelime Sıralama (Sözlük Sırası)';
+    if (showHeceMakasi) return 'Hece Makası (Hecelere Ayırma)';
+    if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
+    if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul (20 Sn Sprint & Kapışma)';
+    if (showDedektif5N1K) return '5N 1K Dedektifi';
+    if (showNoktalamaAvcisi) return 'Noktalama İşareti Avcısı';
+    if (showHarfCorbasi) return 'Harf Çorbası / Anagram';
+    if (showGeriDonusum) return 'Geri Dönüşüm Kahramanı (Doğada Hayat)';
+    if (showSaglikliTabak) return 'Sağlıklı Tabak Şefi';
+    if (showIstekIhtiyac) return 'İstek mi, İhtiyaç mı?';
+    if (showMevsimGardirobu) return 'Mevsim Gardırobu';
+    if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
+    if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
+    if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
+    if (showOtherGamesModal) return 'Diğer Oyunlar Merkezi';
+    if (showEnglishGamesModal) return 'İngilizce Oyunlar Merkezi';
+    if (gameState === 'playing' || showTopicModal) {
+      if (currentTopic) {
+        if (halatCekmeTopics[currentTopic]?.title) return halatCekmeTopics[currentTopic].title;
+        if (sureliExtraTopics[currentTopic]?.title) return sureliExtraTopics[currentTopic].title;
+        if (selectedGrade === 1 && topics1stGrade[currentTopic]?.title) return topics1stGrade[currentTopic].title;
+        if (selectedGrade === 2 && topics2ndGrade[currentTopic]?.title) return topics2ndGrade[currentTopic].title;
+        if (selectedGrade === 3 && topics3rdGrade[currentTopic]?.title) return topics3rdGrade[currentTopic].title;
+        if (selectedGrade === 4 && topics4thGrade[currentTopic]?.title) return topics4thGrade[currentTopic].title;
+        if (topics1stGrade[currentTopic]?.title) return topics1stGrade[currentTopic].title;
+        if (topics2ndGrade[currentTopic]?.title) return topics2ndGrade[currentTopic].title;
+        if (topics3rdGrade[currentTopic]?.title) return topics3rdGrade[currentTopic].title;
+        if (topics4thGrade[currentTopic]?.title) return topics4thGrade[currentTopic].title;
+        return currentTopic;
+      }
+    }
+    if (selectedCategoryId) {
+      const catMap: Record<string, string> = {
+        geometri: '1. Nesnelerin Geometrisi',
+        sayilar: '2. Sayılar ve Nicelikler',
+        islemler: '3. İşlemlerden Cebirsel Düşünmeye',
+        olcme: '4. Veri İşleme & Ölçme',
+        diger_oyunlar: '5. Diğer Oyunlar',
+        g3_tema1: '3. Sınıf Tema 1: Sayılar ve Nicelikler (1)',
+        g3_tema2: '3. Sınıf Tema 2: Sayılar ve Nicelikler (2)',
+        g3_tema3: '3. Sınıf Tema 3: İşlemlerden Cebirsel Düşünmeye',
+        g3_tema4: '3. Sınıf Tema 4: Nesnelerin Geometrisi ve Ölçme',
+        g4_tema1: '4. Sınıf Tema 1: Sayılar ve Nicelikler (1)',
+        g4_tema2: '4. Sınıf Tema 2: Sayılar ve Nicelikler (2)',
+        g4_tema3: '4. Sınıf Tema 3: İşlemlerden Cebirsel Düşünmeye',
+        g4_tema4: '4. Sınıf Tema 4: Geometri, Veri ve Olasılık',
+      };
+      return catMap[selectedCategoryId] || selectedCategoryId;
+    }
+    if (selectedGrade) {
+      return `${selectedGrade}. Sınıf Menüsü`;
+    }
+    return 'Giriş / Karşılama Ekranı';
+  };
+
+  return (
+    <div className="relative h-[100dvh] bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden select-none">
+      {/* ORIGINAL POSITIVE CRISP BACKGROUND IMAGE WITH REDUCED BLUR & CLEAR VISIBILITY */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.jpg" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105 blur-[1px] transition-all duration-300"
+        />
+        {/* SAKİN VE DENGELİ KOYU OVERLAY (SİYAH/LACİVERT %15-20 OPASİTE) */}
+        <div className="absolute inset-0 bg-[#070D1E]/20" />
+        {/* EN ALT ŞERİT İÇİN TURUNCU-KAHVE TONLARI SAKİNLEŞTİREN VE TELİF ALANIYLA KONTRASTI SAĞLAYAN SİYAH/LACİVERT OVERLAY */}
+        <div className="absolute inset-x-0 bottom-0 h-72 sm:h-96 md:h-[420px] bg-gradient-to-t from-[#070D1E]/85 via-[#070D1E]/40 to-transparent pointer-events-none" />
+      </div>
+
+      {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
+      {!showIntro && (
+        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-2 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+          {/* ORTADAKİ TÜM BUTONLAR GRUBU (SOLA TAŞMAYI VE 1. SINIF BUTONUNUN KESİLMESİNİ ÖNLEYEN YAPI) */}
+          <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-1">
+          {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
+          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
+            {[1, 2, 3, 4, 5, 6].map((g) => {
+              const isSelected = 
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
+              const iconSrc = `/icon_${g}.png`;
+              const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
+              return (
+                <button
+                  key={g}
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    if (g <= 4) {
+                      setSelectedGrade(g as 1 | 2 | 3 | 4);
+                      setLastSelectedGrade(g as 1 | 2 | 3 | 4);
+                      handleClassClick(g === 1 ? 'grade1' : g === 2 ? 'grade2' : g === 3 ? 'grade3' : 'grade4');
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowOtherGamesModal(false);
+                      setShowEnglishGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
+                      setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
+                      setShowDedektif5N1K(false);
+                      setShowNoktalamaAvcisi(false);
+                      setShowHarfCorbasi(false);
+                      setShowGeriDonusum(false);
+                      setShowSaglikliTabak(false);
+                      setShowIstekIhtiyac(false);
+                      setShowMevsimGardirobu(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                    } else if (g === 5) {
+                      setSelectedGrade(null);
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
+                      setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
+                      setShowDedektif5N1K(false);
+                      setShowNoktalamaAvcisi(false);
+                      setShowHarfCorbasi(false);
+                      setShowGeriDonusum(false);
+                      setShowSaglikliTabak(false);
+                      setShowIstekIhtiyac(false);
+                      setShowMevsimGardirobu(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                      setShowEnglishGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowOtherGamesModal(true);
+                    } else if (g === 6) {
+                      setSelectedGrade(null);
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
+                      setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
+                      setShowDedektif5N1K(false);
+                      setShowNoktalamaAvcisi(false);
+                      setShowHarfCorbasi(false);
+                      setShowGeriDonusum(false);
+                      setShowSaglikliTabak(false);
+                      setShowIstekIhtiyac(false);
+                      setShowMevsimGardirobu(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                      setShowOtherGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      setShowEnglishGamesModal(true);
+                    }
+                  }}
+                  title={title}
+                  className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
+                    isSelected
+                      ? 'bg-[#1a2842] border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.4)] z-10'
+                      : 'bg-[#121c2e] border-slate-700/80 opacity-60 hover:opacity-100 hover:border-slate-500'
+                  }`}
+                >
+                  <img 
+                    src={iconSrc} 
+                    alt={title} 
+                    loading="eager"
+                    decoding="async"
+                    className="w-full h-full object-contain p-0.5 pointer-events-none" 
+                  />
+                  {isSelected && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+        {/* 1. ANA SAYFA */}
+        <button
+          onClick={handleGoHome}
+          title="Ana Sayfaya Dön"
+          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+        >
+          <img 
+            src="/ana.png" 
+            alt="Ana Sayfa" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+        </button>
+
+        {/* 2. GERİ */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+
+            // 0. If inside an active game/activity, navigate to previous activity sequentially!
+            if (showAndroidAppsModal) {
+              setShowAndroidAppsModal(false);
+              return;
+            }
+            if (
+              gameState === 'playing' || 
+              gameState === 'gameover' || 
+              showGeoboard || 
+              show3DLab || 
+              showGeometricNets ||
+              showAynisiniBul || 
+              showXOXGame || 
+              showKuralliCumle ||
+              showHeceSayisi ||
+              showSozlukSirala ||
+              showKelimeSirala ||
+              showHeceMakasi ||
+              showYazimDedektifi ||
+              showGeometrikSekilleriBul ||
+              wordGameType !== null
+            ) {
+              handlePrevActivity();
+              return;
+            }
+
+            // 0.035 If inside Geometrik Cisimleri Bul
+            if (showGeometrikSekilleriBul) {
+              setShowGeometrikSekilleriBul(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.04 If inside Hece Sayısı
+            if (showHeceSayisi) {
+              setShowHeceSayisi(false);
+              return;
+            }
+
+            // 0.05 If inside Sözlük Sıralama
+            if (showSozlukSirala) {
+              setShowSozlukSirala(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.055 If inside Kelime Sıralama
+            if (showKelimeSirala) {
+              setShowKelimeSirala(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.056 If inside Hece Makası
+            if (showHeceMakasi) {
+              setShowHeceMakasi(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.057 If inside Yazım Yanlışı Dedektifi
+            if (showYazimDedektifi) {
+              setShowYazimDedektifi(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 0.2 If inside Kurallı Cümle
+            if (showKuralliCumle) {
+              setShowKuralliCumle(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 1. If inside Word Game (Zıt Anlam, Eş Anlam, İngilizce)
+            if (wordGameType !== null) {
+              const isEnglish = wordGameType === 'ingilizce';
+              const wasOtherGame = openedFromOtherGamesModal || wordGameType === 'zit_anlam' || wordGameType === 'es_anlam';
+              setWordGameType(null);
+              if (isEnglish) {
+                setShowEnglishGamesModal(true);
+              } else if (wasOtherGame) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 2. If inside XOX Game
+            if (showXOXGame) {
+              setShowXOXGame(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 2.1. If inside Aynısını Bul Game
+            if (showAynisiniBul) {
+              setShowAynisiniBul(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 3. If inside 3D Lab (Checked before showOtherGamesModal)
+            if (show3DLab) {
+              setShow3DLab(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 4. If inside Geoboard (Checked before showOtherGamesModal)
+            if (showGeoboard) {
+              setShowGeoboard(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 4.1 If inside Geometric Nets
+            if (showGeometricNets) {
+              setShowGeometricNets(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 5. If inside Other Games Hub modal itself
+            if (showOtherGamesModal) {
+              setShowOtherGamesModal(false);
+              setOpenedFromOtherGamesModal(false);
+              return;
+            }
+
+            // 5.1 If inside English Games Hub modal itself
+            if (showEnglishGamesModal) {
+              setShowEnglishGamesModal(false);
+              return;
+            }
+
+            // 6. If stats modal is open
+            if (showStatsModal) {
+              setShowStatsModal(false);
+              return;
+            }
+
+            // 7. If topic modal is open
+            if (showTopicModal) {
+              setShowTopicModal(false);
+              return;
+            }
+
+            // 8. If inside a category (e.g. 5. Diğer Oyunlar topic list, 1. Geometri, etc.)
+            if (selectedCategoryId !== null) {
+              setSelectedCategoryId(null);
+              return;
+            }
+
+            // 10. If inside a grade (1, 2, 3, 4 Sınıf)
+            if (selectedGrade !== null) {
+              setSelectedGrade(null);
+              return;
+            }
+          }}
+          title="Bir önceki menüye dön"
+          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+        >
+          <img 
+            src="/geri.png" 
+            alt="Geri" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+        </button>
+
+        {/* 3. İLERİ */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            // If inside an active game/activity, navigate to next activity sequentially!
+            if (
+              gameState === 'playing' || 
+              gameState === 'gameover' || 
+              showGeoboard || 
+              show3DLab || 
+              showGeometricNets ||
+              showAynisiniBul || 
+              showXOXGame || 
+              showKuralliCumle ||
+              showHeceSayisi ||
+              showSozlukSirala ||
+              showKelimeSirala ||
+              showHeceMakasi ||
+              showYazimDedektifi ||
+              showGeometrikSekilleriBul ||
+              wordGameType !== null
+            ) {
+              handleNextActivity();
+              return;
+            }
+            handleForwardNavigation();
+          }}
+          title="İleri git"
+          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+        >
+          <img 
+            src="/ileri.png" 
+            alt="İleri" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+        </button>
+
+        {/* 4. SES */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            toggleSound();
+          }}
+          className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 ${!soundEnabled ? 'opacity-40 grayscale' : ''}`}
+          title={soundEnabled ? "Sesi Kapat" : "Sesi Aç"}
+        >
+          <img 
+            src="/ses.png" 
+            alt="Ses" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+          {!soundEnabled && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="w-6 sm:w-7 h-1 bg-red-600/90 rotate-45 rounded-full shadow-xs" />
+            </div>
+          )}
+        </button>
+
+        {/* 5. İSTATİSTİK */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            try {
+              setStatsData(JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}'));
+            } catch {}
+            setStatsModalGrade(selectedGrade || 2);
+            setShowStatsModal(true);
+          }}
+          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+          title="İlerleme ve İstatistikler"
+        >
+          <img 
+            src="/ist.png" 
+            alt="İstatistik" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+        </button>
+
+        {/* AYIRICI ÇİZGİ */}
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
+
+        {/* 6. 1 OYUNCU (1oy.png) - MAVİ ACCENT */}
+        <button
+          onClick={() => {
+            if (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) return;
+            playMp3('/op.mp3');
+            switchPlayerCountMode(1);
+          }}
+          disabled={gameState === 'playing' && isHalatCekmeTopic(currentTopic)}
+          className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 rounded-2xl ${
+            gameState === 'playing' && isHalatCekmeTopic(currentTopic)
+              ? 'opacity-30 cursor-not-allowed'
+              : playerCountMode === 1
+              ? 'ring-2 ring-blue-400 scale-105 shadow-[0_0_12px_rgba(96,165,250,0.5)] cursor-pointer'
+              : 'opacity-60 hover:opacity-100 cursor-pointer'
+          }`}
+          title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "1 Oyuncu Modu"}
+        >
+          <img 
+            src="/1oy.png" 
+            alt="1 Oyuncu" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+          {playerCountMode === 1 && (
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+          )}
+        </button>
+
+        {/* 7. 2 OYUNCU KAPIŞMA (2oy.png) - KIRMIZI / PEMBE ACCENT */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            switchPlayerCountMode(2);
+          }}
+          className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 rounded-2xl ${
+            playerCountMode === 2
+              ? 'ring-2 ring-rose-500 scale-105 shadow-[0_0_12px_rgba(244,63,94,0.5)]'
+              : 'opacity-60 hover:opacity-100'
+          }`}
+          title="2 Oyuncu Kapışma Modu"
+        >
+          <img 
+            src="/2oy.png" 
+            alt="2 Oyuncu Kapışma" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+          {playerCountMode === 2 && (
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]" />
+          )}
+        </button>
+
+        {/* 8. 3 OYUNCU KAPIŞMA (3oy.png) - YEŞİL ACCENT */}
+        <button
+          onClick={() => {
+            if (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) return;
+            playMp3('/op.mp3');
+            switchPlayerCountMode(3);
+          }}
+          disabled={gameState === 'playing' && isHalatCekmeTopic(currentTopic)}
+          className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 rounded-2xl ${
+            gameState === 'playing' && isHalatCekmeTopic(currentTopic)
+              ? 'opacity-30 cursor-not-allowed'
+              : playerCountMode === 3
+              ? 'ring-2 ring-emerald-500 scale-105 shadow-[0_0_12px_rgba(16,185,129,0.5)] cursor-pointer'
+              : 'opacity-60 hover:opacity-100 cursor-pointer'
+          }`}
+          title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "3 Oyuncu Kapışma Modu"}
+        >
+          <img 
+            src="/3oy.png" 
+            alt="3 Oyuncu Kapışma" 
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-contain pointer-events-none" 
+          />
+          {playerCountMode === 3 && (
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+          )}
+        </button>
+
+        {/* AYIRICI ÇİZGİ */}
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
+
+        {/* ETKİNLİKLER ARASI GEÇİŞ BUTONLARI */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              handlePrevActivity();
+            }}
+            title="Önceki Etkinliğe Geç"
+            aria-label="Önceki Etkinlik"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
+          >
+            <SkipBack size={16} className="text-slate-300 group-hover:text-white transition-colors" />
+          </button>
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              handleNextActivity();
+            }}
+            title="Sonraki Etkinliğe Geç"
+            aria-label="Sonraki Etkinlik"
+            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
+          >
+            <SkipForward size={16} className="text-slate-300 group-hover:text-white transition-colors" />
+          </button>
+        </div>
+
+        {/* AYIRICI ÇİZGİ */}
+        <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
+
+        {/* TAM EKRAN KONTROLÜ (FH.png GÖRSEL BUTON) */}
+        <div className="flex items-center bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              toggleFullscreen();
+            }}
+            title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran Yap (Akıllı Tahtaya Tam Yay)"}
+            aria-label="Tam Ekran"
+            className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0 border cursor-pointer ${
+              isFullscreen
+                ? 'bg-[#1a2842] border-slate-300 ring-2 ring-slate-400/50 shadow-[0_0_10px_rgba(148,163,184,0.3)]'
+                : 'bg-[#121c2e] hover:bg-[#1a2842] border-slate-700/80 opacity-60 hover:opacity-100'
+            }`}
+          >
+            <img 
+              src="/FH.png" 
+              alt="Tam Ekran" 
+              className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
+            />
+            {isFullscreen && (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-slate-300 shadow-[0_0_6px_#cbd5e1]" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ */}
+      <div className="shrink-0 flex flex-col justify-center gap-1 pl-1 sm:pl-1.5 z-20">
+        {/* GOOGLE AUTH & CLOUD SYNC BUTTON */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            setShowGoogleAuthModal(true);
+          }}
+          title={currentUser ? `Google Bulut Senkronizasyonu: ${currentUser.displayName || currentUser.email}` : "Google ile Giriş Yap & Öğrenci/İstatistikleri Buluta Yedekle"}
+          aria-label="Google Bulut Eşitleme"
+          className={`group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] rounded-md sm:rounded-lg shadow-sm transition-all cursor-pointer shrink-0 border w-full ${
+            currentUser
+              ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_8px_rgba(16,185,129,0.35)]'
+              : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_8px_rgba(59,130,246,0.35)]'
+          }`}
+        >
+          {currentUser ? (
+            <>
+              {currentUser.photoURL ? (
+                <img
+                  src={currentUser.photoURL}
+                  alt={currentUser.displayName || 'Google'}
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-emerald-400/80 object-cover shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[9px] shrink-0">
+                  {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
+                </div>
+              )}
+              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
+                {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
+              </span>
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
+            </>
+          ) : (
+            <>
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span className="text-[10px] sm:text-[11px] font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap">
+                Google Giriş
+              </span>
+            </>
+          )}
+        </button>
+
+        {/* FEEDBACK BUTTON */}
+        <button
+          onClick={() => {
+            playMp3('/op.mp3');
+            setShowFeedbackModal(true);
+          }}
+          title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
+          aria-label="Görüş Bildir"
+          className="group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-md sm:rounded-lg shadow-sm hover:shadow-[0_0_8px_rgba(245,158,11,0.3)] transition-all cursor-pointer shrink-0 w-full"
+        >
+          <Mail size={12} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
+          <span className="text-[10px] sm:text-[11px] font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap">
+            Görüş Bildir
+          </span>
+        </button>
+      </div>
+    </header>
+      )}
+
+      {/* FLOATING ACTIVITY TOAST NOTIFICATION */}
+      {activityToast && (
+        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-slate-100 font-bold px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl border border-slate-600 shadow-[0_10px_35px_rgba(0,0,0,0.85)] flex items-center gap-2 text-xs sm:text-sm md:text-base animate-bounce">
+          <span className="text-base sm:text-lg">✨</span>
+          <span className="tracking-wide text-white drop-shadow-md">{activityToast}</span>
+        </div>
+      )}
+
+      {/* SCREEN ORIENTATION TOAST BADGE */}
+      {showOrientationToast && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 bg-[#0f172a] text-slate-100 font-bold px-4 py-2 rounded-full border border-slate-600 shadow-2xl animate-bounce flex items-center gap-2 text-xs sm:text-sm">
+          <GlossyScreenRotateIcon isLandscape={isLandscape} size={20} />
+          <span>{showOrientationToast}</span>
+        </div>
+      )}
+
+      {/* MAIN SCREEN ROUTING - GRADE SELECTION (1, 2, 3, 4) OR GRADE-SPECIFIC DASHBOARD */}
+      {gameState === 'welcome' && (
+        <div className="flex-1 flex flex-col items-center justify-start pt-0 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
+          {selectedGrade === null ? (
+            /* GRADE / CLASS SELECTION SCREEN (1. SINIF, 2. SINIF, 3. SINIF, 4. SINIF) */
+            <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
+              {/* 1. ÜST BAŞLIK (BUTONLARIN ÜSTÜNDE / HEADER'IN HEMEN ALTINDA) */}
+              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+                <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
+                  <div className="flex items-center gap-2 sm:gap-3.5">
+                    <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
+                      SINIFINI SEÇ VE BAŞLA
+                    </h2>
+                    <span className="text-amber-400/60 font-bold">•</span>
+                    <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
+                      Çalışmak istediğin sınıfa dokun
+                    </span>
+                  </div>
+                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
+                </div>
+              </div>
+
+              {/* 6 GRADE CARDS IN 2X2 + 2 GRID (STANDARDIZED NEUTRAL SLATE CARDS WITH ACCENT BORDERS & DIFFICULTY BADGES) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2.5 md:gap-3 w-full max-w-4xl xl:max-w-5xl mx-auto py-1">
+                {/* 1. SINIF */}
+                <button
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    setSelectedGrade(1);
+                    setLastSelectedGrade(1);
+                    handleClassClick('grade1');
+                  }}
+                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-blue-400 hover:border-blue-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img src="/icon_1.png" alt="1. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                        <span className="text-amber-400">★☆☆☆</span>
+                        <span className="text-slate-400 font-medium">Başlangıç Seviyesi</span>
+                      </div>
+                      <span className="bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
+                        Önerilen
+                      </span>
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
+                      1. Sınıf Matematik
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
+                      Geometri, Sayılar, İşlemler, Veri, Zeka Oyunları & 3D Lab
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                  </div>
+                </button>
+
+                {/* 2. SINIF ESKİ YERİNDE 2'YE BÖLÜNEN ALAN: SOLDA MATEMATİK, SAĞDA TÜRKÇE (2. SINIF YAZISI SİLİNDİ, TÜM KELİME 3 NOKTASIZ GÖRÜNÜR) */}
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
+                  {/* SOL BUTON: MATEMATİK */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(2);
+                      setSelectedSubject('matematik');
+                      setLastSelectedGrade(2);
+                      handleClassClick('grade2');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img 
+                        src="/icon_2.png" 
+                        alt="Matematik" 
+                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
+                      />
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                      </div>
+                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                        MATEMATİK
+                      </h3>
+                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Sayılar, İşlemler, Geometri
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* SAĞ BUTON: TÜRKÇE */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(2);
+                      setSelectedSubject('turkce');
+                      setLastSelectedGrade(2);
+                      handleClassClick('grade2');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img 
+                        src="/icon_2.png" 
+                        alt="Türkçe" 
+                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(295deg)_saturate(1.3)]" 
+                      />
+                      <span className="absolute -bottom-1 -right-1 text-xs sm:text-sm drop-shadow">📖</span>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                      </div>
+                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                        TÜRKÇE
+                      </h3>
+                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Sözcük, Cümle, Hece
+                      </p>
+                    </div>
+                  </button>
+                </div>
+
+                {/* 3. SINIF */}
+                <button
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    setSelectedGrade(3);
+                    setLastSelectedGrade(3);
+                    handleClassClick('grade3');
+                  }}
+                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-emerald-400 hover:border-emerald-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img src="/icon_3.png" alt="3. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
+                      <span className="text-amber-400">★★★☆</span>
+                      <span className="text-slate-400 font-medium">Orta Seviye</span>
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
+                      3. Sınıf Matematik
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
+                      3 Basamaklı Sayılar, Çarpma, Bölme, Kesirler & Problemler
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                  </div>
+                </button>
+
+                {/* 4. SINIF */}
+                <button
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    setSelectedGrade(4);
+                    setLastSelectedGrade(4);
+                    handleClassClick('grade4');
+                  }}
+                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-purple-400 hover:border-purple-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img src="/icon_4.png" alt="4. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
+                      <span className="text-amber-400">★★★★</span>
+                      <span className="text-slate-400 font-medium">İleri Seviye</span>
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
+                      4. Sınıf Matematik
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
+                      4-6 Basamaklı Sayılar, Kesirler, Dört İşlem, Geometri & Olasılık
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                  </div>
+                </button>
+
+                {/* 5. MADDE: DİĞER OYUNLAR */}
+                <button
+                  onClick={() => {
+                    playMp3('/coin.mp3');
+                    handleClassClick('otherGames');
+                    setShowOtherGamesModal(true);
+                  }}
+                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-fuchsia-400 hover:border-fuchsia-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img src="/icon_5.png" alt="5. Diğer Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
+                      <span className="text-fuchsia-300">🎲</span>
+                      <span className="text-slate-400 font-medium">Özel Zeka Oyunları</span>
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
+                      5. Diğer Oyunlar
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
+                      Sözlük Sıralama, Aynısını Bul, XOX & Zeka Oyunları
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                  </div>
+                </button>
+
+                {/* 6. MADDE: İNGİLİZCE OYUNLAR */}
+                <button
+                  onClick={() => {
+                    playMp3('/coin.mp3');
+                    handleClassClick('englishGames');
+                    setShowEnglishGamesModal(true);
+                  }}
+                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-teal-400 hover:border-teal-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img src="/icon_6.png" alt="6. İngilizce Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
+                      <span className="text-teal-300">������🇧</span>
+                      <span className="text-slate-400 font-medium">Yabancı Dil & Kelime</span>
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
+                      6. İngilizce Oyunlar
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
+                      2., 3. ve 4. Sınıflar İçin Eğlenceli Pratikler
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                  </div>
+                </button>
+
+                {/* 7. MADDE: ANDROID UYGULAMALARIM (UZUN KART - sm:col-span-2) */}
+                <div
+                  onClick={() => {
+                    playMp3('/coin.mp3');
+                    setShowAndroidAppsModal(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      playMp3('/coin.mp3');
+                      setShowAndroidAppsModal(true);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className="group relative w-full sm:col-span-2 bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-emerald-400 hover:border-emerald-400/70 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-green-500 border border-emerald-300/80 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <svg className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-slate-950 fill-current drop-shadow" viewBox="0 0 24 24">
+                          <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4483.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5842 8.3542 13.8437 8 12 8s-3.5842.3542-5.1368.9507L4.841 5.4477a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="text-emerald-400">🤖</span>
+                        <span className="text-emerald-300 font-bold">Google Play Store</span>
+                        <span className="text-slate-500">•</span>
+                        <span className="text-slate-400 font-medium">Telefon & Tablet</span>
+                        <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
+                          Mobil Uygulamalar
+                        </span>
+                      </div>
+                      <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wider transition-colors flex items-center gap-2">
+                        <span>7. Android Uygulamalarım</span>
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* 1, 2, 3, 4 UYGULAMA GÖRSEL BUTONLARI */}
+                  <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2.5 w-full md:w-auto justify-end pt-1 md:pt-0 border-t md:border-t-0 border-slate-800 flex-wrap sm:flex-nowrap">
+                    {/* 1. Uygulama Butonu */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/op.mp3');
+                        window.open('https://play.google.com/store/apps/details?id=co.median.android.mbajmzn', '_blank', 'noopener,noreferrer');
+                      }}
+                      className="group/b1 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-emerald-950/80 border border-emerald-500/40 hover:border-emerald-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="1. Uygulama: 2. Sınıf Matematik Oyunu (Google Play'de Aç)"
+                    >
+                      <img 
+                        src="/2snf.webp" 
+                        alt="2. Sınıf Matematik Oyunu" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b1:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider">1. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b1:text-emerald-200 leading-tight">2. Sınıf Mat.</div>
+                      </div>
+                    </div>
+
+                    {/* 2. Uygulama Butonu */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/op.mp3');
+                        window.open('https://play.google.com/store/apps/details?id=com.aistudio.kronometre.zqvxkp', '_blank', 'noopener,noreferrer');
+                      }}
+                      className="group/b2 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-amber-950/80 border border-amber-500/40 hover:border-amber-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="2. Uygulama: Kronometre & Zamanlayıcı (Google Play'de Aç)"
+                    >
+                      <img 
+                        src="/kro.webp" 
+                        alt="Kronometre & Zamanlayıcı" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b2:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider">2. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b2:text-amber-200 leading-tight">Kronometre</div>
+                      </div>
+                    </div>
+
+                    {/* 3. Uygulama Butonu (1. Sınıf Mat) */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/coin.mp3');
+                        setShowAndroidAppsModal(true);
+                      }}
+                      className="group/b3 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-green-950/80 border border-green-500/40 hover:border-green-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="3. Uygulama: 1. Sınıf Matematik Oyunu (Yakında)"
+                    >
+                      <img 
+                        src="/1sbf.webp?v=3" 
+                        alt="1. Sınıf Matematik Oyunu" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b3:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-green-400 uppercase tracking-wider">3. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b3:text-green-200 leading-tight">1. Sınıf Mat.</div>
+                      </div>
+                    </div>
+
+                    {/* 4. Uygulama Butonu (Ekran Takibi) */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/coin.mp3');
+                        setShowAndroidAppsModal(true);
+                      }}
+                      className="group/b4 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-cyan-950/80 border border-cyan-500/40 hover:border-cyan-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="4. Uygulama: Ekran Takibi (Yakında)"
+                    >
+                      <img 
+                        src="/ekranlogo.jpeg?v=3" 
+                        alt="Ekran Takibi" 
+                        className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b4:scale-105 transition-transform" 
+                      />
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-cyan-400 uppercase tracking-wider">4. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b4:text-cyan-200 leading-tight">Ekran Takibi</div>
+                      </div>
+                    </div>
+
+                    <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md border border-emerald-300/40 group-hover:scale-105 transition-transform">
+                      <span>Tümü</span>
+                      <span className="text-emerald-200">→</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : selectedCategoryId === null ? (
+            /* CATEGORY CARDS SCREEN */
+            <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-0">
+              {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
+              <div className="w-full relative flex items-center justify-center mb-0 px-2 shrink-0 z-20">
+                <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
+                  <div className="flex items-center gap-2 sm:gap-3.5">
+                    <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
+                      {selectedGrade === 1
+                        ? '1. SINIF MATEMATİK'
+                        : selectedGrade === 2
+                          ? (selectedSubject === 'turkce' ? '2. SINIF TÜRKÇE' : '2. SINIF MATEMATİK')
+                          : selectedGrade === 3
+                            ? '3. SINIF MATEMATİK'
+                            : '4. SINIF MATEMATİK'}
+                    </h2>
+                    <span className="text-amber-400/60 font-bold">•</span>
+                    <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
+                      Tema ve Konunu Seç
+                    </span>
+                  </div>
+                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
+                </div>
+
+                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
+                {[1, 2, 3, 4].includes(selectedGrade) && (
+                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowOdevAkvaryumu(true);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
+                    >
+                      <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
+                      <span className="tracking-tight drop-shadow font-extrabold text-[11px] sm:text-xs">Ödev Akvaryumu</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. SINIF: 4 MAIN THEME CARDS (2x2 GRID) */}
+              {selectedGrade === 4 ? (
+                <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g4_tema1');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Sayılar ve Nicelikler (1)
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          4-6 Basamaklı Sayılar, Çözümleme & Yuvarlama
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 (ZÜMRÜT / YEŞİL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g4_tema2');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sayılar ve Nicelikler (2)
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Kesirler, Birim Kesirler & Ölçme Birimleri
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g4_tema3');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. İşlemlerden Cebirsel Düşünmeye
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Eldeli Toplama, Çarpma, Bölme & Cebir
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 4: GEOMETRİ, VERİ VE OLASILIK (SAFİR / İNDİGO TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g4_tema4');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri, Veri ve Olasılık" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Geometri, Veri ve Olasılık
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Açılar, Çevre, Alan, Grafikler & Olasılık
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* ROW 3: 5. DİĞER OYUNLAR (4. SINIF) (PEMBE / GÜL TEMA) */}
+                  <div className="w-full">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('diger_oyunlar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Diğer Oyunlar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                          2 Kişilik Halat Çekme Düellosu, Süreli Çarpma & Bölme
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              ) : selectedGrade === 3 ? (
+                <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g3_tema1');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Sayılar ve Nicelikler (1)
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          1000'e Kadar Sayılar, Çözümleme & Ritmik
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 2: SAYILAR VE NİCELİKLER 2 (ZÜMRÜT / YEŞİL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g3_tema2');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sayılar ve Nicelikler (2)
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Kesirler, Zaman, Ölçme & Paralarımız
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE (KEHRİBAR / TURUNCU TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g3_tema3');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. İşlemlerden Cebirsel Düşünmeye
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Zihinden İşlem, Çarpma, Bölme & Cebir
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME (SAFİR / İNDİGO TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('g3_tema4');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri ve Ölçme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Nesnelerin Geometrisi ve Ölçme
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Cisimler, Açılar & Çevre Hesabı
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* ROW 3: 5. DİĞER OYUNLAR (3. SINIF) (PEMBE / GÜL TEMA) */}
+                  <div className="w-full">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('diger_oyunlar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Diğer Oyunlar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                          2 Kişilik Halat Çekme Düellosu, Süreli Çarpma & Bölme
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              ) : selectedGrade === 1 ? (
+                /* MAIN CATEGORY CARDS - 1. SINIF (YENİ MODERN VE DENGELİ TASARIM) */
+                <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
+                  {/* ÜST 4 KART: 2x2 IZGARA */}
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* KART 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('geometri');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Nesnelerin Geometrisi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Şekiller, Cisimler & Örüntüler
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* KART 2: SAYILAR (GÖKYÜZÜ / MAVİ TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('sayilar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sayılar ve Nicelikler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Ritmik Sayma & Basamak Değeri
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* KART 3: İŞLEMLER (ALTIN / TURUNCU TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('islemler');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. İşlemler ve Cebir
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Toplama, Çıkarma, Çarpma, Bölme
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* KART 4: VERİ İŞLEME (SAFİR / İNDİGO TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('olcme');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Veri İşleme
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Sütun Grafikleri & Tablolar
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* ALT SIRA: 5. DİĞER OYUNLAR (ORTALANMIŞ, ÜST KARTLARLA AYNI GENİŞLİKTE VE DENGELİ) */}
+                  <div className="w-full flex justify-center">
+                    <div className="w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)]">
+                      <button
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setSelectedCategoryId('diger_oyunlar');
+                        }}
+                        className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                      >
+                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                          <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        </div>
+
+                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            5. Diğer Oyunlar
+                          </h3>
+                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                            Balon, Hafıza & Zeka Oyunları
+                          </p>
+                        </div>
+
+                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                            ▶
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : selectedGrade === 2 && selectedSubject === 'turkce' ? (
+                /* MAIN CATEGORY CARDS - 2. SINIF TÜRKÇE */
+                <div className="w-full max-w-6xl mx-auto">
+                  {/* 6 TÜRKÇE ETKİNLİĞİ GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: SÖZLÜK SIRALAMA PORTALI */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('sozluk_sirala', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowSozlukSirala(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1c0d28] via-[#2d1440] to-[#1c0d28] hover:from-[#251136] hover:via-[#3a1954] hover:to-[#251136] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-purple-400/90 border-l-4 border-l-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_25.png" alt="Sözlük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Sözlük Sıralama
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-purple-200/70 mt-0.5 break-words leading-tight">
+                          Alfabe Portalı (1, 2 & 3 Kişilik Yarış)
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-purple-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-purple-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-purple-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 2: KELİME SIRALAMA (SÖZLÜK SIRASI) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('kelime_sirala', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowKelimeSirala(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#181135] via-[#24174d] to-[#181135] hover:from-[#1f1543] hover:via-[#2e1d62] hover:to-[#1f1543] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_26.png" alt="Kelime Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Kelime Sıralama
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Sözlük Sırasına Göre Dizme (1, 2 & 3 Kişilik)
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: ZIT ANLAMLI KELİMELER */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('word_game', undefined, 2, 'zit_anlam');
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setWordGameType('zit_anlam');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f1f] via-[#45142f] to-[#2c0f1f] hover:from-[#3a1329] hover:via-[#57193b] hover:to-[#3a1329] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)] hover:shadow-[0_0_25px_rgba(244,63,94,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_27.png" alt="Zıt Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. Zıt Anlamlı Kelimeler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
+                          Karşıt Anlamlar & Çok Oyunculu Düello
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-rose-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-rose-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 4: EŞ ANLAMLI KELİMELER */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('word_game', undefined, 2, 'es_anlam');
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setWordGameType('es_anlam');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2a1708] via-[#43230b] to-[#2a1708] hover:from-[#361d0a] hover:via-[#522b0e] hover:to-[#361d0a] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:shadow-[0_0_25px_rgba(251,191,36,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Eş Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Eş Anlamlı Kelimeler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Anlamdaş Kelimeleri Bulma & Yarışma
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 5: KURALLI CÜMLE OLUŞTURMA */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('kuralli_cumle', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowKuralliCumle(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_28.png" alt="Kurallı Cümle" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Kurallı Cümle Oluşturma
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Kelimeleri Kurallı ve Anlamlı Sıraya Dizme
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 6: KELİMELERİN HECE SAYISINI BELİRLEME */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('hece_sayisi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowHeceSayisi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_05.png" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          6. Kelimelerin Hece Sayısı
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 7: HECE MAKASI (Hecelere Ayırma & Makasla Kesme) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('hece_makasi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowHeceMakasi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#07242e] via-[#0d3b4b] to-[#07242e] hover:from-[#0b3341] hover:via-[#124d62] hover:to-[#0b3341] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_35.png" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          7. Hece Makası
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
+                          Sözcükleri Hecelerine Ayırma & Makasla Kesme
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 8: YAZIM YANLIŞI DEDEKTİFİ */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('yazim_dedektifi', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowYazimDedektifi(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c1d07] via-[#452d0a] to-[#2c1d07] hover:from-[#3a2709] hover:via-[#59390c] hover:to-[#3a2709] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          8. Yazım Yanlışı Dedektifi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 9: 5N 1K DEDEKTİFİ */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('dedektif_5n1k', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowDedektif5N1K(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2a29] via-[#154240] to-[#0d2a29] hover:from-[#113735] hover:via-[#1c5553] hover:to-[#113735] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_33.png" alt="5N 1K Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          9. 5N 1K Dedektifi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
+                          Kim, Ne, Nerede, Ne Zaman, Nasıl, Niçin Sorularını Çöz
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-teal-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-teal-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* MAIN CATEGORY CARDS - 2. SINIF MATEMATİK (TÜM MEVCUT ETKİNLİKLER) */
+                <div className="w-full max-w-6xl mx-auto space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('geometri');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Nesnelerin Geometrisi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Şekiller, Cisimler & Örüntüler
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 2: SAYILAR (GÖKYÜZÜ / MAVİ TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('sayilar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sayılar ve Nicelikler
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Ritmik Sayma & Basamak Değeri
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: İŞLEMLER (KEHRİBAR / TURUNCU TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('islemler');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. İşlemler ve Cebir
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Toplama, Çıkarma, Çarpma, Bölme
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 4: VERİ İŞLEME (SAFİR / İNDİGO TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('olcme');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Veri İşleme
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
+                          Sütun Grafikleri & Tablolar
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-indigo-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-indigo-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 5: DİĞER OYUNLAR (PEMBE / GÜL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('diger_oyunlar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Diğer Oyunlar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                          Balon, Hafıza & Zeka
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 6: 3D GEOMETRİ LABI (TURKUAZ / TEAL TEMA) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const labIdx = findActivityIndex('3d_lab', undefined, 2);
+                        if (labIdx !== -1) setCurrentActivityIndex(labIdx);
+                        setShow3DLab(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#141b36] via-[#1a254c] to-[#141b36] hover:from-[#1b2344] hover:via-[#222f60] hover:to-[#1b2344] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_10.png" alt="3D Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          6. 3D Geometri Labı
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
+                          Küp, Silindir, Prizma 3D
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-teal-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-teal-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* SUB-TOPIC BUTTON CARDS SCREEN FOR SELECTED CATEGORY (3-COLUMN SQUARE CARDS) */
+            <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-2">
+              
+              {/* GLOWING HEADER BADGE - KATEGORİ VE ETKİNLİK SEÇİMİ */}
+              <div className="w-full relative flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+                {(() => {
+                  const cat = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
+                  if (!cat) return null;
+                  
+                  const headerThemeStyles: Record<string, { bg: string; border: string; glow: string; text: string; subText: string; accent: string }> = {
+                    geometri: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    sayilar: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    islemler: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    olcme: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                    diger_oyunlar: {
+                      bg: 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24]',
+                      border: 'border-2 border-pink-400/90 border-l-4 border-l-pink-400',
+                      glow: 'shadow-[0_0_20px_rgba(244,114,182,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-pink-300',
+                      accent: 'text-pink-400',
+                    },
+                    g3_tema1: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    g3_tema2: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    g3_tema3: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    g3_tema4: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                    g4_tema1: {
+                      bg: 'bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f]',
+                      border: 'border-2 border-sky-400/90 border-l-4 border-l-sky-400',
+                      glow: 'shadow-[0_0_20px_rgba(56,189,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-sky-300',
+                      accent: 'text-sky-400',
+                    },
+                    g4_tema2: {
+                      bg: 'bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822]',
+                      border: 'border-2 border-emerald-400/90 border-l-4 border-l-emerald-400',
+                      glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-emerald-300',
+                      accent: 'text-emerald-400',
+                    },
+                    g4_tema3: {
+                      bg: 'bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]',
+                      border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                      glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-amber-300',
+                      accent: 'text-amber-400',
+                    },
+                    g4_tema4: {
+                      bg: 'bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d]',
+                      border: 'border-2 border-indigo-400/90 border-l-4 border-l-indigo-400',
+                      glow: 'shadow-[0_0_20px_rgba(129,140,248,0.3)]',
+                      text: 'text-white',
+                      subText: 'text-indigo-300',
+                      accent: 'text-indigo-400',
+                    },
+                  };
+
+                  const themeStyle = selectedCategoryId && headerThemeStyles[selectedCategoryId]
+                    ? headerThemeStyles[selectedCategoryId]
+                    : {
+                        bg: 'bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e]',
+                        border: 'border-2 border-amber-400/90 border-l-4 border-l-amber-400',
+                        glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+                        text: 'text-white',
+                        subText: 'text-amber-300',
+                        accent: 'text-amber-400',
+                      };
+
+                  return (
+                    <div className={`flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl ${themeStyle.bg} ${themeStyle.border} ${themeStyle.glow}`}>
+                      <span className={`${themeStyle.accent} text-lg sm:text-2xl shrink-0`}>🎯</span>
+                      <div className="flex items-center gap-2 sm:gap-3.5">
+                        <h2 className={`font-black text-xs sm:text-sm md:text-base ${themeStyle.text} uppercase tracking-wider drop-shadow-sm`}>
+                          {cat.name}
+                        </h2>
+                        <span className={`${themeStyle.accent}/60 font-bold`}>•</span>
+                        <span className={`text-[10px] sm:text-xs ${themeStyle.subText} font-bold uppercase tracking-wide`}>
+                          Etkinliğini Seç ve Başla
+                        </span>
+                      </div>
+                      <span className={`${themeStyle.accent} text-lg sm:text-2xl shrink-0`}>✨</span>
+                    </div>
+                  );
+                })()}
+
+                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
+                {[1, 2, 3, 4].includes(selectedGrade) && (
+                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setShowOdevAkvaryumu(true);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
+                    >
+                      <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
+                      <span className="tracking-tight drop-shadow font-extrabold text-[11px] sm:text-xs">Ödev Akvaryumu</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* SUB-TOPICS RENDERED AS PILL BUTTONS IN A 2-COLUMN GRID (REFERENCE STYLE) */}
+              <div className="w-full space-y-3 sm:space-y-4">
+                
+                {/* 1. NESNELERİN GEOMETRİSİ */}
+                {selectedCategoryId === 'geometri' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {(selectedGrade === 1
+                      ? ['uzamsal_iliskiler', 'uzamsal_iliskiler_simetri', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi', 'cisimler_acilimi']
+                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'tartma_olcme', 'cisimler_acilimi']
+                    ).map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 2. SAYILAR VE NİCELİKLER */}
+                {selectedCategoryId === 'sayilar' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Standalone topics */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['nesne_sayisi', 'sira_sayilari', 'cok_az_esit']
+                        : ['nesne_sayisi', 'sayi_basamak_degeri', 'en_yakin_onluk', 'deste_duzine', 'kesirler', 'sayi_karsilastirma', 'sira_sayilari', 'paralarimiz', 'zaman_olcme', 'uzunluk_olcme']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        const isSpan = selectedGrade === 1 && key === 'cok_az_esit';
+                        return (
+                          <div key={key} className={isSpan ? "sm:col-span-2" : ""}>
+                            <TopicButtonReferenceStyle
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="sayilar"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Ritmik Saymalar Group Section */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['ritmik_ileri_1', 'ritmik_ileri_2', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_1', 'ritmik_geri_2', 'ritmik_geri_10']
+                        : ['ritmik_ileri_2', 'ritmik_ileri_3', 'ritmik_ileri_4', 'ritmik_ileri_5', 'ritmik_ileri_10', 'ritmik_geri_2', 'ritmik_geri_10']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                            categoryTheme="sayilar"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Saati Okuma Group Section (Sadece 2. Sınıf) */}
+                    {selectedGrade === 2 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                        {['saat_tam', 'saat_yarim', 'saat_ceyrek_gece', 'saat_ceyrek_kala'].map(key => {
+                          const t = topics[key];
+                          if (!t) return null;
+                          return (
+                            <TopicButtonReferenceStyle
+                              key={key}
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                              compact
+                              categoryTheme="sayilar"
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* 1. Sınıf En Alttaki Ek Başlıklar: Sayı & Şekil Örüntüsü, Uzunluk, Tartma, Paralarımız */}
+                    {selectedGrade === 1 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                        {['sayi_sekil_oruntusu', 'uzunluk_olcme', 'tartma', 'paralarimiz'].map(key => {
+                          const t = topics[key];
+                          if (!t) return null;
+                          return (
+                            <TopicButtonReferenceStyle
+                              key={key}
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="sayilar"
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
+                {selectedCategoryId === 'islemler' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Toplama İşlemi Group */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['toplama_20_ici', 'toplama_onluk', 'verilmeyen_toplanan', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
+                        : ['toplama_eldesiz_50', 'toplama_eldeli_50', 'verilmeyen_toplanani_bul', 'zihinden_toplama', 'tek_islem_toplama_problemleri', 'iki_islem_toplama_problemleri']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                            categoryTheme="islemler"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Çıkarma İşlemi Group */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['cikarma_20_ici', 'cikarma_onluk', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
+                        : ['cikarma_onluksuz_50', 'cikarma_onluklu_50', 'zihinden_cikarma', 'tek_islem_cikarma_problemleri', 'iki_islem_cikarma_problemleri']
+                      ).map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                            categoryTheme="islemler"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Karışık Toplama Çıkarma Problemleri */}
+                    <div className="grid grid-cols-1 gap-2 sm:gap-2.5 md:gap-3">
+                      {['toplama_cikarma_problemleri'].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="islemler"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Çarpma, Bölme ve Diğer İşlemler Cards (2. Sınıf) */}
+                    {selectedGrade === 2 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                        {['ardisik_toplama', 'ritmik_carpim', 'esit_paylastirma', 'ardisik_cikarma', 'kalansiz_bolme'].map(key => {
+                          const t = topics[key];
+                          if (!t) return null;
+                          return (
+                            <TopicButtonReferenceStyle
+                              key={key}
+                              topicKey={key}
+                              title={t.title}
+                              onClick={() => selectTopicAndStart(key)}
+                              categoryTheme="islemler"
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. VERİ İŞLEME & ÖLÇME */}
+                {selectedCategoryId === 'olcme' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {(selectedGrade === 1
+                      ? ['veri_grafik']
+                      : ['veri_grafik', 'takvim_olcme']
+                    ).map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="olcme"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 5. DİĞER OYUNLAR (TÜM SINIF SEVİYELERİ İÇİN) */}
+                {selectedCategoryId === 'diger_oyunlar' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* ÖZEL KAPIŞMA OYUNLARI: 🔍 AYNISINI BUL & 🔷 GEOMETRİK ŞEKİLLERİ BUL (YAN YANA 2'Lİ IZGARA) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      <TopicButtonReferenceStyle
+                        topicKey="aynisini_bul"
+                        title="Aynısını Bul"
+                        categoryTheme="diger_oyunlar"
+                        badgeText="2 Kişilik Kapışma"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          const aIdx = findActivityIndex('aynisini_bul', undefined, selectedGrade || 1);
+                          if (aIdx !== -1) setCurrentActivityIndex(aIdx);
+                          setShowAynisiniBul(true);
+                        }}
+                      />
+
+                      <TopicButtonReferenceStyle
+                        topicKey="geometrik_sekilleri_bul"
+                        title="Geometrik Şekilleri Bul"
+                        categoryTheme="diger_oyunlar"
+                        badgeText="1, 2 ve 3 Kişilik"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          const gsbIdx = findActivityIndex('geometrik_sekilleri_bul', undefined, selectedGrade || 1);
+                          if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
+                          setShowGeometrikSekilleriBul(true);
+                        }}
+                      />
+                    </div>
+
+                    {/* BÖLÜM 1: 🪢 2 KİŞİLİK HALAT ÇEKME DÜELLOSU */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['halat_toplama_1', 'halat_cikarma_1']
+                        : selectedGrade === 2
+                        ? ['halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2']
+                        : selectedGrade === 3
+                        ? ['halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3']
+                        : ['halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4']
+                      ).map(key => {
+                        const t = topics[key] || halatCekmeTopics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* BÖLÜM 2: ⚡ SÜRELİ MATEMATİK YARIŞLARI (1, 2 VE 3 KİŞİLİK) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {(selectedGrade === 1
+                        ? ['sureli_toplama_cikarma', 'sureli_on_tamamlama']
+                        : selectedGrade === 2
+                        ? ['sureli_toplama_cikarma', 'sureli_carpma_bolme']
+                        : selectedGrade === 3
+                        ? ['sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
+                        : ['sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma']
+                      ).map(key => {
+                        const t = topics[key] || sureliExtraTopics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* BÖLÜM 3: 🎮 MATEMATİK VE ZEKA OYUNLARI */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'balon_patlatma_mat',
+                        'matematik_hafiza',
+                        'hizli_islem_carki',
+                        'sayi_dedektifi',
+                        'ritim_labirent',
+                        'geometri_eslestirme'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="diger_oyunlar"
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
+                {selectedCategoryId === 'g3_tema1' && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Temel Sayı & Yuvarlama Konuları */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_uc_basamakli_okuma_yazma',
+                        'g3_sayi_cozumleme',
+                        'g3_sayi_siralama_karsilastirma',
+                        'g3_en_yakin_onluga_yuvarlama_100',
+                        'g3_en_yakin_onluga_yuvarlama',
+                        'g3_en_yakin_yuzluge_yuvarlama'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="sayilar"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Ritmik Saymalar Alt Başlığı & Konuları */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_ritmik_6',
+                        'g3_ritmik_7',
+                        'g3_ritmik_8',
+                        'g3_ritmik_9',
+                        'g3_ritmik_10',
+                        'g3_ritmik_100'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            compact
+                            categoryTheme="sayilar"
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Tek-Çift ve Örüntü Konuları */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                      {[
+                        'g3_tek_cift_20ye_kadar_islemler',
+                        'g3_tek_cift_sayilar',
+                        'g3_sayi_sekil_oruntuleri',
+                        'g3_nesne_tahmin_karsilastirma'
+                      ].map(key => {
+                        const t = topics[key];
+                        if (!t) return null;
+                        return (
+                          <TopicButtonReferenceStyle
+                            key={key}
+                            topicKey={key}
+                            title={t.title}
+                            onClick={() => selectTopicAndStart(key)}
+                            categoryTheme="sayilar"
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
+                {selectedCategoryId === 'g3_tema2' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_birim_kesirler',
+                      'g3_pay_payda_modelleme',
+                      'g3_payda_10_100_kesir',
+                      'g3_zaman_olcme',
+                      'g3_uzunluk_kutle_sivi',
+                      'g3_paralarimiz_lira_kurus'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 3. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
+                {selectedCategoryId === 'g3_tema3' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_zihinden_toplama_cikarma_tahmin',
+                      'g3_toplama_cikarma_problemleri',
+                      'g3_carpma_bolme_pratik',
+                      'g3_verilmeyen_ogeyi_bulma'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="islemler"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 3. SINIF TEMA 4: NESNELERİN GEOMETRİSİ VE ÖLÇME */}
+                {selectedCategoryId === 'g3_tema4' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g3_geometrik_cisimler_ozellikleri',
+                      'g3_temel_geometri_kavramlari',
+                      'g3_cevre_ve_olculebilir_nitelikler',
+                      'cisimler_acilimi'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 4. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
+                {selectedCategoryId === 'g4_tema1' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_sayi_okuma_yazma',
+                      'g4_basamak_ve_cozumleme',
+                      'g4_sayi_siralama',
+                      'g4_en_yakin_onluk_yuzluk',
+                      'g4_ritmik_yuzer_biner',
+                      'g4_sayi_sekil_oruntuleri'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 4. SINIF TEMA 2: SAYILAR VE NİCELİKLER (2) */}
+                {selectedCategoryId === 'g4_tema2' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_kesir_cesitleri_modelleme',
+                      'g4_birim_kesirler_karsilastirma',
+                      'g4_paydalari_esit_kesir_islemleri',
+                      'g4_uzunluk_olculeri_donusum',
+                      'g4_kutle_olculeri_ton_kg_g'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="sayilar"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 4. SINIF TEMA 3: İŞLEMLERDEN CEBİRSEL DÜŞÜNMEYE */}
+                {selectedCategoryId === 'g4_tema3' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_dort_islem_toplama_cikarma',
+                      'g4_carpma_islemi_3basamakli',
+                      'g4_kisa_yoldan_carpma_5',
+                      'g4_kisa_yoldan_carpma_50',
+                      'g4_kisa_yoldan_carpma_25',
+                      'g4_bolme_islemi_4basamakli',
+                      'g4_zihinden_carpma_bolme_10_100_1000',
+                      'g4_esitlik_ve_verilmeyen_deger'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="islemler"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 4. SINIF TEMA 4: GEOMETRİ, VERİ VE OLASILIK */}
+                {selectedCategoryId === 'g4_tema4' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                    {[
+                      'g4_geometrik_cisimler',
+                      'g4_cevre_uzunlugu',
+                      'g4_alan_tahmini_ve_birim_kare',
+                      'g4_dogru_isin_dogru_parcasi_acilar',
+                      'g4_simetri_dogrulari',
+                      'g4_sutun_grafigi_ve_tablolar',
+                      'g4_olaylarin_olasiligi',
+                      'cisimler_acilimi'
+                    ].map(key => {
+                      const t = topics[key];
+                      if (!t) return null;
+                      return (
+                        <TopicButtonReferenceStyle
+                          key={key}
+                          topicKey={key}
+                          title={t.title}
+                          onClick={() => selectTopicAndStart(key)}
+                          categoryTheme="geometri"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - NÖTR ANTRASİT/KOYU LACİVERT PANEL & YUMUŞATILMIŞ MAVİ ACCENT) */}
+      {gameState === 'playing' && playerCountMode === 1 && (() => {
+        const availableStudents = currentGradeStudents.length > 0 ? currentGradeStudents : students;
+        // Sort students alphabetically by Turkish collation
+        const sortedStudents = [...availableStudents].sort((a, b) => 
+          a.name.localeCompare(b.name, 'tr')
+        );
+        const assignedStudent = selectedStudentIds[0] ? (students.find(s => s.id === selectedStudentIds[0]) || null) : null;
+        const leftStudents = sortedStudents.slice(0, 12);
+        const rightStudents = sortedStudents.slice(12, 23);
+
+        const renderAvatarGrid = (
+          slotsStudents: typeof sortedStudents, 
+          side: 'left' | 'right', 
+          count: number,
+          label: string
+        ) => {
+          const isLeft = side === 'left';
+          return (
+            <div className={`flex flex-col shrink-0 bg-[#0b1328] rounded-2xl sm:rounded-3xl border-2 ${
+              isLeft 
+                ? 'border-indigo-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(99,102,241,0.2)]' 
+                : 'border-amber-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(245,158,11,0.2)]'
+            } p-2 sm:p-2.5 md:p-3 select-none`}>
+              {/* FRAME HEADER (BAŞKA ÇERÇEVE BAŞLIĞI) */}
+              <div className={`flex items-center justify-between px-1 pb-1.5 mb-1.5 border-b ${
+                isLeft ? 'border-indigo-500/25' : 'border-amber-500/25'
+              } text-[9.5px] sm:text-[10.5px] md:text-xs font-black uppercase tracking-wider`}>
+                <span className={`flex items-center gap-1.5 ${isLeft ? 'text-indigo-300' : 'text-amber-300'}`}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${
+                    isLeft 
+                      ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.9)]' 
+                      : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
+                  }`} />
+                  {label}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playMp3('/op.mp3');
+                    setRosterModalGrade(activeGradeNumber);
+                    setShowStudentRosterModal(true);
+                  }}
+                  className={`text-[8.5px] sm:text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-md ${
+                    isLeft 
+                      ? 'bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/30' 
+                      : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/30'
+                  }`}
+                  title="Sınıf Listesini Yönet"
+                >
+                  <Users size={12} />
+                  <span>{count} Kişi</span>
+                </button>
+              </div>
+
+              {/* 2-ROW x 6-COLUMN GRID (GENİŞLİK 6, YÜKSEKLİK 2 - BÜYÜTÜLMÜŞ AVATARLAR VE NET İSİMLER) */}
+              <div className="grid grid-cols-6 grid-rows-2 gap-1 sm:gap-1.5 md:gap-2">
+                {Array.from({ length: 12 }).map((_, slotIdx) => {
+                  // For right side (11 students requested), slot index 11 is the 12th cell.
+                  // If rightStudents has <= 11 students, slot 11 is a "+ Ekle" button to keep the 6x2 grid rectangle intact!
+                  if (side === 'right' && slotIdx === 11 && slotsStudents.length <= 11) {
+                    return (
+                      <button
+                        key="add-student-slot"
+                        type="button"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setRosterModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
+                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 transition-all cursor-pointer flex flex-col items-center justify-center p-1 group active:scale-95"
+                        title="Yeni Öğrenci Ekle"
+                      >
+                        <UserPlus size={16} className="text-amber-400 group-hover:scale-110 transition" />
+                        <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-amber-300 mt-1 leading-none">
+                          Ekle
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const student = slotsStudents[slotIdx];
+
+                  if (!student) {
+                    // Empty seat placeholder
+                    const seatNum = side === 'left' ? slotIdx + 1 : slotIdx + 13;
+                    return (
+                      <button
+                        key={`empty-${slotIdx}`}
+                        type="button"
+                        onClick={() => {
+                          playMp3('/op.mp3');
+                          setRosterModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
+                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-slate-700/50 hover:border-slate-500 bg-[#070d1a]/50 hover:bg-slate-800/40 flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-300 transition-all cursor-pointer group"
+                        title={`Sıra #${seatNum} - Öğrenci Ekle`}
+                      >
+                        <span className="text-[10px] sm:text-xs text-slate-600 group-hover:text-slate-400 font-mono font-bold">
+                          {seatNum}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  // En başta kimse seçili değil; tıklandığında seçilir veya seçim kaldırılır
+                  const isSelected = Boolean(selectedStudentIds[0] && selectedStudentIds[0] === student.id);
+
+                  return (
+                    <button
+                      key={student.id}
+                      type="button"
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        // Tıklanan öğrenci zaten seçiliyse seçimi kaldır (null), değilse seç
+                        setSelectedStudentIds(prev => [
+                          prev[0] === student.id ? null : student.id, 
+                          prev[1] || null, 
+                          prev[2] || null
+                        ]);
+                      }}
+                      title={`${student.name} (${student.className || ''}) • ${student.totalCorrect} Doğru - ${isSelected ? 'Seçimi Kaldır' : 'Aktif Oyuncu Yap'}`}
+                      className={`group relative p-1 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-between text-center ${
+                        isSelected
+                          ? 'bg-gradient-to-b from-amber-500/35 via-orange-500/25 to-amber-600/30 border-2 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_16px_rgba(251,191,36,0.6)] scale-105 z-10'
+                          : 'bg-[#060c1c]/90 hover:bg-[#111e3d] border border-slate-700/70 hover:border-blue-400/70'
+                      } w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 active:scale-95`}
+                    >
+                      {/* AVATAR BADGE */}
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-sm sm:text-base md:text-lg shrink-0 shadow border border-white/20 relative mt-0.5`}>
+                        <span>{student.avatar}</span>
+                        {isSelected && (
+                          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-slate-950 shadow flex items-center justify-center text-[9px] text-slate-950 font-black">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      {/* STUDENT FIRST NAME - HER ZAMAN NET VE OKUNAKLI */}
+                      <span className={`text-[8.5px] sm:text-[9.5px] md:text-[10.5px] font-bold block truncate w-full text-center leading-tight mb-0.5 px-0.5 ${
+                        isSelected ? 'text-amber-300 font-black drop-shadow' : 'text-slate-100 group-hover:text-white'
+                      }`}>
+                        {student.name.split(' ')[0]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-end justify-center lg:justify-between xl:justify-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6 w-full h-full max-h-full overflow-y-auto lg:overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1780px] mx-auto">
+            {/* SOL ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SOLUNDA, 12 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
+            <div className="order-2 lg:order-1 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
+              {renderAvatarGrid(leftStudents, 'left', 12, '1. Grup (1-12)')}
+            </div>
+
+            {/* MERKEZ: SORU ÇERÇEVESİ (ŞIKLARIN GENİŞLİĞİ KADAR, ŞIKLAR ÇERÇEVENİN İÇİNDE) */}
+            <div className="order-1 lg:order-2 h-full flex-1 max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink-0 w-full">
+              <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+                {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                  {/* LEFT: GROUP BADGE & TOPIC */}
+                  <div className="flex items-center gap-1.5 min-w-0 h-full">
+                    {assignedStudent ? (
+                      <div 
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                        title={`Aktif Öğrenci: ${assignedStudent.name}`}
+                      >
+                        {assignedStudent.avatar}
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                        1
+                      </div>
+                    )}
+                    <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                      <div className="flex items-center min-w-0">
+                        <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                          {assignedStudent ? assignedStudent.name : '1. GRUP'}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                          • {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
+                        </span>
+                      </div>
+                      <img 
+                        src={getGradeIconForTopic(currentTopic, selectedGrade)} 
+                        alt="Sınıf" 
+                        className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* RIGHT: SCORE, TIMER & LIVES */}
+                  <div className="flex items-center gap-1.5 shrink-0 h-full">
+                    {isTimedTopic(currentTopic) && (
+                      <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                        questionTimeLeft <= 3 
+                          ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60' 
+                          : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                      }`}>
+                        <span className="text-xs">⏱️</span>
+                        <span>{questionTimeLeft}s</span>
+                      </div>
+                    )}
+
+                    <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                      <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                        {score} / 10
+                      </span>
+                      <div className="flex items-center gap-1 px-1">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <span key={i} className={`text-xs sm:text-sm transition-all ${i < lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
+                            ❤️
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                  <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' ? 'p-1.5 sm:p-2' : 'p-2 sm:p-3'} flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full`}>
+                    {/* Subtle top inner gradient */}
+                    <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                    <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
+                      <AutoFitQuestionBox
+                        questionHTML={currentQuestionData?.questionHTML}
+                        questionText={currentQuestionData?.question}
+                        mode={1}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID) */}
+                <div className={`grid grid-cols-2 ${selectedGrade === 4 ? 'gap-2 sm:gap-3 md:gap-3.5' : 'gap-1.5 sm:gap-2'} w-full shrink-0 mt-1`}>
+                  {(() => {
+                    const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
+                    const singleOptHeightClass = selectedGrade === 4
+                      ? 'h-[37px] sm:h-[43px] md:h-[48px] lg:h-[53px] xl:h-[59px] 2xl:h-[64px] max-h-[37px] sm:max-h-[43px] md:max-h-[48px] lg:max-h-[53px] xl:max-h-[59px] 2xl:max-h-[64px] px-2 sm:px-3'
+                      : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'py-2 px-2.5 min-h-[48px] sm:min-h-[58px]' : 'py-3 sm:py-3.5 px-3 min-h-[68px] sm:min-h-[80px] md:min-h-[88px]');
+
+                    return optionsList.map((opt, idx) => {
+                      const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
+                      const isWrong = selectedOption !== null && currentQuestionData && opt === selectedOption && opt !== currentQuestionData.correct;
+
+                      let feedbackClasses = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
+                      if (isCorrect) {
+                        feedbackClasses = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                      } else if (isWrong) {
+                        feedbackClasses = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleAnswer(opt)}
+                          disabled={feedbackState !== 'none'}
+                          className={`fast-quiz-btn relative w-full ${singleOptHeightClass} rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${feedbackClasses}`}
+                        >
+                          {/* Subtle top glare in button */}
+                          <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
+                          {(() => {
+                            const displayOpt = cleanOptionForDisplay(opt, selectedGrade === 4);
+                            return (
+                              <AutoFitOptionContent
+                                opt={opt}
+                                displayOpt={displayOpt}
+                                isGrade4={selectedGrade === 4}
+                                mode={1}
+                                fallbackFontClass={uniformOptFontClass}
+                              />
+                            );
+                          })()}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* SAĞ ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SAĞINDA, 11 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
+            <div className="order-3 lg:order-3 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
+              {renderAvatarGrid(rightStudents, 'right', 11, '2. Grup (13-23)')}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MULTI-PLAYER SPLIT SCREEN DÜELLO ALANI (2 VE 3 OYUNCU - ŞEFFAF GLASSMORPHISM) */}
+      {gameState === 'playing' && playerCountMode > 1 && (
+        <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 w-full h-full overflow-hidden min-h-0 relative z-10 ${isHalatCekmeTopic(currentTopic) ? 'w-full max-w-full px-2 sm:px-4' : (playerCountMode === 2 ? 'max-w-[clamp(1024px,calc(512px+50vw),1800px)]' : 'max-w-[clamp(1200px,calc(500px+70vw),2200px)] w-full')} mx-auto`}>
+          {/* COMMON TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 shrink-0 h-8 sm:h-9 w-full">
+            <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
+              ⚔️ {playerCountMode} OYUNCU DÜELLO
+            </span>
+            <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
+              <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
+                <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words">
+                  {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || ''}
+                </h2>
+                <img 
+                  src={getGradeIconForTopic(currentTopic, selectedGrade)} 
+                  alt="Sınıf" 
+                  className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-sm ml-1" 
+                />
+              </div>
+            </div>
+            <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
+              🎯 HEDEF: 10 PUAN
+            </span>
+          </div>
+
+          {/* DÜELLO ALANI VE DİKEY BASKETBOL PARKURU YERLEŞİMİ */}
+          {(() => {
+            const renderPlayerCard = (p: (typeof players)[0], pIdx: number) => {
+              const assignedStudent = selectedStudentIds[pIdx] ? (students.find(s => s.id === selectedStudentIds[pIdx]) || null) : null;
+              const groupTheme = pIdx === 0 
+                ? {
+                    accentColor: "blue",
+                    containerBorder: "border-blue-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-blue-400",
+                    headerTitleColor: "text-blue-200",
+                    avatarBorder: "border-2 border-blue-400",
+                    avatarBg: "bg-[#080e1d] text-blue-300",
+                    buttonDefault: "bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] active:from-[#0e1726] active:to-[#090f1a] text-blue-50/95 border-2 border-blue-500/35 hover:border-blue-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-blue-300/10 to-transparent",
+                  }
+                : pIdx === 1
+                ? {
+                    accentColor: "rose",
+                    containerBorder: "border-rose-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(244,63,94,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-rose-400",
+                    headerTitleColor: "text-rose-200",
+                    avatarBorder: "border-2 border-rose-400",
+                    avatarBg: "bg-[#080e1d] text-rose-300",
+                    buttonDefault: "bg-gradient-to-b from-[#2e1925] via-[#24131d] to-[#180b13] hover:from-[#3a2030] hover:via-[#2c1724] hover:to-[#1d0e17] active:from-[#190c14] active:to-[#10070c] text-rose-50/95 border-2 border-rose-500/35 hover:border-rose-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-rose-300/10 to-transparent",
+                  }
+                : {
+                    accentColor: "emerald",
+                    containerBorder: "border-emerald-500/50 shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_16px_rgba(16,185,129,0.15)]",
+                    headerBorder: "border-slate-700/80",
+                    headerAccentBorder: "border-l-4 border-l-emerald-400",
+                    headerTitleColor: "text-emerald-200",
+                    avatarBorder: "border-2 border-emerald-400",
+                    avatarBg: "bg-[#080e1d] text-emerald-300",
+                    buttonDefault: "bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95 border-2 border-emerald-500/35 hover:border-emerald-400/70 shadow-md active:shadow-xs",
+                    buttonGlare: "from-emerald-300/10 to-transparent",
+                  };
+
+              // Halat çekmede kazanan videosu SADECE ortadaki alanda gösterilir; oyuncu kartında ekstra video açılmaz
+              const isWinnerGroup = trackVictoryVideoActive && duelWinnerIndex === pIdx && !isHalatCekmeTopic(currentTopic);
+              const isOtherGroup = trackVictoryVideoActive && duelWinnerIndex !== null && duelWinnerIndex !== pIdx;
+              const winCfg = getWinnerVideoConfig(duelWinnerIndex);
+
+              const uniformOptFontClass = getDynamicOptionFontClass(p.shuffledOptions, playerCountMode, selectedGrade);
+              const optHeightClasses = selectedGrade === 4
+                ? (playerCountMode === 3
+                    ? "min-h-[32px] sm:min-h-[38px] md:min-h-[44px] lg:min-h-[48px] py-1 px-1.5"
+                    : "h-[30px] sm:h-[38px] md:h-[43px] lg:h-[48px] xl:h-[54px] 2xl:h-[61px] max-h-[30px] sm:max-h-[38px] md:max-h-[43px] lg:max-h-[48px] xl:max-h-[54px] 2xl:max-h-[61px] px-2")
+                : (playerCountMode === 3
+                    ? "py-2 px-1.5 min-h-[48px] sm:min-h-[58px] md:min-h-[64px]"
+                    : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? "py-2 sm:py-2.5 px-2 min-h-[48px] sm:min-h-[58px]" : "py-3 sm:py-3.5 px-2.5 min-h-[58px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[86px]"));
+
+              const isHalat = isHalatCekmeTopic(currentTopic);
+              const isSpatialOrSymmetry = currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri';
+              const cardAlignment = playerCountMode === 2
+                ? (isHalat ? 'w-full mx-0' : isSpatialOrSymmetry ? 'mx-auto' : (pIdx === 0 ? 'mr-auto ml-0' : 'ml-auto mr-0'))
+                : '';
+              const cardMaxWidth = playerCountMode === 2
+                ? (isHalat ? 'w-full max-w-none' : isSpatialOrSymmetry ? 'max-w-[460px] lg:max-w-[520px] xl:max-w-[560px]' : (selectedGrade === 4 ? 'max-w-[520px] lg:max-w-[580px] xl:max-w-[640px]' : 'max-w-[480px] lg:max-w-[520px]'))
+                : 'max-w-none';
+              const optionsMaxWidth = playerCountMode === 2
+                ? (isHalat ? 'w-full max-w-none px-1 sm:px-2' : isSpatialOrSymmetry ? 'max-w-[380px] sm:max-w-[440px]' : (selectedGrade === 4 ? 'max-w-[440px] sm:max-w-[500px] md:max-w-[560px]' : 'max-w-[440px] sm:max-w-[480px] md:max-w-[520px] lg:max-w-[560px]'))
+                : (playerCountMode === 3 ? 'w-full max-w-full' : 'max-w-[360px] sm:max-w-[420px]');
+
+              // SORU GRUBU SÜTUNU: NÖTR KOYU ANTRASİT/LACİVERT PANEL & OYUNCU ACCENT KENARLIK
+              const containerClasses = isWinnerGroup
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0b1328] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                : isOtherGroup
+                ? `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0b1328] opacity-65 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`
+                : `relative flex-1 flex flex-col justify-between p-1.5 sm:p-2.5 rounded-2xl sm:rounded-3xl border-2 ${groupTheme.containerBorder} bg-[#0b1328] shadow-2xl overflow-hidden min-h-0 z-10 transition-all w-full ${cardMaxWidth} ${cardAlignment} h-full`;
+
+              return (
+                <div
+                  key={p.id}
+                  className={containerClasses}
+                >
+                  {/* PLAYER HEADER BAR */}
+                  {isWinnerGroup ? (
+                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
+                      {/* LEFT: GOLD TROPHY */}
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-yellow-400 via-amber-300 to-yellow-600 border-2 border-white shadow-[0_0_15px_rgba(250,204,21,0.9)] text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
+                        🏆
+                      </div>
+                      {/* GOLD CHAMPION CAPSULE */}
+                      <div className="flex-1 h-full ml-1.5 sm:ml-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-2 border-white rounded-xl px-2.5 flex items-center justify-between shadow-lg">
+                        <span className="font-black text-xs text-slate-950 uppercase tracking-wide truncate flex items-center gap-1.5">
+                          <img src={winCfg.img} alt={winCfg.title} className="w-4 h-4 sm:w-5 sm:h-5 object-contain inline-block" />
+                          <span>{pIdx + 1}. GRUP {assignedStudent ? `(${assignedStudent.name}) ` : ''}KAZANDI!</span>
+                        </span>
+                        <span className="bg-slate-950 text-yellow-300 font-black text-xs px-2 py-0.5 rounded-lg shadow-inner">
+                          {p.score} / 10 🎯
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1 h-8 sm:h-9">
+                      {/* LEFT: CIRCLE BADGE (1), (2), (3) - AVATAR ÇERÇEVESİ */}
+                      <div
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full ${groupTheme.avatarBg} ${groupTheme.avatarBorder} font-black text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-xs cursor-pointer hover:scale-105 transition`}
+                        title={assignedStudent ? `${assignedStudent.name} (Dokunarak sınıf listesini aç)` : `${pIdx + 1}. Grup (Dokunarak öğrenci seç)`}
+                        onClick={() => {
+                          setRosterModalGrade(activeGradeNumber);
+                          setStatsModalGrade(activeGradeNumber);
+                          setShowStudentRosterModal(true);
+                        }}
+                      >
+                        {assignedStudent ? (
+                          <span className="text-base sm:text-lg select-none">{assignedStudent.avatar}</span>
+                        ) : (
+                          pIdx + 1
+                        )}
+                      </div>
+
+                      {/* CONNECTED SOLID CAPSULE FOR GROUP NAME, INDIVIDUAL TIMER & SCORE */}
+                      <div className={`flex-1 h-full ml-1.5 sm:ml-2 bg-[#0e172a] border border-slate-700/80 ${groupTheme.headerAccentBorder} rounded-xl px-2 sm:px-2.5 flex items-center justify-between shadow-xs gap-1 sm:gap-1.5`}>
+                        <span className={`font-black text-xs ${groupTheme.headerTitleColor} uppercase tracking-wide truncate flex items-center gap-1`}>
+                          <span>{pIdx + 1}. GRUP</span>
+                          {assignedStudent && (
+                            <span className="text-amber-300 font-bold normal-case text-[10px] sm:text-[11px] truncate max-w-[70px] sm:max-w-[105px]">
+                              ({assignedStudent.name.split(' ')[0]})
+                            </span>
+                          )}
+                        </span>
+
+                        {/* INDIVIDUAL PLAYER COUNTDOWN TIMER */}
+                        {!isOtherGroup && isTimedTopic(currentTopic) && p.lives > 0 && (
+                          <div className={`h-6 sm:h-7 px-1.5 sm:px-2 py-0.5 rounded-lg border font-mono font-black text-xs flex items-center gap-1 shrink-0 transition-all ${
+                            (p.timeLeft ?? 10) <= 3
+                              ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60'
+                              : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                          }`}>
+                            <span className="text-xs">⏱️</span>
+                            <span>{p.timeLeft ?? 10}s</span>
+                          </div>
+                        )}
+
+                        {/* RIGHT: SCORE & HEARTS */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                            {p.score} / 10
+                          </span>
+                          <div className="flex items-center gap-1 px-0.5">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <span key={i} className={`text-xs sm:text-sm transition-all ${i < p.lives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
+                                ❤️
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* WINNER GROUP VIDEO IN ITS OWN FRAME */}
+                  {isWinnerGroup ? (
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-black border-2 border-yellow-400/80 shadow-[inset_0_0_25px_rgba(0,0,0,0.9),0_0_25px_rgba(250,204,21,0.5)] overflow-hidden flex flex-col items-center justify-center min-h-0 w-full my-0.5">
+                      <video
+                        key={winCfg.videoSrc}
+                        src={winCfg.videoSrc}
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-cover"
+                        onEnded={handleTrackVideoComplete}
+                        onError={() => {
+                          console.log('Video oynatma hatası, sonuç ekranına geçiliyor');
+                          handleTrackVideoComplete();
+                        }}
+                      />
+
+                      {/* Mascot floating badge on video */}
+                      <div className={`absolute top-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r ${winCfg.badgeBg} text-white font-black text-[10px] sm:text-xs px-3 py-1 rounded-full border border-white shadow-xl flex items-center gap-1.5 z-20 pointer-events-none drop-shadow-md animate-pulse`}>
+                        <img src={winCfg.img} alt="Şampiyon" className="w-4 h-4 object-contain" />
+                        <span>{winCfg.title}</span>
+                      </div>
+
+                      {/* Fast forward to results button */}
+                      <button
+                        type="button"
+                        onClick={handleTrackVideoComplete}
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-[10px] sm:text-xs px-3.5 py-1 rounded-full border border-white shadow-2xl transition cursor-pointer z-20 flex items-center gap-1"
+                      >
+                        <span>Sonuçları Gör</span>
+                        <span>⏩</span>
+                      </button>
+                    </div>
+                  ) : isOtherGroup ? (
+                    /* OTHER GROUPS IN DUEL COMPLETED STATE */
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border border-slate-700/70 flex flex-col items-center justify-center text-center p-3 my-0.5 min-h-0 w-full">
+                      <div className="text-2xl sm:text-3xl mb-1 filter drop-shadow">🏁</div>
+                      <div className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wide">
+                        YARIŞMA TAMAMLANDI
+                      </div>
+                      <div className="text-[11px] text-amber-300 font-bold mt-0.5">
+                        Final Skoru: {p.score} / 10
+                      </div>
+                    </div>
+                  ) : (
+                    /* NORMAL GAME PLAYING VIEW */
+                    <>
+                      {/* QUESTION SOLID CONTAINER FOR THIS PLAYER - 100% OPAQUE (NÖTR KOYU ANTRASİT) */}
+                      <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.08)] ${currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'p-1 sm:p-1.5' : (playerCountMode === 3 ? 'px-1 py-1 sm:px-1.5 sm:py-1.5 my-0.5' : 'px-2 py-1.5 sm:px-3 sm:py-2.5 my-1')} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
+                        {/* Subtle top inner gradient */}
+                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                        {p.lives <= 0 ? (
+                          <div className="relative z-20 flex flex-col items-center justify-center gap-1 p-2">
+                            <div className="text-2xl sm:text-3xl animate-bounce">💔</div>
+                            <div className="text-xl xs:text-2xl sm:text-3xl font-black text-rose-500 uppercase tracking-widest [text-shadow:0_3px_6px_#000,0_6px_16px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(225,29,72,0.95)] animate-pulse">
+                              ELENDİ!
+                            </div>
+                            <div className="text-white/90 text-[11px] sm:text-xs font-black [text-shadow:0_2px_4px_#000] drop-shadow-md">
+                              Diğer oyuncular yarışıyor...
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative z-10 w-full h-full flex items-center justify-center min-h-0 max-h-full overflow-hidden">
+                            <AutoFitQuestionBox
+                              questionHTML={p.currentQuestionData?.questionHTML}
+                              questionText={p.currentQuestionData?.question}
+                              mode={playerCountMode}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CHOICE BUTTONS GRID FOR THIS PLAYER */}
+                      {p.lives > 0 && (
+                        <div className={`grid grid-cols-2 ${selectedGrade === 4 ? 'gap-2 sm:gap-2.5 md:gap-3' : 'gap-1.5 sm:gap-2'} w-full ${optionsMaxWidth} mx-auto shrink-0 z-10`}>
+                          {p.shuffledOptions.map((opt, oIdx) => {
+                            const isCorrect = p.selectedOption !== null && p.currentQuestionData && opt === p.currentQuestionData.correct;
+                            const isWrong = p.selectedOption !== null && p.currentQuestionData && opt === p.selectedOption && opt !== p.currentQuestionData.correct;
+
+                            let btnClass = groupTheme.buttonDefault;
+                            if (isCorrect) {
+                              btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                            } else if (isWrong) {
+                              btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
+                            }
+
+                            return (
+                              <button
+                                key={oIdx}
+                                onClick={() => handlePlayerAnswer(pIdx, opt)}
+                                disabled={p.feedbackState !== 'none'}
+                                className={`fast-quiz-btn relative w-full ${optHeightClasses} rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
+                              >
+                                {/* Inner top glare */}
+                                <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${groupTheme.buttonGlare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
+                                {(() => {
+                                  const displayOpt = cleanOptionForDisplay(opt, selectedGrade === 4);
+                                  return (
+                                    <AutoFitOptionContent
+                                      opt={opt}
+                                      displayOpt={displayOpt}
+                                      isGrade4={selectedGrade === 4}
+                                      mode={playerCountMode}
+                                      fallbackFontClass={uniformOptFontClass}
+                                    />
+                                  );
+                                })()}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            };
+
+            return playerCountMode === 2 ? (
+              /* 2 OYUNCU MODU: 1. OYUNCU (SOL) - DİKEY BASKETBOL PARKURU (ORTA) - 2. OYUNCU (SAĞ) */
+              <div className={`flex-1 flex flex-row items-stretch ${isHalatCekmeTopic(currentTopic) ? 'justify-between gap-1.5 sm:gap-2.5 md:gap-3 px-0.5' : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri') ? 'justify-center gap-3 sm:gap-6' : 'justify-between gap-2 sm:gap-4'} w-full min-h-0 overflow-hidden`}>
+                {/* 1. GRUP */}
+                <div className={`flex-1 flex items-center justify-center h-full min-h-0 min-w-0`}>
+                  {renderPlayerCard(players[0], 0)}
+                </div>
+
+                {/* ORTA PARKUR (HALAT ÇEKME VEYA DİKEY BASKETBOL) */}
+                <div className="h-full flex items-center justify-center shrink-0 px-0.5 sm:px-1">
+                  {isHalatCekmeTopic(currentTopic) ? (
+                    <TugOfWarTrack
+                      players={players}
+                      targetScore={10}
+                      duelWinnerIndex={duelWinnerIndex}
+                      soundEnabled={soundEnabled}
+                      onVideoComplete={handleTrackVideoComplete}
+                    />
+                  ) : (
+                    <BasketballRaceTrack
+                      players={players}
+                      playerCountMode={2}
+                      targetScore={10}
+                      orientation="vertical"
+                      soundEnabled={soundEnabled}
+                    />
+                  )}
+                </div>
+
+                {/* 2. GRUP */}
+                <div className={`flex-1 flex items-center ${isHalatCekmeTopic(currentTopic) || currentTopic === 'uzamsal_iliskiler' ? 'justify-center' : 'justify-end'} h-full min-h-0 min-w-0`}>
+                  {renderPlayerCard(players[1], 1)}
+                </div>
+              </div>
+            ) : (
+              /* 3 OYUNCU MODU: HER GRUBUN SOLUNDA BİREYSEL BASKETBOL PARKURU (p1, p2, p3) + KARTI (EŞİT ARALIKLAR) */
+              <div className="flex-1 flex flex-row items-stretch min-h-0 h-full w-full gap-2 sm:gap-2.5 md:gap-3 overflow-hidden">
+                {/* 1. GRUP İSTASYONU (SOLDA: p1.png PARKURU + 1. GRUP KARTI) */}
+                <div className="flex-1 flex flex-row items-stretch h-full min-h-0 min-w-0 gap-2 sm:gap-2.5 md:gap-3">
+                  <div className="h-full flex items-center justify-center shrink-0">
+                    <SingleBasketballTrack 
+                      playerIndex={0} 
+                      score={players[0]?.score || 0} 
+                      targetScore={10} 
+                      isWinner={duelWinnerIndex === 0} 
+                    />
+                  </div>
+                  <div className="flex-1 h-full min-h-0 min-w-0">
+                    {renderPlayerCard(players[0], 0)}
+                  </div>
+                </div>
+
+                {/* 2. GRUP İSTASYONU (ORTADA: p2.png PARKURU + 2. GRUP KARTI) */}
+                <div className="flex-1 flex flex-row items-stretch h-full min-h-0 min-w-0 gap-2 sm:gap-2.5 md:gap-3">
+                  <div className="h-full flex items-center justify-center shrink-0">
+                    <SingleBasketballTrack 
+                      playerIndex={1} 
+                      score={players[1]?.score || 0} 
+                      targetScore={10} 
+                      isWinner={duelWinnerIndex === 1} 
+                    />
+                  </div>
+                  <div className="flex-1 h-full min-h-0 min-w-0">
+                    {renderPlayerCard(players[1], 1)}
+                  </div>
+                </div>
+
+                {/* 3. GRUP İSTASYONU (SAĞDA: p3.png PARKURU + 3. GRUP KARTI) */}
+                <div className="flex-1 flex flex-row items-stretch h-full min-h-0 min-w-0 gap-2 sm:gap-2.5 md:gap-3">
+                  <div className="h-full flex items-center justify-center shrink-0">
+                    <SingleBasketballTrack 
+                      playerIndex={2} 
+                      score={players[2]?.score || 0} 
+                      targetScore={10} 
+                      isWinner={duelWinnerIndex === 2} 
+                    />
+                  </div>
+                  <div className="flex-1 h-full min-h-0 min-w-0">
+                    {renderPlayerCard(players[2], 2)}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
+          {playerCountMode >= 2 && (
+            <StudentAvatarDock
+              students={currentGradeStudents}
+              currentGrade={activeGradeNumber}
+              playerCount={playerCountMode}
+              selectedStudentIds={selectedStudentIds}
+              onSelectStudentForPlayer={(pIdx, studentId) => {
+                setSelectedStudentIds(prev => {
+                  const updated = [...prev];
+                  updated[pIdx] = studentId;
+                  return updated;
+                });
+              }}
+              onOpenRosterModal={(gradeToOpen) => {
+                setRosterModalGrade(gradeToOpen || activeGradeNumber);
+                setShowStudentRosterModal(true);
+              }}
+              playMp3={playMp3}
+            />
+          )}
+        </div>
+      )}
+
+
+      {/* GLOBAL FOOTER WITH COPYRIGHT TEXT & DISCREET SAYAÇ BUTTON */}
+      <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xl w-full">
+        <div className="w-8 sm:w-16 shrink-0" />
+        <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm truncate">
+          © 2026 OLCİCO Tüm hakları saklıdır.
+        </p>
+        <button
+          onClick={async () => {
+            playMp3('/op.mp3');
+            setCountersData(loadCounters());
+            setShowCountersModal(true);
+            const freshTotal = await refreshWorldwideVisitorCount();
+            if (freshTotal) {
+              setCountersData(loadCounters());
+            }
+          }}
+          className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-60 hover:opacity-100 shrink-0 shadow-sm"
+          title="Dünya Geneli Canlı Ziyaretçi & Sınıf Sayaç Paneli"
+          aria-label="Sayaç Paneli"
+        >
+          <Globe size={13} className="text-cyan-400 group-hover:rotate-12 transition-transform" />
+          <span className="text-[10px] font-mono font-bold tracking-tight text-slate-300 group-hover:text-amber-300">
+            {countersData.visits.total.toLocaleString('tr-TR')}
+          </span>
+        </button>
+      </footer>
+
+      {/* GAME OVER / VICTORY OVERLAY */}
+      {gameState === 'gameover' && gameResult && (
+        <div 
+          className="fixed inset-0 h-[100dvh] w-full z-50 flex flex-col items-center justify-center text-white text-center overflow-hidden select-none px-2 sm:px-4 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('/dere3.jpeg')` }}
+        >
+          {/* INNER CONTAINER - PERFECTLY POSITIONED INSIDE THE CREAM PARCHMENT AREA */}
+          <div className="relative z-10 w-full max-w-3xl flex flex-col items-center justify-center my-auto">
+            {/* MULTI-PLAYER AWARD SECTION (CENTERED IN CREAM AREA OVER DERE3.JPEG) */}
+            {playerCountMode >= 2 ? (
+              <div className="relative w-full max-w-[560px] sm:max-w-[660px] md:max-w-[720px] flex flex-col items-center justify-center select-none px-2 py-1">
+                {/* 1. TOP HEADER SECTION: BANNER & WINNER ANNOUNCEMENT (INSIDE CREAM REGION) */}
+                <div className="relative z-10 flex flex-col items-center shrink-0 w-full mb-1 sm:mb-2">
+                  <div className="relative w-full max-w-[360px] xs:max-w-[440px] sm:max-w-[520px] rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 flex items-center justify-center px-4 py-2">
+                    {/* bb3.png BANNER BACKGROUND */}
+                    <div 
+                      className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none opacity-30 filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]"
+                      style={{ backgroundImage: `url('/bb3.png')` }}
+                    />
+                    <div className="relative z-10 flex flex-col items-center justify-center">
+                      <h2 className="text-[13px] xs:text-[15px] sm:text-lg md:text-xl font-black text-amber-200 uppercase tracking-wider drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] leading-tight">
+                        🏆 {playerCountMode === 3 ? '3 OYUNCU KAPIŞMA ŞAMPİYONU' : '2 OYUNCU KAPIŞMA ŞAMPİYONU'}
+                      </h2>
+                      <p className="text-[11px] xs:text-[12.5px] sm:text-sm md:text-base font-black text-yellow-300 uppercase tracking-wide drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] leading-tight mt-0.5">
+                        {playerCountMode === 3 ? (
+                          duelWinnerIndex === 0
+                            ? '1. GRUP (KAPLUMBAĞA) KAZANDI! 🥇'
+                            : duelWinnerIndex === 1
+                            ? '2. GRUP (EJDERHA) KAZANDI! 🥇'
+                            : '3. GRUP (SAVAŞÇI) KAZANDI! 🥇'
+                        ) : (
+                          duelWinnerIndex === 0
+                            ? '1. GRUP (KAPLUMBAĞA) KAZANDI! 🥇'
+                            : '2. GRUP (EJDERHA) KAZANDI! 🥇'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. MIDDLE SECTION: 3-IMAGE PODIUM CEREMONY (CENTERED) */}
+                <div className="relative z-10 w-full flex items-end justify-center py-1">
+                  <div className="w-full flex items-end justify-center gap-2 xs:gap-3 sm:gap-5 px-1">
+                    {(() => {
+                      const groupCount = playerCountMode === 2 ? 2 : 3;
+                      const activeIndices = groupCount === 2 ? [0, 1] : [0, 1, 2];
+                      const rankedGroupIndices = [...activeIndices].sort((a, b) => {
+                        if (a === duelWinnerIndex) return -1;
+                        if (b === duelWinnerIndex) return 1;
+                        const scoreA = players[a]?.score || 0;
+                        const scoreB = players[b]?.score || 0;
+                        if (scoreB !== scoreA) return scoreB - scoreA;
+                        return a - b;
+                      });
+                      const groupRanks: Record<number, number> = {};
+                      rankedGroupIndices.forEach((gIdx, rankIdx) => {
+                        groupRanks[gIdx] = rankIdx + 1;
+                      });
+
+                      const groupDefs = [
+                        { pIdx: 0, name: "1. GRUP", img: "/kap.png", label: "KAPLUMBAĞA", headerColor: "bg-blue-600 border-blue-300" },
+                        { pIdx: 1, name: "2. GRUP", img: "/ejd.png", label: "EJDERHA", headerColor: "bg-rose-600 border-rose-300" },
+                        { pIdx: 2, name: "3. GRUP", img: "/balta.png", label: "SAVAŞÇI", headerColor: "bg-emerald-600 border-emerald-300" }
+                      ].slice(0, groupCount);
+
+                      return groupDefs.map((group) => {
+                        const p = players[group.pIdx] || { score: 0 };
+                        const rank = groupRanks[group.pIdx] || 1;
+                        const isWinner = rank === 1;
+                        return (
+                          <div
+                            key={group.pIdx}
+                            className={`flex-1 max-w-[85px] xs:max-w-[105px] sm:max-w-[130px] flex flex-col items-center justify-end transition-all duration-500 ${
+                              isWinner ? '-translate-y-1.5 sm:-translate-y-2.5 z-20' : 'translate-y-0 z-10 opacity-95'
+                            }`}
+                          >
+                            {/* SCORE BADGE DIRECTLY ABOVE IMAGE */}
+                            <div className="mb-0.5 flex flex-col items-center shrink-0">
+                              {isWinner && (
+                                <span className="text-xs xs:text-sm sm:text-lg filter drop-shadow-md animate-bounce mb-0.5">👑</span>
+                              )}
+                              <div
+                                className={`px-1.5 xs:px-2 sm:px-2.5 py-0.5 rounded-full font-black text-[7.5px] xs:text-[8.5px] sm:text-[11px] tracking-wider shadow-lg border uppercase whitespace-nowrap ${
+                                  isWinner
+                                    ? 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 border-white ring-2 ring-yellow-300/80 drop-shadow-[0_2px_8px_rgba(251,191,36,0.9)]'
+                                    : 'bg-slate-900/90 text-amber-300 border-amber-400/50 shadow-md'
+                                }`}
+                              >
+                                {p.score} PUAN
+                              </div>
+                            </div>
+
+                            {/* CHARACTER IMAGE */}
+                            <div className={`relative flex items-center justify-center ${isWinner ? 'scale-105 sm:scale-115' : 'scale-90 sm:scale-95'} transition-transform`}>
+                              {isWinner && (
+                                <div className="absolute inset-0 bg-yellow-400/25 rounded-full blur-xl animate-pulse pointer-events-none" />
+                              )}
+                              <img
+                                src={group.img}
+                                alt={group.name}
+                                className={`w-10 h-10 xs:w-12 xs:h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain filter select-none pointer-events-none transition-all ${
+                                  isWinner
+                                    ? 'drop-shadow-[0_0_16px_rgba(251,191,36,0.95)] brightness-110'
+                                    : 'drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]'
+                                }`}
+                              />
+                            </div>
+
+                            {/* GROUP NAME BADGE */}
+                            <div
+                              className={`mt-0.5 px-1.5 xs:px-2 py-0.5 rounded text-[7.5px] xs:text-[8.5px] sm:text-[11px] font-black uppercase text-white tracking-wider shadow-md border whitespace-nowrap ${
+                                isWinner ? 'bg-amber-500 border-yellow-200 text-slate-950 shadow-yellow-500/50' : `${group.headerColor} text-white`
+                              }`}
+                            >
+                              {isWinner ? `🥇 ${group.name}` : rank === 2 ? `🥈 ${group.name}` : `🥉 ${group.name}`}
+                            </div>
+
+                            {/* PODIUM PEDESTAL / KÜRSÜ STAND */}
+                            <div
+                              className={`w-full mt-0.5 rounded-t-lg flex flex-col items-center justify-center border-t-2 border-x-2 shadow-2xl ${
+                                isWinner
+                                  ? 'h-6 xs:h-7 sm:h-9 bg-gradient-to-b from-amber-400 via-yellow-400 to-amber-600 border-yellow-200 text-slate-950 font-black'
+                                  : 'h-3.5 xs:h-4 sm:h-6 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 border-slate-500 text-slate-300 font-bold'
+                              }`}
+                            >
+                              <span className={`text-[7.5px] xs:text-[8.5px] sm:text-[11px] font-black drop-shadow-sm ${isWinner ? 'text-slate-950' : 'text-slate-300'}`}>
+                                {isWinner ? '1. ŞAMPİYON' : `${rank}. SIRA`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* 3. ACTION BUTTONS (INSIDE CREAM REGION, DIRECTLY UNDER PODIUM STANDS) */}
+                <div className="relative z-50 shrink-0 flex items-center justify-center gap-4 sm:gap-6 w-full max-w-xs mt-2.5 sm:mt-3.5">
+                  {/* REPLAY ICON BUTTON (tekrar.png) */}
+                  <button
+                    onClick={() => selectTopicAndStart(currentTopic)}
+                    title="Yeniden Oyna"
+                    className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
+                  >
+                    <img 
+                      src="/tekrar.png" 
+                      alt="Yeniden Oyna" 
+                      className="w-full h-full object-contain pointer-events-none" 
+                    />
+                  </button>
+
+                  {/* REPLAY VICTORY VIDEO BUTTON (IF ANY GROUP WON IN MULTIPLAYER) */}
+                  {duelWinnerIndex !== null && (
+                    <button
+                      onClick={() => setShowPodiumVideoModal(true)}
+                      title="Şampiyonluk Videosunu İzle"
+                      className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0 bg-gradient-to-br from-amber-500 via-yellow-500 to-amber-600 hover:brightness-110 rounded-2xl border-2 border-yellow-200 shadow-xl"
+                    >
+                      <span className="text-xl sm:text-2xl filter drop-shadow">🎬</span>
+                    </button>
+                  )}
+
+                  {/* MENU ICON BUTTON (menu.png) */}
+                  <button
+                    onClick={() => {
+                      setGameState('welcome');
+                      setSelectedCategoryId(getCategoryIdForTopic(currentTopic));
+                    }}
+                    title="Konu Menüsüne Dön"
+                    className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
+                  >
+                    <img 
+                      src="/menu.png" 
+                      alt="Konu Menüsü" 
+                      className="w-full h-full object-contain pointer-events-none" 
+                    />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* SINGLE PLAYER WIN / LOSS SECTION */
+              <div className="relative flex flex-col items-center justify-center w-full max-w-lg select-none px-2 py-1">
+                {/* 1. TOP HEADER SECTION */}
+                <div className="relative flex flex-col items-center shrink-0 w-full z-10 mb-1">
+                  {gameResult.reason === 'puan' ? (
+                    <div className="flex flex-col items-center w-full">
+                      <GlossyCompleteCard
+                        title={gameResult.livesLeft === 3 ? "MÜKEMMEL BAŞARI!" : "TEBRİKLER!"}
+                        subtitle={gameResult.livesLeft === 3 ? "🔥 Can Kaybetmeden Tamamladın!" : "10 Puana Ulaşarak Zafer Kazandın!"}
+                        starsCount={gameResult.livesLeft === 3 ? 3 : gameResult.livesLeft >= 2 ? 2 : 1}
+                      />
+                      <div className="relative flex flex-col items-center w-full mt-0.5">
+                        <GoldCoinDisplayCard sessionCoins={gameResult.score * 10} totalCoins={totalCoins} compact={true} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center w-full max-w-sm">
+                      {/* STANDARDIZED FRAME FOR GAME OVER HEADER */}
+                      <div className="relative w-full rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-rose-500/80 shadow-[0_0_20px_rgba(244,63,94,0.3)] border-l-4 border-l-rose-500 flex items-center justify-center px-4 py-2">
+                        <div className="relative z-10 flex items-center justify-center gap-1.5">
+                          <span className="text-base sm:text-lg drop-shadow-md">💔🎒</span>
+                          <h2 className="text-[11px] sm:text-xs md:text-sm font-black text-rose-200 uppercase tracking-wide drop-shadow-md">
+                            Üzgünüm, Canların Bitti!
+                          </h2>
+                        </div>
+                      </div>
+                      <div className="mt-1">
+                        <GoldCoinDisplayCard sessionCoins={gameResult.score * 10} totalCoins={totalCoins} compact={true} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. MIDDLE SECTION: VISUAL OR CUSTOM VIDEO */}
+                <div className="relative w-full my-auto flex items-center justify-center overflow-visible pointer-events-none z-30 py-1 sm:py-2">
+                  {gameResult.reason === 'puan' ? (
+                    customWinVideo ? (
+                      <div className="h-28 sm:h-36 aspect-[9/16] flex items-center justify-center relative">
+                        <ChromaKeyVideo
+                          key={customWinVideo}
+                          src={customWinVideo}
+                          autoPlay={true}
+                          loop={true}
+                          muted={true}
+                          enableChromaKey={true}
+                          showControls={false}
+                          className="w-full h-full object-contain scale-110 sm:scale-120 relative z-30 pointer-events-none"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-24 sm:h-32 flex flex-col items-center justify-center relative select-none">
+                        <div className="text-4xl sm:text-5xl animate-bounce">🏆</div>
+                        <div className="text-amber-300 font-black text-sm sm:text-base mt-1 drop-shadow-md">Tebrikler!</div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="h-24 sm:h-32 flex flex-col items-center justify-center relative select-none">
+                      <div className="text-4xl sm:text-5xl animate-pulse">💪</div>
+                      <div className="text-amber-200 font-black text-sm sm:text-base mt-1 drop-shadow-md">Harika Bir Denemeydi!</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. ACTION BUTTONS (INSIDE CREAM REGION) */}
+                <div className="relative z-50 shrink-0 flex items-center justify-center gap-5 sm:gap-7 w-full max-w-xs mt-2">
+                  {/* REPLAY ICON BUTTON (tekrar.png) */}
+                  <button
+                    onClick={() => selectTopicAndStart(currentTopic)}
+                    title="Yeniden Oyna"
+                    className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
+                  >
+                    <img 
+                      src="/tekrar.png" 
+                      alt="Yeniden Oyna" 
+                      className="w-full h-full object-contain pointer-events-none" 
+                    />
+                  </button>
+
+                  {/* MENU ICON BUTTON (menu.png) */}
+                  <button
+                    onClick={() => {
+                      setGameState('welcome');
+                      setSelectedCategoryId(getCategoryIdForTopic(currentTopic));
+                    }}
+                    title="Konu Menüsüne Dön"
+                    className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
+                  >
+                    <img 
+                      src="/menu.png" 
+                      alt="Konu Menüsü" 
+                      className="w-full h-full object-contain pointer-events-none" 
+                    />
+                  </button>
+
+                  {/* NEXT ACTIVITY ICON BUTTON (ileri.png) */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      handleNextActivity();
+                    }}
+                    title="Sonraki Etkinliğe Geç (Sırayla)"
+                    className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
+                  >
+                    <img 
+                      src="/ileri.png" 
+                      alt="Sonraki Etkinlik" 
+                      className="w-full h-full object-contain pointer-events-none" 
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* NEWLY UNLOCKED BADGE / TROPHY TOAST NOTIFICATION */}
+      {newlyUnlockedBadge && (
+        <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-[99999] animate-bounce px-4 w-full max-w-md pointer-events-none">
+          <div className={`p-4 rounded-3xl bg-gradient-to-r ${newlyUnlockedBadge.badgeColor} border-4 ${newlyUnlockedBadge.borderColor} shadow-[0_12px_30px_rgba(0,0,0,0.6)] text-white flex items-center gap-3.5`}>
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shrink-0 shadow-inner overflow-hidden p-1">
+              {newlyUnlockedBadge.imageSrc ? (
+                <img src={newlyUnlockedBadge.imageSrc} alt={newlyUnlockedBadge.title} className="w-full h-full object-contain drop-shadow-md" />
+              ) : (
+                newlyUnlockedBadge.icon
+              )}
+            </div>
+            <div>
+              <div className="text-xs font-black uppercase tracking-wider text-yellow-200 drop-shadow-xs flex items-center gap-1">
+                <Sparkles size={14} /> YENİ ROZET/KUPA KAZANILDIN!
+              </div>
+              <div className="text-lg font-black drop-shadow-md leading-tight">{newlyUnlockedBadge.title}</div>
+              <div className="text-xs opacity-90 line-clamp-1">{newlyUnlockedBadge.desc}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STATS & TROPHY ROOM MODAL */}
+      {showStatsModal && (() => {
+        const playerLevel = getPlayerLevelInfo(statsData, badgeCounts, unlockedBadges);
+
+        return (
+          <ModernStatsView
+            statsData={statsData}
+            groupStatsData={groupStatsData}
+            singleStatsData={singleStatsData}
+            topics={topics}
+            topic3DIcons={TOPIC_3D_ICONS}
+            activeGrade={statsModalGrade || selectedGrade || 2}
+            openedTopics={openedTopics}
+            unlockedBadges={unlockedBadges}
+            badgeCounts={badgeCounts}
+            playerLevel={playerLevel}
+            streak={streak}
+            onSelectTopic={(key) => selectTopicAndStart(key)}
+            onResetStats={() => {
+              const keysToRemove = [
+                'mathGameStats_v1',
+                'mathGameGroupStats_v1',
+                'mathGameSingleStats_v1',
+                'mathGameBadges_v1',
+                'mathGameBadgeCounts_v1',
+                'mathGameTopicWins_v1',
+                'openedTopics_v1',
+                'mathGameStats',
+                'mathGameBadges',
+                'mathGameBadgeCounts',
+                'mathGameTopicWins',
+                'openedTopics'
+              ];
+              keysToRemove.forEach((key) => {
+                try {
+                  localStorage.removeItem(key);
+                } catch (e) {
+                  console.error('Error removing key:', key, e);
+                }
+              });
+              try {
+                localStorage.setItem('mathGameStats_v1', '{}');
+                localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(DEFAULT_GROUP_STATS));
+                localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(DEFAULT_SINGLE_STATS));
+                localStorage.setItem('mathGameBadges_v1', '[]');
+                localStorage.setItem('mathGameBadgeCounts_v1', '{}');
+                localStorage.setItem('mathGameTopicWins_v1', '{}');
+                localStorage.setItem('openedTopics_v1', JSON.stringify(['nesne_sayisi']));
+              } catch (e) {
+                console.error('Error setting empty stats:', e);
+              }
+              setStatsData({});
+              setGroupStatsData(DEFAULT_GROUP_STATS);
+              setSingleStatsData(DEFAULT_SINGLE_STATS);
+              setUnlockedBadges([]);
+              setBadgeCounts({});
+              setTopicWinCounts({});
+              setOpenedTopics(['nesne_sayisi']);
+              setScore(0);
+              setStreak(0);
+              setLives(3);
+              setGameResult(null);
+              setFeedbackState('none');
+              setNewlyUnlockedBadge(null);
+            }}
+            confirmReset={confirmReset}
+            setConfirmReset={setConfirmReset}
+            students={students}
+            onOpenRosterModal={(grade) => {
+              const targetGrade = typeof grade === 'number' && [1, 2, 3, 4].includes(grade)
+                ? grade
+                : (statsModalGrade || selectedGrade || 2);
+              setStatsModalGrade(targetGrade);
+              setRosterModalGrade(targetGrade);
+              setShowStatsModal(false);
+              setShowStudentRosterModal(true);
+            }}
+            onClose={() => {
+              setShowStatsModal(false);
+              setStatsModalGrade(null);
+            }}
+            currentUser={currentUser}
+            onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+            onOpenOdevAkvaryumu={() => {
+              setShowStatsModal(false);
+              setShowOdevAkvaryumu(true);
+            }}
+          />
+        );
+      })()}
+
+      {/* ÖĞRENCİ LİSTESİ VE İSTATİSTİKLERİ MODAL (DIŞARIDAN LİSTE EKLEME & AVATAR DEĞİŞTİRME) */}
+      <StudentRosterModal
+        isOpen={showStudentRosterModal}
+        onClose={() => {
+          setShowStudentRosterModal(false);
+          setRosterModalGrade(null);
+        }}
+        onBackToStats={(grade) => {
+          const targetGrade = typeof grade === 'number' && [1, 2, 3, 4].includes(grade)
+            ? grade
+            : (rosterModalGrade || statsModalGrade || selectedGrade || 2);
+          setStatsModalGrade(targetGrade);
+          setRosterModalGrade(targetGrade);
+          setShowStudentRosterModal(false);
+          setShowStatsModal(true);
+        }}
+        students={students}
+        onStudentsUpdated={(updated) => setStudents(updated)}
+        currentGrade={rosterModalGrade || statsModalGrade || activeGradeNumber}
+        playMp3={playMp3}
+        currentUser={currentUser}
+        onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+      />
+
+      {/* SINIF & ZİYARETÇİ SAYAÇLARI MODAL (YÖNETİCİ & ÖĞRETMEN) */}
+      <ClassCountersModal
+        isOpen={showCountersModal}
+        onClose={() => setShowCountersModal(false)}
+        countersData={countersData}
+        onCountersUpdated={(newData) => setCountersData(newData)}
+        onResetStats={() => {
+          setStatsData({});
+          setGroupStatsData(DEFAULT_GROUP_STATS);
+          try {
+            localStorage.removeItem('mathGameStats_v1');
+            localStorage.removeItem('mathGameGroupStats_v1');
+            localStorage.removeItem('mathGameStats');
+          } catch {}
+        }}
+        playMp3={playMp3}
+        currentUser={currentUser}
+        onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+      />
+
+      {/* GOOGLE GİRİŞ VE BULUT SENKRONİZASYONU MODALI */}
+      <GoogleAuthSyncModal
+        isOpen={showGoogleAuthModal}
+        onClose={() => setShowGoogleAuthModal(false)}
+        currentUser={currentUser}
+        onSignIn={async () => {
+          await signInWithGoogle();
+        }}
+        onSignOut={async () => {
+          await signOutUser();
+          setCurrentUser(null);
+        }}
+        students={students}
+        countersData={countersData}
+        lastSyncedAt={lastCloudSyncedAt}
+        isSyncing={isCloudSyncing}
+        onManualSyncUp={handleManualSyncUp}
+        onManualSyncDown={handleManualSyncDown}
+        playMp3={playMp3}
+      />
+
+      {/* 3D GEOMETRY INTERACTIVE LAB MODAL */}
+      {show3DLab && (
+        <Geometry3DLab
+          onClose={() => {
+            setShow3DLab(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+        />
+      )}
+
+      {/* GEOBOARD ACTIVITY MODAL */}
+      {showGeoboard && (
+        <GeoboardActivity
+          grade={selectedGrade === 1 ? 1 : 2}
+          onClose={() => {
+            setShowGeoboard(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* GEOMETRIC NETS (AÇILIM) ACTIVITY MODAL */}
+      {showGeometricNets && (
+        <GeometricNetsActivity
+          onClose={() => {
+            setShowGeometricNets(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+        />
+      )}
+
+      {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+        <OtherGamesHub
+          onClose={() => {
+            setShowOtherGamesModal(false);
+            setOpenedFromOtherGamesModal(false);
+          }}
+          onGoHome={handleGoHome}
+          onOpenSozlukSirala={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ssIdx = findActivityIndex('sozluk_sirala', undefined, selectedGrade || undefined);
+            if (ssIdx !== -1) setCurrentActivityIndex(ssIdx);
+            setShowSozlukSirala(true);
+          }}
+          onOpenKelimeSirala={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ksIdx = findActivityIndex('kelime_sirala', undefined, selectedGrade || undefined);
+            if (ksIdx !== -1) setCurrentActivityIndex(ksIdx);
+            setShowKelimeSirala(true);
+          }}
+          onOpenHeceMakasi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const hmIdx = findActivityIndex('hece_makasi', undefined, selectedGrade || 2);
+            if (hmIdx !== -1) setCurrentActivityIndex(hmIdx);
+            setShowHeceMakasi(true);
+          }}
+          onOpenYazimDedektifi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const ydIdx = findActivityIndex('yazim_dedektifi', undefined, selectedGrade || 2);
+            if (ydIdx !== -1) setCurrentActivityIndex(ydIdx);
+            setShowYazimDedektifi(true);
+          }}
+          onOpenAynisiniBul={() => {
+            setOpenedFromOtherGamesModal(true);
+            const aIdx = findActivityIndex('aynisini_bul', undefined, selectedGrade || undefined);
+            if (aIdx !== -1) setCurrentActivityIndex(aIdx);
+            setShowAynisiniBul(true);
+          }}
+          onOpenXOX={() => {
+            setOpenedFromOtherGamesModal(true);
+            const xIdx = findActivityIndex('xox');
+            if (xIdx !== -1) setCurrentActivityIndex(xIdx);
+            setShowXOXGame(true);
+          }}
+          onOpenKuralliCumle={() => {
+            setOpenedFromOtherGamesModal(true);
+            const kcIdx = findActivityIndex('kuralli_cumle', undefined, selectedGrade || undefined);
+            if (kcIdx !== -1) setCurrentActivityIndex(kcIdx);
+            setShowKuralliCumle(true);
+          }}
+          onOpenZitAnlam={() => {
+            setOpenedFromOtherGamesModal(true);
+            const zIdx = findActivityIndex('word_game', undefined, undefined, 'zit_anlam');
+            if (zIdx !== -1) setCurrentActivityIndex(zIdx);
+            setWordGameType('zit_anlam');
+          }}
+          onOpenEsAnlam={() => {
+            setOpenedFromOtherGamesModal(true);
+            const eIdx = findActivityIndex('word_game', undefined, undefined, 'es_anlam');
+            if (eIdx !== -1) setCurrentActivityIndex(eIdx);
+            setWordGameType('es_anlam');
+          }}
+          onOpen3DLab={() => {
+            setOpenedFromOtherGamesModal(true);
+            const lIdx = findActivityIndex('3d_lab', undefined, selectedGrade || 2);
+            if (lIdx !== -1) setCurrentActivityIndex(lIdx);
+            setShow3DLab(true);
+          }}
+          onOpenGeoboard={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gIdx = findActivityIndex('geoboard', undefined, selectedGrade || 1);
+            if (gIdx !== -1) setCurrentActivityIndex(gIdx);
+            setShowGeoboard(true);
+          }}
+          onOpenGeometricNets={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gnIdx = findActivityIndex('geometric_nets', 'cisimler_acilimi', selectedGrade || undefined);
+            if (gnIdx !== -1) setCurrentActivityIndex(gnIdx);
+            setShowGeometricNets(true);
+          }}
+          onOpenGeometrikSekilleriBul={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gsbIdx = findActivityIndex('geometrik_sekilleri_bul');
+            if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
+            setShowGeometrikSekilleriBul(true);
+          }}
+          onOpenDedektif5N1K={() => {
+            setOpenedFromOtherGamesModal(true);
+            const dIdx = findActivityIndex('dedektif_5n1k', undefined, selectedGrade || 2);
+            if (dIdx !== -1) setCurrentActivityIndex(dIdx);
+            setShowDedektif5N1K(true);
+          }}
+          onOpenNoktalamaAvcisi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const nIdx = findActivityIndex('noktalama_avcisi', undefined, selectedGrade || 2);
+            if (nIdx !== -1) setCurrentActivityIndex(nIdx);
+            setShowNoktalamaAvcisi(true);
+          }}
+          onOpenHarfCorbasi={() => {
+            setOpenedFromOtherGamesModal(true);
+            const hcIdx = findActivityIndex('harf_corbasi', undefined, selectedGrade || 2);
+            if (hcIdx !== -1) setCurrentActivityIndex(hcIdx);
+            setShowHarfCorbasi(true);
+          }}
+          onOpenGeriDonusum={() => {
+            setOpenedFromOtherGamesModal(true);
+            const gdIdx = findActivityIndex('geri_donusum', undefined, selectedGrade || 2);
+            if (gdIdx !== -1) setCurrentActivityIndex(gdIdx);
+            setShowGeriDonusum(true);
+          }}
+          onOpenSaglikliTabak={() => {
+            setOpenedFromOtherGamesModal(true);
+            const stIdx = findActivityIndex('saglikli_tabak', undefined, selectedGrade || 2);
+            if (stIdx !== -1) setCurrentActivityIndex(stIdx);
+            setShowSaglikliTabak(true);
+          }}
+          onOpenIstekIhtiyac={() => {
+            setOpenedFromOtherGamesModal(true);
+            const iiIdx = findActivityIndex('istek_ihtiyac', undefined, selectedGrade || 2);
+            if (iiIdx !== -1) setCurrentActivityIndex(iiIdx);
+            setShowIstekIhtiyac(true);
+          }}
+          onOpenMevsimGardirobu={() => {
+            setOpenedFromOtherGamesModal(true);
+            const mgIdx = findActivityIndex('mevsim_gardirobu', undefined, selectedGrade || 2);
+            if (mgIdx !== -1) setCurrentActivityIndex(mgIdx);
+            setShowMevsimGardirobu(true);
+          }}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* KURALLI CÜMLE OLUŞTUR ETKİNLİĞİ */}
+      {showKuralliCumle && (
+        <KuralliCumleActivity
+          onClose={() => {
+            setShowKuralliCumle(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGrade={selectedGrade || 1}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 1);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            kaydetIstatistik('turkce_kuralli_cumle', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kuralli_cumle', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* KELİMELERİN HECE SAYISINI BELİRLEME ETKİNLİĞİ */}
+      {showHeceSayisi && (
+        <HeceSayisiActivity
+          onClose={() => {
+            setShowHeceSayisi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          soundEnabled={soundEnabled}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_hece_sayisi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_sayisi', isCorrect));
+            }
+          }}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+        />
+      )}
+
+      {/* SÖZLÜK SIRALAMA OYUNU (ALFABE PORTALI - 1, 2 & 3 KİŞİLİK) */}
+      {showSozlukSirala && (
+        <SozlukSiralaGame
+          onClose={() => {
+            setShowSozlukSirala(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_sozluk_sirala', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_sozluk_sirala', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* KELİME SIRALAMA OYUNU (SÖZLÜK SIRASI - 1, 2 & 3 KİŞİLİK) */}
+      {showKelimeSirala && (
+        <KelimeSiralaGame
+          onClose={() => {
+            setShowKelimeSirala(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_kelime_sirala', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kelime_sirala', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* HECE MAKASI OYUNU (Hecelere Ayırma & Kesme - 1, 2 & 3 KİŞİLİK) */}
+      {showHeceMakasi && (
+        <HeceMakasiGame
+          onClose={() => {
+            setShowHeceMakasi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          initialGradeGroup="1-2"
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_hece_makasi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_makasi', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* YAZIM YANLIŞI DEDEKTİFİ (1, 2 & 3 KİŞİLİK) */}
+      {showYazimDedektifi && (
+        <YazimDedektifiGame
+          onClose={() => {
+            setShowYazimDedektifi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('turkce_yazim_dedektifi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_yazim_dedektifi', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* GEOMETRİK CİSİMLERİ BUL (GÜNLÜK HAYATTAN ÖRNEKLER - 1, 2, 3 KİŞİLİK) */}
+      {showGeometrikSekilleriBul && (
+        <GeometrikSekilleriBulActivity
+          onClose={() => {
+            setShowGeometrikSekilleriBul(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          soundEnabled={soundEnabled}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0]}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('geometrik_sekilleri_bul', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'geometrik_sekilleri_bul', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* 5N 1K DEDEKTİFİ (1, 2, 3 KİŞİLİK) */}
+      {showDedektif5N1K && (
+        <Dedektif5N1KGame
+          onClose={() => {
+            setShowDedektif5N1K(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('dedektif_5n1k', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'dedektif_5n1k', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* NOKTALAMA İŞARETİ AVCISI (1, 2, 3 KİŞİLİK) */}
+      {showNoktalamaAvcisi && (
+        <NoktalamaAvcisiGame
+          onClose={() => {
+            setShowNoktalamaAvcisi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('noktalama_avcisi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'noktalama_avcisi', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* HARF ÇORBASI / ANAGRAM (1, 2, 3 KİŞİLİK) */}
+      {showHarfCorbasi && (
+        <HarfCorbasiGame
+          onClose={() => {
+            setShowHarfCorbasi(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('harf_corbasi', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'harf_corbasi', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* GERİ DÖNÜŞÜM KAHRAMANI (DOĞADA HAYAT - 1, 2, 3 KİŞİLİK) */}
+      {showGeriDonusum && (
+        <GeriDonusumGame
+          onClose={() => {
+            setShowGeriDonusum(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('geri_donusum', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'geri_donusum', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* SAĞLIKLI TABAK ŞEFİ (1, 2, 3 KİŞİLİK) */}
+      {showSaglikliTabak && (
+        <SaglikliTabakGame
+          onClose={() => {
+            setShowSaglikliTabak(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('saglikli_tabak', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'saglikli_tabak', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* İSTEK Mİ, İHTİYAÇ MI? (1, 2, 3 KİŞİLİK) */}
+      {showIstekIhtiyac && (
+        <IstekIhtiyacGame
+          onClose={() => {
+            setShowIstekIhtiyac(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('istek_ihtiyac', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'istek_ihtiyac', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* MEVSİM GARDIROBU (1, 2, 3 KİŞİLİK) */}
+      {showMevsimGardirobu && (
+        <MevsimGardirobuGame
+          onClose={() => {
+            setShowMevsimGardirobu(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect) => {
+            const updated = recordClassQuestionSolved('otherGames', isCorrect);
+            setCountersData(updated);
+            kaydetIstatistik('mevsim_gardirobu', isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], 'mevsim_gardirobu', isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* AYNISINI BUL OYUNU MODAL (2 KİŞİLİK DÜELLO) */}
+      {showAynisiniBul && (
+        <AynisiniBulGame
+          onClose={() => {
+            setShowAynisiniBul(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* İNGİLİZCE OYUNLAR ANA SEÇİM HUB MODAL */}
+      {showEnglishGamesModal && !wordGameType && (
+        <EnglishGamesHub
+          onClose={() => {
+            setShowEnglishGamesModal(false);
+          }}
+          onOpenWordGame={() => {
+            const wIdx = findActivityIndex('word_game', undefined, undefined, 'ingilizce');
+            if (wIdx !== -1) setCurrentActivityIndex(wIdx);
+            setWordGameType('ingilizce');
+          }}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* XOX GAME MODAL */}
+      {showXOXGame && (
+        <XOXGame
+          onClose={() => {
+            setShowXOXGame(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* ZIT ANLAM, EŞ ANLAM & İNGİLİZCE KELİME OYUNU MODAL */}
+      {wordGameType !== null && (
+        <WordGameModal
+          gameType={wordGameType}
+          onClose={() => {
+            const isEnglish = wordGameType === 'ingilizce';
+            const wasOtherGame = openedFromOtherGamesModal || wordGameType === 'zit_anlam' || wordGameType === 'es_anlam';
+            setWordGameType(null);
+            if (isEnglish) {
+              setShowEnglishGamesModal(true);
+            } else if (wasOtherGame) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={() => {
+            setWordGameType(null);
+            setShowEnglishGamesModal(false);
+            setShowOtherGamesModal(false);
+            setOpenedFromOtherGamesModal(false);
+            setSelectedGrade(null);
+            setSelectedCategoryId(null);
+            setGameState('welcome');
+          }}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          soundEnabled={soundEnabled}
+          students={currentGradeStudents}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) {
+              playMp3?.('/ding.mp3');
+            }
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, gType) => {
+            const cat: GradeCategoryKey = gType === 'ingilizce' ? 'englishGames' : 'otherGames';
+            const updated = recordClassQuestionSolved(cat, isCorrect);
+            setCountersData(updated);
+            const topicKey = gType === 'zit_anlam' ? 'turkce_zit_anlam' : gType === 'es_anlam' ? 'turkce_es_anlam' : 'ingilizce';
+            kaydetIstatistik(topicKey, isCorrect);
+            if (selectedStudentIds[0]) {
+              setStudents(recordStudentAnswer(selectedStudentIds[0], topicKey, isCorrect));
+            }
+          }}
+        />
+      )}
+
+      {/* FULL SCREEN GAME INTRO OVERLAY */}
+      {showIntro && (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-end p-4 sm:p-8 overflow-hidden animate-fadeIn">
+          {/* Full Screen Intro Background Video */}
+          <video
+            ref={introVideoRef}
+            src="/introh.mp4"
+            poster="/dere3.jpg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            // @ts-ignore
+            webkit-playsinline="true"
+            // @ts-ignore
+            x5-playsinline="true"
+            disablePictureInPicture
+            controls={false}
+            className="absolute inset-0 w-full h-full object-cover sm:object-contain bg-slate-950 pointer-events-none select-none"
+          />
+
+          {/* Subtle Bottom Gradient Shade for Button Readability */}
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+
+          {/* Giriş Button Overlay positioned higher from the bottom using grs.png */}
+          <div className="relative z-10 mb-12 sm:mb-20 md:mb-24 flex flex-col items-center">
+            <button
+              onClick={() => {
+                playMp3('/coin.mp3');
+                setShowIntro(false);
+              }}
+              className="group focus:outline-none cursor-pointer transition-transform transform hover:scale-105 active:scale-95 duration-200"
+              aria-label="Oyuna Başla"
+            >
+              <img
+                src="/grs.png"
+                alt="Giriş Yap"
+                className="h-16 sm:h-24 md:h-28 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] transition-transform group-hover:brightness-110"
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* REPLAY CHAMPIONSHIP VIDEO MODAL */}
+      {showPodiumVideoModal && duelWinnerIndex !== null && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 select-none"
+          onClick={() => setShowPodiumVideoModal(false)}
+        >
+          <div 
+            className="relative flex flex-col items-center justify-center h-full max-h-[90vh] w-auto animate-in zoom-in-95 duration-200"
+            style={{ aspectRatio: '720 / 1280' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {(() => {
+              const winCfg = getWinnerVideoConfig(duelWinnerIndex);
+              return (
+                <div className={`relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(6,182,212,0.9)] border-2 ${winCfg.borderColor} bg-black flex items-center justify-center`}>
+                  <video
+                    src={winCfg.videoSrc}
+                    autoPlay
+                    controls
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  <div className={`absolute top-3 left-3 bg-gradient-to-r ${winCfg.badgeBg} text-white px-3 py-1 rounded-full text-xs font-black shadow-lg flex items-center gap-1.5 pointer-events-none border border-white/60`}>
+                    <img src={winCfg.img} alt="" className="w-4 h-4 object-contain" />
+                    <span>{winCfg.title}</span>
+                  </div>
+                  <button
+                    onClick={() => setShowPodiumVideoModal(false)}
+                    className="absolute top-3 right-3 bg-black/70 hover:bg-black text-white px-3 py-1 rounded-full text-xs font-bold border border-white/40 shadow-lg cursor-pointer z-30 flex items-center gap-1"
+                  >
+                    ✕ Kapat
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+      {/* FEEDBACK & ERROR REPORT MODAL */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        currentGrade={selectedGrade}
+        currentTopicTitle={getCurrentActivityTitle()}
+        playerCount={isHalatCekmeTopic(currentTopic) ? 2 : playerCountMode}
+        playMp3={playMp3}
+      />
+
+      {/* ÖDEV KONTROL AKVARYUMU (1, 2, 3 ve 4. SINIFLAR) */}
+      <OdevAkvaryumuModal
+        isOpen={showOdevAkvaryumu}
+        onClose={() => setShowOdevAkvaryumu(false)}
+        students={students}
+        initialGrade={selectedGrade || 4}
+        playMp3={playMp3}
+      />
+
+      {/* ANDROID UYGULAMALARIM MODAL */}
+      <AndroidAppsModal
+        isOpen={showAndroidAppsModal}
+        onClose={() => setShowAndroidAppsModal(false)}
+        playMp3={playMp3}
+      />
+    </div>
+  );
+}
