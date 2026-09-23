@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   X, Users, MousePointerClick, CheckCircle2, XCircle, 
   BarChart3, RotateCcw, Copy, Check, Sparkles, TrendingUp,
-  Calendar, Clock, ShieldCheck, PieChart, Layers, Cloud
+  Calendar, Clock, ShieldCheck, PieChart, Layers, Cloud, Globe, RefreshCw
 } from 'lucide-react';
 import { User } from '../firebase';
 import { 
@@ -11,6 +11,7 @@ import {
   resetAllCounters, 
   loadCounters 
 } from '../utils/counterStorage';
+import { refreshWorldwideVisitorCount } from '../utils/globalVisitorTracker';
 
 interface ClassCountersModalProps {
   isOpen: boolean;
@@ -131,6 +132,21 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
   const [activeTab, setActiveTab] = useState<'overview' | 'classes' | 'questions' | 'visits'>('overview');
   const [copied, setCopied] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isRefreshingGlobal, setIsRefreshingGlobal] = useState(false);
+
+  const handleRefreshGlobal = async () => {
+    setIsRefreshingGlobal(true);
+    playMp3?.('/op.mp3');
+    try {
+      const fresh = await refreshWorldwideVisitorCount();
+      if (fresh) {
+        onCountersUpdated(loadCounters());
+        playMp3?.('/coin.mp3');
+      }
+    } finally {
+      setIsRefreshingGlobal(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -599,32 +615,46 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
           {activeTab === 'visits' && (
             <div className="space-y-4">
               <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 sm:p-5">
-                <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-white mb-1">
-                  Site Giriş & Ziyaretçi İstatistikleri
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  Bu tarayıcı ve cihazda kaydedilen toplam oturum ve giriş bilgileri
-                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-white flex items-center gap-2">
+                      <Globe size={18} className="text-cyan-400 animate-pulse" />
+                      Dünya Geneli Canlı Ziyaretçi İstatistikleri
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Farklı bilgisayar, telefon, tablet ve akıllı tahtalardan siteye giriş yapan tüm ziyaretçiler merkezi bulut üzerinden ortak sayılır.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleRefreshGlobal}
+                    disabled={isRefreshingGlobal}
+                    className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-cyan-950/70 hover:bg-cyan-900/90 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
+                    title="Dünya geneli sayaç verisini canlı buluttan tazele"
+                  >
+                    <RefreshCw size={13} className={isRefreshingGlobal ? 'animate-spin' : ''} />
+                    <span>{isRefreshingGlobal ? 'Güncelleniyor...' : 'Canlı Eşitle'}</span>
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
-                      <Users size={26} />
+                  <div className="bg-slate-900/90 border border-cyan-500/30 rounded-xl p-4 flex items-center gap-3.5 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center border border-cyan-400/40 shrink-0">
+                      <Globe size={26} />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-400 block uppercase">Toplam Site Girişi</span>
+                      <span className="text-xs font-bold text-cyan-200/80 block uppercase tracking-wide">Dünya Geneli Toplam Giriş</span>
                       <span className="text-2xl sm:text-3xl font-black text-white">
-                        {countersData.visits.total} kez
+                        {countersData.visits.total.toLocaleString('tr-TR')} kez
                       </span>
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex items-center gap-3.5">
+                  <div className="bg-slate-900/90 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3.5">
                     <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
                       <Calendar size={26} />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-400 block uppercase">Bugünkü Girişler</span>
+                      <span className="text-xs font-bold text-slate-400 block uppercase tracking-wide">Bugünkü Canlı Girişler</span>
                       <span className="text-2xl sm:text-3xl font-black text-amber-400">
                         {countersData.visits.today} oturum
                       </span>
@@ -648,9 +678,10 @@ export const ClassCountersModal: React.FC<ClassCountersModalProps> = ({
                       <Sparkles size={26} />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-400 block uppercase">İlk Sayaç Başlangıcı</span>
-                      <span className="text-base sm:text-lg font-black text-purple-300">
-                        {countersData.visits.firstVisitDate || countersData.visits.lastVisitTime || 'Bugün'}
+                      <span className="text-xs font-bold text-slate-400 block uppercase">Merkezi Bulut Durumu</span>
+                      <span className="text-base sm:text-lg font-black text-purple-300 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        Tüm Dünyada Aktif
                       </span>
                     </div>
                   </div>

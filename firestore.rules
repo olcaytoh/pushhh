@@ -2,9 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Global Safety Net - Default Deny
-    match /{document=**} {
-      allow read, write: if false;
+    // Worldwide Global Site Statistics & Visitor Counters
+    // Accessible across all PCs worldwide so everyone sees the true synchronized global visits
+    match /global_stats/{statId} {
+      allow read, write: if true;
     }
 
     // Common Helper Functions

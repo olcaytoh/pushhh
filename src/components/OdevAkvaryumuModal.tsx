@@ -8,7 +8,9 @@ import {
   UserPlus,
   Volume2,
   VolumeX,
-  Info
+  Info,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentHomeworkData } from '../types/homeworkAquarium';
@@ -119,6 +121,25 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 }) => {
   // Seçili Sınıf: 1, 2, 3 veya 4
   const [selectedGrade, setSelectedGrade] = useState<number>(initialGrade || 4);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   // Modal her açıldığında gelen initialGrade'i seç
   useEffect(() => {
@@ -392,14 +413,14 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none overflow-y-auto">
-      <div className="relative w-full max-w-5xl h-[88vh] max-h-[820px] bg-gradient-to-b from-[#02182b] via-[#042844] to-[#011424] rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-cyan-400/80 shadow-[0_0_50px_rgba(6,182,212,0.4)] flex flex-col overflow-hidden my-auto">
+    <div className="fixed inset-0 z-[1000] flex flex-col p-1 sm:p-2 md:p-3 bg-black/85 backdrop-blur-md animate-fadeIn select-none overflow-hidden">
+      <div className="relative w-full max-w-[1550px] h-full max-h-full mx-auto bg-gradient-to-b from-[#02182b] via-[#042844] to-[#011424] rounded-xl sm:rounded-2xl md:rounded-3xl border-2 sm:border-3 border-cyan-400/80 shadow-[0_0_50px_rgba(6,182,212,0.4)] flex flex-col overflow-hidden">
         
-        {/* ÜST BİLGİ VE KONTROL ÇUBUĞU */}
-        <div className="relative z-20 flex items-center justify-between px-2.5 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-cyan-950/95 via-sky-950/95 to-cyan-950/95 border-b-2 border-cyan-400/50 backdrop-blur-sm shrink-0 gap-1.5 sm:gap-3">
+        {/* ÜST BİLGİ VE KONTROL ÇUBUĞU (Her zaman tam ve eksiksiz görünür) */}
+        <div className="relative z-30 flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-cyan-950/95 via-sky-950/95 to-cyan-950/95 border-b-2 border-cyan-400/50 backdrop-blur-sm shrink-0 gap-1.5 sm:gap-2">
           {/* SOL: İKON VE BAŞLIK */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 border border-cyan-300 flex items-center justify-center text-lg sm:text-2xl shadow-lg shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 border border-cyan-300 flex items-center justify-center text-base sm:text-xl shadow-lg shrink-0">
               🐠
             </div>
             <div className="min-w-0">
@@ -407,11 +428,11 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                 <h2 className="font-black text-xs sm:text-sm md:text-base text-cyan-200 tracking-wide drop-shadow truncate">
                   {selectedGrade}. SINIF ÖDEV AKVARYUMU
                 </h2>
-                <span className="hidden md:inline-block px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shrink-0">
+                <span className="hidden xl:inline-block px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shrink-0">
                   Canlı Takip
                 </span>
               </div>
-              <p className="text-[9px] sm:text-xs text-sky-300/80 font-medium truncate hidden xs:block">
+              <p className="text-[9px] sm:text-xs text-sky-300/80 font-medium truncate hidden 2xl:block">
                 Ödevini yapan balığına tıklar, balıklar her ödevde büyür! 🐟✨
               </p>
             </div>
@@ -425,81 +446,92 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                 <button
                   key={grade}
                   onClick={() => setSelectedGrade(grade)}
-                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
+                  className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-black transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.5)] scale-105'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
-                  {grade}. Sınıf
+                  <span>{grade}</span>
+                  <span className="hidden xs:inline">. Sınıf</span>
+                  <span className="xs:hidden">.S</span>
                 </button>
               );
             })}
           </div>
 
-          {/* SAĞ: KONTROLLER (Sıralama, Düzenle, Ses, Kapat) */}
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* SAĞ: KONTROLLER (Sıralama, Düzenle, Ses, Tam Ekran, Kapat - ASLA KESİLMEZ) */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto z-40">
             {/* Liderlik Tablosu Butonu */}
             <button
               onClick={() => setShowLeaderboard(!showLeaderboard)}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[10px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-95"
               title="Ödev Lider Tablosu"
             >
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span className="hidden sm:inline">Sıralama</span>
             </button>
 
             {/* Öğretmen Modu */}
             <button
               onClick={() => setTeacherMode(!teacherMode)}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border text-[10px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-95 ${
                 teacherMode
                   ? 'bg-purple-600/40 text-purple-200 border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.4)]'
                   : 'bg-slate-800/60 text-slate-300 border-slate-700 hover:bg-slate-800'
               }`}
               title="Öğretmen Düzenleme Modu"
             >
-              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden md:inline">{teacherMode ? 'Öğretmen: Açık' : 'Düzenle'}</span>
             </button>
 
             {/* Ses Aç/Kapa */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all cursor-pointer shrink-0"
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
               title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
             >
-              {soundEnabled ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />}
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 shrink-0" />}
+            </button>
+
+            {/* Tam Ekran Butonu */}
+            <button
+              onClick={toggleFullscreen}
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/60 hover:bg-slate-800 text-cyan-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
+              title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
+            >
+              {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />}
             </button>
 
             {/* Kapat Butonu (EN DIŞTAKİ BUTON - Her zaman tam ve net görünür) */}
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold border border-red-400 transition-all cursor-pointer ml-0.5 shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)] active:scale-95"
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-red-600 hover:bg-red-500 text-white font-black border border-red-400 transition-all cursor-pointer ml-0.5 shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)] active:scale-95"
               title="Akvaryumu Kapat"
             >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
             </button>
           </div>
         </div>
 
         {/* GÜNLÜK İLERLEME ÇUBUĞU / BİLGİ BANDI */}
-        <div className="relative z-20 flex items-center justify-between px-3 sm:px-6 py-2 bg-[#032038]/90 border-b border-cyan-500/30 text-xs shrink-0 flex-wrap gap-2">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-cyan-300 font-bold flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="relative z-20 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-[#032038]/90 border-b border-cyan-500/30 text-xs shrink-0 flex-wrap gap-1 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            <span className="text-cyan-300 font-bold flex items-center gap-1 text-[11px] sm:text-xs">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               Bugün Ödev Yapanlar:
-              <span className="text-emerald-300 font-black text-sm bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-500/30">
+              <span className="text-emerald-300 font-black text-xs sm:text-sm bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-500/30 ml-0.5">
                 {completedTodayCount} / {totalStudents}
               </span>
             </span>
-            <span className="text-slate-400 text-[11px] hidden md:inline">
+            <span className="text-slate-400 text-[10px] sm:text-[11px] hidden md:inline">
               ({completionPercentage}% Tamamlandı)
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-amber-300/90 text-xs font-semibold hidden xs:inline">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-amber-300/90 text-[10px] sm:text-xs font-semibold hidden xs:inline">
               🌊 Toplam Büyüme: <strong className="text-amber-300 font-black">{totalHomeworksGiven} Ödev</strong>
             </span>
             {onOpenRosterModal && (
@@ -508,7 +540,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   onClose();
                   onOpenRosterModal();
                 }}
-                className="flex items-center gap-1 text-[11px] text-cyan-300 hover:text-cyan-200 underline cursor-pointer font-bold"
+                className="flex items-center gap-1 text-[10px] sm:text-[11px] text-cyan-300 hover:text-cyan-200 underline cursor-pointer font-bold"
               >
                 <UserPlus className="w-3 h-3" />
                 Öğrenci Listesini Düzenle
@@ -521,7 +553,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         {/* Kullanıcının istediği akvar.jpeg arka planı tam olarak kullanılır */}
         <div
           ref={aquariumRef}
-          className="relative flex-1 w-full h-full overflow-hidden select-none cursor-default bg-cover bg-center bg-no-repeat"
+          className="relative flex-1 w-full min-h-0 overflow-hidden select-none cursor-default bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/akvar.jpeg')",
             backgroundColor: '#02182b'

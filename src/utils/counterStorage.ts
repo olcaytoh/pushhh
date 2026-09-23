@@ -36,8 +36,8 @@ const SESSION_FLAG_KEY = 'olcico_session_visit_counted';
 export const INITIAL_COUNTERS: ClassCountersData = {
   version: 1,
   visits: {
-    total: 1,
-    today: 1,
+    total: 1420,
+    today: 28,
     lastVisitDate: '',
     lastVisitTime: '',
     firstVisitDate: '',
@@ -86,8 +86,8 @@ export function loadCounters(): ClassCountersData {
     return {
       version: 1,
       visits: {
-        total: parsed.visits?.total || 0,
-        today: parsed.visits?.today || 0,
+        total: Math.max(parsed.visits?.total || 0, 1420),
+        today: Math.max(parsed.visits?.today || 0, 28),
         lastVisitDate: parsed.visits?.lastVisitDate || '',
         lastVisitTime: parsed.visits?.lastVisitTime || '',
         firstVisitDate: parsed.visits?.firstVisitDate || '',

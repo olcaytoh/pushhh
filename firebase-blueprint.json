@@ -25,6 +25,20 @@
         "lastSyncedAt": { "type": "string" }
       },
       "required": ["userId", "studentsJson", "countersJson", "lastSyncedAt"]
+    },
+    "GlobalSiteStats": {
+      "title": "GlobalSiteStats",
+      "description": "Worldwide website visit counts and activity statistics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "totalVisits": { "type": "number" },
+        "todayVisits": { "type": "number" },
+        "lastVisitDate": { "type": "string" },
+        "lastVisitTime": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "totalVisits"]
     }
   },
   "firestore": {
@@ -35,6 +49,10 @@
     "/users/{userId}/data/classroom": {
       "schema": "TeacherClassData",
       "description": "Teacher classroom statistics and student list data"
+    },
+    "/global_stats/{statId}": {
+      "schema": "GlobalSiteStats",
+      "description": "Worldwide site visits and counters"
     }
   }
 }

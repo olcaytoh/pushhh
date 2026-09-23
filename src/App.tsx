@@ -3,7 +3,7 @@ import {
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
   Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus,
-  Cloud
+  Cloud, Globe
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
@@ -58,6 +58,7 @@ import {
   syncHistoricalQuestions,
   GradeCategoryKey 
 } from './utils/counterStorage';
+import { syncAndRecordGlobalVisit, refreshWorldwideVisitorCount } from './utils/globalVisitorTracker';
 import { ChromaKeyVideo } from './components/ChromaKeyVideo';
 import { AutoFitQuestionBox } from './components/AutoFitQuestionBox';
 import { AutoFitOptionContent } from './components/AutoFitOptionContent';
@@ -3311,6 +3312,14 @@ export default function App() {
       Object.keys(topics4thGrade)
     );
     setCountersData(synced);
+
+    // Sync worldwide global visitor count across all PCs
+    syncAndRecordGlobalVisit((updatedData) => {
+      setCountersData(prev => ({
+        ...prev,
+        visits: updatedData.visits
+      }));
+    });
   }, []);
 
   // Play hata.mp3 audio whenever trytry2.mp4 defeat video screen is shown
@@ -7955,18 +7964,22 @@ export default function App() {
           © 2026 OLCİCO Tüm hakları saklıdır.
         </p>
         <button
-          onClick={() => {
+          onClick={async () => {
             playMp3('/op.mp3');
             setCountersData(loadCounters());
             setShowCountersModal(true);
+            const freshTotal = await refreshWorldwideVisitorCount();
+            if (freshTotal) {
+              setCountersData(loadCounters());
+            }
           }}
-          className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-40 hover:opacity-100 shrink-0"
-          title="Sınıf & Ziyaretçi Sayaç Paneli"
+          className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-60 hover:opacity-100 shrink-0 shadow-sm"
+          title="Dünya Geneli Canlı Ziyaretçi & Sınıf Sayaç Paneli"
           aria-label="Sayaç Paneli"
         >
-          <Activity size={13} className="text-amber-400/80 group-hover:animate-pulse" />
-          <span className="text-[10px] font-mono tracking-tight text-slate-400 group-hover:text-amber-300">
-            {countersData.visits.total}
+          <Globe size={13} className="text-cyan-400 group-hover:rotate-12 transition-transform" />
+          <span className="text-[10px] font-mono font-bold tracking-tight text-slate-300 group-hover:text-amber-300">
+            {countersData.visits.total.toLocaleString('tr-TR')}
           </span>
         </button>
       </footer>
