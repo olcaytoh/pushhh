@@ -833,17 +833,17 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                   </div>
 
                   {/* 3.2 MAIN INTERACTIVE WORDS CONSOLE CONTAINER */}
-                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-2xl' : 'max-w-xl'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-1.5 sm:gap-2 pb-1'}`}>
+                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-3xl' : playerMode === 2 ? 'max-w-2xl' : 'max-w-xl'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-2 sm:gap-2.5 pb-1'}`}>
                     {/* Console Header Pill Badge */}
-                    <div className={`px-3 sm:px-4 py-0.5 rounded-full font-black ${playerMode === 3 ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} uppercase tracking-wider border shadow-md flex items-center gap-1.5 ${theme.pillHeader}`}>
-                      <Layers className="w-3.5 h-3.5" />
+                    <div className={`px-3.5 sm:px-5 py-0.5 sm:py-1 rounded-full font-black ${playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm md:text-base'} uppercase tracking-wider border shadow-md flex items-center gap-1.5 ${theme.pillHeader}`}>
+                      <Layers className="w-4 h-4" />
                       <span>SÖZLÜK SIRASINA GÖRE DİZ</span>
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-xl sm:rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 sm:p-2 gap-1.5' : 'p-2.5 sm:p-3.5 gap-2.5'} ${theme.cardBg}`}>
+                    <div className={`w-full rounded-2xl sm:rounded-3xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-2 sm:p-2.5 gap-2' : 'p-3.5 sm:p-4.5 gap-3 sm:gap-3.5'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR DICTIONARY ORDER */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-2 sm:gap-2.5'}`}>
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1.5 sm:gap-2' : 'gap-2 sm:gap-3'}`}>
                         {player.upperSlots.map((word, slotIdx) => (
                           <div
                             key={`upper_${slotIdx}`}
@@ -852,25 +852,27 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                             onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
                             draggable={word !== null}
                             onDragStart={(e) => word && handleDragStartTarget(e, pIdx, word, slotIdx)}
-                            className={`min-h-[46px] xs:min-h-[52px] sm:min-h-[60px] rounded-xl border-2 flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer font-black select-none ${
+                            className={`min-h-[64px] xs:min-h-[72px] sm:min-h-[82px] md:min-h-[92px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1.5 sm:p-2.5 transition-all cursor-pointer font-black select-none ${
                               word 
-                                ? `${theme.slotFilled} hover:scale-105 active:scale-95` 
+                                ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-lg` 
                                 : `${theme.slotEmpty} border-dashed hover:border-white/80`
                             }`}
                           >
-                            <span className="text-[9px] sm:text-[10px] uppercase font-bold opacity-75 leading-none mb-0.5">
+                            <span className="text-[10px] sm:text-xs uppercase font-extrabold opacity-80 leading-none mb-1">
                               {slotIdx + 1}. Sözcük
                             </span>
                             {word ? (
                               <span className={`font-black uppercase tracking-wide truncate max-w-full ${
                                 playerMode === 3 
-                                  ? 'text-xs xs:text-sm sm:text-base' 
-                                  : 'text-sm xs:text-base sm:text-lg'
+                                  ? 'text-sm xs:text-base sm:text-lg' 
+                                  : playerMode === 1 
+                                  ? 'text-xl xs:text-2xl sm:text-3xl' 
+                                  : 'text-base xs:text-lg sm:text-2xl'
                               }`}>
                                 {word}
                               </span>
                             ) : (
-                              <span className="text-white/40 text-xs font-bold">
+                              <span className="text-white/40 text-sm font-black">
                                 ---
                               </span>
                             )}
@@ -879,8 +881,8 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       </div>
 
                       {/* DIVIDER LINE WITH HELPFUL TIP */}
-                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-xs'}`}>
-                        <span>Kelimelere dokunarak yerleştir:</span>
+                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[10px]' : 'text-[10px] sm:text-xs'}`}>
+                        <span>Kelimelere dokunarak sıraya diz:</span>
                         {player.upperSlots.some(s => s !== null) && (
                           <button
                             onClick={() => handleResetPlayerSlots(pIdx)}
@@ -892,29 +894,31 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       </div>
 
                       {/* LOWER SOURCE ROW: SCRAMBLED WORDS AVAILABLE */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[44px]' : 'gap-2 sm:gap-2.5 min-h-[52px]'}`}>
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1.5 sm:gap-2 min-h-[60px]' : 'gap-2 sm:gap-3 min-h-[76px]'}`}>
                         {Array.from({ length: wordCount }).map((_, wordIdx) => {
                           const word = player.availableWords[wordIdx];
                           return (
                             <div
                               key={`source_slot_${wordIdx}`}
-                              className="w-full min-h-[46px] xs:min-h-[52px] sm:min-h-[60px] flex items-center justify-center"
+                              className="w-full min-h-[64px] xs:min-h-[72px] sm:min-h-[82px] md:min-h-[92px] flex items-center justify-center"
                             >
                               {word ? (
                                 <div
                                   draggable
                                   onDragStart={(e) => handleDragStartSource(e, pIdx, word, wordIdx)}
                                   onClick={() => handleTapSourceWord(pIdx, word, wordIdx)}
-                                  className={`w-full h-full rounded-xl bg-white text-slate-900 border-2 border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center px-1 sm:px-2 font-black uppercase tracking-wide cursor-pointer select-none text-center truncate ${
+                                  className={`w-full h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center px-2 sm:px-3 font-black uppercase tracking-wide cursor-pointer select-none text-center truncate ${
                                     playerMode === 3 
-                                      ? 'text-xs xs:text-sm sm:text-base' 
-                                      : 'text-sm xs:text-base sm:text-lg'
+                                      ? 'text-sm xs:text-base sm:text-lg' 
+                                      : playerMode === 1 
+                                      ? 'text-xl xs:text-2xl sm:text-3xl' 
+                                      : 'text-base xs:text-lg sm:text-2xl'
                                   }`}
                                 >
                                   {word}
                                 </div>
                               ) : (
-                                <div className="w-full h-full rounded-xl bg-black/25 border border-white/10" />
+                                <div className="w-full h-full rounded-xl sm:rounded-2xl bg-black/25 border border-white/10" />
                               )}
                             </div>
                           );

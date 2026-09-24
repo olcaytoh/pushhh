@@ -176,7 +176,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
     },
     {
       id: 'geometrik_sekilleri_bul',
-      title: 'Geometrik Şekilleri Bul',
+      title: 'Geometrik Cisimleri Bul',
       subtitle: 'Günlük Hayat Eşyaları, 20 Sn Sprint & 2-3 Kişilik Kapışma',
       icon: '/MENUIKON/grid_icon_39.png',
       sound: '/coin.mp3',

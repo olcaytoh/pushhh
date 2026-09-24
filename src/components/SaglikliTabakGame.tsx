@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Volume2, Home, ChevronLeft,
+  Sparkles, RotateCcw, Volume2, Home, ChevronLeft, ChevronRight,
   Utensils, Heart, CheckCircle2, XCircle
 } from 'lucide-react';
 import { Student } from '../types/student';
@@ -261,7 +261,7 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
@@ -269,12 +269,33 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#2e1d0d] via-[#472c11] to-[#2e1d0d] border border-amber-400/80 shadow-md">
+
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#2e1d0d] via-[#472c11] to-[#2e1d0d] border border-amber-400/80 shadow-md">
             <Utensils size={14} className="text-amber-400" />
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               Sağlıklı Tabak Şefi (Sağlıklı Hayat)
             </span>
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}
@@ -358,48 +379,50 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
                   </div>
                 </div>
 
-                {/* Yiyecek Kartı */}
-                <div className="my-auto py-3 px-4 rounded-2xl bg-black/50 border-2 border-white/20 flex flex-col items-center justify-center gap-2 shadow-inner">
-                  <span className="text-4xl sm:text-5xl animate-bounce">
-                    {currentFood.emoji}
-                  </span>
-                  <div className="text-base sm:text-xl font-black text-white text-center">
+                {/* Yiyecek Kartı - Soru Görseli ve Punto Büyütüldü */}
+                <div className="my-auto py-4 sm:py-6 px-4 sm:px-6 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-amber-400/50 flex flex-col items-center justify-center gap-2.5 shadow-2xl">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-amber-500/20 to-orange-900/40 border-2 border-amber-400/40 flex items-center justify-center shadow-inner">
+                    <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-lg">
+                      {currentFood.emoji}
+                    </span>
+                  </div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-white text-center tracking-wide drop-shadow-sm">
                     {currentFood.name}
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-[10px] sm:text-xs font-bold text-amber-300">
+                  <span className="px-3.5 py-1 rounded-full bg-white/15 text-xs sm:text-sm font-black text-amber-300 border border-amber-400/30">
                     {currentFood.category}
                   </span>
                 </div>
 
                 {/* Karar Butonları: Sağlıklı mı? Abur Cubur mu? */}
-                <div className="grid grid-cols-2 gap-2 my-2">
+                <div className="grid grid-cols-2 gap-2.5 my-2">
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, true)}
-                    className={`py-3 px-2 rounded-xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md ${
+                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
                       player.showFeedback
                         ? currentFood.isHealthy
-                          ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
+                          ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400 scale-102'
                           : 'opacity-30 bg-slate-800 border-slate-700'
                         : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border-emerald-400'
                     }`}
                   >
-                    <span className="text-lg leading-none">🥗</span>
+                    <span className="text-2xl sm:text-3xl leading-none">🥗</span>
                     <span>SAĞLIKLI BESİN</span>
                   </button>
 
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, false)}
-                    className={`py-3 px-2 rounded-xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md ${
+                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
                       player.showFeedback
                         ? !currentFood.isHealthy
-                          ? 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400'
+                          ? 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400 scale-102'
                           : 'opacity-30 bg-slate-800 border-slate-700'
                         : 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white border-rose-400'
                     }`}
                   >
-                    <span className="text-lg leading-none">🚫</span>
+                    <span className="text-2xl sm:text-3xl leading-none">🚫</span>
                     <span>ABUR CUBUR</span>
                   </button>
                 </div>

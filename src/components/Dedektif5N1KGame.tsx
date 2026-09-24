@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { 
   Search, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, 
   Sparkles, CheckCircle2, Trophy, ArrowRight, ArrowLeft, Home,
-  ChevronLeft, AlertCircle, ShieldCheck, HelpCircle, BookOpen
+  ChevronLeft, ChevronRight, AlertCircle, ShieldCheck, HelpCircle, BookOpen
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
@@ -381,7 +381,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
 
       {/* Sub-header Bar */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Back button */}
           <button
             onClick={onClose}
@@ -391,13 +391,35 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             <ChevronLeft size={18} />
           </button>
 
+          {/* Önceki Etkinlik */}
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
           {/* Activity Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#1b253b] via-[#243352] to-[#1b253b] border border-amber-400/80 shadow-md">
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#1b253b] via-[#243352] to-[#1b253b] border border-amber-400/80 shadow-md">
             <Search size={14} className="text-amber-400 shrink-0" />
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               5N 1K Dedektifi
             </span>
           </div>
+
+          {/* Sonraki Etkinlik */}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}
@@ -466,35 +488,35 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                   </div>
                 </div>
 
-                {/* Vaka Dosyası (Hikaye Metni) */}
-                <div className="bg-black/40 border border-white/10 rounded-xl p-2 sm:p-2.5 mb-2 relative overflow-hidden">
-                  <div className="flex items-center gap-1.5 mb-1 text-[10px] sm:text-xs font-bold text-amber-300">
-                    <span>🔍</span>
-                    <span className="uppercase tracking-wide font-black">Vaka Dosyası: {currentQ.title}</span>
+                {/* Vaka Dosyası (Hikaye Metni) - Puntosu Büyütüldü */}
+                <div className="bg-black/55 border-2 border-indigo-400/40 rounded-2xl p-3 sm:p-4 mb-2 relative overflow-hidden shadow-lg">
+                  <div className="flex items-center gap-2 mb-1.5 text-xs sm:text-sm font-black text-amber-300">
+                    <span className="text-base sm:text-lg">🔍</span>
+                    <span className="uppercase tracking-wider">Vaka Dosyası: {currentQ.title}</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+                  <p className="text-sm sm:text-base md:text-lg text-slate-100 leading-relaxed font-semibold">
                     "{currentQ.story}"
                   </p>
                 </div>
 
                 {/* 5N 1K Soru Rozeti */}
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-md">
+                <div className="flex items-center justify-center gap-2 mb-1.5">
+                  <span className="px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-xs sm:text-sm md:text-base tracking-wider uppercase shadow-md">
                     {currentQ.qTypeLabel}
                   </span>
                 </div>
 
-                {/* Soru Cümlesi */}
-                <h3 className="text-center font-black text-xs sm:text-sm md:text-base text-white mb-2.5 leading-snug px-1">
+                {/* Soru Cümlesi - Puntosu Büyütüldü */}
+                <h3 className="text-center font-black text-sm sm:text-base md:text-lg lg:text-xl text-amber-200 mb-2 leading-snug px-2 drop-shadow-sm">
                   {currentQ.question}
                 </h3>
 
-                {/* Şıklar */}
-                <div className="grid grid-cols-1 gap-1.5 my-auto">
+                {/* Şıklar - Aşağıya İndirildi (mt-auto) ve Puntoları Büyütüldü */}
+                <div className="grid grid-cols-1 gap-2 mt-auto mb-1 w-full">
                   {currentQ.options.map((opt, oIdx) => {
                     const isChosen = player.selectedOption === opt;
                     const isRight = opt === currentQ.correctAnswer;
-                    let btnStyle = 'bg-slate-800/90 hover:bg-slate-700 text-slate-100 border-slate-600/80';
+                    let btnStyle = 'bg-slate-800/95 hover:bg-slate-700 text-slate-100 border-slate-600/90';
 
                     if (player.showFeedback) {
                       if (isRight) {
@@ -511,16 +533,16 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                         key={oIdx}
                         disabled={player.showFeedback}
                         onClick={() => handleOptionClick(pIdx, opt)}
-                        className={`w-full py-2 px-3 rounded-xl border font-bold text-xs sm:text-sm transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 ${btnStyle}`}
+                        className={`w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border-2 font-bold text-xs sm:text-sm md:text-base transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 shadow-md ${btnStyle}`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded-full bg-black/30 flex items-center justify-center text-[10px] font-black shrink-0">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black/40 flex items-center justify-center text-xs font-black shrink-0 border border-white/20">
                             {['A', 'B', 'C', 'D'][oIdx]}
                           </span>
                           <span className="truncate">{opt}</span>
                         </div>
-                        {player.showFeedback && isRight && <span className="text-white shrink-0">✓</span>}
-                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0">✗</span>}
+                        {player.showFeedback && isRight && <span className="text-white shrink-0 font-black text-base">✓</span>}
+                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0 font-black text-base">✗</span>}
                       </button>
                     );
                   })}

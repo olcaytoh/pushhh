@@ -129,7 +129,7 @@ ALL_ACTIVITIES_LIST.push({
   id: 'g1_geometrik_sekilleri_bul',
   type: 'geometrik_sekilleri_bul',
   grade: 1,
-  title: 'Geometrik Şekilleri Bul',
+  title: 'Geometrik Cisimleri Bul',
   categoryLabel: '1. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -292,7 +292,7 @@ ALL_ACTIVITIES_LIST.push({
   id: 'g2_geometrik_sekilleri_bul',
   type: 'geometrik_sekilleri_bul',
   grade: 2,
-  title: 'Geometrik Şekilleri Bul',
+  title: 'Geometrik Cisimleri Bul',
   categoryLabel: '2. Sınıf Diğer Oyunlar'
 });
 
@@ -532,7 +532,7 @@ ALL_ACTIVITIES_LIST.push({
   id: 'g3_geometrik_sekilleri_bul',
   type: 'geometrik_sekilleri_bul',
   grade: 3,
-  title: 'Geometrik Şekilleri Bul',
+  title: 'Geometrik Cisimleri Bul',
   categoryLabel: '3. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -677,7 +677,7 @@ ALL_ACTIVITIES_LIST.push({
   id: 'g4_geometrik_sekilleri_bul',
   type: 'geometrik_sekilleri_bul',
   grade: 4,
-  title: 'Geometrik Şekilleri Bul',
+  title: 'Geometrik Cisimleri Bul',
   categoryLabel: '4. Sınıf Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
@@ -740,6 +740,18 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'other_hece_makasi',
+  type: 'hece_makasi',
+  title: 'Hece Makası (Hecelere Ayırma)',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_yazim_dedektifi',
+  type: 'yazim_dedektifi',
+  title: 'Yazım Yanlışı Dedektifi',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'other_aynisini_bul',
   type: 'aynisini_bul',
   title: 'Aynısını Bul (2 Kişilik)',
@@ -799,6 +811,48 @@ ALL_ACTIVITIES_LIST.push({
   id: 'other_geometrik_sekilleri_bul',
   type: 'geometrik_sekilleri_bul',
   title: 'Geometrik Cisimleri Bul',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_dedektif_5n1k',
+  type: 'dedektif_5n1k',
+  title: '5N 1K Dedektifi',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_noktalama_avcisi',
+  type: 'noktalama_avcisi',
+  title: 'Noktalama İşareti Avcısı',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_harf_corbasi',
+  type: 'harf_corbasi',
+  title: 'Harf Çorbası / Anagram',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_geri_donusum',
+  type: 'geri_donusum',
+  title: 'Geri Dönüşüm Kahramanı (Doğada Hayat)',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_saglikli_tabak',
+  type: 'saglikli_tabak',
+  title: 'Sağlıklı Tabak Şefi',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_istek_ihtiyac',
+  type: 'istek_ihtiyac',
+  title: 'İstek mi, İhtiyaç mı?',
+  categoryLabel: 'Diğer Oyunlar'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'other_mevsim_gardirobu',
+  type: 'mevsim_gardirobu',
+  title: 'Mevsim Gardırobu',
   categoryLabel: 'Diğer Oyunlar'
 });
 ALL_ACTIVITIES_LIST.push({

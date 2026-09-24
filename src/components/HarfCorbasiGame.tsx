@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Volume2, Home, ChevronLeft,
+  Sparkles, RotateCcw, Volume2, Home, ChevronLeft, ChevronRight,
   HelpCircle, Trash2, Check
 } from 'lucide-react';
 import { Student } from '../types/student';
@@ -382,7 +382,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
@@ -390,12 +390,33 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#2c1c0c] via-[#45280e] to-[#2c1c0c] border border-orange-400/80 shadow-md">
+
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#2c1c0c] via-[#45280e] to-[#2c1c0c] border border-orange-400/80 shadow-md">
             <span className="text-sm">🍲</span>
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               Harf Çorbası (Anagram)
             </span>
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}

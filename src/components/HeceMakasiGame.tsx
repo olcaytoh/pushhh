@@ -437,23 +437,23 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
     if (mode === 1) {
       if (wordLength >= 10) {
         return {
-          ribbonPadding: 'p-2 sm:p-4',
-          letterTile: 'w-9 h-12 xs:w-11 xs:h-14 sm:w-13 sm:h-16 md:w-15 md:h-18 rounded-xl sm:rounded-2xl border-2 text-xl xs:text-2xl sm:text-3xl md:text-4xl',
-          cutSlot: 'w-4.5 sm:w-6 h-12 sm:h-16',
-          cutLineHeight: 'h-12 sm:h-16',
+          ribbonPadding: 'p-2 sm:p-3',
+          letterTile: 'w-11 h-15 xs:w-13 xs:h-18 sm:w-16 sm:h-22 md:w-19 md:h-26 rounded-2xl border-2 sm:border-3 text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black',
+          cutSlot: 'w-2.5 sm:w-3.5 h-15 sm:h-22 md:h-26',
+          cutLineHeight: 'h-15 sm:h-22 md:h-26',
           doneCircle: 'w-6 h-6 sm:w-7 sm:h-7 text-xs',
-          triggerCircle: 'w-5 h-5 sm:w-6 sm:h-6',
+          triggerCircle: 'w-5.5 h-5.5 sm:w-6.5 sm:h-6.5',
           scissorIconSize: 13,
         };
       }
       return {
-        ribbonPadding: 'p-3 sm:p-5',
-        letterTile: 'w-11 h-14 xs:w-13 xs:h-16 sm:w-15 sm:h-18 md:w-18 md:h-22 rounded-2xl border-2 text-2xl xs:text-3xl sm:text-4xl md:text-5xl',
-        cutSlot: 'w-6 sm:w-8 h-14 sm:h-18',
-        cutLineHeight: 'h-14 sm:h-18',
-        doneCircle: 'w-6 h-6 sm:w-7 sm:h-7 text-xs',
-        triggerCircle: 'w-5 h-5 sm:w-6 sm:h-6',
-        scissorIconSize: 14,
+        ribbonPadding: 'p-2.5 sm:p-4',
+        letterTile: 'w-13 h-17 xs:w-16 xs:h-22 sm:w-20 sm:h-26 md:w-24 md:h-30 rounded-2xl sm:rounded-3xl border-3 sm:border-4 text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black',
+        cutSlot: 'w-3 sm:w-4 h-17 sm:h-26 md:h-30',
+        cutLineHeight: 'h-17 sm:h-26 md:h-30',
+        doneCircle: 'w-7 h-7 sm:w-8 sm:h-8 text-sm',
+        triggerCircle: 'w-6 h-6 sm:w-7 sm:h-7',
+        scissorIconSize: 15,
       };
     }
 
@@ -461,67 +461,67 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
       if (wordLength >= 10) {
         return {
           ribbonPadding: 'p-1 sm:p-2',
-          letterTile: 'w-5.5 h-7.5 xs:w-6.5 xs:h-8.5 sm:w-8 sm:h-10 md:w-9.5 md:h-12 lg:w-11 lg:h-14 rounded-lg sm:rounded-xl border-[1.5px] sm:border-2 text-xs xs:text-sm sm:text-base md:text-xl lg:text-2xl font-black',
-          cutSlot: 'w-3 xs:w-3.5 sm:w-4.5 md:w-5 h-7.5 sm:h-10 md:h-12',
-          cutLineHeight: 'h-7.5 sm:h-10 md:h-12',
-          doneCircle: 'w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-[8px] sm:text-[9px]',
-          triggerCircle: 'w-3.5 h-3.5 sm:w-4.5 sm:h-4.5',
-          scissorIconSize: 9,
+          letterTile: 'w-7.5 h-10 xs:w-9 xs:h-12 sm:w-11 sm:h-15 md:w-13 md:h-18 rounded-xl sm:rounded-2xl border-2 text-base sm:text-xl md:text-2xl font-black',
+          cutSlot: 'w-2 xs:w-2.5 sm:w-3 h-10 sm:h-15 md:h-18',
+          cutLineHeight: 'h-10 sm:h-15 md:h-18',
+          doneCircle: 'w-4 h-4 sm:w-5 sm:h-5 text-[9px] sm:text-[10px]',
+          triggerCircle: 'w-4 h-4 sm:w-5 sm:h-5',
+          scissorIconSize: 11,
         };
       }
       if (wordLength >= 7) {
         return {
           ribbonPadding: 'p-1.5 sm:p-2.5',
-          letterTile: 'w-6.5 h-8.5 xs:w-8 xs:h-10 sm:w-9.5 sm:h-12 md:w-11 md:h-14 lg:w-12 lg:h-15 rounded-xl border-2 text-sm xs:text-base sm:text-xl md:text-2xl font-black',
-          cutSlot: 'w-3.5 xs:w-4 sm:w-5 md:w-6 h-8.5 sm:h-12 md:h-14',
-          cutLineHeight: 'h-8.5 sm:h-12 md:h-14',
-          doneCircle: 'w-4 h-4 sm:w-5 sm:h-5 text-[9px] sm:text-[10px]',
-          triggerCircle: 'w-4 h-4 sm:w-5 sm:h-5',
-          scissorIconSize: 10,
+          letterTile: 'w-9 h-12 xs:w-11 xs:h-15 sm:w-13 sm:h-18 md:w-16 md:h-22 rounded-xl sm:rounded-2xl border-2 sm:border-3 text-xl sm:text-2xl md:text-3xl font-black',
+          cutSlot: 'w-2.5 xs:w-3 sm:w-3.5 h-12 sm:h-18 md:h-22',
+          cutLineHeight: 'h-12 sm:h-18 md:h-22',
+          doneCircle: 'w-5 h-5 sm:w-6 sm:h-6 text-xs',
+          triggerCircle: 'w-5 h-5 sm:w-6 sm:h-6',
+          scissorIconSize: 12,
         };
       }
       return {
-        ribbonPadding: 'p-2 sm:p-3.5',
-        letterTile: 'w-8 h-10 xs:w-9.5 xs:h-12 sm:w-11 sm:h-14 md:w-13 md:h-16 lg:w-15 lg:h-18 rounded-xl sm:rounded-2xl border-2 text-base xs:text-xl sm:text-2xl md:text-3xl font-black',
-        cutSlot: 'w-4.5 xs:w-5.5 sm:w-6.5 md:w-7.5 h-10 sm:h-14 md:h-16',
-        cutLineHeight: 'h-10 sm:h-14 md:h-16',
-        doneCircle: 'w-5 h-5 sm:w-6 sm:h-6 text-xs',
-        triggerCircle: 'w-5 h-5 sm:w-6 sm:h-6',
-        scissorIconSize: 11,
+        ribbonPadding: 'p-2 sm:p-3',
+        letterTile: 'w-11 h-14 xs:w-13 xs:h-18 sm:w-16 sm:h-22 md:w-20 md:h-26 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-2xl sm:text-3xl md:text-4xl font-black',
+        cutSlot: 'w-2.5 xs:w-3 sm:w-4 h-14 sm:h-22 md:h-26',
+        cutLineHeight: 'h-14 sm:h-22 md:h-26',
+        doneCircle: 'w-6 h-6 sm:w-7 sm:h-7 text-xs',
+        triggerCircle: 'w-5.5 h-5.5 sm:w-6.5 sm:h-6.5',
+        scissorIconSize: 13,
       };
     }
 
-    // 3 Players Mode - Ultra-Compact & Streamlined
+    // 3 Players Mode - Compact & Streamlined
     if (wordLength >= 10) {
       return {
         ribbonPadding: 'p-0.5 sm:p-1',
-        letterTile: 'w-4 h-6 xs:w-4.5 xs:h-6.5 sm:w-5.5 sm:h-7.5 md:w-6.5 md:h-8.5 lg:w-7.5 lg:h-9.5 rounded-md border text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-black',
-        cutSlot: 'w-2 xs:w-2.5 sm:w-3 md:w-3.5 h-6 sm:h-7.5 md:h-8.5',
-        cutLineHeight: 'h-6 sm:h-7.5 md:h-8.5',
-        doneCircle: 'w-2.5 h-2.5 sm:w-3 sm:h-3 text-[6px]',
-        triggerCircle: 'w-2.5 h-2.5 sm:w-3 sm:h-3',
-        scissorIconSize: 7,
-      };
-    }
-    if (wordLength >= 7) {
-      return {
-        ribbonPadding: 'p-1 sm:p-1.5',
-        letterTile: 'w-5 h-7 xs:w-5.5 xs:h-7.5 sm:w-6.5 sm:h-8.5 md:w-7.5 md:h-9.5 lg:w-8.5 lg:h-10.5 rounded-lg border-[1.5px] text-xs xs:text-xs sm:text-sm md:text-base font-black',
-        cutSlot: 'w-2.5 xs:w-3 sm:w-3.5 md:w-4 h-7 sm:h-8.5 md:h-9.5',
-        cutLineHeight: 'h-7 sm:h-8.5 md:h-9.5',
+        letterTile: 'w-5.5 h-8 xs:w-6.5 xs:h-9.5 sm:w-8 sm:h-12 md:w-9.5 md:h-14 rounded-lg sm:rounded-xl border-[1.5px] text-xs sm:text-sm md:text-base font-black',
+        cutSlot: 'w-1.5 xs:w-2 sm:w-2.5 h-8 sm:h-12 md:h-14',
+        cutLineHeight: 'h-8 sm:h-12 md:h-14',
         doneCircle: 'w-3 h-3 sm:w-3.5 sm:h-3.5 text-[7px]',
         triggerCircle: 'w-3 h-3 sm:w-3.5 sm:h-3.5',
         scissorIconSize: 8,
       };
     }
+    if (wordLength >= 7) {
+      return {
+        ribbonPadding: 'p-1 sm:p-1.5',
+        letterTile: 'w-7 h-10 xs:w-8 xs:h-12 sm:w-10 sm:h-15 md:w-12 md:h-17 rounded-xl border-2 text-sm sm:text-base md:text-xl font-black',
+        cutSlot: 'w-2 xs:w-2.5 sm:w-3 h-10 sm:h-15 md:h-17',
+        cutLineHeight: 'h-10 sm:h-15 md:h-17',
+        doneCircle: 'w-4 h-4 sm:w-4.5 sm:h-4.5 text-[8px] sm:text-[9px]',
+        triggerCircle: 'w-4 h-4 sm:w-4.5 sm:h-4.5',
+        scissorIconSize: 9,
+      };
+    }
     return {
-      ribbonPadding: 'p-1 sm:p-2',
-      letterTile: 'w-6 h-8 xs:w-7 xs:h-9 sm:w-8 sm:h-10 md:w-9 md:h-11 lg:w-10 lg:h-12 rounded-lg sm:rounded-xl border-2 text-xs xs:text-sm sm:text-base md:text-lg font-black',
-      cutSlot: 'w-3 xs:w-3.5 sm:w-4 md:w-5 h-8 sm:h-10 md:h-11',
-      cutLineHeight: 'h-8 sm:h-10 md:h-11',
-      doneCircle: 'w-3.5 h-3.5 sm:w-4 sm:h-4 text-[8px]',
-      triggerCircle: 'w-3.5 h-3.5 sm:w-4 sm:h-4',
-      scissorIconSize: 9,
+      ribbonPadding: 'p-1.5 sm:p-2',
+      letterTile: 'w-8.5 h-12 xs:w-10 xs:h-14 sm:w-12 sm:h-17 md:w-14 md:h-20 rounded-xl sm:rounded-2xl border-2 text-base sm:text-xl md:text-2xl font-black',
+      cutSlot: 'w-2 xs:w-2.5 sm:w-3.5 h-12 sm:h-17 md:h-20',
+      cutLineHeight: 'h-12 sm:h-17 md:h-20',
+      doneCircle: 'w-4.5 h-4.5 sm:w-5 sm:h-5 text-[9px] sm:text-xs',
+      triggerCircle: 'w-4.5 h-4.5 sm:w-5 sm:h-5',
+      scissorIconSize: 10,
     };
   };
 
@@ -813,8 +813,8 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                     </span>
                   </div>
 
-                  {/* Interactive Cutting Ribbon Workspace */}
-                  <div className="flex-1 flex flex-col items-center justify-center my-0.5 sm:my-1 min-h-0 min-w-0 overflow-y-auto">
+                  {/* Interactive Cutting Ribbon Workspace - Positioned closer to bottom (near student list) */}
+                  <div className="flex-1 flex flex-col items-center justify-end pb-1.5 sm:pb-3.5 my-0.5 min-h-0 min-w-0 overflow-y-auto">
                     {/* Instructions Banner */}
                     {playerMode === 1 ? (
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 border border-cyan-400/30 mb-2 sm:mb-3 shadow shrink-0">

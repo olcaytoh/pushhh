@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Volume2, Home, ChevronLeft,
+  Sparkles, RotateCcw, Volume2, Home, ChevronLeft, ChevronRight,
   Trash2, ShieldCheck, Leaf
 } from 'lucide-react';
 import { Student } from '../types/student';
@@ -266,7 +266,7 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
@@ -274,12 +274,33 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#0d2a1b] via-[#143e28] to-[#0d2a1b] border border-emerald-400/80 shadow-md">
+
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#0d2a1b] via-[#143e28] to-[#0d2a1b] border border-emerald-400/80 shadow-md">
             <Leaf size={14} className="text-emerald-400" />
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               Geri Dönüşüm Kahramanı (Doğada Hayat)
             </span>
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}
@@ -347,21 +368,23 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
                   </div>
                 </div>
 
-                {/* Atık Nesnesi Kartı */}
-                <div className="my-auto py-3 px-4 rounded-2xl bg-black/50 border-2 border-white/20 flex flex-col items-center justify-center gap-2 shadow-inner">
-                  <span className="text-4xl sm:text-5xl animate-bounce">
-                    {currentItem.emoji}
-                  </span>
-                  <div className="text-sm sm:text-lg font-black text-white text-center">
+                {/* Atık Nesnesi Kartı - Soru Görseli ve Punto Büyütüldü */}
+                <div className="my-auto py-4 sm:py-6 px-4 sm:px-6 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-emerald-400/50 flex flex-col items-center justify-center gap-2.5 shadow-2xl">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-teal-900/40 border-2 border-emerald-400/40 flex items-center justify-center shadow-inner">
+                    <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-lg">
+                      {currentItem.emoji}
+                    </span>
+                  </div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-amber-200 text-center tracking-wide drop-shadow-sm">
                     {currentItem.name}
                   </div>
-                  <div className="text-[10.5px] sm:text-xs font-semibold text-emerald-300 text-center">
+                  <div className="text-xs sm:text-sm md:text-base font-bold text-emerald-300 text-center">
                     👉 Bu atığı hangi geri dönüşüm kutusuna atmalıyız?
                   </div>
                 </div>
 
                 {/* Geri Dönüşüm Kutuları */}
-                <div className="grid grid-cols-5 gap-1 sm:gap-1.5 my-2">
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 my-2">
                   {RECYCLING_BINS.map((bin) => {
                     const isChosen = player.chosenBin === bin.type;
                     const isRight = bin.type === currentItem.bin;
@@ -382,10 +405,10 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
                         key={bin.type}
                         disabled={player.showFeedback}
                         onClick={() => handleSelectBin(pIdx, bin.type)}
-                        className={`flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-xl border-2 transition-all cursor-pointer active:scale-95 shadow-md ${binStyle}`}
+                        className={`flex flex-col items-center justify-between p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 shadow-md ${binStyle}`}
                       >
-                        <span className="text-lg sm:text-2xl leading-none">{bin.icon}</span>
-                        <span className={`text-[8.5px] sm:text-[10.5px] font-black uppercase tracking-tight mt-1 truncate max-w-full ${bin.color}`}>
+                        <span className="text-2xl sm:text-3xl md:text-4xl leading-none">{bin.icon}</span>
+                        <span className={`text-[9px] sm:text-xs md:text-sm font-black uppercase tracking-tight mt-1 truncate max-w-full ${bin.color}`}>
                           {bin.name}
                         </span>
                       </button>

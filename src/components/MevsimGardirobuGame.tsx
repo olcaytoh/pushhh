@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Volume2, Home, ChevronLeft,
+  Sparkles, RotateCcw, Volume2, Home, ChevronLeft, ChevronRight,
   Sun, CloudSnow, CloudRain, Flower2
 } from 'lucide-react';
 import { Student } from '../types/student';
@@ -332,7 +332,7 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
@@ -340,12 +340,33 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#1e1b4b] via-[#312e81] to-[#1e1b4b] border border-indigo-400/80 shadow-md">
+
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#1e1b4b] via-[#312e81] to-[#1e1b4b] border border-indigo-400/80 shadow-md">
             <span className="text-sm">🧥</span>
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               Mevsim Gardırobu (Hava Durumu)
             </span>
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}
@@ -413,32 +434,32 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
                   </div>
                 </div>
 
-                {/* Mevsim & Hava Durumu Sahnesi */}
-                <div className="my-auto py-2.5 px-3 rounded-2xl bg-black/50 border-2 border-white/20 flex flex-col items-center justify-center gap-1.5 shadow-inner">
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl sm:text-4xl animate-pulse">{currentSc.emoji}</span>
-                    <span className="px-3 py-1 rounded-full bg-indigo-600/60 border border-indigo-400 text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                {/* Mevsim & Hava Durumu Sahnesi - Görsel ve Yazı Puntoları Büyütüldü */}
+                <div className="my-auto py-3.5 sm:py-5 px-3.5 sm:px-5 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-indigo-400/50 flex flex-col items-center justify-center gap-2 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-5xl sm:text-6xl md:text-7xl animate-pulse filter drop-shadow-md">{currentSc.emoji}</span>
+                    <span className="px-4 py-1.5 rounded-full bg-indigo-600/80 border-2 border-indigo-400 text-xs sm:text-sm md:text-base font-black text-white uppercase tracking-wider shadow-md">
                       {currentSc.season} Mevsimi
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-200 text-center font-medium leading-relaxed px-1">
+                  <p className="text-sm sm:text-base md:text-lg text-slate-100 text-center font-semibold leading-relaxed px-1">
                     {currentSc.weatherDesc}
                   </p>
-                  <div className="text-[10.5px] sm:text-xs font-bold text-amber-300 mt-1">
+                  <div className="text-xs sm:text-sm md:text-base font-black text-amber-300 mt-1 drop-shadow-sm">
                     👉 {currentSc.question}
                   </div>
                 </div>
 
                 {/* Gardırop Kıyafet Seçenekleri */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 my-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 my-2">
                   {currentSc.options.map((opt, oIdx) => {
                     const isChosen = player.chosenOptionIdx === oIdx;
                     const isRight = opt.isCorrect;
-                    let optStyle = 'bg-slate-800/90 hover:bg-slate-700 text-slate-100 border-slate-600/80';
+                    let optStyle = 'bg-slate-800/95 hover:bg-slate-700 text-slate-100 border-slate-600/90';
 
                     if (player.showFeedback) {
                       if (isRight) {
-                        optStyle = 'bg-emerald-600 text-white border-emerald-300 ring-2 ring-emerald-400 scale-102';
+                        optStyle = 'bg-emerald-600 text-white border-emerald-300 ring-4 ring-emerald-400 scale-102';
                       } else if (isChosen && !isRight) {
                         optStyle = 'bg-rose-600 text-white border-rose-300 ring-2 ring-rose-400';
                       } else {
@@ -451,10 +472,10 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
                         key={oIdx}
                         disabled={player.showFeedback}
                         onClick={() => handleChooseOption(pIdx, oIdx)}
-                        className={`p-2 rounded-xl border font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow ${optStyle}`}
+                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 sm:border-3 font-bold text-xs sm:text-sm md:text-base transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 shadow-lg ${optStyle}`}
                       >
-                        <span className="text-2xl shrink-0">{opt.emoji}</span>
-                        <span className="text-left leading-tight text-[11px] sm:text-xs font-bold">
+                        <span className="text-3xl sm:text-4xl shrink-0 filter drop-shadow-sm">{opt.emoji}</span>
+                        <span className="text-left leading-tight text-xs sm:text-sm md:text-base font-bold">
                           {opt.name}
                         </span>
                       </button>

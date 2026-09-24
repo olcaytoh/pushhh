@@ -4947,6 +4947,13 @@ export default function App() {
               showHeceMakasi ||
               showYazimDedektifi ||
               showGeometrikSekilleriBul ||
+              showDedektif5N1K ||
+              showNoktalamaAvcisi ||
+              showHarfCorbasi ||
+              showGeriDonusum ||
+              showSaglikliTabak ||
+              showIstekIhtiyac ||
+              showMevsimGardirobu ||
               wordGameType !== null
             ) {
               handlePrevActivity();
@@ -5140,6 +5147,13 @@ export default function App() {
               showHeceMakasi ||
               showYazimDedektifi ||
               showGeometrikSekilleriBul ||
+              showDedektif5N1K ||
+              showNoktalamaAvcisi ||
+              showHarfCorbasi ||
+              showGeriDonusum ||
+              showSaglikliTabak ||
+              showIstekIhtiyac ||
+              showMevsimGardirobu ||
               wordGameType !== null
             ) {
               handleNextActivity();
@@ -5675,7 +5689,7 @@ export default function App() {
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
-                      <span className="text-teal-300">í ¼í·¬ðŸ‡§</span>
+                      <span className="text-teal-300">ðŸ‡¬ðŸ‡§</span>
                       <span className="text-slate-400 font-medium">YabancÄ± Dil & Kelime</span>
                     </div>
                     <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
@@ -7178,7 +7192,7 @@ export default function App() {
 
                       <TopicButtonReferenceStyle
                         topicKey="geometrik_sekilleri_bul"
-                        title="Geometrik Åžekilleri Bul"
+                        title="Geometrik Cisimleri Bul"
                         categoryTheme="diger_oyunlar"
                         badgeText="1, 2 ve 3 KiÅŸilik"
                         onClick={() => {

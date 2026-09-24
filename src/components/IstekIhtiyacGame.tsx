@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Volume2, Home, ChevronLeft,
+  Sparkles, RotateCcw, Volume2, Home, ChevronLeft, ChevronRight,
   Scale, ShoppingBag, ShieldCheck, HeartHandshake
 } from 'lucide-react';
 import { Student } from '../types/student';
@@ -255,7 +255,7 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
@@ -263,12 +263,33 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-[#172554] via-[#1e3a8a] to-[#172554] border border-blue-400/80 shadow-md">
+
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#172554] via-[#1e3a8a] to-[#172554] border border-blue-400/80 shadow-md">
             <Scale size={14} className="text-blue-400" />
             <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
               İstek mi, İhtiyaç mı? (Tutumluluk)
             </span>
           </div>
+
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
         </div>
 
         {/* Controls */}
@@ -336,48 +357,50 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
                   </div>
                 </div>
 
-                {/* Eşya Kartı */}
-                <div className="my-auto py-3 px-4 rounded-2xl bg-black/50 border-2 border-white/20 flex flex-col items-center justify-center gap-2 shadow-inner">
-                  <span className="text-4xl sm:text-5xl animate-bounce">
-                    {currentItem.emoji}
-                  </span>
-                  <div className="text-base sm:text-xl font-black text-white text-center">
+                {/* Eşya Kartı - Görsel ve Yazı Puntosu Büyütüldü */}
+                <div className="my-auto py-4 sm:py-6 px-4 sm:px-6 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-blue-400/50 flex flex-col items-center justify-center gap-2.5 shadow-2xl">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-blue-500/20 to-indigo-900/40 border-2 border-blue-400/40 flex items-center justify-center shadow-inner">
+                    <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-lg">
+                      {currentItem.emoji}
+                    </span>
+                  </div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-amber-200 text-center tracking-wide drop-shadow-sm">
                     {currentItem.name}
                   </div>
-                  <div className="text-[10.5px] sm:text-xs font-semibold text-blue-200 text-center">
+                  <div className="text-xs sm:text-sm md:text-base font-bold text-cyan-200 text-center">
                     👉 Bu eşya yaşamak için temel bir İHTİYAÇ mı, yoksa eğlenceli bir İSTEK mi?
                   </div>
                 </div>
 
                 {/* Seçim Butonları: İhtiyaç mı? İstek mi? */}
-                <div className="grid grid-cols-2 gap-2 my-2">
+                <div className="grid grid-cols-2 gap-2.5 my-2">
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, true)}
-                    className={`py-3 px-2 rounded-xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md ${
+                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
                       player.showFeedback
                         ? currentItem.isNeed
-                          ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
+                          ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400 scale-102'
                           : 'opacity-30 bg-slate-800 border-slate-700'
                         : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white border-blue-400'
                     }`}
                   >
-                    <span className="text-lg leading-none">🏠</span>
+                    <span className="text-2xl sm:text-3xl leading-none">🏠</span>
                     <span>ZORUNLU İHTİYAÇ</span>
                   </button>
 
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, false)}
-                    className={`py-3 px-2 rounded-xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95 shadow-md ${
+                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
                       player.showFeedback
                         ? !currentItem.isNeed
-                          ? 'bg-amber-500 text-slate-950 border-amber-300 ring-4 ring-amber-400'
+                          ? 'bg-amber-500 text-slate-950 border-amber-300 ring-4 ring-amber-400 scale-102'
                           : 'opacity-30 bg-slate-800 border-slate-700'
                         : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white border-purple-400'
                     }`}
                   >
-                    <span className="text-lg leading-none">✨</span>
+                    <span className="text-2xl sm:text-3xl leading-none">✨</span>
                     <span>KEYİFLİ İSTEK</span>
                   </button>
                 </div>

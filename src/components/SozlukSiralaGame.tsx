@@ -839,16 +839,16 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                   </div>
 
                   {/* 3.2 MAIN INTERACTIVE LETTER CONSOLE CONTAINER */}
-                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-xl' : 'max-w-lg'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-1.5 sm:gap-2 pb-1'}`}>
+                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-2xl' : playerMode === 2 ? 'max-w-xl' : 'max-w-lg'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-2 sm:gap-2.5 pb-1'}`}>
                     {/* Console Header Pill Badge */}
-                    <div className={`px-3 sm:px-4 py-0.5 rounded-full font-black ${playerMode === 3 ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} uppercase tracking-wider border shadow-md ${theme.pillHeader}`}>
+                    <div className={`px-3.5 sm:px-5 py-0.5 sm:py-1 rounded-full font-black ${playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm md:text-base'} uppercase tracking-wider border shadow-md ${theme.pillHeader}`}>
                       HARFLERİ SIRALA
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-xl sm:rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1 sm:p-1.5 gap-1' : 'p-2 sm:p-3 gap-2'} ${theme.cardBg}`}>
+                    <div className={`w-full rounded-2xl sm:rounded-3xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 sm:p-2 gap-1.5' : 'p-3 sm:p-4 gap-2.5 sm:gap-3'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR ALPHABETICAL ORDER */}
-                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-0.5 sm:gap-1' : 'gap-1.5 sm:gap-2'}`}>
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-2 sm:gap-3'}`}>
                         {player.upperSlots.map((letter, slotIdx) => (
                           <div
                             key={`upper_${slotIdx}`}
@@ -859,20 +859,20 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                             onDragStart={(e) => letter && handleDragStartTarget(e, pIdx, letter, slotIdx)}
                             className={`flex-1 ${
                               playerMode === 3 
-                                ? 'max-w-[42px] sm:max-w-[48px] rounded-lg text-base xs:text-lg sm:text-xl' 
+                                ? 'max-w-[56px] sm:max-w-[64px] rounded-xl text-xl sm:text-2xl' 
                                 : playerMode === 1 
-                                ? 'max-w-[74px] rounded-xl text-3xl sm:text-4xl' 
-                                : 'max-w-[62px] rounded-xl text-2xl sm:text-3xl'
-                            } aspect-square border-2 flex items-center justify-center transition-all cursor-pointer font-black select-none ${
+                                ? 'max-w-[96px] sm:max-w-[114px] rounded-2xl text-4xl sm:text-5xl md:text-6xl' 
+                                : 'max-w-[78px] sm:max-w-[90px] rounded-2xl text-3xl sm:text-4xl'
+                            } aspect-square border-2 sm:border-3 flex items-center justify-center transition-all cursor-pointer font-black select-none ${
                               letter 
-                                ? `${theme.slotFilled} hover:scale-105 active:scale-95` 
+                                ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-xl` 
                                 : `${theme.slotEmpty} border-dashed hover:border-white/80`
                             }`}
                           >
                             {letter ? (
-                              <span>{letter}</span>
+                              <span className="drop-shadow-sm">{letter}</span>
                             ) : (
-                              <span className="text-white/30 text-xs font-bold">
+                              <span className="text-white/40 text-sm sm:text-base font-black">
                                 {slotIdx + 1}
                               </span>
                             )}
@@ -881,8 +881,8 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* DIVIDER LINE WITH HELPFUL TIP */}
-                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8px] sm:text-[9px]' : 'text-[9px] sm:text-xs'}`}>
-                        <span>Harflere dokun:</span>
+                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[10px]' : 'text-[10px] sm:text-xs'}`}>
+                        <span>Harflere dokunarak sıraya koy:</span>
                         {player.upperSlots.some(s => s !== null) && (
                           <button
                             onClick={() => handleResetPlayerSlots(pIdx)}
@@ -894,7 +894,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* LOWER SOURCE ROW: SCRAMBLED LETTERS AVAILABLE */}
-                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-0.5 sm:gap-1 min-h-[30px] sm:min-h-[36px]' : 'gap-1.5 sm:gap-2 min-h-[44px] sm:min-h-[54px]'}`}>
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[40px] sm:min-h-[48px]' : 'gap-2 sm:gap-3 min-h-[58px] sm:min-h-[72px]'}`}>
                         {Array.from({ length: letterCount }).map((_, letterIdx) => {
                           const letter = player.availableLetters[letterIdx];
                           return (
@@ -902,10 +902,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                               key={`source_slot_${letterIdx}`}
                               className={`flex-1 ${
                                 playerMode === 3 
-                                  ? 'max-w-[42px] sm:max-w-[48px]' 
+                                  ? 'max-w-[56px] sm:max-w-[64px]' 
                                   : playerMode === 1 
-                                  ? 'max-w-[74px]' 
-                                  : 'max-w-[62px]'
+                                  ? 'max-w-[96px] sm:max-w-[114px]' 
+                                  : 'max-w-[78px] sm:max-w-[90px]'
                               } aspect-square flex items-center justify-center`}
                             >
                               {letter ? (
@@ -915,16 +915,16 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                                   onClick={() => handleTapSourceLetter(pIdx, letter, letterIdx)}
                                   className={`w-full h-full ${
                                     playerMode === 3 
-                                      ? 'rounded-lg text-base xs:text-lg sm:text-xl' 
+                                      ? 'rounded-xl text-xl sm:text-2xl' 
                                       : playerMode === 1 
-                                      ? 'rounded-xl text-3xl sm:text-4xl' 
-                                      : 'rounded-xl text-2xl sm:text-3xl'
-                                  } bg-white text-slate-900 border-2 border-slate-100 shadow-[0_4px_10px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black cursor-pointer select-none`}
+                                      ? 'rounded-2xl text-4xl sm:text-5xl md:text-6xl' 
+                                      : 'rounded-2xl text-3xl sm:text-4xl'
+                                  } bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black cursor-pointer select-none`}
                                 >
                                   {letter}
                                 </div>
                               ) : (
-                                <div className="w-full h-full rounded-lg sm:rounded-xl bg-black/20 border border-white/10" />
+                                <div className="w-full h-full rounded-xl sm:rounded-2xl bg-black/25 border border-white/10" />
                               )}
                             </div>
                           );

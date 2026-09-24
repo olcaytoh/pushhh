@@ -673,8 +673,8 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       ? (students?.find(s => s.id === selectedStudentIds[pIdx]) || null)
       : (pIdx === 0 ? assignedStudent : null);
 
-    const optHeightClasses = activeMode === 'duel3' ? 'h-9 sm:h-10 md:h-11' : 'h-10 sm:h-11 md:h-12';
-    const optFontClass = activeMode === 'duel3' ? 'text-xs sm:text-sm' : 'text-sm sm:text-base';
+    const optHeightClasses = activeMode === 'duel3' ? 'h-11 sm:h-13 md:h-14' : 'h-13 sm:h-15 md:h-16';
+    const optFontClass = activeMode === 'duel3' ? 'text-sm sm:text-base md:text-lg' : 'text-base sm:text-lg md:text-xl';
 
     return (
       <div
@@ -1074,11 +1074,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                         </span>
 
                         {/* LARGE GOLDEN PLAQUE FOR THE WORD (KART / LEVHA) */}
-                        <div className="w-full max-w-sm sm:max-w-md py-2.5 sm:py-3 px-4 sm:px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_6px_20px_rgba(245,158,11,0.45)] border-2 sm:border-3 border-white flex items-center justify-center gap-3 my-1">
-                          <span className="text-3xl sm:text-4xl filter drop-shadow-md">
+                        <div className="w-full max-w-md sm:max-w-xl py-3 sm:py-4 px-5 sm:px-8 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-[0_8px_24px_rgba(245,158,11,0.5)] border-3 sm:border-4 border-white flex items-center justify-center gap-3.5 my-1.5">
+                          <span className="text-4xl sm:text-5xl filter drop-shadow-md shrink-0">
                             {currentWord.emoji}
                           </span>
-                          <div className="flex items-center justify-center gap-1 text-2xl sm:text-3xl md:text-4xl font-black tracking-wider text-slate-950 drop-shadow-xs">
+                          <div className="flex items-center justify-center gap-1 text-3xl sm:text-4xl md:text-5xl font-black tracking-wider text-slate-950 drop-shadow-xs max-w-full overflow-hidden">
                             {currentWord.word.split('').map((char, idx) => {
                               const isVowel = VOWELS.has(char);
                               return (
@@ -1100,30 +1100,30 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                         {/* AUDIO VOICE BUTTON */}
                         <button
                           onClick={() => speakWord(currentWord.word)}
-                          className="mt-1.5 flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-400/50 text-indigo-200 text-[11px] font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                          className="mt-1.5 flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-400/60 text-indigo-200 text-xs sm:text-sm font-bold transition active:scale-95 cursor-pointer shadow-sm"
                           title="Kelimeyi Dinle"
                         >
-                          <Volume2 size={13} className="text-cyan-400" />
+                          <Volume2 size={15} className="text-cyan-400" />
                           <span>Seslendir</span>
                         </button>
 
                         {/* SYLLABLE BREAKDOWN DISPLAY AFTER ANSWER */}
                         {isAnswered && (
                           <div className="mt-2.5 flex flex-col items-center animate-fadeIn">
-                            <div className="text-[10px] sm:text-[11px] text-slate-400 font-semibold mb-1">
+                            <div className="text-xs sm:text-sm text-slate-300 font-semibold mb-1">
                               Hecelerine Ayrılışı:
                             </div>
-                            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                            <div className="flex items-center gap-2 flex-wrap justify-center">
                               {currentWord.syllables.map((syl, sIdx) => (
                                 <span
                                   key={sIdx}
-                                  className="px-2.5 py-0.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm sm:text-base shadow-md border border-indigo-300"
+                                  className="px-3.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-base sm:text-lg shadow-md border border-indigo-300"
                                 >
                                   {syl}
                                 </span>
                               ))}
                             </div>
-                            <div className="mt-1 text-xs font-bold text-amber-300">
+                            <div className="mt-1.5 text-xs sm:text-sm font-bold text-amber-300">
                               {currentWord.hint}
                             </div>
                           </div>
@@ -1133,7 +1133,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                   </div>
 
                   {/* 5 SYLLABLE OPTION BUTTONS */}
-                  <div className="grid grid-cols-5 gap-2 sm:gap-3 w-full max-w-xl my-1.5 shrink-0">
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3.5 w-full max-w-2xl my-2 shrink-0">
                     {SINGLE_HECE_CHOICES.map(opt => {
                       const isSelected = selectedOption === opt.count;
                       const isCorrectChoice = opt.count === currentWord.count;
@@ -1143,13 +1143,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             onClick={() => handleSelectOption(opt.count)}
-                            className={`relative group py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-[3.5px] transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gradient-to-b ${opt.bg} ${opt.border} ${opt.shadow} ${opt.hoverRing} overflow-hidden`}
+                            className={`relative group min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-[3.5px] sm:border-4 transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-gradient-to-b ${opt.bg} ${opt.border} ${opt.shadow} ${opt.hoverRing} overflow-hidden`}
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-full ${opt.badge} font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-xs`}>
+                            <span className={`px-2.5 py-1 rounded-full ${opt.badge} font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm`}>
                               {opt.label}
                             </span>
                           </button>
@@ -1161,14 +1161,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             disabled={true}
-                            className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-4 border-emerald-200 bg-gradient-to-b from-emerald-500 via-teal-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.9)] ring-4 ring-emerald-400 scale-105 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden animate-pulse"
+                            className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-emerald-200 bg-gradient-to-b from-emerald-500 via-teal-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.9)] ring-4 ring-emerald-400 scale-105 flex flex-col items-center justify-center gap-1.5 cursor-default overflow-hidden animate-pulse"
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full bg-white text-emerald-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-0.5">
-                              <CheckCircle2 size={12} className="text-emerald-600" />
+                            <span className="px-2.5 py-1 rounded-full bg-white text-emerald-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-1">
+                              <CheckCircle2 size={15} className="text-emerald-600" />
                               <span>DOĞRU</span>
                             </span>
                           </button>
@@ -1180,14 +1180,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             disabled={true}
-                            className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-4 border-rose-200 bg-gradient-to-b from-rose-600 via-red-700 to-rose-900 text-white shadow-[0_0_25px_rgba(225,29,72,0.9)] ring-4 ring-rose-400 scale-100 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden"
+                            className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-rose-200 bg-gradient-to-b from-rose-600 via-red-700 to-rose-900 text-white shadow-[0_0_25px_rgba(225,29,72,0.9)] ring-4 ring-rose-400 scale-100 flex flex-col items-center justify-center gap-1.5 cursor-default overflow-hidden"
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-3xl sm:text-4xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] leading-none">
+                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full bg-white text-rose-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-0.5">
-                              <XCircle size={12} className="text-rose-600" />
+                            <span className="px-2.5 py-1 rounded-full bg-white text-rose-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-1">
+                              <XCircle size={15} className="text-rose-600" />
                               <span>YANLIŞ</span>
                             </span>
                           </button>
@@ -1198,12 +1198,12 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                         <button
                           key={opt.count}
                           disabled={true}
-                          className="relative py-2.5 sm:py-3.5 px-1 rounded-2xl font-black border-2 border-slate-700 bg-slate-900/80 text-slate-400 opacity-40 flex flex-col items-center justify-center gap-1 cursor-default"
+                          className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-2 border-slate-700 bg-slate-900/80 text-slate-400 opacity-40 flex flex-col items-center justify-center gap-1.5 cursor-default"
                         >
-                          <span className="text-2xl sm:text-3xl font-black text-slate-400 leading-none">
+                          <span className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-400 leading-none">
                             {opt.count}
                           </span>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                          <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">
                             {opt.label}
                           </span>
                         </button>
