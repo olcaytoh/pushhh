@@ -368,7 +368,10 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
   }, [players]);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+    >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -401,14 +404,6 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
               <ChevronLeft size={16} />
             </button>
           )}
-
-          {/* Activity Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#1b253b] via-[#243352] to-[#1b253b] border border-amber-400/80 shadow-md">
-            <Search size={14} className="text-amber-400 shrink-0" />
-            <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              5N 1K Dedektifi
-            </span>
-          </div>
 
           {/* Sonraki Etkinlik */}
           {onNextActivity && (

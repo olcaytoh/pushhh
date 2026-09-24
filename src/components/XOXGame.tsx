@@ -272,7 +272,10 @@ export const XOXGame: React.FC<XOXGameProps> = ({ onClose, playMp3 }) => {
   };
 
   return (
-    <div className="fixed inset-0 top-[48px] xs:top-[56px] sm:top-[70px] md:top-[76px] z-40 h-[calc(100dvh-48px)] xs:h-[calc(100dvh-56px)] sm:h-[calc(100dvh-70px)] md:h-[calc(100dvh-76px)] overflow-hidden flex flex-col items-center justify-between p-1 xs:p-1.5 sm:p-2.5 font-sans select-none bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)', height: 'calc(100dvh - var(--app-header-height, 74px))' }}
+      className="fixed inset-x-0 bottom-0 top-[48px] xs:top-[56px] sm:top-[70px] md:top-[76px] z-40 overflow-hidden flex flex-col items-center justify-between p-1 xs:p-1.5 sm:p-2.5 font-sans select-none bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100"
+    >
       {/* SAME POSITIVE BACKGROUND IMAGE AS OTHER CLASSROOM ACTIVITIES */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -297,12 +300,6 @@ export const XOXGame: React.FC<XOXGameProps> = ({ onClose, playMp3 }) => {
             MENÜ
           </span>
         </button>
-
-        <div className="flex items-center gap-2 px-3 sm:px-5 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400 text-white font-black text-xs sm:text-sm tracking-wider uppercase">
-          <Sparkles size={14} className="text-amber-400 shrink-0" />
-          <span>XOX (TİC-TAC-TOE)</span>
-          <img src="/icon_5.png" alt="Oyun İkonu" className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-xs ml-1" />
-        </div>
 
         <button
           onClick={resetAll}

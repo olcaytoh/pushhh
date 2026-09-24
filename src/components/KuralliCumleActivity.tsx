@@ -873,18 +873,6 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
             </button>
           )}
 
-          <div className="flex items-center gap-2 px-2.5 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
-            <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
-            <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-              5. DİĞER OYUNLAR
-            </span>
-            <span className="text-amber-400/60 font-bold">•</span>
-            <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Kurallı Cümle
-            </h1>
-            <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
-          </div>
-
           {onNextActivity && (
             <button
               onClick={onNextActivity}
@@ -1058,7 +1046,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                           setDragOverIndex(null);
                         }}
                         onClick={() => handleWordClick(idx)}
-                        className={`group relative flex flex-col items-center justify-between px-3 sm:px-5 py-2 sm:py-3 rounded-2xl font-black transition-all cursor-grab active:cursor-grabbing shadow-xl select-none ${
+                        className={`group relative flex flex-col items-center justify-between px-4 sm:px-7 py-3 sm:py-4 rounded-2xl min-w-[90px] sm:min-w-[125px] font-black transition-all cursor-grab active:cursor-grabbing shadow-xl select-none ${
                           isCorrect
                             ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 text-white border-2 border-emerald-200 shadow-emerald-500/50 scale-102'
                             : isOver
@@ -1071,27 +1059,27 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                         }`}
                       >
                         {/* Wagon Roof Header */}
-                        <div className="w-full flex items-center justify-between gap-1 pb-1 border-b border-black/10 text-[9px] sm:text-[10px] font-bold text-slate-600">
-                          <GripVertical size={11} className="text-slate-400 group-hover:text-amber-600" />
+                        <div className="w-full flex items-center justify-between gap-1 pb-1 border-b border-black/10 text-[10px] sm:text-xs font-black text-slate-600">
+                          <GripVertical size={13} className="text-slate-400 group-hover:text-amber-600" />
                           <span className="uppercase tracking-wider">Vagon #{idx + 1}</span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
                         </div>
 
                         {/* Word Text */}
-                        <span className="text-sm sm:text-lg md:text-xl font-black my-1 text-slate-900 tracking-wide">
+                        <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black my-2 sm:my-3 text-slate-900 tracking-wide drop-shadow-xs">
                           {word.text}
                         </span>
 
                         {/* Wagon Wheels */}
                         <div className="w-full flex items-center justify-between px-1 pt-1 border-t border-black/10">
-                          <span className="w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[7px] text-amber-300">⚙</span>
-                          <span className="text-[9px] text-slate-400 font-mono">━━</span>
-                          <span className="w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[7px] text-amber-300">⚙</span>
+                          <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[8px] text-amber-300">⚙</span>
+                          <span className="text-[10px] text-slate-400 font-mono font-bold">━━━━</span>
+                          <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[8px] text-amber-300">⚙</span>
                         </div>
                       </div>
 
                       {idx < words.length - 1 && (
-                        <span className="text-amber-400/80 font-black text-sm sm:text-base shrink-0 select-none">🔗</span>
+                        <span className="text-amber-400/80 font-black text-base sm:text-xl shrink-0 select-none">🔗</span>
                       )}
                     </React.Fragment>
                   );
@@ -1099,11 +1087,11 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
               </div>
 
               {/* Önizleme Cümlesi */}
-              <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-3 text-center">
+              <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
                 <span className="text-xs text-slate-400 uppercase tracking-widest block mb-1">
                   Oluşturulan Cümle
                 </span>
-                <span className={`text-base sm:text-xl font-black ${
+                <span className={`text-lg sm:text-2xl md:text-3xl font-black ${
                   isCorrect ? 'text-emerald-400' : 'text-white'
                 }`}>
                   "{assembledText}"
@@ -1262,7 +1250,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                           setP1DragOverIdx(null);
                         }}
                         onClick={() => handleMultiWordClick('p1', idx)}
-                        className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-black text-xs sm:text-sm md:text-base transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-md select-none ${
+                        className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
                           roundWinner === 'p1'
                             ? 'bg-emerald-500 text-white border-2 border-emerald-300'
                             : isOver
@@ -1274,8 +1262,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                             : 'bg-white text-slate-950 hover:bg-rose-100 border border-slate-300'
                         }`}
                       >
-                        <div className="text-[8px] opacity-50 font-bold uppercase">#{idx + 1}</div>
-                        <div>{word.text}</div>
+                        <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
+                        <div className="font-black tracking-wide">{word.text}</div>
                       </div>
                     );
                   })}
@@ -1283,12 +1271,12 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
                 {/* Önizleme & Kontrol Butonu */}
                 <div className="pt-2 border-t border-rose-500/30 flex flex-col gap-1.5">
-                  <div className="text-[11px] text-rose-100/90 text-center truncate px-1">
+                  <div className="text-xs sm:text-sm font-bold text-rose-100/90 text-center truncate px-1">
                     "{p1Words.map(w => w.text).join(' ')}"
                   </div>
                   <button
                     onClick={() => handleMultiCheck('p1')}
-                    className="w-full py-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-white font-black text-xs sm:text-sm rounded-xl shadow-md border border-rose-300 active:scale-95 cursor-pointer"
+                    className="w-full py-2.5 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-rose-300 active:scale-95 cursor-pointer"
                   >
                     ✓ KONTROL ET
                   </button>
@@ -1351,7 +1339,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                           setP2DragOverIdx(null);
                         }}
                         onClick={() => handleMultiWordClick('p2', idx)}
-                        className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-black text-xs sm:text-sm md:text-base transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-md select-none ${
+                        className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
                           roundWinner === 'p2'
                             ? 'bg-emerald-500 text-white border-2 border-emerald-300'
                             : isOver
@@ -1363,8 +1351,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                             : 'bg-white text-slate-950 hover:bg-sky-100 border border-slate-300'
                         }`}
                       >
-                        <div className="text-[8px] opacity-50 font-bold uppercase">#{idx + 1}</div>
-                        <div>{word.text}</div>
+                        <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
+                        <div className="font-black tracking-wide">{word.text}</div>
                       </div>
                     );
                   })}
@@ -1372,12 +1360,12 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
                 {/* Önizleme & Kontrol Butonu */}
                 <div className="pt-2 border-t border-sky-500/30 flex flex-col gap-1.5">
-                  <div className="text-[11px] text-sky-100/90 text-center truncate px-1">
+                  <div className="text-xs sm:text-sm font-bold text-sky-100/90 text-center truncate px-1">
                     "{p2Words.map(w => w.text).join(' ')}"
                   </div>
                   <button
                     onClick={() => handleMultiCheck('p2')}
-                    className="w-full py-2 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-black text-xs sm:text-sm rounded-xl shadow-md border border-sky-300 active:scale-95 cursor-pointer"
+                    className="w-full py-2.5 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-sky-300 active:scale-95 cursor-pointer"
                   >
                     ✓ KONTROL ET
                   </button>
@@ -1441,7 +1429,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                             setP3DragOverIdx(null);
                           }}
                           onClick={() => handleMultiWordClick('p3', idx)}
-                          className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl font-black text-xs sm:text-sm md:text-base transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-md select-none ${
+                          className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
                             roundWinner === 'p3'
                               ? 'bg-emerald-500 text-white border-2 border-emerald-300'
                               : isOver
@@ -1453,8 +1441,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                               : 'bg-white text-slate-950 hover:bg-emerald-100 border border-slate-300'
                           }`}
                         >
-                          <div className="text-[8px] opacity-50 font-bold uppercase">#{idx + 1}</div>
-                          <div>{word.text}</div>
+                          <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
+                          <div className="font-black tracking-wide">{word.text}</div>
                         </div>
                       );
                     })}
@@ -1462,12 +1450,12 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
                   {/* Önizleme & Kontrol Butonu */}
                   <div className="pt-2 border-t border-emerald-500/30 flex flex-col gap-1.5">
-                    <div className="text-[11px] text-emerald-100/90 text-center truncate px-1">
+                    <div className="text-xs sm:text-sm font-bold text-emerald-100/90 text-center truncate px-1">
                       "{p3Words.map(w => w.text).join(' ')}"
                     </div>
                     <button
                       onClick={() => handleMultiCheck('p3')}
-                      className="w-full py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm rounded-xl shadow-md border border-emerald-300 active:scale-95 cursor-pointer"
+                      className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-emerald-300 active:scale-95 cursor-pointer"
                     >
                       ✓ KONTROL ET
                     </button>

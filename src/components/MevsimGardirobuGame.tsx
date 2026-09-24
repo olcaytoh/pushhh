@@ -319,7 +319,10 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+    >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -350,13 +353,6 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
               <ChevronLeft size={16} />
             </button>
           )}
-
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#1e1b4b] via-[#312e81] to-[#1e1b4b] border border-indigo-400/80 shadow-md">
-            <span className="text-sm">🧥</span>
-            <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Mevsim Gardırobu (Hava Durumu)
-            </span>
-          </div>
 
           {onNextActivity && (
             <button

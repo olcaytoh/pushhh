@@ -242,7 +242,10 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+    >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -273,13 +276,6 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
               <ChevronLeft size={16} />
             </button>
           )}
-
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#172554] via-[#1e3a8a] to-[#172554] border border-blue-400/80 shadow-md">
-            <Scale size={14} className="text-blue-400" />
-            <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              İstek mi, İhtiyaç mı? (Tutumluluk)
-            </span>
-          </div>
 
           {onNextActivity && (
             <button

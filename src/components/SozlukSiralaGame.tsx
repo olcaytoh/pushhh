@@ -859,10 +859,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                             onDragStart={(e) => letter && handleDragStartTarget(e, pIdx, letter, slotIdx)}
                             className={`flex-1 ${
                               playerMode === 3 
-                                ? 'max-w-[56px] sm:max-w-[64px] rounded-xl text-xl sm:text-2xl' 
+                                ? 'max-w-[76px] sm:max-w-[88px] min-h-[76px] sm:min-h-[88px] rounded-xl text-2xl sm:text-3xl' 
                                 : playerMode === 1 
-                                ? 'max-w-[96px] sm:max-w-[114px] rounded-2xl text-4xl sm:text-5xl md:text-6xl' 
-                                : 'max-w-[78px] sm:max-w-[90px] rounded-2xl text-3xl sm:text-4xl'
+                                ? 'max-w-[130px] sm:max-w-[155px] min-h-[130px] sm:min-h-[155px] rounded-2xl text-5xl sm:text-6xl md:text-7xl' 
+                                : 'max-w-[105px] sm:max-w-[125px] min-h-[105px] sm:min-h-[125px] rounded-2xl text-4xl sm:text-5xl'
                             } aspect-square border-2 sm:border-3 flex items-center justify-center transition-all cursor-pointer font-black select-none ${
                               letter 
                                 ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-xl` 
@@ -894,7 +894,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* LOWER SOURCE ROW: SCRAMBLED LETTERS AVAILABLE */}
-                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[40px] sm:min-h-[48px]' : 'gap-2 sm:gap-3 min-h-[58px] sm:min-h-[72px]'}`}>
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[60px] sm:min-h-[72px]' : 'gap-2 sm:gap-3 min-h-[85px] sm:min-h-[105px]'}`}>
                         {Array.from({ length: letterCount }).map((_, letterIdx) => {
                           const letter = player.availableLetters[letterIdx];
                           return (
@@ -902,10 +902,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                               key={`source_slot_${letterIdx}`}
                               className={`flex-1 ${
                                 playerMode === 3 
-                                  ? 'max-w-[56px] sm:max-w-[64px]' 
+                                  ? 'max-w-[76px] sm:max-w-[88px]' 
                                   : playerMode === 1 
-                                  ? 'max-w-[96px] sm:max-w-[114px]' 
-                                  : 'max-w-[78px] sm:max-w-[90px]'
+                                  ? 'max-w-[130px] sm:max-w-[155px]' 
+                                  : 'max-w-[105px] sm:max-w-[125px]'
                               } aspect-square flex items-center justify-center`}
                             >
                               {letter ? (
@@ -915,10 +915,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                                   onClick={() => handleTapSourceLetter(pIdx, letter, letterIdx)}
                                   className={`w-full h-full ${
                                     playerMode === 3 
-                                      ? 'rounded-xl text-xl sm:text-2xl' 
+                                      ? 'rounded-xl text-2xl sm:text-3xl' 
                                       : playerMode === 1 
-                                      ? 'rounded-2xl text-4xl sm:text-5xl md:text-6xl' 
-                                      : 'rounded-2xl text-3xl sm:text-4xl'
+                                      ? 'rounded-2xl text-5xl sm:text-6xl md:text-7xl' 
+                                      : 'rounded-2xl text-4xl sm:text-5xl'
                                   } bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black cursor-pointer select-none`}
                                 >
                                   {letter}

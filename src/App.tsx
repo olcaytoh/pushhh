@@ -78,7 +78,7 @@ import { topics3rdGrade } from './data/topics3rdGrade';
 import { topics4thGrade } from './data/topics4thGrade';
 import { halatCekmeTopics, sureliExtraTopics } from './data/halatCekmeTopics';
 import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA } from './data/wordPairsData';
-import { ALL_ACTIVITIES_LIST, findActivityIndex } from './data/allActivitiesRegistry';
+import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, getGradeOtherGamesList } from './data/allActivitiesRegistry';
 
 // --- TOPICS FOR OTHER WORD GAMES (STANDARDIZED WITH ALL OTHER ACTIVITIES) ---
 const topicsWordGames: Record<string, { title: string; desc: string; icon?: string; generate: () => QuestionData }> = {
@@ -2675,27 +2675,6 @@ export default function App() {
 
   const appHeaderRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const updateHeaderHeight = () => {
-      if (appHeaderRef.current) {
-        const h = appHeaderRef.current.offsetHeight;
-        if (h > 0) {
-          document.documentElement.style.setProperty('--app-header-height', `${h}px`);
-        }
-      }
-    };
-    updateHeaderHeight();
-    const ro = new ResizeObserver(updateHeaderHeight);
-    if (appHeaderRef.current) {
-      ro.observe(appHeaderRef.current);
-    }
-    window.addEventListener('resize', updateHeaderHeight);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', updateHeaderHeight);
-    };
-  }, [showIntro]);
-
   // Single Player Game State
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -3012,6 +2991,54 @@ export default function App() {
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
+
+  // TÜM ETKİNLİKLERDE OYUNA GİRİLDİ Mİ KONTROLÜ (ETKİNLİK BAŞLIĞI VE GEZİNTİ İÇİN)
+  const isInsideAnyGame = Boolean(
+    gameState === 'playing' || 
+    gameState === 'gameover' || 
+    showGeoboard || 
+    show3DLab || 
+    showGeometricNets || 
+    showAynisiniBul || 
+    showXOXGame || 
+    showKuralliCumle || 
+    showHeceSayisi || 
+    showSozlukSirala || 
+    showKelimeSirala || 
+    showHeceMakasi || 
+    showYazimDedektifi || 
+    showGeometrikSekilleriBul || 
+    showDedektif5N1K || 
+    showNoktalamaAvcisi || 
+    showHarfCorbasi || 
+    showGeriDonusum || 
+    showSaglikliTabak || 
+    showIstekIhtiyac || 
+    showMevsimGardirobu || 
+    wordGameType !== null
+  );
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (appHeaderRef.current) {
+        const h = appHeaderRef.current.offsetHeight;
+        if (h > 0) {
+          document.documentElement.style.setProperty('--app-header-height', `${h}px`);
+        }
+      }
+    };
+    updateHeaderHeight();
+    const ro = new ResizeObserver(updateHeaderHeight);
+    if (appHeaderRef.current) {
+      ro.observe(appHeaderRef.current);
+    }
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', updateHeaderHeight);
+    };
+  }, [showIntro, isInsideAnyGame]);
+
   const [currentActivityIndex, setCurrentActivityIndex] = useState<number>(0);
   const [statsModalTab, setStatsModalTab] = useState<'rozetler' | 'istatistik'>('rozetler');
   const [confirmReset, setConfirmReset] = useState(false);
@@ -4220,12 +4247,210 @@ export default function App() {
     return currentActivityIndex;
   };
 
+  const getCurrentOtherGameIndex = (): number => {
+    if (showSozlukSirala) return 0;
+    if (showKelimeSirala) return 1;
+    if (showHeceMakasi) return 2;
+    if (showYazimDedektifi) return 3;
+    if (showAynisiniBul) return 4;
+    if (showXOXGame) return 5;
+    if (wordGameType === 'zit_anlam') return 6;
+    if (wordGameType === 'es_anlam') return 7;
+    if (show3DLab) return 8;
+    if (showGeoboard) return 9;
+    if (showGeometricNets) return 10;
+    if (showKuralliCumle) return 11;
+    if (showGeometrikSekilleriBul) return 12;
+    if (showDedektif5N1K) return 13;
+    if (showNoktalamaAvcisi) return 14;
+    if (showHarfCorbasi) return 15;
+    if (showGeriDonusum) return 16;
+    if (showSaglikliTabak) return 17;
+    if (showIstekIhtiyac) return 18;
+    if (showMevsimGardirobu) return 19;
+    return -1;
+  };
+
+  const switchToOtherGameByIndex = (idx: number) => {
+    const list = OTHER_GAMES_HUB_LIST;
+    if (idx < 0 || idx >= list.length) return;
+    const entry = list[idx];
+    if (!entry) return;
+
+    playFarkliLvlSound();
+    setOpenedFromOtherGamesModal(true);
+
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowNoktalamaAvcisi(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setWordGameType(null);
+    setGameState('welcome');
+
+    const allIdx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === entry.id);
+    if (allIdx !== -1) {
+      setCurrentActivityIndex(allIdx);
+    }
+
+    if (entry.id === 'other_sozluk_sirala') setShowSozlukSirala(true);
+    else if (entry.id === 'other_kelime_sirala') setShowKelimeSirala(true);
+    else if (entry.id === 'other_hece_makasi') setShowHeceMakasi(true);
+    else if (entry.id === 'other_yazim_dedektifi') setShowYazimDedektifi(true);
+    else if (entry.id === 'other_aynisini_bul') setShowAynisiniBul(true);
+    else if (entry.id === 'other_xox') setShowXOXGame(true);
+    else if (entry.id === 'other_zit_anlam') setWordGameType('zit_anlam');
+    else if (entry.id === 'other_es_anlam') setWordGameType('es_anlam');
+    else if (entry.id === 'other_3d_lab') setShow3DLab(true);
+    else if (entry.id === 'other_geoboard') setShowGeoboard(true);
+    else if (entry.id === 'other_cisimler_acilimi') setShowGeometricNets(true);
+    else if (entry.id === 'other_kuralli_cumle') setShowKuralliCumle(true);
+    else if (entry.id === 'other_geometrik_sekilleri_bul') setShowGeometrikSekilleriBul(true);
+    else if (entry.id === 'other_dedektif_5n1k') setShowDedektif5N1K(true);
+    else if (entry.id === 'other_noktalama_avcisi') setShowNoktalamaAvcisi(true);
+    else if (entry.id === 'other_harf_corbasi') setShowHarfCorbasi(true);
+    else if (entry.id === 'other_geri_donusum') setShowGeriDonusum(true);
+    else if (entry.id === 'other_saglikli_tabak') setShowSaglikliTabak(true);
+    else if (entry.id === 'other_istek_ihtiyac') setShowIstekIhtiyac(true);
+    else if (entry.id === 'other_mevsim_gardirobu') setShowMevsimGardirobu(true);
+
+    setActivityToast(`[${idx + 1}/${list.length}] Diğer Oyunlar ➜ ${entry.title}`);
+    setTimeout(() => {
+      setActivityToast(null);
+    }, 2800);
+  };
+
+  const switchToGradeOtherGame = (idx: number, grade: 1 | 2 | 3 | 4) => {
+    const list = getGradeOtherGamesList(grade);
+    if (idx < 0 || idx >= list.length) return;
+    const entry = list[idx];
+    if (!entry) return;
+
+    playFarkliLvlSound();
+    setSelectedGrade(grade);
+    setLastSelectedGrade(grade);
+    setSelectedCategoryId('diger_oyunlar');
+
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowNoktalamaAvcisi(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setWordGameType(null);
+
+    if (entry.type === 'aynisini_bul') {
+      setGameState('welcome');
+      setShowAynisiniBul(true);
+    } else if (entry.type === 'geometrik_sekilleri_bul') {
+      setGameState('welcome');
+      setShowGeometrikSekilleriBul(true);
+    } else if (entry.type === 'grade_topic' && entry.topicKey) {
+      selectTopicAndStart(entry.topicKey, grade);
+    }
+
+    const allIdx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === entry.id || (a.topicKey === entry.topicKey && a.grade === grade));
+    if (allIdx !== -1) {
+      setCurrentActivityIndex(allIdx);
+    }
+
+    setActivityToast(`[${idx + 1}/${list.length}] ${grade}. Sınıf Diğer Oyunlar ➜ ${entry.title}`);
+    setTimeout(() => {
+      setActivityToast(null);
+    }, 2800);
+  };
+
   const handlePrevActivity = () => {
+    // 1. Grade-specific "5. Diğer Oyunlar"
+    if (selectedGrade && selectedCategoryId === 'diger_oyunlar') {
+      const list = getGradeOtherGamesList(selectedGrade as 1 | 2 | 3 | 4);
+      let currIdx = -1;
+      if (showAynisiniBul) currIdx = 0;
+      else if (showGeometrikSekilleriBul) currIdx = 1;
+      else if (currentTopic) {
+        currIdx = list.findIndex(a => a.topicKey === currentTopic);
+      }
+      if (currIdx === -1) currIdx = 0;
+      const prevIdx = (currIdx - 1 + list.length) % list.length;
+      switchToGradeOtherGame(prevIdx, selectedGrade as 1 | 2 | 3 | 4);
+      return;
+    }
+
+    // 2. Hub "5. Diğer Oyunlar" (Modal or opened from other games)
+    const otherIdx = getCurrentOtherGameIndex();
+    if (openedFromOtherGamesModal || (otherIdx !== -1 && !selectedGrade)) {
+      const activeIdx = otherIdx !== -1 ? otherIdx : 0;
+      const prevIdx = (activeIdx - 1 + OTHER_GAMES_HUB_LIST.length) % OTHER_GAMES_HUB_LIST.length;
+      switchToOtherGameByIndex(prevIdx);
+      return;
+    }
+
+    // 3. Fallback / Standard sequential navigation through all activities
     const prevIdx = (currentActivityIndex - 1 + ALL_ACTIVITIES_LIST.length) % ALL_ACTIVITIES_LIST.length;
     switchToActivityByIndex(prevIdx);
   };
 
   const handleNextActivity = () => {
+    // 1. Grade-specific "5. Diğer Oyunlar"
+    if (selectedGrade && selectedCategoryId === 'diger_oyunlar') {
+      const list = getGradeOtherGamesList(selectedGrade as 1 | 2 | 3 | 4);
+      let currIdx = -1;
+      if (showAynisiniBul) currIdx = 0;
+      else if (showGeometrikSekilleriBul) currIdx = 1;
+      else if (currentTopic) {
+        currIdx = list.findIndex(a => a.topicKey === currentTopic);
+      }
+      if (currIdx === -1) currIdx = 0;
+      const nextIdx = (currIdx + 1) % list.length;
+      switchToGradeOtherGame(nextIdx, selectedGrade as 1 | 2 | 3 | 4);
+      return;
+    }
+
+    // 2. Hub "5. Diğer Oyunlar" (Modal or opened from other games)
+    const otherIdx = getCurrentOtherGameIndex();
+    if (openedFromOtherGamesModal || (otherIdx !== -1 && !selectedGrade)) {
+      const activeIdx = otherIdx !== -1 ? otherIdx : 0;
+      const nextIdx = (activeIdx + 1) % OTHER_GAMES_HUB_LIST.length;
+      switchToOtherGameByIndex(nextIdx);
+      return;
+    }
+
+    // 3. Fallback / Standard sequential navigation through all activities
     const nextIdx = (currentActivityIndex + 1) % ALL_ACTIVITIES_LIST.length;
     switchToActivityByIndex(nextIdx);
   };
@@ -4706,27 +4931,25 @@ export default function App() {
     if (showGeoboard) return 'Geometri Tahtası';
     if (showGeometricNets) return 'Geometrik Cisimler Açılımı';
     if (showXOXGame) return 'Matematik XOX Oyunu';
-    if (showAynisiniBul) return 'Aynısını Bul (2 Kişilik)';
+    if (showAynisiniBul) return 'Aynısını Bul';
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
-    if (showSozlukSirala) return 'Sözlük Sıralama (Alfabe Portalı)';
-    if (showKelimeSirala) return 'Kelime Sıralama (Sözlük Sırası)';
-    if (showHeceMakasi) return 'Hece Makası (Hecelere Ayırma)';
+    if (showSozlukSirala) return 'Sözlük Sıralama';
+    if (showKelimeSirala) return 'Kelime Sıralama';
+    if (showHeceMakasi) return 'Hece Makası';
     if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
-    if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul (20 Sn Sprint & Kapışma)';
+    if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul';
     if (showDedektif5N1K) return '5N 1K Dedektifi';
     if (showNoktalamaAvcisi) return 'Noktalama İşareti Avcısı';
-    if (showHarfCorbasi) return 'Harf Çorbası / Anagram';
-    if (showGeriDonusum) return 'Geri Dönüşüm Kahramanı (Doğada Hayat)';
+    if (showHarfCorbasi) return 'Harf Çorbası';
+    if (showGeriDonusum) return 'Geri Dönüşüm Kahramanı';
     if (showSaglikliTabak) return 'Sağlıklı Tabak Şefi';
     if (showIstekIhtiyac) return 'İstek mi, İhtiyaç mı?';
     if (showMevsimGardirobu) return 'Mevsim Gardırobu';
-    if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler Oyunu';
-    if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler Oyunu';
-    if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler Oyunu';
-    if (showOtherGamesModal) return 'Diğer Oyunlar Merkezi';
-    if (showEnglishGamesModal) return 'İngilizce Oyunlar Merkezi';
-    if (gameState === 'playing' || showTopicModal) {
+    if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler';
+    if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler';
+    if (wordGameType === 'ingilizce') return 'İngilizce Kelimeler';
+    if (gameState === 'playing' || gameState === 'gameover' || showTopicModal) {
       if (currentTopic) {
         if (halatCekmeTopics[currentTopic]?.title) return halatCekmeTopics[currentTopic].title;
         if (sureliExtraTopics[currentTopic]?.title) return sureliExtraTopics[currentTopic].title;
@@ -4741,6 +4964,8 @@ export default function App() {
         return currentTopic;
       }
     }
+    if (showOtherGamesModal) return 'Diğer Oyunlar Merkezi';
+    if (showEnglishGamesModal) return 'İngilizce Oyunlar Merkezi';
     if (selectedCategoryId) {
       const catMap: Record<string, string> = {
         geometri: '1. Nesnelerin Geometrisi',
@@ -4765,6 +4990,8 @@ export default function App() {
     return 'Giriş / Karşılama Ekranı';
   };
 
+  const currentActivityTitle = isInsideAnyGame ? getCurrentActivityTitle() : '';
+
   return (
     <div className="relative h-[100dvh] bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden select-none">
       {/* ORIGINAL POSITIVE CRISP BACKGROUND IMAGE WITH REDUCED BLUR & CLEAR VISIBILITY */}
@@ -4783,7 +5010,9 @@ export default function App() {
 
       {/* GLOBAL HEADER BAR - CLEAN NEUTRAL DARK SLATE UI (HIDDEN ON INTRO) */}
       {!showIntro && (
-        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-2 py-1 flex items-center justify-between shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+        <header ref={appHeaderRef} className="bg-[#09101f] border-b border-slate-700/80 px-1 sm:px-2 py-1 flex flex-col shadow-lg z-[300] relative shrink-0 w-full min-h-[52px] sm:min-h-[60px]">
+          {/* ÜST BUTONLAR SATIRI */}
+          <div className="w-full flex items-center justify-between min-h-[50px] sm:min-h-[58px]">
           {/* ORTADAKİ TÜM BUTONLAR GRUBU (SOLA TAŞMAYI VE 1. SINIF BUTONUNUN KESİLMESİNİ ÖNLEYEN YAPI) */}
           <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-1">
           {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
@@ -5441,7 +5670,21 @@ export default function App() {
           </span>
         </button>
       </div>
-    </header>
+    </div>
+
+    {/* OYUNA GİRİNCE: ÜSTTEKİ BUTONLARIN HEMEN ALTINDA ORTADA ETKİNLİK ADI (BAŞLIK) VE ÇERÇEVESİ */}
+    {isInsideAnyGame && currentActivityTitle && (
+      <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-2 shrink-0 animate-fadeIn z-20">
+        <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-8 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400">
+          <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
+          <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            {currentActivityTitle}
+          </h1>
+          <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
+        </div>
+      </div>
+    )}
+  </header>
       )}
 
       {/* FLOATING ACTIVITY TOAST NOTIFICATION */}
@@ -7184,9 +7427,7 @@ export default function App() {
                         badgeText="2 Kişilik Kapışma"
                         onClick={() => {
                           playMp3('/op.mp3');
-                          const aIdx = findActivityIndex('aynisini_bul', undefined, selectedGrade || 1);
-                          if (aIdx !== -1) setCurrentActivityIndex(aIdx);
-                          setShowAynisiniBul(true);
+                          switchToGradeOtherGame(0, (selectedGrade || 1) as 1 | 2 | 3 | 4);
                         }}
                       />
 
@@ -7197,9 +7438,7 @@ export default function App() {
                         badgeText="1, 2 ve 3 Kişilik"
                         onClick={() => {
                           playMp3('/op.mp3');
-                          const gsbIdx = findActivityIndex('geometrik_sekilleri_bul', undefined, selectedGrade || 1);
-                          if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
-                          setShowGeometrikSekilleriBul(true);
+                          switchToGradeOtherGame(1, (selectedGrade || 1) as 1 | 2 | 3 | 4);
                         }}
                       />
                     </div>
@@ -7845,16 +8084,9 @@ export default function App() {
               ⚔️ {playerCountMode} OYUNCU DÜELLO
             </span>
             <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
-              <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
-                <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words">
-                  {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || ''}
-                </h2>
-                <img 
-                  src={getGradeIconForTopic(currentTopic, selectedGrade)} 
-                  alt="Sınıf" 
-                  className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-sm ml-1" 
-                />
-              </div>
+              <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest drop-shadow-sm">
+                ⚡ HIZLI VE DİKKATLİ OLAN KAZANIR ⚡
+              </span>
             </div>
             <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
               🎯 HEDEF: 10 PUAN
@@ -8793,126 +9025,26 @@ export default function App() {
             setOpenedFromOtherGamesModal(false);
           }}
           onGoHome={handleGoHome}
-          onOpenSozlukSirala={() => {
-            setOpenedFromOtherGamesModal(true);
-            const ssIdx = findActivityIndex('sozluk_sirala', undefined, selectedGrade || undefined);
-            if (ssIdx !== -1) setCurrentActivityIndex(ssIdx);
-            setShowSozlukSirala(true);
-          }}
-          onOpenKelimeSirala={() => {
-            setOpenedFromOtherGamesModal(true);
-            const ksIdx = findActivityIndex('kelime_sirala', undefined, selectedGrade || undefined);
-            if (ksIdx !== -1) setCurrentActivityIndex(ksIdx);
-            setShowKelimeSirala(true);
-          }}
-          onOpenHeceMakasi={() => {
-            setOpenedFromOtherGamesModal(true);
-            const hmIdx = findActivityIndex('hece_makasi', undefined, selectedGrade || 2);
-            if (hmIdx !== -1) setCurrentActivityIndex(hmIdx);
-            setShowHeceMakasi(true);
-          }}
-          onOpenYazimDedektifi={() => {
-            setOpenedFromOtherGamesModal(true);
-            const ydIdx = findActivityIndex('yazim_dedektifi', undefined, selectedGrade || 2);
-            if (ydIdx !== -1) setCurrentActivityIndex(ydIdx);
-            setShowYazimDedektifi(true);
-          }}
-          onOpenAynisiniBul={() => {
-            setOpenedFromOtherGamesModal(true);
-            const aIdx = findActivityIndex('aynisini_bul', undefined, selectedGrade || undefined);
-            if (aIdx !== -1) setCurrentActivityIndex(aIdx);
-            setShowAynisiniBul(true);
-          }}
-          onOpenXOX={() => {
-            setOpenedFromOtherGamesModal(true);
-            const xIdx = findActivityIndex('xox');
-            if (xIdx !== -1) setCurrentActivityIndex(xIdx);
-            setShowXOXGame(true);
-          }}
-          onOpenKuralliCumle={() => {
-            setOpenedFromOtherGamesModal(true);
-            const kcIdx = findActivityIndex('kuralli_cumle', undefined, selectedGrade || undefined);
-            if (kcIdx !== -1) setCurrentActivityIndex(kcIdx);
-            setShowKuralliCumle(true);
-          }}
-          onOpenZitAnlam={() => {
-            setOpenedFromOtherGamesModal(true);
-            const zIdx = findActivityIndex('word_game', undefined, undefined, 'zit_anlam');
-            if (zIdx !== -1) setCurrentActivityIndex(zIdx);
-            setWordGameType('zit_anlam');
-          }}
-          onOpenEsAnlam={() => {
-            setOpenedFromOtherGamesModal(true);
-            const eIdx = findActivityIndex('word_game', undefined, undefined, 'es_anlam');
-            if (eIdx !== -1) setCurrentActivityIndex(eIdx);
-            setWordGameType('es_anlam');
-          }}
-          onOpen3DLab={() => {
-            setOpenedFromOtherGamesModal(true);
-            const lIdx = findActivityIndex('3d_lab', undefined, selectedGrade || 2);
-            if (lIdx !== -1) setCurrentActivityIndex(lIdx);
-            setShow3DLab(true);
-          }}
-          onOpenGeoboard={() => {
-            setOpenedFromOtherGamesModal(true);
-            const gIdx = findActivityIndex('geoboard', undefined, selectedGrade || 1);
-            if (gIdx !== -1) setCurrentActivityIndex(gIdx);
-            setShowGeoboard(true);
-          }}
-          onOpenGeometricNets={() => {
-            setOpenedFromOtherGamesModal(true);
-            const gnIdx = findActivityIndex('geometric_nets', 'cisimler_acilimi', selectedGrade || undefined);
-            if (gnIdx !== -1) setCurrentActivityIndex(gnIdx);
-            setShowGeometricNets(true);
-          }}
-          onOpenGeometrikSekilleriBul={() => {
-            setOpenedFromOtherGamesModal(true);
-            const gsbIdx = findActivityIndex('geometrik_sekilleri_bul');
-            if (gsbIdx !== -1) setCurrentActivityIndex(gsbIdx);
-            setShowGeometrikSekilleriBul(true);
-          }}
-          onOpenDedektif5N1K={() => {
-            setOpenedFromOtherGamesModal(true);
-            const dIdx = findActivityIndex('dedektif_5n1k', undefined, selectedGrade || 2);
-            if (dIdx !== -1) setCurrentActivityIndex(dIdx);
-            setShowDedektif5N1K(true);
-          }}
-          onOpenNoktalamaAvcisi={() => {
-            setOpenedFromOtherGamesModal(true);
-            const nIdx = findActivityIndex('noktalama_avcisi', undefined, selectedGrade || 2);
-            if (nIdx !== -1) setCurrentActivityIndex(nIdx);
-            setShowNoktalamaAvcisi(true);
-          }}
-          onOpenHarfCorbasi={() => {
-            setOpenedFromOtherGamesModal(true);
-            const hcIdx = findActivityIndex('harf_corbasi', undefined, selectedGrade || 2);
-            if (hcIdx !== -1) setCurrentActivityIndex(hcIdx);
-            setShowHarfCorbasi(true);
-          }}
-          onOpenGeriDonusum={() => {
-            setOpenedFromOtherGamesModal(true);
-            const gdIdx = findActivityIndex('geri_donusum', undefined, selectedGrade || 2);
-            if (gdIdx !== -1) setCurrentActivityIndex(gdIdx);
-            setShowGeriDonusum(true);
-          }}
-          onOpenSaglikliTabak={() => {
-            setOpenedFromOtherGamesModal(true);
-            const stIdx = findActivityIndex('saglikli_tabak', undefined, selectedGrade || 2);
-            if (stIdx !== -1) setCurrentActivityIndex(stIdx);
-            setShowSaglikliTabak(true);
-          }}
-          onOpenIstekIhtiyac={() => {
-            setOpenedFromOtherGamesModal(true);
-            const iiIdx = findActivityIndex('istek_ihtiyac', undefined, selectedGrade || 2);
-            if (iiIdx !== -1) setCurrentActivityIndex(iiIdx);
-            setShowIstekIhtiyac(true);
-          }}
-          onOpenMevsimGardirobu={() => {
-            setOpenedFromOtherGamesModal(true);
-            const mgIdx = findActivityIndex('mevsim_gardirobu', undefined, selectedGrade || 2);
-            if (mgIdx !== -1) setCurrentActivityIndex(mgIdx);
-            setShowMevsimGardirobu(true);
-          }}
+          onOpenSozlukSirala={() => switchToOtherGameByIndex(0)}
+          onOpenKelimeSirala={() => switchToOtherGameByIndex(1)}
+          onOpenHeceMakasi={() => switchToOtherGameByIndex(2)}
+          onOpenYazimDedektifi={() => switchToOtherGameByIndex(3)}
+          onOpenAynisiniBul={() => switchToOtherGameByIndex(4)}
+          onOpenXOX={() => switchToOtherGameByIndex(5)}
+          onOpenZitAnlam={() => switchToOtherGameByIndex(6)}
+          onOpenEsAnlam={() => switchToOtherGameByIndex(7)}
+          onOpen3DLab={() => switchToOtherGameByIndex(8)}
+          onOpenGeoboard={() => switchToOtherGameByIndex(9)}
+          onOpenGeometricNets={() => switchToOtherGameByIndex(10)}
+          onOpenKuralliCumle={() => switchToOtherGameByIndex(11)}
+          onOpenGeometrikSekilleriBul={() => switchToOtherGameByIndex(12)}
+          onOpenDedektif5N1K={() => switchToOtherGameByIndex(13)}
+          onOpenNoktalamaAvcisi={() => switchToOtherGameByIndex(14)}
+          onOpenHarfCorbasi={() => switchToOtherGameByIndex(15)}
+          onOpenGeriDonusum={() => switchToOtherGameByIndex(16)}
+          onOpenSaglikliTabak={() => switchToOtherGameByIndex(17)}
+          onOpenIstekIhtiyac={() => switchToOtherGameByIndex(18)}
+          onOpenMevsimGardirobu={() => switchToOtherGameByIndex(19)}
           playMp3={playMp3}
         />
       )}

@@ -1131,16 +1131,9 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                     ⚔️ {activeMode === 'duel2' ? '2' : '3'} OYUNCU DÜELLO
                   </span>
                   <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
-                    <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
-                      <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
-                        {gameTitle} ({gameConcept.toUpperCase()})
-                      </h2>
-                      <img 
-                        src={isIng ? '/icon_6.png' : '/icon_5.png'} 
-                        alt="Oyun İkonu" 
-                        className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-sm ml-1" 
-                      />
-                    </div>
+                    <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest drop-shadow-sm">
+                      ⚡ HIZLI VE DİKKATLİ OLAN KAZANIR ⚡
+                    </span>
                   </div>
                   <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
                     🎯 HEDEF: {duelTargetScore} PUAN

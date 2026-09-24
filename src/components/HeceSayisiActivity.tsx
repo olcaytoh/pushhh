@@ -832,6 +832,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
 
   return (
     <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
       {/* 1. BACKGROUND IMAGE (/dere3.jpg) WITH BLUR */}
@@ -861,18 +862,6 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
               <ChevronLeft size={16} />
             </button>
           )}
-
-          <div className="flex items-center gap-2 px-2.5 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
-            <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
-            <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-              2. SINIF TÜRKÇE
-            </span>
-            <span className="text-amber-400/60 font-bold">•</span>
-            <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Kelimelerin Hece Sayısı
-            </h1>
-            <Sparkles size={13} className="text-amber-400 shrink-0 animate-pulse" />
-          </div>
 
           {onNextActivity && (
             <button
@@ -1253,16 +1242,9 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                   ⚔️ {activeMode === 'duel2' ? '2' : '3'} OYUNCU DÜELLO
                 </span>
                 <div className="flex-1 min-w-0 text-center px-1 flex items-center justify-center gap-1.5 h-full">
-                  <div className="inline-flex items-center justify-center gap-1.5 max-w-full h-full rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_15px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 px-3 sm:px-6">
-                    <h2 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider break-words drop-shadow-md">
-                      HECE SAYISI BULMA
-                    </h2>
-                    <img 
-                      src="/icon_3.png" 
-                      alt="Hece" 
-                      className="h-4 sm:h-5 w-auto object-contain shrink-0 filter drop-shadow-sm ml-1" 
-                    />
-                  </div>
+                  <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest drop-shadow-sm">
+                    ⚡ HIZLI VE DİKKATLİ OLAN KAZANIR ⚡
+                  </span>
                 </div>
                 <span className="h-full px-2.5 sm:px-3 flex items-center bg-[#0e172a] border border-slate-700/80 text-slate-200 font-black text-xs rounded-xl shadow-xs uppercase tracking-wider shrink-0">
                   🎯 HEDEF: {duelTargetScore} PUAN

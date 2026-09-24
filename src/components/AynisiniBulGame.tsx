@@ -384,7 +384,10 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-row font-sans select-none overflow-hidden touch-none bg-slate-950">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-row font-sans select-none overflow-hidden touch-none bg-slate-950"
+    >
       
       {/* 1. ÜST ORTA: BEYAZ HAP SKOR VE CAN ROZETİ (FOTOĞRAFTAKİ GİBİ) */}
       <div className="absolute top-2 sm:top-3.5 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center pointer-events-auto">

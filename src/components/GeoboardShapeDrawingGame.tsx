@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  ArrowLeft, RotateCcw, Trash2, CheckCircle2, Volume2, VolumeX,
-  Lightbulb, Sparkles, Award, RefreshCw, X, Play, Info, ChevronRight, HelpCircle
+  ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, RotateCcw, Trash2, CheckCircle2, Volume2, VolumeX,
+  Lightbulb, Sparkles, Award, RefreshCw, X, Play, Info, HelpCircle
 } from 'lucide-react';
 import { Cute3DStarMascotSVG } from './ModernStatsView';
 
@@ -352,12 +352,16 @@ export interface GeoboardShapeDrawingGameProps {
   grade?: 1 | 2 | 3 | 4;
   onClose?: () => void;
   playMp3?: (sound: string) => void;
+  onPrevActivity?: () => void;
+  onNextActivity?: () => void;
 }
 
 export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> = ({
   grade = 1,
   onClose,
-  playMp3
+  playMp3,
+  onPrevActivity,
+  onNextActivity
 }) => {
   const [missionIndex, setMissionIndex] = useState<number>(0);
   const [drawnPoints, setDrawnPoints] = useState<Point[]>([]);
@@ -373,11 +377,43 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   const [streak, setStreak] = useState<number>(0);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [isGameCompleted, setIsGameCompleted] = useState<boolean>(false);
+  const [showMissionSelectModal, setShowMissionSelectModal] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
 
   const boardRef = useRef<HTMLDivElement | null>(null);
   const activeMissions = grade === 1 ? MISSIONS_GRADE_1 : MISSIONS;
   const currentMission = activeMissions[missionIndex] || activeMissions[0];
   const selectedColor = COLOR_PALETTE[selectedColorIndex] || COLOR_PALETTE[0];
+
+  const speakInstruction = () => {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentMission.speechText);
+      utterance.lang = 'tr-TR';
+      utterance.rate = 0.95;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setIsSpeaking(false);
+    }
+  };
+
+  const handleNextMission = () => {
+    if (missionIndex < activeMissions.length - 1) {
+      setMissionIndex(prev => prev + 1);
+      if (playMp3) playMp3('nextlvl');
+    }
+  };
+
+  const handlePrevMission = () => {
+    if (missionIndex > 0) {
+      setMissionIndex(prev => prev - 1);
+      if (playMp3) playMp3('op');
+    }
+  };
 
   // Görev değiştiğinde temizle
   useEffect(() => {
@@ -630,7 +666,10 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-50 bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto relative">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[9999] isolate bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto"
+    >
       {/* Background Image /dere3.jpg */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -643,7 +682,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
       </div>
 
       {/* ÜST BAŞLIK VE SKOR ÇUBUĞU */}
-      <div className="relative z-10 w-full max-w-2xl flex items-center justify-between gap-2 shrink-0 py-1">
+      <div className="relative z-10 w-full max-w-2xl flex items-center justify-between gap-2 shrink-0 px-2 py-1.5 rounded-2xl bg-slate-950/80 border-2 border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.25)]">
         <button
           onClick={onClose}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs sm:text-sm font-bold transition-transform active:scale-95"
@@ -680,58 +719,20 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
         </div>
       </div>
 
-      {/* GÖREV VE TALİMAT KARTI */}
-      <div className="relative z-20 w-full max-w-md my-1 sm:my-2 p-3 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 flex flex-col gap-1.5 shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-2xl shrink-0">{currentMission.icon}</span>
-            <div className="min-w-0">
-              <div className="text-xs font-extrabold text-amber-300 flex items-center gap-1">
-                <span>GÖREV {missionIndex + 1}/{activeMissions.length}</span>
-                {completedMissions.includes(currentMission.id) && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline shrink-0" />
-                )}
-              </div>
-              <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">
-                {currentMission.title}
-              </h2>
-            </div>
-          </div>
-
-          {/* SESLİ İKONUNUN YERİNE X İLE KAPATMA BUTONU */}
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-2 sm:p-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 border border-rose-400/40 text-rose-300 hover:text-white font-bold transition-all active:scale-95 shadow-md flex items-center justify-center shrink-0 cursor-pointer"
-              title="Kapat"
-            >
-              <X className="w-5 h-5 stroke-[2.5]" />
-            </button>
-          )}
-        </div>
-
-        <p className="text-xs sm:text-sm text-slate-200 font-medium">
-          {currentMission.instruction}
-        </p>
-        <div className="flex items-center gap-1.5 text-[11px] text-amber-200/90 font-semibold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-400/20">
-          <span>💡</span>
-          <span>Noktaya kadar sürükleyip parmağını kaldır veya noktalara dokunarak çiz!</span>
-        </div>
-
-        {/* Canlı Şekil Tanıma Rozeti */}
-        <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[11px] font-bold">
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span>Şu anki şekil:</span>
-            <span className={`px-2 py-0.5 rounded-md font-extrabold ${
-              analysis.type !== 'gecersiz' 
-                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40' 
-                : 'bg-slate-800 text-slate-400'
-            }`}>
-              {analysis.name}
-            </span>
-          </div>
-          <span className="text-amber-300/90">{analysis.desc}</span>
-        </div>
+      {/* SADE GÖREV ADI */}
+      <div className="relative z-20 w-full max-w-sm my-1 sm:my-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_16px_rgba(245,158,11,0.3)] flex items-center justify-center gap-2 shrink-0">
+        <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">
+          {currentMission.title}
+        </h2>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="ml-auto p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 border border-rose-400/40 text-rose-300 hover:text-white transition-all active:scale-95 flex items-center justify-center shrink-0 cursor-pointer"
+            title="Kapat"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        )}
       </div>
 
       {/* NOKTALI TAHTA VE LASTİK BANT ÇİZİM ALANI */}
@@ -983,7 +984,8 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
         </div>
 
         {/* Aksiyon Butonları (Geri Al, Temizle, Kontrol Et) */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="sticky bottom-0 z-30 w-full max-w-2xl p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border-2 border-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.45)] shrink-0">
+          <div className="grid grid-cols-3 gap-2">
           <button
             onClick={handleUndo}
             disabled={drawnPoints.length === 0}
@@ -1009,6 +1011,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
             <CheckCircle2 className="w-4 h-4 text-white" />
             <span>Kontrol Et</span>
           </button>
+          </div>
         </div>
       </div>
 

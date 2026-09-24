@@ -48,17 +48,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
       {/* 2. SUB-HEADER BAR */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-sky-400/90 shadow-[0_0_15px_rgba(56,189,248,0.25)] border-l-4 border-l-sky-400">
-            <Languages size={12} className="text-sky-400 shrink-0" />
-            <span className="text-[10px] sm:text-xs text-sky-300 font-bold uppercase tracking-wide">
-              6. BÖLÜM
-            </span>
-            <span className="text-sky-400/60 font-bold">•</span>
-            <h1 className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              İngilizce Oyunlar
-            </h1>
-            <Sparkles size={12} className="text-sky-400 shrink-0" />
-          </div>
+          {/* Nav/status spacer */}
         </div>
 
         <div className="flex items-center gap-2">

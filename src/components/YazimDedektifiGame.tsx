@@ -326,7 +326,10 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
+    >
       {/* 1. TOP HEADER */}
       <header className="relative z-30 shrink-0 w-full bg-gradient-to-b from-[#0a1020] via-[#090e1c] to-[#060a14] border-b border-amber-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-2 sm:px-4 py-1.5 flex items-center justify-between gap-2">
         {/* Left Side */}
@@ -381,25 +384,6 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                 <ArrowRight size={14} />
               </button>
             )}
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg border border-amber-300/40">
-              <Search size={16} className="text-white transform -rotate-12" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-xs sm:text-sm md:text-base text-white tracking-wide uppercase">
-                  Yazım Yanlışı Dedektifi
-                </span>
-                <span className="hidden md:inline px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-400/40 uppercase">
-                  2. Sınıf Türkçe
-                </span>
-              </div>
-              <p className="hidden sm:block text-[10px] text-amber-200/70 font-medium leading-none">
-                Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
-              </p>
-            </div>
           </div>
         </div>
 

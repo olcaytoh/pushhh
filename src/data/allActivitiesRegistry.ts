@@ -725,136 +725,135 @@ g4Diger.forEach(key => {
 });
 
 // ==========================================
-// GENEL DİĞER OYUNLAR & İNGİLİZCE (Tüm Hub Listesi)
+// GENEL DİĞER OYUNLAR & İNGİLİZCE (Tüm Hub Listesi - 20 Özel Oyun Sıralı)
 // ==========================================
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_sozluk_sirala',
-  type: 'sozluk_sirala',
-  title: 'Sözlük Sıralama (Alfabe Portalı)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_kelime_sirala',
-  type: 'kelime_sirala',
-  title: 'Kelime Sıralama (Sözlük Sırası)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_hece_makasi',
-  type: 'hece_makasi',
-  title: 'Hece Makası (Hecelere Ayırma)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_yazim_dedektifi',
-  type: 'yazim_dedektifi',
-  title: 'Yazım Yanlışı Dedektifi',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_aynisini_bul',
-  type: 'aynisini_bul',
-  title: 'Aynısını Bul (2 Kişilik)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_xox',
-  type: 'xox',
-  title: 'XOX & Zeka Düellosu',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_zit_anlam',
-  type: 'word_game',
-  wordGameType: 'zit_anlam',
-  title: 'Zıt Anlamlı Kelimeler',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_es_anlam',
-  type: 'word_game',
-  wordGameType: 'es_anlam',
-  title: 'Eş Anlamlı Kelimeler',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_3d_lab',
-  type: '3d_lab',
-  title: '3D Geometri & Şekil Laboratuvarı',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_geoboard',
-  type: 'geoboard',
-  title: 'Geometri Tahtası',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_cisimler_acilimi',
-  type: 'geometric_nets',
-  title: 'Geometrik Cisimler Açılımı',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_kuralli_cumle',
-  type: 'kuralli_cumle',
-  title: 'Kurallı Cümle Oluştur',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_hece_sayisi',
-  type: 'hece_sayisi',
-  title: 'Kelimelerin Hece Sayısını Belirleme',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_geometrik_sekilleri_bul',
-  type: 'geometrik_sekilleri_bul',
-  title: 'Geometrik Cisimleri Bul',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_dedektif_5n1k',
-  type: 'dedektif_5n1k',
-  title: '5N 1K Dedektifi',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_noktalama_avcisi',
-  type: 'noktalama_avcisi',
-  title: 'Noktalama İşareti Avcısı',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_harf_corbasi',
-  type: 'harf_corbasi',
-  title: 'Harf Çorbası / Anagram',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_geri_donusum',
-  type: 'geri_donusum',
-  title: 'Geri Dönüşüm Kahramanı (Doğada Hayat)',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_saglikli_tabak',
-  type: 'saglikli_tabak',
-  title: 'Sağlıklı Tabak Şefi',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_istek_ihtiyac',
-  type: 'istek_ihtiyac',
-  title: 'İstek mi, İhtiyaç mı?',
-  categoryLabel: 'Diğer Oyunlar'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'other_mevsim_gardirobu',
-  type: 'mevsim_gardirobu',
-  title: 'Mevsim Gardırobu',
-  categoryLabel: 'Diğer Oyunlar'
-});
+export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
+  {
+    id: 'other_sozluk_sirala',
+    type: 'sozluk_sirala',
+    title: 'Sözlük Sıralama (Alfabe Portalı)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_kelime_sirala',
+    type: 'kelime_sirala',
+    title: 'Kelime Sıralama (Sözlük Sırası)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_hece_makasi',
+    type: 'hece_makasi',
+    title: 'Hece Makası (Hecelere Ayırma)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_yazim_dedektifi',
+    type: 'yazim_dedektifi',
+    title: 'Yazım Yanlışı Dedektifi',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_aynisini_bul',
+    type: 'aynisini_bul',
+    title: 'Aynısını Bul (2 Kişilik)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_xox',
+    type: 'xox',
+    title: 'XOX & Zeka Düellosu',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_zit_anlam',
+    type: 'word_game',
+    wordGameType: 'zit_anlam',
+    title: 'Zıt Anlamlı Kelimeler',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_es_anlam',
+    type: 'word_game',
+    wordGameType: 'es_anlam',
+    title: 'Eş Anlamlı Kelimeler',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_3d_lab',
+    type: '3d_lab',
+    title: '3D Geometri & Şekil Laboratuvarı',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_geoboard',
+    type: 'geoboard',
+    title: 'Geometri Tahtası',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_cisimler_acilimi',
+    type: 'geometric_nets',
+    title: 'Geometrik Cisimler Açılımı',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_kuralli_cumle',
+    type: 'kuralli_cumle',
+    title: 'Kurallı Cümle Oluştur',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_geometrik_sekilleri_bul',
+    type: 'geometrik_sekilleri_bul',
+    title: 'Geometrik Cisimleri Bul',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_dedektif_5n1k',
+    type: 'dedektif_5n1k',
+    title: '5N 1K Dedektifi',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_noktalama_avcisi',
+    type: 'noktalama_avcisi',
+    title: 'Noktalama İşareti Avcısı',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_harf_corbasi',
+    type: 'harf_corbasi',
+    title: 'Harf Çorbası / Anagram',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_geri_donusum',
+    type: 'geri_donusum',
+    title: 'Geri Dönüşüm Kahramanı (Doğada Hayat)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_saglikli_tabak',
+    type: 'saglikli_tabak',
+    title: 'Sağlıklı Tabak Şefi',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_istek_ihtiyac',
+    type: 'istek_ihtiyac',
+    title: 'İstek mi, İhtiyaç mı?',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_mevsim_gardirobu',
+    type: 'mevsim_gardirobu',
+    title: 'Mevsim Gardırobu',
+    categoryLabel: 'Diğer Oyunlar'
+  }
+];
+
+OTHER_GAMES_HUB_LIST.forEach(item => ALL_ACTIVITIES_LIST.push(item));
+
 ALL_ACTIVITIES_LIST.push({
   id: 'other_ingilizce',
   type: 'word_game',
@@ -863,12 +862,84 @@ ALL_ACTIVITIES_LIST.push({
   categoryLabel: 'İngilizce Oyunlar'
 });
 
+export const getGradeOtherGamesList = (grade: 1 | 2 | 3 | 4): ActivityRegistryItem[] => {
+  const commonPrefix: ActivityRegistryItem[] = [
+    {
+      id: `g${grade}_aynisini_bul`,
+      type: 'aynisini_bul',
+      grade,
+      title: 'Aynısını Bul (2 Kişilik)',
+      categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
+    },
+    {
+      id: `g${grade}_geometrik_sekilleri_bul`,
+      type: 'geometrik_sekilleri_bul',
+      grade,
+      title: 'Geometrik Cisimleri Bul',
+      categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
+    }
+  ];
+
+  let topicKeys: string[] = [];
+  if (grade === 1) {
+    topicKeys = [
+      'halat_toplama_1', 'halat_cikarma_1',
+      'sureli_toplama_cikarma', 'sureli_on_tamamlama',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+  } else if (grade === 2) {
+    topicKeys = [
+      'halat_toplama_2', 'halat_cikarma_2', 'halat_carpma_2', 'halat_bolme_2',
+      'sureli_toplama_cikarma', 'sureli_carpma_bolme',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+  } else if (grade === 3) {
+    topicKeys = [
+      'halat_toplama_3', 'halat_cikarma_3', 'halat_carpma_3', 'halat_bolme_3',
+      'sureli_carpma_3', 'sureli_bolme_3', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+  } else {
+    topicKeys = [
+      'halat_toplama_4', 'halat_cikarma_4', 'halat_carpma_4', 'halat_bolme_4',
+      'sureli_carpma_4', 'sureli_bolme_4', 'sureli_carpma_bolme', 'sureli_toplama_cikarma',
+      'balon_patlatma_mat', 'matematik_hafiza', 'hizli_islem_carki', 'sayi_dedektifi', 'ritim_labirent', 'geometri_eslestirme'
+    ];
+  }
+
+  const topicItems: ActivityRegistryItem[] = topicKeys.map(key => ({
+    id: `g${grade}_${key}`,
+    type: 'grade_topic',
+    grade,
+    topicKey: key,
+    title: resolveTitle(key, grade),
+    categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
+  }));
+
+  return [...commonPrefix, ...topicItems];
+};
+
 export const findActivityIndex = (
   type?: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu',
   topicKey?: string,
   grade?: number | null,
-  wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null
+  wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce' | null,
+  preferOtherHub?: boolean
 ): number => {
+  if (preferOtherHub) {
+    if (wordGameType) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id.startsWith('other_') && a.type === 'word_game' && a.wordGameType === wordGameType);
+      if (idx !== -1) return idx;
+    }
+    if (type) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id.startsWith('other_') && a.type === type);
+      if (idx !== -1) return idx;
+    }
+    if (topicKey) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id.startsWith('other_') && (a.topicKey === topicKey || a.id.includes(topicKey)));
+      if (idx !== -1) return idx;
+    }
+  }
   if (type === 'dedektif_5n1k' || topicKey === 'dedektif_5n1k' || topicKey === 'turkce_dedektif_5n1k') {
     if (grade) {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'dedektif_5n1k' || a.id.includes('dedektif_5n1k')) && a.grade === grade);

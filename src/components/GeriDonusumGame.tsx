@@ -253,7 +253,10 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+    >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -284,13 +287,6 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
               <ChevronLeft size={16} />
             </button>
           )}
-
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#0d2a1b] via-[#143e28] to-[#0d2a1b] border border-emerald-400/80 shadow-md">
-            <Leaf size={14} className="text-emerald-400" />
-            <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Geri Dönüşüm Kahramanı (Doğada Hayat)
-            </span>
-          </div>
 
           {onNextActivity && (
             <button

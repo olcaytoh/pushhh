@@ -812,7 +812,10 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white"
+    >
       {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
@@ -860,22 +863,8 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
           )}
         </div>
 
-        {/* Center Title Badge */}
-        <div className="flex items-center justify-center text-center">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-1 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.25)] border-l-4 border-l-amber-400">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs sm:text-sm shadow-md border border-white/40 shrink-0">
-              🧊
-            </div>
-            <div>
-              <h1 className="text-xs sm:text-sm md:text-base font-black text-amber-300 tracking-wide uppercase">
-                Geometrik Cisimler Açılım Etkinliği
-              </h1>
-              <p className="text-[10px] sm:text-[11px] text-slate-300 font-medium">
-                3D Katlama & Yüzey Açınım Simülasyonu
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Center Title Badge - Handled by Top Header */}
+        <div className="flex items-center justify-center text-center" />
 
         {/* Right Controls: Sound, Quiz Mode & Next Activity */}
         <div className="flex items-center gap-2">
