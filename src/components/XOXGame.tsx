@@ -4,10 +4,16 @@ import {
   HelpCircle, Volume2, CheckCircle2, XCircle, Zap, Shield, Swords, Brain
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface XOXGameProps {
   onClose: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
+  students?: Student[];
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 type Player = 'X' | 'O';
@@ -15,7 +21,14 @@ type CellValue = Player | null;
 type GameMode = 'pve' | 'pvp'; // pve: vs Bot, pvp: 2 Players
 type Difficulty = 'easy' | 'medium' | 'hard';
 
-export const XOXGame: React.FC<XOXGameProps> = ({ onClose, playMp3 }) => {
+export const XOXGame: React.FC<XOXGameProps> = ({ 
+  onClose, 
+  playMp3,
+  students,
+  selectedStudentIds,
+  onSelectStudentForPlayer,
+  onOpenRosterModal,
+}) => {
   const [board, setBoard] = useState<CellValue[]>(Array(9).fill(null));
   const [turn, setTurn] = useState<Player>('X');
   const [winner, setWinner] = useState<Player | 'draw' | null>(null);
@@ -549,6 +562,25 @@ export const XOXGame: React.FC<XOXGameProps> = ({ onClose, playMp3 }) => {
           </button>
         </div>
       </div>
+
+      {/* EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - TEK SIRA (GENİŞ VE TAM SIĞAN) */}
+      {students && onOpenRosterModal && (
+        <div className="w-full max-w-[1850px] mx-auto shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            playerCount={gameMode === 'pvp' ? 2 : 1}
+            selectedStudentIds={gameMode === 'pvp' ? (selectedStudentIds || []) : [selectedStudentIds?.[0] || null]}
+            onSelectStudentForPlayer={(pIdx, sId) => {
+              if (onSelectStudentForPlayer) {
+                onSelectStudentForPlayer(pIdx, sId);
+              }
+            }}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
 
       {/* Math Challenge Modal Overlay */}
       {mathQuestion && (

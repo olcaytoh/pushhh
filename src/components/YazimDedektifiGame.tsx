@@ -7,6 +7,7 @@ import {
 import { YazimDedektifiQuestion, getRandomYazimQuestions } from '../data/yazimDedektifiData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 interface YazimDedektifiGameProps {
   onClose: () => void;
@@ -330,6 +331,9 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
     >
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
+
       {/* 1. TOP HEADER */}
       <header className="relative z-30 shrink-0 w-full bg-gradient-to-b from-[#0a1020] via-[#090e1c] to-[#060a14] border-b border-amber-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-2 sm:px-4 py-1.5 flex items-center justify-between gap-2">
         {/* Left Side */}
@@ -607,7 +611,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
       </main>
 
       {/* 3. STUDENT AVATAR DOCK */}
-      {students && students.length > 0 && onOpenRosterModal && (
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}

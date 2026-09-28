@@ -6,8 +6,8 @@ import {
   GripVertical, ChevronLeft, ChevronRight, Home, Heart, XCircle
 } from 'lucide-react';
 import { Student } from '../types/student';
-import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export type GradeLevel = 1 | 2 | 3 | 4;
 
@@ -394,9 +394,6 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       setActivePlayerMode(playerCountMode);
     }
   }, [playerCountMode]);
-
-  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
-  const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
 
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(() => {
     if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
@@ -849,16 +846,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <img 
-          src="/dere3.jpg" 
-          alt="Arka Plan Görseli"
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
-        />
-        <div className="absolute inset-0 bg-slate-950/45 pointer-events-none" />
-      </div>
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
 
       {/* 2. SUB-HEADER BAR */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
@@ -962,24 +951,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         {/* A) 1 OYUNCU MODU */}
         {/* =================================================================== */}
         {activePlayerMode === 1 ? (
-          <div className="w-full flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto min-h-0 overflow-hidden px-1 sm:px-2">
-            {/* LEFT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-            {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-              <div className="hidden xl:flex shrink-0 self-center">
-                <StudentAvatarSideGrid
-                  slotsStudents={leftStudents}
-                  side="left"
-                  count={students.length}
-                  label="1. Grup (Sol)"
-                  selectedStudentId={selectedStudentId || null}
-                  onSelectStudent={onSelectStudent}
-                  onOpenRosterModal={onOpenRosterModal}
-                  playMp3={playMp3}
-                />
-              </div>
-            )}
-
-            <main className="flex-1 max-w-4xl w-full flex flex-col items-center justify-center gap-2.5 py-2">
+          <div className="w-full flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto min-h-0 overflow-hidden px-1 sm:px-2">
+            <main className="flex-1 w-full flex flex-col items-center justify-center gap-2.5 py-2">
             
             {/* Cümle Kartı Başlığı */}
             <div className="flex items-center gap-3 bg-black/60 px-4 py-1.5 rounded-2xl border border-white/15 shadow-md">
@@ -1157,24 +1130,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
               </div>
             </div>
           </main>
-
-            {/* RIGHT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-            {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-              <div className="hidden xl:flex shrink-0 self-center">
-                <StudentAvatarSideGrid
-                  slotsStudents={rightStudents}
-                  side="right"
-                  count={students.length}
-                  label="2. Grup (Sağ)"
-                  selectedStudentId={selectedStudentId || null}
-                  onSelectStudent={onSelectStudent}
-                  onOpenRosterModal={onOpenRosterModal}
-                  playMp3={playMp3}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
+        </div>
+      ) : (
           /* =================================================================== */
           /* B) 2 VE 3 OYUNCU MODU (KAPIŞMA DÜELLOSU) */
           /* =================================================================== */
@@ -1466,19 +1423,24 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
           </main>
         )}
 
-        {/* 4. ALT DOCK - SADECE 2 VE 3 KİŞİLİK MODDA (ÖĞRENCİ LİSTESİ) */}
-        {activePlayerMode >= 2 && students && students.length > 0 && onOpenRosterModal && (
+        {/* 4. ALT DOCK - TÜM MODLARDA (1, 2 VE 3 KİŞİLİK) EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ */}
+        {students && onOpenRosterModal && (
           <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
             <StudentAvatarDock
               students={students}
               currentGrade={selectedGrade}
               playerCount={activePlayerMode}
-              selectedStudentIds={selectedStudentIds || []}
+              selectedStudentIds={activePlayerMode === 1 ? [selectedStudentId || null] : (selectedStudentIds || [])}
               onSelectStudentForPlayer={(pIdx, sId) => {
-                if (onSelectStudentForPlayer) {
-                  onSelectStudentForPlayer(pIdx, sId);
-                } else if (onSelectStudent) {
-                  onSelectStudent(sId);
+                if (activePlayerMode === 1) {
+                  onSelectStudent?.(sId);
+                  onSelectStudentForPlayer?.(0, sId);
+                } else {
+                  if (onSelectStudentForPlayer) {
+                    onSelectStudentForPlayer(pIdx, sId);
+                  } else if (onSelectStudent && pIdx === 0) {
+                    onSelectStudent(sId);
+                  }
                 }
               }}
               onOpenRosterModal={(grade) => {

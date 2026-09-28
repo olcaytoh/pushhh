@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -87,6 +87,7 @@ export const FISH_FACING_MAP: Record<string, 'left' | 'right'> = {
   '/blklar/27_mavi_gri_melek_baligi.png': 'left',
 };
 
+// React State için kullanılan balık bilgisi (Yüzme animasyonunda React render tetiklemez)
 interface FishState {
   id: string;
   studentId: string;
@@ -94,12 +95,21 @@ interface FishState {
   homeworkCount: number;
   lastCompletedDate?: string;
   imageSrc: string;
+  fishWidth: number;
+  nativeFacing: 'left' | 'right';
+  isHappy?: boolean;
+}
+
+// Akıllı tahta CPU'sunu sıfıra indiren yüksek performanslı fizik nesnesi (Ref içinde saklanır)
+interface FishPhysics {
+  id: string;
   x: number; // 0 - 100 (%)
   y: number; // 0 - 100 (%)
-  vx: number; // % per frame
-  vy: number; // % per frame
-  direction: 1 | -1; // 1: Sağa yüzerken, -1: Sola yüzerken
-  isHappy: boolean;
+  vx: number;
+  vy: number;
+  direction: 1 | -1;
+  prevDirection: 1 | -1;
+  nativeFacing: 'left' | 'right';
 }
 
 interface OdevAkvaryumuModalProps {
@@ -178,12 +188,35 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [teacherMode, setTeacherMode] = useState(false);
+
+  // Akıllı Tahta Donanım Hızlandırması & GPU Doğrudan Erişim Ref'leri
   const aquariumRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number | null>(null);
+  const fishesPhysicsRef = useRef<FishPhysics[]>([]);
+  const fishDomMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const fishBodyDomMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const aquariumDimsRef = useRef<{ w: number; h: number }>({ w: 1000, h: 600 });
 
   const todayStr = getTodayDateString();
 
-  // Verileri yükle & senkronize et
+  // Akvaryum boyutlarını güncel tut (ResizeObserver ile CPU harcamadan)
+  useEffect(() => {
+    if (!isOpen || !aquariumRef.current) return;
+    const updateDims = () => {
+      if (aquariumRef.current) {
+        const rect = aquariumRef.current.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          aquariumDimsRef.current = { w: rect.width, h: rect.height };
+        }
+      }
+    };
+    updateDims();
+    const ro = new ResizeObserver(updateDims);
+    ro.observe(aquariumRef.current);
+    return () => ro.disconnect();
+  }, [isOpen]);
+
+  // Verileri yükle & senkronize et (Sadece modal açıldığında veya sınıf değiştiğinde 1 kez çalışır)
   useEffect(() => {
     if (!isOpen) return;
     const existing = loadHomeworkData();
@@ -191,7 +224,10 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     setHomeworkMap(synced);
     saveHomeworkData(synced);
 
-    // Balıkların ilk konumlarını, hızlarını ve görsellerini ata
+    // Balık fizik durumlarını ref'e hazırla
+    const physicsList: FishPhysics[] = [];
+
+    // React render nesnelerini oluştur (Sadece ödev değiştiğinde re-render)
     const initialFishes: FishState[] = currentGradeStudents.map((st, i) => {
       const data: StudentHomeworkData = synced[st.id] || {
         studentId: st.id,
@@ -202,15 +238,29 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         createdAt: new Date().toISOString()
       };
 
-      // Öğrenciye özel balık görseli (30 balık arasından)
       const imageIndex = (data.fishModelIndex ?? i) % FISH_IMAGES.length;
       const imageSrc = FISH_IMAGES[imageIndex];
+      const nativeFacing = FISH_FACING_MAP[imageSrc] || 'left';
+      const scale = calculateFishScale(data.homeworkCount || 0);
+      const fishWidth = Math.min(140, Math.round(74 * scale));
 
-      // Akvaryumda rastgele dağıt
+      // Akvaryumda rastgele başlangıç koordinatları
       const x = 12 + ((i * 19) % 74);
-      const y = 16 + ((i * 23) % 64);
-      const vx = (Math.random() > 0.5 ? 1 : -1) * (0.035 + Math.random() * 0.045);
-      const vy = (Math.random() > 0.5 ? 1 : -1) * (0.02 + Math.random() * 0.035);
+      const y = 18 + ((i * 23) % 62);
+      const vx = (Math.random() > 0.5 ? 1 : -1) * (0.035 + Math.random() * 0.04);
+      const vy = (Math.random() > 0.5 ? 1 : -1) * (0.02 + Math.random() * 0.03);
+      const dir: 1 | -1 = vx >= 0 ? 1 : -1;
+
+      physicsList.push({
+        id: st.id,
+        x,
+        y,
+        vx,
+        vy,
+        direction: dir,
+        prevDirection: dir,
+        nativeFacing
+      });
 
       return {
         id: st.id,
@@ -219,66 +269,89 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         homeworkCount: data.homeworkCount || 0,
         lastCompletedDate: data.lastCompletedDate,
         imageSrc,
-        x,
-        y,
-        vx,
-        vy,
-        direction: vx >= 0 ? 1 : -1, // Sağa yüzüyorsa 1, sola yüzüyorsa -1
+        fishWidth,
+        nativeFacing,
         isHappy: false
       };
     });
 
+    fishesPhysicsRef.current = physicsList;
     setFishes(initialFishes);
   }, [isOpen, currentGradeStudents, selectedGrade]);
 
-  // Canlı Akvaryum Yüzme Fiziği Animasyonu
+  // CANLI AKVARYUM FİZİĞİ - SIFIR REACT RERENDER, 100% GPU KOMPOZİTÖRÜ (translate3d)
   useEffect(() => {
     if (!isOpen) return;
 
-    const updatePhysics = () => {
-      setFishes(prevFishes => {
-        return prevFishes.map(f => {
-          let newX = f.x + f.vx;
-          let newY = f.y + f.vy;
-          let newVx = f.vx;
-          let newVy = f.vy;
+    let lastTime = performance.now();
+    let isRunning = true;
 
-          // X sınırları (sol: %8, sağ: %88)
-          if (newX <= 8) {
-            newX = 8;
-            newVx = Math.abs(newVx); // Sağa dön
-          } else if (newX >= 88) {
-            newX = 88;
-            newVx = -Math.abs(newVx); // Sola dön
+    const updatePhysics = (now: number) => {
+      if (!isRunning) return;
+
+      const dt = Math.min(now - lastTime, 64); // Frame drop durumunda fırlamayı önle
+      lastTime = now;
+      const speedFactor = dt / 16.666; // 60 FPS normalize çarpanı
+
+      const dims = aquariumDimsRef.current;
+      const w = dims.w;
+      const h = dims.h;
+      const list = fishesPhysicsRef.current;
+      const domMap = fishDomMap.current;
+      const bodyMap = fishBodyDomMap.current;
+
+      for (let i = 0; i < list.length; i++) {
+        const f = list[i];
+        let newX = f.x + f.vx * speedFactor;
+        let newY = f.y + f.vy * speedFactor;
+
+        // X sınırları (%8 - %88)
+        if (newX <= 8) {
+          newX = 8;
+          f.vx = Math.abs(f.vx);
+        } else if (newX >= 88) {
+          newX = 88;
+          f.vx = -Math.abs(f.vx);
+        }
+
+        // Y sınırları (%14 - %80)
+        if (newY <= 14) {
+          newY = 14;
+          f.vy = Math.abs(f.vy);
+        } else if (newY >= 80) {
+          newY = 80;
+          f.vy = -Math.abs(f.vy);
+        }
+
+        // Minik organik dalgalanmalar
+        if (Math.random() < 0.012) {
+          f.vy = (Math.random() - 0.5) * 0.05;
+        }
+
+        f.x = newX;
+        f.y = newY;
+        f.direction = f.vx >= 0 ? 1 : -1;
+
+        // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
+        const el = domMap.get(f.id);
+        if (el) {
+          const px = (newX * w) / 100;
+          const py = (newY * h) / 100;
+          el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
+        }
+
+        // Sadece yüzme yönü değiştiğinde gövdeyi ters çevir
+        if (f.direction !== f.prevDirection) {
+          f.prevDirection = f.direction;
+          const bodyEl = bodyMap.get(f.id);
+          if (bodyEl) {
+            const scaleX = f.direction === 1
+              ? (f.nativeFacing === 'right' ? 1 : -1)
+              : (f.nativeFacing === 'left' ? 1 : -1);
+            bodyEl.style.transform = `scaleX(${scaleX})`;
           }
-
-          // Y sınırları (üst: %12, alt: %78)
-          if (newY <= 12) {
-            newY = 12;
-            newVy = Math.abs(newVy);
-          } else if (newY >= 78) {
-            newY = 78;
-            newVy = -Math.abs(newVy);
-          }
-
-          // Doğal dalgalı yüzüş için minik rastgele sapmalar
-          if (Math.random() < 0.015) {
-            newVy = (Math.random() - 0.5) * 0.06;
-          }
-
-          // Hareket yönü: Sağa yüzerken 1, sola yüzerken -1
-          const newDir: 1 | -1 = newVx >= 0 ? 1 : -1;
-
-          return {
-            ...f,
-            x: newX,
-            y: newY,
-            vx: newVx,
-            vy: newVy,
-            direction: newDir
-          };
-        });
-      });
+        }
+      }
 
       requestRef.current = requestAnimationFrame(updatePhysics);
     };
@@ -286,12 +359,13 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     requestRef.current = requestAnimationFrame(updatePhysics);
 
     return () => {
+      isRunning = false;
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
   }, [isOpen]);
 
   // Balığa Tıklama - Günlük Ödev Onayı
-  const handleFishClick = (fish: FishState, event: React.MouseEvent) => {
+  const handleFishClick = useCallback((fish: FishState, event: React.MouseEvent) => {
     event.stopPropagation();
 
     // Bugün zaten yapılmış mı kontrol et
@@ -319,24 +393,26 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         setTimeout(() => playMp3('/para.mp3'), 250);
       }
 
-      // Konfeti patlaması
+      // Akıllı tahtalarda kasmayan hafif konfeti
       try {
         confetti({
-          particleCount: 50,
-          spread: 70,
+          particleCount: 30,
+          spread: 55,
           origin: {
             x: event.clientX / window.innerWidth,
             y: event.clientY / window.innerHeight
           },
-          colors: ['#06b6d4', '#3b82f6', '#f59e0b', '#10b981', '#ec4899']
+          colors: ['#06b6d4', '#3b82f6', '#f59e0b', '#10b981']
         });
-      } catch {
-        // Fallback
-      }
+      } catch {}
 
-      // State güncelle
+      // State güncelle (Tek bir kez re-render tetikler)
       const updated = loadHomeworkData();
       setHomeworkMap(updated);
+
+      const levelInfo = getFishLevelTitle(res.newCount);
+      const newScale = calculateFishScale(res.newCount);
+      const newFishWidth = Math.min(140, Math.round(74 * newScale));
 
       setFishes(prev =>
         prev.map(item => {
@@ -345,15 +421,22 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               ...item,
               homeworkCount: res.newCount,
               lastCompletedDate: todayStr,
-              isHappy: true,
-              vy: -0.15 // Zıplama hareketi
+              fishWidth: newFishWidth,
+              isHappy: true
             };
           }
           return item;
         })
       );
 
-      const levelInfo = getFishLevelTitle(res.newCount);
+      // Balık zıplama animasyonunu 1.5 saniye sonra kapat
+      setTimeout(() => {
+        setFishes(prev =>
+          prev.map(item =>
+            item.studentId === fish.studentId ? { ...item, isHappy: false } : item
+          )
+        );
+      }, 1500);
 
       setActivePopup({
         studentName: fish.name,
@@ -363,36 +446,33 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         badge: levelInfo.badge,
         title: levelInfo.title
       });
-
-      setTimeout(() => {
-        setFishes(prev =>
-          prev.map(item =>
-            item.studentId === fish.studentId ? { ...item, isHappy: false } : item
-          )
-        );
-      }, 2000);
     }
-  };
+  }, [todayStr, soundEnabled, playMp3]);
 
   // Öğretmen Modunda Bugünkü Ödevi Geri Alma
-  const handleUndo = (studentId: string, studentName: string) => {
+  const handleUndo = useCallback((studentId: string, studentName: string) => {
     const success = undoTodayHomework(studentId);
     if (success) {
       if (soundEnabled && playMp3) playMp3('/hata.mp3');
       const updated = loadHomeworkData();
       setHomeworkMap(updated);
+
       setFishes(prev =>
         prev.map(f => {
           if (f.studentId === studentId) {
+            const nextCount = Math.max(0, f.homeworkCount - 1);
+            const scale = calculateFishScale(nextCount);
             return {
               ...f,
-              homeworkCount: Math.max(0, f.homeworkCount - 1),
+              homeworkCount: nextCount,
+              fishWidth: Math.min(140, Math.round(74 * scale)),
               lastCompletedDate: undefined
             };
           }
           return f;
         })
       );
+
       setActivePopup({
         studentName,
         message: 'Bugünkü ödev kaydı geri alındı.',
@@ -402,7 +482,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         title: 'Geri Alındı'
       });
     }
-  };
+  }, [soundEnabled, playMp3, homeworkMap]);
 
   // İstatistik hesaplamaları
   const totalStudents = fishes.length;
@@ -413,19 +493,19 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex flex-col p-1 sm:p-2 md:p-3 bg-black/85 backdrop-blur-md animate-fadeIn select-none overflow-hidden">
-      <div className="relative w-full max-w-[1550px] h-full max-h-full mx-auto bg-gradient-to-b from-[#02182b] via-[#042844] to-[#011424] rounded-xl sm:rounded-2xl md:rounded-3xl border-2 sm:border-3 border-cyan-400/80 shadow-[0_0_50px_rgba(6,182,212,0.4)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[1000] flex flex-col p-1 sm:p-2 md:p-3 bg-black/90 select-none overflow-hidden">
+      <div className="relative w-full max-w-[1550px] h-full max-h-full mx-auto bg-[#02182b] rounded-xl sm:rounded-2xl md:rounded-3xl border-2 sm:border-3 border-cyan-400/80 shadow-[0_0_30px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden">
         
-        {/* ÜST BİLGİ VE KONTROL ÇUBUĞU (Her zaman tam ve eksiksiz görünür) */}
-        <div className="relative z-30 flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-cyan-950/95 via-sky-950/95 to-cyan-950/95 border-b-2 border-cyan-400/50 backdrop-blur-sm shrink-0 gap-1.5 sm:gap-2">
+        {/* ÜST BİLGİ VE KONTROL ÇUBUĞU */}
+        <div className="relative z-30 flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2 bg-[#021424] border-b-2 border-cyan-400/50 shrink-0 gap-1.5 sm:gap-2">
           {/* SOL: İKON VE BAŞLIK */}
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 border border-cyan-300 flex items-center justify-center text-base sm:text-xl shadow-lg shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 border border-cyan-300 flex items-center justify-center text-base sm:text-xl shadow shrink-0">
               🐠
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h2 className="font-black text-xs sm:text-sm md:text-base text-cyan-200 tracking-wide drop-shadow truncate">
+                <h2 className="font-black text-xs sm:text-sm md:text-base text-cyan-200 tracking-wide truncate">
                   {selectedGrade}. SINIF ÖDEV AKVARYUMU
                 </h2>
                 <span className="hidden xl:inline-block px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shrink-0">
@@ -439,7 +519,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
           </div>
 
           {/* ORTA: 1, 2, 3 VE 4. SINIF SEÇİCİ SEKMELERİ */}
-          <div className="flex items-center gap-0.5 sm:gap-1 bg-[#021424]/90 p-0.5 sm:p-1 rounded-xl border border-cyan-500/40 shrink-0">
+          <div className="flex items-center gap-0.5 sm:gap-1 bg-[#010e1a] p-0.5 sm:p-1 rounded-xl border border-cyan-500/40 shrink-0">
             {[1, 2, 3, 4].map((grade) => {
               const isSelected = selectedGrade === grade;
               return (
@@ -448,25 +528,23 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   onClick={() => setSelectedGrade(grade)}
                   className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-xs font-black transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.5)] scale-105'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-cyan-500 text-slate-950 shadow scale-105'
+                      : 'text-cyan-300/70 hover:text-cyan-200 hover:bg-cyan-950/60'
                   }`}
                 >
-                  <span>{grade}</span>
-                  <span className="hidden xs:inline">. Sınıf</span>
-                  <span className="xs:hidden">.S</span>
+                  {grade}. Sınıf
                 </button>
               );
             })}
           </div>
 
-          {/* SAĞ: KONTROLLER (Sıralama, Düzenle, Ses, Tam Ekran, Kapat - ASLA KESİLMEZ) */}
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto z-40">
-            {/* Liderlik Tablosu Butonu */}
+          {/* SAĞ: HIZLI İŞLEM BUTONLARI */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Sıralama & Büyüme Liderliği */}
             <button
               onClick={() => setShowLeaderboard(!showLeaderboard)}
               className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[10px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-95"
-              title="Ödev Lider Tablosu"
+              title="Akvaryum Sıralaması"
             >
               <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span className="hidden sm:inline">Sıralama</span>
@@ -477,8 +555,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               onClick={() => setTeacherMode(!teacherMode)}
               className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border text-[10px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-95 ${
                 teacherMode
-                  ? 'bg-purple-600/40 text-purple-200 border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.4)]'
-                  : 'bg-slate-800/60 text-slate-300 border-slate-700 hover:bg-slate-800'
+                  ? 'bg-purple-600/40 text-purple-200 border-purple-400 shadow'
+                  : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800'
               }`}
               title="Öğretmen Düzenleme Modu"
             >
@@ -489,7 +567,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             {/* Ses Aç/Kapa */}
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
               title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 shrink-0" />}
@@ -498,16 +576,16 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             {/* Tam Ekran Butonu */}
             <button
               onClick={toggleFullscreen}
-              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/60 hover:bg-slate-800 text-cyan-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-800/80 hover:bg-slate-800 text-cyan-300 border border-slate-700 transition-all cursor-pointer shrink-0 active:scale-95"
               title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
             >
               {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />}
             </button>
 
-            {/* Kapat Butonu (EN DIŞTAKİ BUTON - Her zaman tam ve net görünür) */}
+            {/* Kapat Butonu */}
             <button
               onClick={onClose}
-              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-red-600 hover:bg-red-500 text-white font-black border border-red-400 transition-all cursor-pointer ml-0.5 shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)] active:scale-95"
+              className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-red-600 hover:bg-red-500 text-white font-black border border-red-400 transition-all cursor-pointer ml-0.5 shrink-0 shadow active:scale-95"
               title="Akvaryumu Kapat"
             >
               <X className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
@@ -516,12 +594,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         </div>
 
         {/* GÜNLÜK İLERLEME ÇUBUĞU / BİLGİ BANDI */}
-        <div className="relative z-20 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-[#032038]/90 border-b border-cyan-500/30 text-xs shrink-0 flex-wrap gap-1 sm:gap-2">
+        <div className="relative z-20 flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-[#032038] border-b border-cyan-500/30 text-xs shrink-0 flex-wrap gap-1 sm:gap-2">
           <div className="flex items-center gap-1.5 sm:gap-3">
             <span className="text-cyan-300 font-bold flex items-center gap-1 text-[11px] sm:text-xs">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               Bugün Ödev Yapanlar:
-              <span className="text-emerald-300 font-black text-xs sm:text-sm bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-500/30 ml-0.5">
+              <span className="text-emerald-300 font-black text-xs sm:text-sm bg-emerald-950/80 px-1.5 py-0.5 rounded-md border border-emerald-500/30 ml-0.5">
                 {completedTodayCount} / {totalStudents}
               </span>
             </span>
@@ -550,7 +628,6 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         </div>
 
         {/* ANA AKVARYUM DÜNYASI (CANVAS / WATER VIEWPORT) */}
-        {/* Kullanıcının istediği akvar.jpeg arka planı tam olarak kullanılır */}
         <div
           ref={aquariumRef}
           className="relative flex-1 w-full min-h-0 overflow-hidden select-none cursor-default bg-cover bg-center bg-no-repeat"
@@ -559,69 +636,57 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             backgroundColor: '#02182b'
           }}
         >
-          {/* Su Işık Huzmeleri (Sun rays shining down through water) */}
+          {/* Su Işık Huzmeleri (CPU dostu yumuşak gradyanlar - blur kaldırıldı) */}
           <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
-            <div className="absolute -top-10 left-1/4 w-32 h-[600px] bg-gradient-to-b from-cyan-200 via-sky-300/20 to-transparent rotate-12 blur-2xl" />
-            <div className="absolute -top-10 left-2/4 w-44 h-[650px] bg-gradient-to-b from-cyan-100 via-teal-200/20 to-transparent -rotate-6 blur-2xl" />
-            <div className="absolute -top-10 left-3/4 w-36 h-[600px] bg-gradient-to-b from-cyan-200 via-sky-300/20 to-transparent rotate-12 blur-2xl" />
+            <div className="absolute -top-10 left-1/4 w-32 h-[600px] bg-gradient-to-b from-cyan-200/30 via-sky-300/10 to-transparent rotate-12" />
+            <div className="absolute -top-10 left-2/4 w-44 h-[650px] bg-gradient-to-b from-cyan-100/25 via-teal-200/10 to-transparent -rotate-6" />
+            <div className="absolute -top-10 left-3/4 w-36 h-[600px] bg-gradient-to-b from-cyan-200/30 via-sky-300/10 to-transparent rotate-12" />
           </div>
 
-          {/* Yükselen Doğal Su Kabarcıkları */}
+          {/* Yükselen Doğal Su Kabarcıkları (Düşük GPU yükü) */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {[8, 20, 34, 46, 60, 74, 88].map((left, idx) => (
               <div
                 key={idx}
-                className="absolute rounded-full bg-white/30 border border-white/60 animate-pulse"
+                className="absolute rounded-full bg-white/25 border border-white/40"
                 style={{
                   width: `${6 + (idx % 3) * 4}px`,
                   height: `${6 + (idx % 3) * 4}px`,
                   left: `${left}%`,
                   bottom: `${(idx * 14) % 85}%`,
-                  opacity: 0.45,
-                  boxShadow: '0 0 8px rgba(255,255,255,0.6)'
+                  opacity: 0.4
                 }}
               />
             ))}
           </div>
 
-          {/* YÜZEN TÜM ÖĞRENCİ BALIKLARI */}
+          {/* YÜZEN TÜM ÖĞRENCİ BALIKLARI (DOĞRUDAN GPU TRANSLATE3D İLE HAREKET EDER) */}
           {fishes.map((fish) => {
             const isCompletedToday = fish.lastCompletedDate === todayStr;
-            const scale = calculateFishScale(fish.homeworkCount);
             const levelInfo = getFishLevelTitle(fish.homeworkCount);
-
-            // Öğrencinin soyadını silip sadece ilk adını al
             const firstName = fish.name ? fish.name.trim().split(/\s+/)[0] : '';
-
-            // Balık pixel genişliği (ödev sayısıyla birlikte organik büyür)
-            const fishWidth = Math.min(145, Math.round(76 * scale));
-
-            // Balığın orijinal PNG'sindeki doğal bakış yönü ('left' veya 'right')
-            const nativeFacing = FISH_FACING_MAP[fish.imageSrc] || 'left';
-            
-            // fish.direction: 1 (sağa yüzüyor), -1 (sola yüzüyor)
-            // Kesin yön düzeltmesi: Sağa yüzerken sağa, sola yüzerken sola baksın
-            const scaleX = fish.direction === 1
-              ? (nativeFacing === 'right' ? 1 : -1)
-              : (nativeFacing === 'left' ? 1 : -1);
 
             return (
               <div
                 key={fish.studentId}
+                ref={(el) => {
+                  if (el) fishDomMap.current.set(fish.studentId, el);
+                  else fishDomMap.current.delete(fish.studentId);
+                }}
                 onClick={(e) => handleFishClick(fish, e)}
-                className="absolute z-20 flex flex-col items-center cursor-pointer transition-transform duration-100 ease-out group"
+                className="absolute top-0 left-0 z-20 flex flex-col items-center cursor-pointer select-none group"
                 style={{
-                  left: `${fish.x}%`,
-                  top: `${fish.y}%`,
-                  transform: 'translate(-50%, -50%)'
+                  // İlk render pozisyonu (Sonrasında requestAnimationFrame translate3d ile kontrol eder)
+                  transform: 'translate3d(0, 0, 0) translate(-50%, -50%)',
+                  willChange: 'transform'
                 }}
               >
                 {/* Öğrenci İsim Kartuşu & Ödev Durumu */}
                 <div
-                  className={`relative z-30 mb-0.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black shadow-lg border flex items-center gap-1 whitespace-nowrap transition-all duration-200 group-hover:scale-110 select-none ${
+                  className={`relative z-30 mb-0.5 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black border flex items-center gap-1 whitespace-nowrap select-none shadow-sm ${
                     isCompletedToday
-                      ? 'bg-emerald-950/90 text-emerald-200 border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.7)] ring-1 ring-emerald-300'
-                      : 'bg-slate-950/85 text-slate-100 border-sky-400/50 hover:border-cyan-300'
+                      ? 'bg-emerald-950/95 text-emerald-200 border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                      : 'bg-slate-950/90 text-slate-100 border-sky-400/50 hover:border-cyan-300'
                   }`}
                 >
                   <span className="text-[10px]">{levelInfo.badge}</span>
@@ -636,30 +701,33 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   )}
                 </div>
 
-                {/* Balık Gövdesi: Kullanıcının yüklediği public/blklar/*.png görseli */}
+                {/* Balık Gövdesi: Çift drop-shadow yerine hafif tekil gölge */}
                 <div
-                  className={`relative flex items-center justify-center transition-all duration-300 select-none ${
-                    fish.isHappy ? 'animate-bounce scale-110' : ''
+                  ref={(el) => {
+                    if (el) fishBodyDomMap.current.set(fish.studentId, el);
+                    else fishBodyDomMap.current.delete(fish.studentId);
+                  }}
+                  className={`relative flex items-center justify-center select-none ${
+                    fish.isHappy ? 'animate-bounce' : ''
                   }`}
                   style={{
-                    width: `${fishWidth}px`,
-                    // Kesin yön: Her balık yüzdüğü istikamete bakar
-                    transform: `scaleX(${scaleX})`,
+                    width: `${fish.fishWidth}px`,
+                    willChange: 'transform',
                     filter: isCompletedToday
-                      ? 'drop-shadow(0 0 10px rgba(34, 197, 94, 0.8)) drop-shadow(0 4px 6px rgba(0,0,0,0.5))'
-                      : 'drop-shadow(0 0 6px rgba(6, 182, 212, 0.5)) drop-shadow(0 4px 6px rgba(0,0,0,0.5))'
+                      ? 'drop-shadow(0 2px 5px rgba(34, 197, 94, 0.75))'
+                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45))'
                   }}
                 >
                   <img
                     src={fish.imageSrc}
                     alt={fish.name}
-                    className="w-full h-auto object-contain pointer-events-none select-none transition-transform duration-200 group-hover:scale-105"
+                    className="w-full h-auto object-contain pointer-events-none select-none"
                     loading="eager"
                   />
 
                   {/* Bugün tamamlandıysa parlayan altın yıldız rozeti */}
                   {isCompletedToday && (
-                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border border-white text-[10px] flex items-center justify-center text-amber-950 font-black shadow-lg animate-pulse">
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border border-white text-[9px] flex items-center justify-center text-amber-950 font-black shadow">
                       ⭐
                     </div>
                   )}
@@ -672,7 +740,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                       e.stopPropagation();
                       handleUndo(fish.studentId, fish.name);
                     }}
-                    className="mt-1 px-1.5 py-0.5 rounded bg-red-600/85 hover:bg-red-600 text-white text-[9px] font-bold border border-red-400 flex items-center gap-0.5 cursor-pointer z-30 shadow-md"
+                    className="mt-1 px-1.5 py-0.5 rounded bg-red-600 hover:bg-red-500 text-white text-[9px] font-bold border border-red-400 flex items-center gap-0.5 cursor-pointer z-30 shadow"
                     title="Bugünkü ödevi geri al"
                   >
                     <RotateCcw className="w-2.5 h-2.5" />
@@ -685,7 +753,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
           {/* BİLGİLENDİRME / TEBRİK AÇILIR BALONCUĞU (POPUP) */}
           {activePopup && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 max-w-sm w-[90%] p-3.5 rounded-2xl bg-gradient-to-r from-[#0f2c4a] via-[#16426f] to-[#0f2c4a] border-2 border-cyan-400 text-white shadow-[0_0_30px_rgba(6,182,212,0.6)] animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 max-w-sm w-[90%] p-3.5 rounded-2xl bg-[#0f2c4a] border-2 border-cyan-400 text-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl sm:text-3xl">{activePopup.badge}</span>
@@ -714,7 +782,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
           {/* LİDERLİK TABLOSU / EN ÇOK BÜYÜYEN BALIKLAR MODALI */}
           {showLeaderboard && (
-            <div className="absolute inset-y-0 right-0 w-full xs:w-80 sm:w-96 bg-[#041c33]/95 border-l-2 border-cyan-400/80 backdrop-blur-md z-40 p-4 flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+            <div className="absolute inset-y-0 right-0 w-full xs:w-80 sm:w-96 bg-[#041c33] border-l-2 border-cyan-400/80 z-40 p-4 flex flex-col shadow-2xl animate-in slide-in-from-right duration-150">
               <div className="flex items-center justify-between pb-3 border-b border-cyan-500/30">
                 <div className="flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-amber-400" />
@@ -740,7 +808,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                     return (
                       <div
                         key={f.studentId}
-                        className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                        className={`flex items-center justify-between p-2 rounded-xl border ${
                           idx === 0
                             ? 'bg-amber-500/20 border-amber-400 text-amber-200'
                             : idx === 1

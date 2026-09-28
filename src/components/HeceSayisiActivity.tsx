@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrack';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface HeceSayisiActivityProps {
   onClose: () => void;
@@ -287,9 +287,6 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   };
 
   const assignedStudent = useMemo(() => students?.find(s => s.id === selectedStudentId), [students, selectedStudentId]);
-
-  const leftStudents = useMemo(() => (students || []).slice(0, 12), [students]);
-  const rightStudents = useMemo(() => (students || []).slice(12, 24), [students]);
 
   const [selectedStudentIds, setSelectedStudentIds] = useState<(string | null)[]>([
     selectedStudentId || null,
@@ -835,16 +832,8 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. BACKGROUND IMAGE (/dere3.jpg) WITH BLUR */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <img 
-          src="/dere3.jpg" 
-          alt="Arka Plan Görseli"
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
-        />
-        <div className="absolute inset-0 bg-slate-950/45 pointer-events-none" />
-      </div>
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
 
       {/* 2. SUB-HEADER BAR */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0 gap-1.5 sm:gap-2">
@@ -919,23 +908,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-2 sm:px-3 py-1 sm:py-1.5">
-        {/* LEFT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-        {activeMode === 'quiz1' && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-          <div className="hidden xl:flex shrink-0 self-center">
-            <StudentAvatarSideGrid
-              slotsStudents={leftStudents}
-              side="left"
-              count={students.length}
-              label="1. Grup (Sol)"
-              selectedStudentId={selectedStudentId || null}
-              onSelectStudent={onSelectStudent}
-              onOpenRosterModal={onOpenRosterModal}
-              playMp3={triggerSound}
-            />
-          </div>
-        )}
-
+      <div className="flex-1 flex flex-row items-center justify-center max-w-4xl mx-auto w-full min-h-0 overflow-hidden px-2 sm:px-3 py-1 sm:py-1.5">
         {/* CENTER ACTIVITY CONTENT */}
         <div className="flex-1 flex flex-col items-center justify-center h-full min-h-0 min-w-0 max-w-full overflow-hidden">
           {activeMode === 'quiz1' ? (
@@ -1343,41 +1316,35 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             </div>
           )}
         </div>
-
-        {/* RIGHT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-        {activeMode === 'quiz1' && students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-          <div className="hidden xl:flex shrink-0 self-center">
-            <StudentAvatarSideGrid
-              slotsStudents={rightStudents}
-              side="right"
-              count={students.length}
-              label="2. Grup (Sağ)"
-              selectedStudentId={selectedStudentId || null}
-              onSelectStudent={onSelectStudent}
-              onOpenRosterModal={onOpenRosterModal}
-              playMp3={triggerSound}
-            />
-          </div>
-        )}
       </div>
 
-      {/* 4. EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - SADECE 2 VE 3 KİŞİLİK MODDA (KAYDIRMA ÇUBUĞU OLMADAN SIĞDIRILDI) */}
-      {activeMode !== 'quiz1' && students && students.length > 0 && onOpenRosterModal && (
+      {/* 4. EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - TÜM MODLARDA (1, 2 VE 3 KİŞİLİK) EN ALTTA TEK SIRA */}
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}
             currentGrade={2}
-            playerCount={activeMode === 'duel3' ? 3 : 2}
-            selectedStudentIds={effectiveSelectedStudentIds}
+            playerCount={activeMode === 'duel3' ? 3 : activeMode === 'duel2' ? 2 : 1}
+            selectedStudentIds={activeMode === 'quiz1' ? [selectedStudentId || null] : effectiveSelectedStudentIds}
             onSelectStudentForPlayer={(pIdx, studentId) => {
-              if (onSelectStudentForPlayer) {
-                onSelectStudentForPlayer(pIdx, studentId);
+              if (activeMode === 'quiz1') {
+                onSelectStudent?.(studentId);
+                onSelectStudentForPlayer?.(0, studentId);
+                setSelectedStudentIds(prev => {
+                  const updated = [...prev];
+                  updated[0] = studentId;
+                  return updated;
+                });
+              } else {
+                if (onSelectStudentForPlayer) {
+                  onSelectStudentForPlayer(pIdx, studentId);
+                }
+                setSelectedStudentIds(prev => {
+                  const updated = [...prev];
+                  updated[pIdx] = studentId;
+                  return updated;
+                });
               }
-              setSelectedStudentIds(prev => {
-                const updated = [...prev];
-                updated[pIdx] = studentId;
-                return updated;
-              });
               triggerSound('/coin.mp3');
             }}
             onOpenRosterModal={onOpenRosterModal}

@@ -1,11 +1,11 @@
 import React from 'react';
-import { Users, UserPlus, Check, Sparkles } from 'lucide-react';
+import { Users, UserPlus, Sparkles } from 'lucide-react';
 import { Student } from '../types/student';
 
 interface StudentAvatarDockProps {
   students: Student[];
   currentGrade?: number | null;
-  playerCount: number; // 2 or 3
+  playerCount: number; // 1, 2 or 3
   selectedStudentIds: (string | null)[];
   onSelectStudentForPlayer: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal: (grade?: number) => void;
@@ -23,7 +23,12 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
 }) => {
   const effectiveGrade = (currentGrade && [1, 2, 3, 4].includes(currentGrade)) ? currentGrade : 2;
 
-  // Group theme definitions (1: Red/Kırmızı, 2: Blue/Mavi, 3: Green/Yeşil)
+  // Tüm etkinliklerde ve modlarda alfabetik olarak sıralı liste
+  const sortedStudents = React.useMemo(() => {
+    return [...students].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+  }, [students]);
+
+  // Group theme definitions (1: Red/Kırmızı or Amber for single player, 2: Blue/Mavi, 3: Green/Yeşil)
   const groupThemes = [
     {
       label: playerCount === 1 ? 'Öğrenci' : '1. Grup',
@@ -88,7 +93,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
 
   return (
     <div className="w-full shrink-0 z-20 mt-auto mb-0 px-1 sm:px-2 select-none">
-      <div className="relative rounded-2xl bg-[#070c18]/95 border border-slate-700/80 shadow-[0_8px_24px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] px-2 py-1 overflow-hidden backdrop-blur-md">
+      <div className="relative rounded-2xl bg-[#070c18]/95 border border-slate-700/80 shadow-[0_8px_24px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] px-2 py-1 backdrop-blur-md">
         {students.length === 0 ? (
           <div className="flex items-center justify-between gap-2 p-1.5 bg-slate-900/80 rounded-xl border border-dashed border-amber-500/40">
             <div className="flex items-center gap-2 text-xs text-amber-200">
@@ -108,89 +113,87 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
             </button>
           </div>
         ) : (
-          /* TEK SIRA: SOLDA SINIF ROZETİ, YANINDA TEK SIRA KAYAN ÖĞRENCİ LİSTESİ */
-          <div className="w-full flex items-center justify-between gap-2 min-w-0">
-            {/* SOLDA: SINIF BUTONU (TEK SIRA BAŞLANGICI) */}
+          /* TÜM LİSTE ALTA, KESİNLİKLE TEK SIRA, ASLA KAYDIRMAYA NEDEN OLMAYACAK VE HEPSİ GÖRÜNECEK ŞEKİLDE */
+          <div className="w-full flex flex-row flex-nowrap items-center justify-between gap-1 sm:gap-1.5 py-0.5 min-w-0 overflow-hidden">
+            {/* SOL: SINIF BİLGİ ROZETİ */}
             <button
               type="button"
               onClick={() => {
                 playMp3?.('/op.mp3');
                 onOpenRosterModal(effectiveGrade);
               }}
-              className="shrink-0 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 hover:from-amber-500/30 hover:to-amber-600/20 border border-amber-400/50 text-amber-300 hover:text-amber-200 text-[11px] sm:text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-xs"
+              className="shrink-0 px-2 sm:px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 hover:from-amber-500/30 hover:to-amber-600/20 border border-amber-400/50 text-amber-300 hover:text-amber-200 text-[10px] sm:text-xs font-black transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-xs whitespace-nowrap"
               title={`${effectiveGrade}. Sınıf Öğrenci Listesini Aç / Düzenle`}
             >
-              <Users size={13} className="text-amber-400" />
+              <Users size={12} className="text-amber-400 shrink-0" />
               <span>{effectiveGrade}. Sınıf ({students.length})</span>
             </button>
 
-            {/* TEK SIRA YATAY DOCK: ASLA 2. SATIRA GEÇMEZ */}
-            <div className="flex-1 flex items-center justify-start sm:justify-center min-w-0 overflow-x-auto scrollbar-none no-scrollbar py-0.5 px-1">
-              <div className="flex flex-row flex-nowrap items-center gap-1 sm:gap-1.5 min-w-max mx-auto">
-                {students.map((student) => {
-                  const assignedGIdx = selectedStudentIds.findIndex(id => id === student.id);
-                  const isAssigned = assignedGIdx !== -1 && assignedGIdx < playerCount;
-                  const assignedTheme = isAssigned ? groupThemes[assignedGIdx] : null;
+            {/* ORTA: TÜM ÖĞRENCİLER - KESİNLİKLE TEK SIRA, HEPSİ GÖZÜKÜR, KAYDIRMAYA ASLA NEDEN OLMAZ */}
+            <div className="flex-1 flex flex-row flex-nowrap items-center justify-center gap-0.5 sm:gap-1 min-w-0 overflow-hidden px-0.5">
+              {sortedStudents.map((student) => {
+                const assignedGIdx = selectedStudentIds.findIndex(id => id === student.id);
+                const isAssigned = assignedGIdx !== -1 && assignedGIdx < playerCount;
+                const assignedTheme = isAssigned ? groupThemes[assignedGIdx] : null;
 
-                  return (
-                    <button
-                      key={student.id}
-                      type="button"
-                      onClick={() => handleAvatarClick(student)}
-                      className={`group relative flex flex-col items-center shrink-0 p-0.5 sm:p-1 rounded-xl transition-all cursor-pointer active:scale-90 ${
-                        isAssigned
-                          ? 'bg-slate-800/90 scale-105 shadow-md'
-                          : 'hover:bg-slate-800/60'
+                return (
+                  <button
+                    key={student.id}
+                    type="button"
+                    onClick={() => handleAvatarClick(student)}
+                    className={`group relative flex flex-col items-center justify-center shrink min-w-0 flex-1 max-w-[64px] py-0.5 px-0.5 sm:px-1 rounded-xl transition-all cursor-pointer active:scale-90 ${
+                      isAssigned
+                        ? 'bg-slate-800/90 scale-105 shadow-md'
+                        : 'hover:bg-slate-800/60'
+                    }`}
+                    title={`${student.name} (${student.grade}. Sınıf) • ${isAssigned ? `${assignedGIdx + 1}. Oyuncu (Tıkla ve kaldır)` : 'Tıkla ve seç'}`}
+                  >
+                    {/* AVATAR BADGE */}
+                    <div
+                      className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm shadow-sm transition-all shrink-0 ${
+                        assignedTheme
+                          ? `${assignedTheme.ringColor} shadow-[0_0_12px_rgba(255,255,255,0.4)]`
+                          : 'border border-white/20 group-hover:scale-110 group-hover:border-white/50'
                       }`}
-                      title={`${student.name} (${student.grade}. Sınıf) • ${isAssigned ? `${assignedGIdx + 1}. Oyuncu (Tıkla ve kaldır)` : 'Tıkla ve seç'}`}
                     >
-                      {/* AVATAR BADGE */}
-                      <div
-                        className={`relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm md:text-base shadow-sm transition-all ${
-                          assignedTheme
-                            ? `${assignedTheme.ringColor} shadow-[0_0_12px_rgba(255,255,255,0.4)]`
-                            : 'border border-white/20 group-hover:scale-110 group-hover:border-white/50'
-                        }`}
-                      >
-                        <span>{student.avatar}</span>
+                      <span>{student.avatar}</span>
 
-                        {/* SEÇİLEN OYUNCU NUMARASI (1, 2, 3) */}
-                        {isAssigned && (
-                          <span className={`absolute -top-1 -right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full ${assignedTheme?.badgeBg} font-black text-[8px] sm:text-[9px] flex items-center justify-center border border-white shadow-xs animate-pulse`}>
-                            {playerCount === 1 ? '✓' : (assignedGIdx + 1)}
-                          </span>
-                        )}
-                      </div>
+                      {/* SEÇİLEN OYUNCU NUMARASI VEYA ONAY İŞARETİ */}
+                      {isAssigned && (
+                        <span className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full ${assignedTheme?.badgeBg} font-black text-[8px] flex items-center justify-center border border-white shadow-xs animate-pulse`}>
+                          {playerCount === 1 ? '✓' : (assignedGIdx + 1)}
+                        </span>
+                      )}
+                    </div>
 
-                      {/* ÖĞRENCİ ADI */}
-                      <span
-                        className={`text-[8px] sm:text-[9px] font-bold mt-0.5 truncate max-w-[42px] sm:max-w-[48px] text-center leading-none ${
-                          assignedTheme
-                            ? `${assignedTheme.textColor} font-black drop-shadow`
-                            : 'text-slate-300 group-hover:text-white'
-                        }`}
-                      >
-                        {student.name.split(' ')[0]}
-                      </span>
-                    </button>
-                  );
-                })}
-
-                {/* YENİ ÖĞRENCİ EKLEME BUTONU */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    playMp3?.('/op.mp3');
-                    onOpenRosterModal(effectiveGrade);
-                  }}
-                  className="flex flex-col items-center justify-center shrink-0 p-0.5 w-7 sm:w-8 h-7 sm:h-8 rounded-xl border border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition cursor-pointer active:scale-95"
-                  title={`${effectiveGrade}. Sınıfa Yeni Öğrenci Ekle`}
-                >
-                  <UserPlus size={12} className="text-amber-400" />
-                  <span className="text-[7.5px] font-bold mt-0.5 text-amber-300/80">Ekle</span>
-                </button>
-              </div>
+                    {/* ÖĞRENCİ ADI */}
+                    <span
+                      className={`text-[8px] sm:text-[9px] font-bold mt-0.5 truncate w-full text-center leading-none ${
+                        assignedTheme
+                          ? `${assignedTheme.textColor} font-black drop-shadow`
+                          : 'text-slate-300 group-hover:text-white'
+                      }`}
+                    >
+                      {student.name.split(' ')[0]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+
+            {/* SAĞ: YENİ ÖĞRENCİ EKLEME BUTONU */}
+            <button
+              type="button"
+              onClick={() => {
+                playMp3?.('/op.mp3');
+                onOpenRosterModal(effectiveGrade);
+              }}
+              className="shrink-0 flex flex-col items-center justify-center p-0.5 w-6 sm:w-7 h-6 sm:h-7 rounded-xl border border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition cursor-pointer active:scale-95"
+              title={`${effectiveGrade}. Sınıfa Yeni Öğrenci Ekle`}
+            >
+              <UserPlus size={11} className="text-amber-400" />
+              <span className="text-[7px] font-bold leading-none text-amber-300/80">Ekle</span>
+            </button>
           </div>
         )}
       </div>

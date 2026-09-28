@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface NoktalamaQuestion {
   id: string;
@@ -365,15 +366,8 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <img 
-          src="/dere3.jpg" 
-          alt="Arka Plan"
-          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
-        />
-        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
-      </div>
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
 
       {/* Header */}
       <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
@@ -557,7 +551,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
       </main>
 
       {/* Student Avatar Dock (Single Row) */}
-      {students && students.length > 0 && onOpenRosterModal && (
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}

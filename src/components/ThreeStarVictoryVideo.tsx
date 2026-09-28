@@ -54,15 +54,15 @@ export const ThreeStarVictoryVideo: React.FC<ThreeStarVictoryVideoProps> = ({
     const particles: Particle[] = [];
     const colors = ['#f59e0b', '#fbbf24', '#fef08a', '#eab308', '#ffffff'];
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 20; i++) {
       particles.push({
         x: width / 2 + (Math.random() - 0.5) * 120,
         y: height * 0.45 + (Math.random() - 0.5) * 80,
-        vx: (Math.random() - 0.5) * 6,
-        vy: -Math.random() * 8 - 2,
-        size: Math.random() * 12 + 8,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -Math.random() * 6 - 2,
+        size: Math.random() * 10 + 6,
         rotation: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 0.2,
+        vRot: (Math.random() - 0.5) * 0.15,
         type: Math.random() > 0.4 ? 'coin' : Math.random() > 0.5 ? 'star' : 'sparkle',
         color: colors[Math.floor(Math.random() * colors.length)],
         alpha: 1
@@ -70,20 +70,27 @@ export const ThreeStarVictoryVideo: React.FC<ThreeStarVictoryVideoProps> = ({
     }
 
     let frame = 0;
+    let lastTime = 0;
 
-    const render = () => {
+    const render = (now: number) => {
+      animationFrameId = requestAnimationFrame(render);
+
+      // Throttle to ~30 FPS on smartboards
+      if (now - lastTime < 32) return;
+      lastTime = now;
+
       frame++;
       ctx.clearRect(0, 0, width, height);
 
-      if (frame % 4 === 0 && particles.length < 90) {
+      if (frame % 6 === 0 && particles.length < 35) {
         particles.push({
-          x: width / 2 + (Math.random() - 0.5) * 100,
+          x: width / 2 + (Math.random() - 0.5) * 80,
           y: height * 0.4,
-          vx: (Math.random() - 0.5) * 5,
-          vy: -Math.random() * 5 - 2,
-          size: Math.random() * 10 + 6,
+          vx: (Math.random() - 0.5) * 3,
+          vy: -Math.random() * 4 - 2,
+          size: Math.random() * 8 + 5,
           rotation: Math.random() * Math.PI * 2,
-          vRot: (Math.random() - 0.5) * 0.2,
+          vRot: (Math.random() - 0.5) * 0.15,
           type: Math.random() > 0.4 ? 'coin' : Math.random() > 0.5 ? 'star' : 'sparkle',
           color: colors[Math.floor(Math.random() * colors.length)],
           alpha: 1
@@ -149,11 +156,9 @@ export const ThreeStarVictoryVideo: React.FC<ThreeStarVictoryVideoProps> = ({
 
         ctx.restore();
       }
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    animationFrameId = requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener('resize', handleResize);

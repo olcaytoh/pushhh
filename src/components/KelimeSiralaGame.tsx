@@ -13,6 +13,7 @@ import {
 } from '../data/kelimeSiralaData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 interface KelimeSiralaGameProps {
   onClose: () => void;
@@ -547,6 +548,9 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
     >
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
+
       {/* 1. TOP HEADER / APP BAR */}
       <header className="relative z-20 shrink-0 h-12 sm:h-14 bg-slate-950/90 border-b border-slate-800/80 px-2 sm:px-4 flex items-center justify-between gap-1 sm:gap-2">
         {/* Left: Back & Navigation */}
@@ -956,7 +960,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
       </div>
 
       {/* ÖĞRENCİ LİSTESİ DOCK'U - EN ALTTA TEK SIRA (TÜM MODLARDA: 1, 2 VE 3 KİŞİLİK) */}
-      {students && students.length > 0 && onOpenRosterModal && (
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}

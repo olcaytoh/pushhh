@@ -16,7 +16,7 @@ function formatOptionText(rawText: string | number, mode: 1 | 2 | 3): string | n
   if (words.length <= 1) return clean;
 
   // 3 Oyuncu modunda (ve 2 oyuncu modundaki uzun şıklarda) kelimeler alt satıra kaysın, büyüklük korunsun
-  if (mode === 3 || (mode === 2 && clean.length > 14)) {
+  if (mode === 3 || (mode === 2 && clean.length > 8) || (mode === 1 && clean.length > 13)) {
     if (words.length === 2) {
       return words[0] + '\n' + words[1];
     }
@@ -59,17 +59,22 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     }
 
     if (mode === 1) {
-      if (len <= 3) return "text-2xl sm:text-3xl md:text-4xl font-black";
-      if (len <= 6) return "text-xl sm:text-2xl md:text-3xl font-black";
-      if (len <= 9) return "text-base sm:text-lg md:text-xl lg:text-2xl font-black";
-      if (len <= 14) return "text-sm sm:text-base md:text-lg lg:text-xl font-bold";
-      if (len <= 20) return "text-xs sm:text-sm md:text-base font-bold";
+      const words = clean.split(/\s+/);
+      const effectiveLen = words.length > 1 && clean.length > 13
+        ? Math.max(...words.map(w => w.length))
+        : len;
+
+      if (effectiveLen <= 3) return "text-2xl sm:text-3xl md:text-4xl font-black";
+      if (effectiveLen <= 6) return "text-xl sm:text-2xl md:text-3xl font-black";
+      if (effectiveLen <= 9) return "text-base sm:text-lg md:text-xl lg:text-2xl font-black";
+      if (effectiveLen <= 14) return "text-sm sm:text-base md:text-lg lg:text-xl font-bold";
+      if (effectiveLen <= 20) return "text-xs sm:text-sm md:text-base font-bold";
       return "text-[11px] sm:text-xs md:text-sm font-bold";
     }
 
     if (mode === 2) {
       const words = clean.split(/\s+/);
-      const effectiveLen = words.length > 1 && clean.length > 14
+      const effectiveLen = words.length > 1 && clean.length > 8
         ? Math.max(...words.map(w => w.length))
         : len;
 

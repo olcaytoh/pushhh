@@ -25,6 +25,7 @@ interface OtherGamesHubProps {
   onOpenSaglikliTabak?: () => void;
   onOpenIstekIhtiyac?: () => void;
   onOpenMevsimGardirobu?: () => void;
+  onOpenAbluka?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -51,6 +52,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenSaglikliTabak,
   onOpenIstekIhtiyac,
   onOpenMevsimGardirobu,
+  onOpenAbluka,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -252,6 +254,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenMevsimGardirobu) onOpenMevsimGardirobu();
+      },
+    },
+    {
+      id: 'abluka',
+      title: 'Abluka (7x7 Zeka & Strateji)',
+      subtitle: 'Taşını Taşı, Engel Koy ve Rakibini Kıstır! (1 ve 2 Kişilik)',
+      icon: '/MENUIKON/grid_icon_30.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenAbluka) onOpenAbluka();
       },
     }
   ];

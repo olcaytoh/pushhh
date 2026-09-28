@@ -38,6 +38,7 @@ import { GeriDonusumGame } from './components/GeriDonusumGame';
 import { SaglikliTabakGame } from './components/SaglikliTabakGame';
 import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
 import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
+import { AblukaGame } from './components/AblukaGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -2989,6 +2990,7 @@ export default function App() {
   const [showSaglikliTabak, setShowSaglikliTabak] = useState(false);
   const [showIstekIhtiyac, setShowIstekIhtiyac] = useState(false);
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
+  const [showAblukaGame, setShowAblukaGame] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
 
@@ -3015,6 +3017,7 @@ export default function App() {
     showSaglikliTabak || 
     showIstekIhtiyac || 
     showMevsimGardirobu || 
+    showAblukaGame ||
     wordGameType !== null
   );
 
@@ -4093,6 +4096,7 @@ export default function App() {
     setShowSaglikliTabak(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAblukaGame(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4222,6 +4226,13 @@ export default function App() {
       }
       setGameState('welcome');
       setShowMevsimGardirobu(true);
+    } else if (entry.type === 'abluka' || entry.id.includes('abluka')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      }
+      setGameState('welcome');
+      setShowAblukaGame(true);
     } else if (entry.type === 'geoboard') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4268,6 +4279,7 @@ export default function App() {
     if (showSaglikliTabak) return 17;
     if (showIstekIhtiyac) return 18;
     if (showMevsimGardirobu) return 19;
+    if (showAblukaGame) return 20;
     return -1;
   };
 
@@ -4299,6 +4311,7 @@ export default function App() {
     setShowSaglikliTabak(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAblukaGame(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4331,6 +4344,7 @@ export default function App() {
     else if (entry.id === 'other_saglikli_tabak') setShowSaglikliTabak(true);
     else if (entry.id === 'other_istek_ihtiyac') setShowIstekIhtiyac(true);
     else if (entry.id === 'other_mevsim_gardirobu') setShowMevsimGardirobu(true);
+    else if (entry.id === 'other_abluka') setShowAblukaGame(true);
 
     setActivityToast(`[${idx + 1}/${list.length}] Diğer Oyunlar ➜ ${entry.title}`);
     setTimeout(() => {
@@ -4368,6 +4382,7 @@ export default function App() {
     setShowSaglikliTabak(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAblukaGame(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4486,6 +4501,7 @@ export default function App() {
     setShowSaglikliTabak(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAblukaGame(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -5055,6 +5071,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAblukaGame(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -5079,6 +5096,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAblukaGame(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -5106,6 +5124,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAblukaGame(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -7783,164 +7802,12 @@ export default function App() {
 
       {/* FULL SCREEN GAME AREA (TEK KİŞİLİK TAM SAYFA ETKİNLİK - NÖTR ANTRASİT/KOYU LACİVERT PANEL & YUMUŞATILMIŞ MAVİ ACCENT) */}
       {gameState === 'playing' && playerCountMode === 1 && (() => {
-        const availableStudents = currentGradeStudents.length > 0 ? currentGradeStudents : students;
-        // Sort students alphabetically by Turkish collation
-        const sortedStudents = [...availableStudents].sort((a, b) => 
-          a.name.localeCompare(b.name, 'tr')
-        );
         const assignedStudent = selectedStudentIds[0] ? (students.find(s => s.id === selectedStudentIds[0]) || null) : null;
-        const leftStudents = sortedStudents.slice(0, 12);
-        const rightStudents = sortedStudents.slice(12, 23);
-
-        const renderAvatarGrid = (
-          slotsStudents: typeof sortedStudents, 
-          side: 'left' | 'right', 
-          count: number,
-          label: string
-        ) => {
-          const isLeft = side === 'left';
-          return (
-            <div className={`flex flex-col shrink-0 bg-[#0b1328] rounded-2xl sm:rounded-3xl border-2 ${
-              isLeft 
-                ? 'border-indigo-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(99,102,241,0.2)]' 
-                : 'border-amber-500/60 shadow-[0_10px_30px_rgba(0,0,0,0.85),0_0_16px_rgba(245,158,11,0.2)]'
-            } p-2 sm:p-2.5 md:p-3 select-none`}>
-              {/* FRAME HEADER (BAŞKA ÇERÇEVE BAŞLIĞI) */}
-              <div className={`flex items-center justify-between px-1 pb-1.5 mb-1.5 border-b ${
-                isLeft ? 'border-indigo-500/25' : 'border-amber-500/25'
-              } text-[9.5px] sm:text-[10.5px] md:text-xs font-black uppercase tracking-wider`}>
-                <span className={`flex items-center gap-1.5 ${isLeft ? 'text-indigo-300' : 'text-amber-300'}`}>
-                  <span className={`w-2.5 h-2.5 rounded-full ${
-                    isLeft 
-                      ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.9)]' 
-                      : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]'
-                  }`} />
-                  {label}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playMp3('/op.mp3');
-                    setRosterModalGrade(activeGradeNumber);
-                    setShowStudentRosterModal(true);
-                  }}
-                  className={`text-[8.5px] sm:text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-md ${
-                    isLeft 
-                      ? 'bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/30' 
-                      : 'bg-amber-500/15 text-amber-300 hover:bg-amber-500/30'
-                  }`}
-                  title="Sınıf Listesini Yönet"
-                >
-                  <Users size={12} />
-                  <span>{count} Kişi</span>
-                </button>
-              </div>
-
-              {/* 2-ROW x 6-COLUMN GRID (GENİŞLİK 6, YÜKSEKLİK 2 - BÜYÜTÜLMÜŞ AVATARLAR VE NET İSİMLER) */}
-              <div className="grid grid-cols-6 grid-rows-2 gap-1 sm:gap-1.5 md:gap-2">
-                {Array.from({ length: 12 }).map((_, slotIdx) => {
-                  // For right side (11 students requested), slot index 11 is the 12th cell.
-                  // If rightStudents has <= 11 students, slot 11 is a "+ Ekle" button to keep the 6x2 grid rectangle intact!
-                  if (side === 'right' && slotIdx === 11 && slotsStudents.length <= 11) {
-                    return (
-                      <button
-                        key="add-student-slot"
-                        type="button"
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setRosterModalGrade(activeGradeNumber);
-                          setShowStudentRosterModal(true);
-                        }}
-                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-amber-400/50 hover:border-amber-300 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 transition-all cursor-pointer flex flex-col items-center justify-center p-1 group active:scale-95"
-                        title="Yeni Öğrenci Ekle"
-                      >
-                        <UserPlus size={16} className="text-amber-400 group-hover:scale-110 transition" />
-                        <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-amber-300 mt-1 leading-none">
-                          Ekle
-                        </span>
-                      </button>
-                    );
-                  }
-
-                  const student = slotsStudents[slotIdx];
-
-                  if (!student) {
-                    // Empty seat placeholder
-                    const seatNum = side === 'left' ? slotIdx + 1 : slotIdx + 13;
-                    return (
-                      <button
-                        key={`empty-${slotIdx}`}
-                        type="button"
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setRosterModalGrade(activeGradeNumber);
-                          setShowStudentRosterModal(true);
-                        }}
-                        className="w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 rounded-xl border-2 border-dashed border-slate-700/50 hover:border-slate-500 bg-[#070d1a]/50 hover:bg-slate-800/40 flex flex-col items-center justify-center p-1 text-slate-500 hover:text-slate-300 transition-all cursor-pointer group"
-                        title={`Sıra #${seatNum} - Öğrenci Ekle`}
-                      >
-                        <span className="text-[10px] sm:text-xs text-slate-600 group-hover:text-slate-400 font-mono font-bold">
-                          {seatNum}
-                        </span>
-                      </button>
-                    );
-                  }
-
-                  // En başta kimse seçili değil; tıklandığında seçilir veya seçim kaldırılır
-                  const isSelected = Boolean(selectedStudentIds[0] && selectedStudentIds[0] === student.id);
-
-                  return (
-                    <button
-                      key={student.id}
-                      type="button"
-                      onClick={() => {
-                        playMp3('/op.mp3');
-                        // Tıklanan öğrenci zaten seçiliyse seçimi kaldır (null), değilse seç
-                        setSelectedStudentIds(prev => [
-                          prev[0] === student.id ? null : student.id, 
-                          prev[1] || null, 
-                          prev[2] || null
-                        ]);
-                      }}
-                      title={`${student.name} (${student.className || ''}) • ${student.totalCorrect} Doğru - ${isSelected ? 'Seçimi Kaldır' : 'Aktif Oyuncu Yap'}`}
-                      className={`group relative p-1 rounded-xl transition-all cursor-pointer flex flex-col items-center justify-between text-center ${
-                        isSelected
-                          ? 'bg-gradient-to-b from-amber-500/35 via-orange-500/25 to-amber-600/30 border-2 border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_16px_rgba(251,191,36,0.6)] scale-105 z-10'
-                          : 'bg-[#060c1c]/90 hover:bg-[#111e3d] border border-slate-700/70 hover:border-blue-400/70'
-                      } w-11 sm:w-12 md:w-13 lg:w-14 xl:w-15 h-[56px] sm:h-[62px] md:h-[68px] lg:h-[72px] shrink-0 active:scale-95`}
-                    >
-                      {/* AVATAR BADGE */}
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-sm sm:text-base md:text-lg shrink-0 shadow border border-white/20 relative mt-0.5`}>
-                        <span>{student.avatar}</span>
-                        {isSelected && (
-                          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-slate-950 shadow flex items-center justify-center text-[9px] text-slate-950 font-black">
-                            ✓
-                          </span>
-                        )}
-                      </div>
-                      {/* STUDENT FIRST NAME - HER ZAMAN NET VE OKUNAKLI */}
-                      <span className={`text-[8.5px] sm:text-[9.5px] md:text-[10.5px] font-bold block truncate w-full text-center leading-tight mb-0.5 px-0.5 ${
-                        isSelected ? 'text-amber-300 font-black drop-shadow' : 'text-slate-100 group-hover:text-white'
-                      }`}>
-                        {student.name.split(' ')[0]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        };
 
         return (
-          <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-end justify-center lg:justify-between xl:justify-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6 w-full h-full max-h-full overflow-y-auto lg:overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1780px] mx-auto">
-            {/* SOL ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SOLUNDA, 12 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
-            <div className="order-2 lg:order-1 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
-              {renderAvatarGrid(leftStudents, 'left', 12, '1. Grup (1-12)')}
-            </div>
-
+          <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
             {/* MERKEZ: SORU ÇERÇEVESİ (ŞIKLARIN GENİŞLİĞİ KADAR, ŞIKLAR ÇERÇEVENİN İÇİNDE) */}
-            <div className="order-1 lg:order-2 h-full flex-1 max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink-0 w-full">
+            <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
               <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
                 {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
                 <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
@@ -8025,7 +7892,7 @@ export default function App() {
                     const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
                     const singleOptHeightClass = selectedGrade === 4
                       ? 'h-[37px] sm:h-[43px] md:h-[48px] lg:h-[53px] xl:h-[59px] 2xl:h-[64px] max-h-[37px] sm:max-h-[43px] md:max-h-[48px] lg:max-h-[53px] xl:max-h-[59px] 2xl:max-h-[64px] px-2 sm:px-3'
-                      : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'py-2 px-2.5 min-h-[48px] sm:min-h-[58px]' : 'py-3 sm:py-3.5 px-3 min-h-[68px] sm:min-h-[80px] md:min-h-[88px]');
+                      : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? 'py-1.5 sm:py-2 px-2.5 min-h-[42px] sm:min-h-[50px]' : 'py-1.5 sm:py-2 px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] max-h-[58px]');
 
                     return optionsList.map((opt, idx) => {
                       const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
@@ -8067,10 +7934,30 @@ export default function App() {
               </div>
             </div>
 
-            {/* SAĞ ÖĞRENCİ ÇERÇEVESİ (SORU ÇERÇEVESİNİN DIŞINDA, ŞIKLARIN SAĞINDA, 11 ÖĞRENCİ, 2 SIRA x 6 SÜTUN) */}
-            <div className="order-3 lg:order-3 shrink-0 self-center lg:self-end mb-0.5 lg:mb-1.5 z-20">
-              {renderAvatarGrid(rightStudents, 'right', 11, '2. Grup (13-23)')}
-            </div>
+            {/* EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ (1 KİŞİLİK MOD) */}
+            {students && (
+              <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
+                <StudentAvatarDock
+                  students={currentGradeStudents}
+                  currentGrade={activeGradeNumber}
+                  playerCount={1}
+                  selectedStudentIds={[selectedStudentIds[0] || null]}
+                  onSelectStudentForPlayer={(_pIdx, studentId) => {
+                    playMp3?.('/op.mp3');
+                    setSelectedStudentIds(prev => [
+                      prev[0] === studentId ? null : studentId,
+                      prev[1] || null,
+                      prev[2] || null
+                    ]);
+                  }}
+                  onOpenRosterModal={(gradeToOpen) => {
+                    setRosterModalGrade(gradeToOpen || activeGradeNumber);
+                    setShowStudentRosterModal(true);
+                  }}
+                  playMp3={playMp3}
+                />
+              </div>
+            )}
           </div>
         );
       })()}
@@ -8144,8 +8031,8 @@ export default function App() {
                     ? "min-h-[32px] sm:min-h-[38px] md:min-h-[44px] lg:min-h-[48px] py-1 px-1.5"
                     : "h-[30px] sm:h-[38px] md:h-[43px] lg:h-[48px] xl:h-[54px] 2xl:h-[61px] max-h-[30px] sm:max-h-[38px] md:max-h-[43px] lg:max-h-[48px] xl:max-h-[54px] 2xl:max-h-[61px] px-2")
                 : (playerCountMode === 3
-                    ? "py-2 px-1.5 min-h-[48px] sm:min-h-[58px] md:min-h-[64px]"
-                    : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? "py-2 sm:py-2.5 px-2 min-h-[48px] sm:min-h-[58px]" : "py-3 sm:py-3.5 px-2.5 min-h-[58px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[86px]"));
+                    ? "py-1.5 sm:py-2 px-1.5 min-h-[40px] sm:min-h-[46px] md:min-h-[52px]"
+                    : (currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri' ? "py-1.5 sm:py-2 px-2 min-h-[38px] sm:min-h-[44px]" : "py-1.5 sm:py-2 px-2 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] max-h-[56px]"));
 
               const isHalat = isHalatCekmeTopic(currentTopic);
               const isSpatialOrSymmetry = currentTopic === 'uzamsal_iliskiler' || currentTopic === 'uzamsal_iliskiler_simetri';
@@ -8451,8 +8338,8 @@ export default function App() {
             );
           })()}
 
-          {/* 3 VE 2 KİŞİLİK OYUNLARIN EN ALTINDA YANYANA KÜÇÜK İKON BÜYÜKLÜĞÜNDE ÇOCUKLARIN AVATARLARI */}
-          {playerCountMode >= 2 && (
+          {/* EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ (2 VE 3 KİŞİLİK MODLAR İÇİN) */}
+          <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
             <StudentAvatarDock
               students={currentGradeStudents}
               currentGrade={activeGradeNumber}
@@ -8471,37 +8358,39 @@ export default function App() {
               }}
               playMp3={playMp3}
             />
-          )}
+          </div>
         </div>
       )}
 
 
-      {/* GLOBAL FOOTER WITH COPYRIGHT TEXT & DISCREET SAYAÇ BUTTON */}
-      <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xl w-full">
-        <div className="w-8 sm:w-16 shrink-0" />
-        <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm truncate">
-          © 2026 OLCİCO Tüm hakları saklıdır.
-        </p>
-        <button
-          onClick={async () => {
-            playMp3('/op.mp3');
-            setCountersData(loadCounters());
-            setShowCountersModal(true);
-            const freshTotal = await refreshWorldwideVisitorCount();
-            if (freshTotal) {
+      {/* GLOBAL FOOTER WITH COPYRIGHT TEXT & DISCREET SAYAÇ BUTTON (SADECE OYUN OYNANMIYORKEN GÖSTERİLİR) */}
+      {gameState !== 'playing' && (
+        <footer className="mt-auto z-30 shrink-0 bg-slate-950 dark:bg-[#070D1E] border-t-2 border-yellow-400/90 dark:border-yellow-500/80 py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between shadow-xl w-full">
+          <div className="w-8 sm:w-16 shrink-0" />
+          <p className="text-yellow-400 dark:text-yellow-300 font-bold text-xs sm:text-sm tracking-wide text-center drop-shadow-sm truncate">
+            © 2026 OLCİCO Tüm hakları saklıdır.
+          </p>
+          <button
+            onClick={async () => {
+              playMp3('/op.mp3');
               setCountersData(loadCounters());
-            }
-          }}
-          className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-60 hover:opacity-100 shrink-0 shadow-sm"
-          title="Dünya Geneli Canlı Ziyaretçi & Sınıf Sayaç Paneli"
-          aria-label="Sayaç Paneli"
-        >
-          <Globe size={13} className="text-cyan-400 group-hover:rotate-12 transition-transform" />
-          <span className="text-[10px] font-mono font-bold tracking-tight text-slate-300 group-hover:text-amber-300">
-            {countersData.visits.total.toLocaleString('tr-TR')}
-          </span>
-        </button>
-      </footer>
+              setShowCountersModal(true);
+              const freshTotal = await refreshWorldwideVisitorCount();
+              if (freshTotal) {
+                setCountersData(loadCounters());
+              }
+            }}
+            className="group px-2 py-1 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-500 hover:text-amber-400 border border-slate-800/80 hover:border-amber-400/30 transition-all cursor-pointer flex items-center gap-1.5 opacity-60 hover:opacity-100 shrink-0 shadow-sm"
+            title="Dünya Geneli Canlı Ziyaretçi & Sınıf Sayaç Paneli"
+            aria-label="Sayaç Paneli"
+          >
+            <Globe size={13} className="text-cyan-400 group-hover:rotate-12 transition-transform" />
+            <span className="text-[10px] font-mono font-bold tracking-tight text-slate-300 group-hover:text-amber-300">
+              {countersData.visits.total.toLocaleString('tr-TR')}
+            </span>
+          </button>
+        </footer>
+      )}
 
       {/* GAME OVER / VICTORY OVERLAY */}
       {gameState === 'gameover' && gameResult && (
@@ -9018,7 +8907,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -9045,6 +8934,7 @@ export default function App() {
           onOpenSaglikliTabak={() => switchToOtherGameByIndex(17)}
           onOpenIstekIhtiyac={() => switchToOtherGameByIndex(18)}
           onOpenMevsimGardirobu={() => switchToOtherGameByIndex(19)}
+          onOpenAbluka={() => switchToOtherGameByIndex(20)}
           playMp3={playMp3}
         />
       )}
@@ -9749,6 +9639,36 @@ export default function App() {
         />
       )}
 
+      {/* ABLUKA ZEKA VE STRATEJİ OYUNU (1 VE 2 KİŞİLİK / AKILLI TAHTA) */}
+      {showAblukaGame && (
+        <AblukaGame
+          onClose={() => {
+            setShowAblukaGame(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={currentGradeStudents}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+        />
+      )}
+
       {/* AYNISINI BUL OYUNU MODAL (2 KİŞİLİK DÜELLO) */}
       {showAynisiniBul && (
         <AynisiniBulGame
@@ -9761,6 +9681,20 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
+          students={currentGradeStudents}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 
@@ -9789,6 +9723,20 @@ export default function App() {
             }
           }}
           playMp3={playMp3}
+          students={currentGradeStudents}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 

@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { StudentAvatarSideGrid } from './StudentAvatarSideGrid';
 import { 
   GeometricSolidType, 
   GEOMETRIC_SOLIDS, 
@@ -723,23 +722,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         {/* A) 1 OYUNCU (TEK KİŞİLİK) MERKEZİ OYUN DÜZENİ */}
         {/* =================================================================== */}
         {activePlayerMode === 1 ? (
-          <div className="w-full h-full flex flex-row items-center justify-center gap-2 sm:gap-3 lg:gap-4 max-w-[1850px] mx-auto p-1 sm:p-2 overflow-hidden">
-            {/* LEFT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-            {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-              <div className="hidden xl:flex shrink-0 self-center">
-                <StudentAvatarSideGrid
-                  slotsStudents={leftStudents}
-                  side="left"
-                  count={students.length}
-                  label="1. Grup (Sol)"
-                  selectedStudentId={selectedStudentId || null}
-                  onSelectStudent={onSelectStudent}
-                  onOpenRosterModal={onOpenRosterModal}
-                  playMp3={playMp3}
-                />
-              </div>
-            )}
-
+          <div className="w-full h-full flex flex-col items-center justify-center p-1 sm:p-2 overflow-hidden">
             {/* MERKEZİ TEK KİŞİLİK OYUN DÜZENİ */}
             <div className="flex-1 flex flex-col items-center justify-center h-full min-h-0 min-w-0 max-w-xl">
               {/* Geri Bildirim Mesajı (Doğru / Yanlış) */}
@@ -788,22 +771,6 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
                 </div>
               </div>
             </div>
-
-            {/* RIGHT STUDENT SIDE GRID - SADECE 1 KİŞİLİK MODDA */}
-            {students && students.length > 0 && onSelectStudent && onOpenRosterModal && (
-              <div className="hidden xl:flex shrink-0 self-center">
-                <StudentAvatarSideGrid
-                  slotsStudents={rightStudents}
-                  side="right"
-                  count={students.length}
-                  label="2. Grup (Sağ)"
-                  selectedStudentId={selectedStudentId || null}
-                  onSelectStudent={onSelectStudent}
-                  onOpenRosterModal={onOpenRosterModal}
-                  playMp3={playMp3}
-                />
-              </div>
-            )}
           </div>
         ) : (
           /* =================================================================== */
@@ -849,33 +816,9 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       </div>
 
       {/* ===================================================================== */}
-      {/* 4. ALT BÖLGE: ÖĞRENCİ DOCK PANELİ VE MOD / TEMA / ÇIKIŞ BUTONLARI */}
+      {/* 4. ALT BÖLGE: MOD / TEMA / ÇIKIŞ BUTONLARI VE EN ALTTA ÖĞRENCİ DOCKU */}
       {/* ===================================================================== */}
-      <div className="shrink-0 w-full bg-slate-950/95 border-t border-white/10 flex flex-col items-center justify-center z-30 pt-1 pb-1.5 px-2 gap-1">
-        
-        {/* ÖĞRENCİ DOCK PANELİ - SADECE 2 VE 3 KİŞİLİK MODDA */}
-        {activePlayerMode >= 2 && students && students.length > 0 && onOpenRosterModal && (
-          <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
-            <StudentAvatarDock
-              students={students}
-              currentGrade={2}
-              playerCount={activePlayerMode}
-              selectedStudentIds={selectedStudentIds || []}
-              onSelectStudentForPlayer={(pIdx, sId) => {
-                if (onSelectStudentForPlayer) {
-                  onSelectStudentForPlayer(pIdx, sId);
-                } else if (onSelectStudent) {
-                  onSelectStudent(sId);
-                }
-              }}
-              onOpenRosterModal={(grade) => {
-                if (onOpenRosterModal) onOpenRosterModal(grade || 2);
-              }}
-              playMp3={playMp3}
-            />
-          </div>
-        )}
-
+      <div className="shrink-0 w-full bg-slate-950/95 border-t border-white/10 flex flex-col items-center justify-center z-30 pt-1 pb-1 px-1 sm:px-2 gap-1 mt-auto">
         {/* TEMALAR VE ÇIKIŞ KONTROL ÇUBUĞU */}
         <div className="flex items-center gap-1 sm:gap-2 max-w-[98vw] overflow-x-auto py-0.5 scrollbar-none">
           {/* Tema Filtreleri */}
@@ -979,6 +922,34 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
             )}
           </div>
         </div>
+
+        {/* ÖĞRENCİ DOCK PANELİ - TÜM MODLARDA (1, 2 VE 3 KİŞİLİK) EN ALTTA TEK SIRA */}
+        {students && onOpenRosterModal && (
+          <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
+            <StudentAvatarDock
+              students={students}
+              currentGrade={2}
+              playerCount={activePlayerMode}
+              selectedStudentIds={activePlayerMode === 1 ? [selectedStudentId || null] : (selectedStudentIds || [])}
+              onSelectStudentForPlayer={(pIdx, sId) => {
+                if (activePlayerMode === 1) {
+                  onSelectStudent?.(sId);
+                  onSelectStudentForPlayer?.(0, sId);
+                } else {
+                  if (onSelectStudentForPlayer) {
+                    onSelectStudentForPlayer(pIdx, sId);
+                  } else if (onSelectStudent && pIdx === 0) {
+                    onSelectStudent(sId);
+                  }
+                }
+              }}
+              onOpenRosterModal={(grade) => {
+                if (onOpenRosterModal) onOpenRosterModal(grade || 2);
+              }}
+              playMp3={playMp3}
+            />
+          </div>
+        )}
       </div>
 
       {/* ===================================================================== */}

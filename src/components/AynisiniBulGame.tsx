@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Trophy, RotateCcw, X, Layers, SkipBack, SkipForward } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface AynisiniBulGameProps {
   onClose: () => void;
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
+  students?: Student[];
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 export type ThemeCategory = 'all' | 'meyveler' | 'sevimli' | 'okul' | 'rozets';
@@ -175,7 +181,14 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
   onPrevActivity,
   onNextActivity,
   playMp3,
+  students,
+  selectedStudentIds,
+  onSelectStudentForPlayer,
+  onOpenRosterModal,
 }) => {
+  const p1Student = selectedStudentIds?.[0] ? students?.find(s => s.id === selectedStudentIds[0]) : null;
+  const p2Student = selectedStudentIds?.[1] ? students?.find(s => s.id === selectedStudentIds[1]) : null;
+
   const [theme, setTheme] = useState<ThemeCategory>('all');
   const [player1Score, setPlayer1Score] = useState(0);
   const [player2Score, setPlayer2Score] = useState(0);
@@ -386,7 +399,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-row font-sans select-none overflow-hidden touch-none bg-slate-950"
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden touch-none bg-slate-950"
     >
       
       {/* 1. ÜST ORTA: BEYAZ HAP SKOR VE CAN ROZETİ (FOTOĞRAFTAKİ GİBİ) */}
@@ -547,127 +560,143 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
         </div>
       </div>
 
-      {/* 3. SOL YARI: KIRMIZI ALAN (1. OYUNCU) */}
-      <div className="w-1/2 h-full bg-[#df4a42] flex items-center justify-center p-2 sm:p-4 md:p-8 border-r-2 border-black/30 relative overflow-hidden">
-        
-        {/* Oyuncu Etiketi */}
-        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 pointer-events-none">
-          <span className="px-2.5 py-1 rounded-lg bg-black/30 text-white font-black text-[11px] sm:text-xs tracking-wider uppercase border border-white/20">
-            1. Oyuncu
-          </span>
-        </div>
-
-        {/* Hata Uyarısı Katmanı */}
-        {player1Mistakes >= 1 && (
-          <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 pointer-events-none">
-            <span className="px-2 py-0.5 rounded-md bg-black/40 text-amber-300 font-bold text-[10px] sm:text-xs border border-amber-400/40">
-              {player1Mistakes}/3 Hata
+      {/* 3. OYUN ARENASI (SOL KIRMIZI - SAĞ MAVİ) */}
+      <div className="flex-1 min-h-0 w-full flex flex-row relative overflow-hidden">
+        {/* SOL YARI: KIRMIZI ALAN (1. OYUNCU) */}
+        <div className="w-1/2 h-full bg-[#df4a42] flex items-center justify-center p-2 sm:p-4 md:p-8 border-r-2 border-black/30 relative overflow-hidden">
+          {/* Oyuncu Etiketi */}
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 pointer-events-none">
+            <span className="px-2.5 py-1 rounded-lg bg-black/30 text-white font-black text-[11px] sm:text-xs tracking-wider uppercase border border-white/20">
+              {p1Student ? `🔴 ${p1Student.name}` : '1. Oyuncu'}
             </span>
           </div>
-        )}
 
-        {/* SOL BEYAZ DAİRE (SPOT IT / DOBBLE KARTI) */}
-        <div
-          className={`relative w-[92vw] max-w-[min(46vw,72vh)] aspect-square bg-white rounded-full border-[3px] sm:border-[5px] border-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-300 ${
-            roundWinnerPlayer === 'p1' ? 'ring-8 ring-emerald-400 scale-[1.02]' : ''
-          }`}
-        >
-          {p1Items.map((item) => {
-            const isFoundCommon = foundItemId === item.id && roundWinnerPlayer === 'p1';
-            const isWrong = p1WrongId === item.id;
+          {/* Hata Uyarısı Katmanı */}
+          {player1Mistakes >= 1 && (
+            <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 pointer-events-none">
+              <span className="px-2 py-0.5 rounded-md bg-black/40 text-amber-300 font-bold text-[10px] sm:text-xs border border-amber-400/40">
+                {player1Mistakes}/3 Hata
+              </span>
+            </div>
+          )}
 
-            return (
-              <button
-                key={`p1-${item.id}`}
-                onClick={() => handleItemClick('p1', item)}
-                style={{
-                  left: `${item.x}%`,
-                  top: `${item.y}%`,
-                  width: '16.5%',
-                  height: '16.5%',
-                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
-                }}
-                className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
-                  isFoundCommon
-                    ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
-                    : isWrong
-                    ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
-                    : 'hover:bg-slate-100/50'
-                }`}
-                title={item.name}
-              >
-                <img
-                  src={item.imageSrc}
-                  alt={item.name}
-                  className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
-                  draggable={false}
-                />
-              </button>
-            );
-          })}
+          {/* SOL BEYAZ DAİRE (SPOT IT / DOBBLE KARTI) */}
+          <div
+            className={`relative w-[92vw] max-w-[min(46vw,72vh)] aspect-square bg-white rounded-full border-[3px] sm:border-[5px] border-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-300 ${
+              roundWinnerPlayer === 'p1' ? 'ring-8 ring-emerald-400 scale-[1.02]' : ''
+            }`}
+          >
+            {p1Items.map((item) => {
+              const isFoundCommon = foundItemId === item.id && roundWinnerPlayer === 'p1';
+              const isWrong = p1WrongId === item.id;
+
+              return (
+                <button
+                  key={`p1-${item.id}`}
+                  onClick={() => handleItemClick('p1', item)}
+                  style={{
+                    left: `${item.x}%`,
+                    top: `${item.y}%`,
+                    width: '16.5%',
+                    height: '16.5%',
+                    transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
+                  }}
+                  className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
+                    isFoundCommon
+                      ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
+                      : isWrong
+                      ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
+                      : 'hover:bg-slate-100/50'
+                  }`}
+                  title={item.name}
+                >
+                  <img
+                    src={item.imageSrc}
+                    alt={item.name}
+                    className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                    draggable={false}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SAĞ YARI: MAVİ ALAN (2. OYUNCU) */}
+        <div className="w-1/2 h-full bg-[#399ae2] flex items-center justify-center p-2 sm:p-4 md:p-8 relative overflow-hidden">
+          {/* Oyuncu Etiketi */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none">
+            <span className="px-2.5 py-1 rounded-lg bg-black/30 text-white font-black text-[11px] sm:text-xs tracking-wider uppercase border border-white/20">
+              {p2Student ? `🔵 ${p2Student.name}` : '2. Oyuncu'}
+            </span>
+          </div>
+
+          {/* Hata Uyarısı Katmanı */}
+          {player2Mistakes >= 1 && (
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20 pointer-events-none">
+              <span className="px-2 py-0.5 rounded-md bg-black/40 text-amber-300 font-bold text-[10px] sm:text-xs border border-amber-400/40">
+                {player2Mistakes}/3 Hata
+              </span>
+            </div>
+          )}
+
+          {/* SAĞ BEYAZ DAİRE (SPOT IT / DOBBLE KARTI) */}
+          <div
+            className={`relative w-[92vw] max-w-[min(46vw,72vh)] aspect-square bg-white rounded-full border-[3px] sm:border-[5px] border-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-300 ${
+              roundWinnerPlayer === 'p2' ? 'ring-8 ring-emerald-400 scale-[1.02]' : ''
+            }`}
+          >
+            {p2Items.map((item) => {
+              const isFoundCommon = foundItemId === item.id && roundWinnerPlayer === 'p2';
+              const isWrong = p2WrongId === item.id;
+
+              return (
+                <button
+                  key={`p2-${item.id}`}
+                  onClick={() => handleItemClick('p2', item)}
+                  style={{
+                    left: `${item.x}%`,
+                    top: `${item.y}%`,
+                    width: '16.5%',
+                    height: '16.5%',
+                    transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
+                  }}
+                  className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
+                    isFoundCommon
+                      ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
+                      : isWrong
+                      ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
+                      : 'hover:bg-slate-100/50'
+                  }`}
+                  title={item.name}
+                >
+                  <img
+                    src={item.imageSrc}
+                    alt={item.name}
+                    className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
+                    draggable={false}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* 4. SAĞ YARI: MAVİ ALAN (2. OYUNCU) */}
-      <div className="w-1/2 h-full bg-[#399ae2] flex items-center justify-center p-2 sm:p-4 md:p-8 relative overflow-hidden">
-        
-        {/* Oyuncu Etiketi */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none">
-          <span className="px-2.5 py-1 rounded-lg bg-black/30 text-white font-black text-[11px] sm:text-xs tracking-wider uppercase border border-white/20">
-            2. Oyuncu
-          </span>
+      {/* 4. EN ALTA YASLANMIŞ ÖĞRENCİ LİSTESİ DOCKU - TEK SIRA */}
+      {students && onOpenRosterModal && (
+        <div className="w-full shrink-0 z-40 px-1 sm:px-2 pb-0.5 mt-auto">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            playerCount={2}
+            selectedStudentIds={selectedStudentIds || []}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
         </div>
-
-        {/* Hata Uyarısı Katmanı */}
-        {player2Mistakes >= 1 && (
-          <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20 pointer-events-none">
-            <span className="px-2 py-0.5 rounded-md bg-black/40 text-amber-300 font-bold text-[10px] sm:text-xs border border-amber-400/40">
-              {player2Mistakes}/3 Hata
-            </span>
-          </div>
-        )}
-
-        {/* SAĞ BEYAZ DAİRE (SPOT IT / DOBBLE KARTI) */}
-        <div
-          className={`relative w-[92vw] max-w-[min(46vw,72vh)] aspect-square bg-white rounded-full border-[3px] sm:border-[5px] border-slate-900 shadow-[0_10px_35px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-300 ${
-            roundWinnerPlayer === 'p2' ? 'ring-8 ring-emerald-400 scale-[1.02]' : ''
-          }`}
-        >
-          {p2Items.map((item) => {
-            const isFoundCommon = foundItemId === item.id && roundWinnerPlayer === 'p2';
-            const isWrong = p2WrongId === item.id;
-
-            return (
-              <button
-                key={`p2-${item.id}`}
-                onClick={() => handleItemClick('p2', item)}
-                style={{
-                  left: `${item.x}%`,
-                  top: `${item.y}%`,
-                  width: '16.5%',
-                  height: '16.5%',
-                  transform: `translate(-50%, -50%) scale(${isFoundCommon ? 1.25 : 1.0})`,
-                }}
-                className={`absolute flex items-center justify-center rounded-2xl cursor-pointer transition-transform active:scale-95 hover:scale-105 focus:outline-hidden p-0.5 ${
-                  isFoundCommon
-                    ? 'bg-emerald-100 ring-4 ring-emerald-500 animate-bounce shadow-xl'
-                    : isWrong
-                    ? 'bg-red-100 ring-4 ring-red-500 animate-shake'
-                    : 'hover:bg-slate-100/50'
-                }`}
-                title={item.name}
-              >
-                <img
-                  src={item.imageSrc}
-                  alt={item.name}
-                  className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.22)] select-none pointer-events-none"
-                  draggable={false}
-                />
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      )}
 
       {/* 5. ZAFER / ELENME SONUÇ MODALI */}
       {winner && (

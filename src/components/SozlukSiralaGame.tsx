@@ -13,6 +13,7 @@ import {
 } from '../data/sozlukSiralaData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 interface SozlukSiralaGameProps {
   onClose: () => void;
@@ -548,16 +549,8 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 font-sans select-none overflow-hidden text-white"
     >
-      {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <img 
-          src="/dere3.jpg" 
-          alt="Arka Plan Görseli"
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
-        />
-        <div className="absolute inset-0 bg-slate-950/45 pointer-events-none" />
-      </div>
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
+      <TurkishActivityBackground darkness="normal" />
 
       {/* 1. TOP HEADER NAVIGATION BAR */}
       <header className="relative z-30 bg-[#070e1c] border-b border-slate-800 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-md shrink-0 gap-1.5">
@@ -967,7 +960,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       </div>
 
       {/* ÖĞRENCİ LİSTESİ DOCK'U - EN ALTTA TEK SIRA (1, 2 VE 3 KİŞİLİK MODLAR İÇİN) */}
-      {students && students.length > 0 && onOpenRosterModal && (
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}

@@ -271,10 +271,14 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     // Build the initial 3D net
     buildSolidNet(selectedSolid.id, modelGroup, unfoldRatio);
 
-    // Animation / Render loop
-    const animate = () => {
+    // Animation / Render loop (Throttled to 30 FPS for smartboard performance)
+    let lastRenderTime = 0;
+    const animate = (time: number) => {
       if (isDisposed || !renderer) return;
       animationFrameIdRef.current = requestAnimationFrame(animate);
+
+      if (time - lastRenderTime < 32) return;
+      lastRenderTime = time;
 
       try {
         renderer.render(scene, camera);
@@ -282,7 +286,7 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         // ignore render frame errors
       }
     };
-    animate();
+    animationFrameIdRef.current = requestAnimationFrame(animate);
 
     // Resize Handler
     const handleResize = () => {
@@ -315,13 +319,13 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     buildSolidNet(selectedSolid.id, modelGroupRef.current, unfoldRatio);
   }, [selectedSolid, unfoldRatio]);
 
-  // Auto-play Folding / Unfolding Animation
+  // Auto-play Folding / Unfolding Animation (Throttled to ~30 FPS to prevent CPU lock)
   useEffect(() => {
     if (!isPlaying) return;
 
     const interval = setInterval(() => {
       setUnfoldRatio(prev => {
-        let next = prev + playDirectionRef.current * (0.008 * playSpeed);
+        let next = prev + playDirectionRef.current * (0.016 * playSpeed);
         if (next >= 1) {
           next = 1;
           playDirectionRef.current = -1;
@@ -331,7 +335,7 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         }
         return next;
       });
-    }, 16);
+    }, 33);
 
     return () => clearInterval(interval);
   }, [isPlaying, playSpeed]);
@@ -411,9 +415,16 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   // BUILD 3D NET FUNCTION FOR ALL GEOMETRIC SOLIDS
   // -------------------------------------------------------------
   const buildSolidNet = (solidId: string, group: THREE.Group, u: number) => {
-    // Clear previous children
+    // Clear and dispose previous children to prevent WebGL memory leaks
     while (group.children.length > 0) {
       const obj = group.children[0];
+      obj.traverse((child: any) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose());
+          else child.material.dispose();
+        }
+      });
       group.remove(obj);
     }
 

@@ -439,7 +439,7 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
       </main>
 
       {/* Student Avatar Dock (Single Row) */}
-      {students && students.length > 0 && onOpenRosterModal && (
+      {students && onOpenRosterModal && (
         <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5">
           <StudentAvatarDock
             students={students}

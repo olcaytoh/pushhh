@@ -194,10 +194,15 @@ export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) =>
       // Create 3D Mesh
       create3DShapeMesh(selectedShape.id, group, wireframe, highlightMode);
 
-      // Animation Loop
-      const animate = () => {
+      // Animation Loop (Throttled to 30 FPS for smartboard performance)
+      let lastRenderTime = 0;
+      const animate = (time: number) => {
         if (isDisposed || !renderer) return;
         animationFrameId = requestAnimationFrame(animate);
+
+        // Cap to 30 FPS (~33ms) to prevent integrated GPU overheating on smartboards
+        if (time - lastRenderTime < 32) return;
+        lastRenderTime = time;
 
         try {
           if (autoRotate && shapeGroupRef.current && !isDraggingRef.current) {
@@ -210,7 +215,7 @@ export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) =>
           // Ignore render loop errors
         }
       };
-      animate();
+      animationFrameId = requestAnimationFrame(animate);
 
       // Resize Handler
       const handleResize = () => {
