@@ -315,7 +315,7 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   return (
@@ -388,9 +388,9 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
       </header>
 
       {/* Main Game Area */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentSc = scenarios[player.scenarioIndex % scenarios.length];
@@ -408,10 +408,10 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -430,24 +430,24 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
                   </div>
                 </div>
 
-                {/* Mevsim & Hava Durumu Sahnesi - Görsel ve Yazı Puntoları Büyütüldü */}
-                <div className="my-auto py-3.5 sm:py-5 px-3.5 sm:px-5 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-indigo-400/50 flex flex-col items-center justify-center gap-2 shadow-2xl">
-                  <div className="flex items-center gap-3">
-                    <span className="text-5xl sm:text-6xl md:text-7xl animate-pulse filter drop-shadow-md">{currentSc.emoji}</span>
-                    <span className="px-4 py-1.5 rounded-full bg-indigo-600/80 border-2 border-indigo-400 text-xs sm:text-sm md:text-base font-black text-white uppercase tracking-wider shadow-md">
+                {/* 2. BÖLÜM: Mevsim & Hava Durumu Sahnesi - 3 Bölümlü Dengeli Orta Alan */}
+                <div className="flex-1 min-h-0 my-1 py-2 sm:py-3 px-3 sm:px-4 rounded-2xl bg-black/60 border-2 border-indigo-400/40 flex flex-col items-center justify-center gap-1.5 sm:gap-2 shadow-xl">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-4xl sm:text-5xl md:text-6xl animate-pulse filter drop-shadow-md">{currentSc.emoji}</span>
+                    <span className="px-3 py-1 rounded-full bg-indigo-600/80 border-2 border-indigo-400 text-xs sm:text-sm font-black text-white uppercase tracking-wider shadow-md">
                       {currentSc.season} Mevsimi
                     </span>
                   </div>
-                  <p className="text-sm sm:text-base md:text-lg text-slate-100 text-center font-semibold leading-relaxed px-1">
+                  <p className="text-xs sm:text-sm md:text-base text-slate-100 text-center font-semibold leading-snug px-1">
                     {currentSc.weatherDesc}
                   </p>
-                  <div className="text-xs sm:text-sm md:text-base font-black text-amber-300 mt-1 drop-shadow-sm">
+                  <div className="text-[11px] sm:text-xs md:text-sm font-black text-amber-300 drop-shadow-sm">
                     👉 {currentSc.question}
                   </div>
                 </div>
 
-                {/* Gardırop Kıyafet Seçenekleri */}
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 my-2">
+                {/* 3. BÖLÜM: Gardırop Kıyafet Seçenekleri */}
+                <div className="grid grid-cols-2 gap-2 my-1 shrink-0">
                   {currentSc.options.map((opt, oIdx) => {
                     const isChosen = player.chosenOptionIdx === oIdx;
                     const isRight = opt.isCorrect;
@@ -468,10 +468,10 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
                         key={oIdx}
                         disabled={player.showFeedback}
                         onClick={() => handleChooseOption(pIdx, oIdx)}
-                        className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 sm:border-3 font-bold text-xs sm:text-sm md:text-base transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 shadow-lg ${optStyle}`}
+                        className={`p-2 sm:p-2.5 rounded-xl sm:rounded-2xl border-2 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer active:scale-95 shadow-md ${optStyle}`}
                       >
-                        <span className="text-3xl sm:text-4xl shrink-0 filter drop-shadow-sm">{opt.emoji}</span>
-                        <span className="text-left leading-tight text-xs sm:text-sm md:text-base font-bold">
+                        <span className="text-2xl sm:text-3xl shrink-0 filter drop-shadow-sm">{opt.emoji}</span>
+                        <span className="text-left leading-tight text-xs sm:text-sm font-bold truncate">
                           {opt.name}
                         </span>
                       </button>
@@ -481,9 +481,9 @@ export const MevsimGardirobuGame: React.FC<MevsimGardirobuGameProps> = ({
 
                 {/* Didaktik Açıklama */}
                 {player.showFeedback && (
-                  <div className="mt-1 p-2 rounded-lg bg-black/60 border border-white/10 text-[11px] sm:text-xs text-amber-200 text-center animate-fade-in">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-black/60 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in shrink-0">
                     <span className="font-bold text-indigo-300 block">{currentSc.season} Gardırobu İpucu:</span>
-                    <span>{currentSc.explanation}</span>
+                    <span className="line-clamp-2">{currentSc.explanation}</span>
                   </div>
                 )}
               </div>

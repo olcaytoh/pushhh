@@ -358,7 +358,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   return (
@@ -438,9 +438,9 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
       </header>
 
       {/* Main Game Area */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentQ = questions[player.questionIndex % questions.length];
@@ -458,10 +458,10 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -480,18 +480,18 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </div>
                 </div>
 
-                {/* Soru Görevi */}
-                <div className="text-center my-1">
-                  <span className="px-3 py-1 rounded-full bg-cyan-900/60 border border-cyan-400/50 text-cyan-200 font-bold text-[10.5px] sm:text-xs uppercase">
+                {/* Soru Görevi Rozeti */}
+                <div className="text-center my-0.5 shrink-0">
+                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-900/60 border border-cyan-400/50 text-cyan-200 font-bold text-[10px] sm:text-xs uppercase">
                     🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
                   </span>
                 </div>
 
-                {/* Cümle Kartı & Boşluk Alanı */}
-                <div className="bg-black/50 border-2 border-white/20 rounded-2xl p-3 sm:p-4 my-auto text-center shadow-inner">
-                  <div className="text-base sm:text-xl md:text-2xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-2">
+                {/* 2. BÖLÜM: Cümle Kartı & Boşluk Alanı - 3 Bölümlü Dengeli Orta Alan */}
+                <div className="flex-1 min-h-0 bg-black/50 border-2 border-white/20 rounded-2xl p-2 sm:p-3 my-1 flex items-center justify-center text-center shadow-inner">
+                  <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                     <span>{currentQ.before}</span>
-                    <span className={`inline-flex items-center justify-center min-w-[40px] sm:min-w-[48px] h-9 sm:h-11 px-2.5 rounded-xl font-black text-lg sm:text-2xl border-2 shadow-lg transition-all ${
+                    <span className={`inline-flex items-center justify-center min-w-[36px] sm:min-w-[44px] h-8 sm:h-10 px-2 rounded-xl font-black text-lg sm:text-2xl border-2 shadow-lg transition-all ${
                       player.showFeedback
                         ? player.isCorrect
                           ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
@@ -504,8 +504,8 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </div>
                 </div>
 
-                {/* Noktalama İşareti Tuşları */}
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 my-2 w-full max-w-xl mx-auto">
+                {/* 3. BÖLÜM: Noktalama İşareti Tuşları */}
+                <div className="grid grid-cols-5 gap-1 sm:gap-1.5 my-1 w-full shrink-0">
                   {availableMarks.map((m) => {
                     const isChosen = player.selectedMark === m.symbol;
                     const isRight = m.symbol === currentQ.correctMark;
@@ -526,10 +526,10 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                         key={m.symbol}
                         disabled={player.showFeedback}
                         onClick={() => handleMarkClick(pIdx, m.symbol)}
-                        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all font-black cursor-pointer active:scale-95 ${btnStyle}`}
+                        className={`flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-xl transition-all font-black cursor-pointer active:scale-95 ${btnStyle}`}
                       >
                         <span className="text-xl sm:text-2xl leading-none">{m.symbol}</span>
-                        <span className="text-[9px] sm:text-[10px] font-bold mt-1 uppercase truncate max-w-full">
+                        <span className="text-[8.5px] sm:text-[9.5px] font-bold mt-0.5 uppercase truncate max-w-full">
                           {m.label}
                         </span>
                       </button>
@@ -539,8 +539,8 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
 
                 {/* Didaktik Açıklama */}
                 {player.showFeedback && (
-                  <div className="mt-1 p-2 rounded-lg bg-black/50 border border-white/10 text-[11px] sm:text-xs text-amber-200 text-center animate-fade-in">
-                    <span className="font-bold block text-cyan-300">{currentQ.markName}</span>
+                  <div className="mt-0.5 p-1 rounded-lg bg-black/50 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in shrink-0">
+                    <span className="font-bold text-cyan-300 mr-1">{currentQ.markName}:</span>
                     <span>{currentQ.explanation}</span>
                   </div>
                 )}

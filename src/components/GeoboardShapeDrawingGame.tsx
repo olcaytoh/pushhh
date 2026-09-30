@@ -404,7 +404,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   const handleNextMission = () => {
     if (missionIndex < activeMissions.length - 1) {
       setMissionIndex(prev => prev + 1);
-      if (playMp3) playMp3('nextlvl');
+      if (playMp3) playMp3('op');
     }
   };
 

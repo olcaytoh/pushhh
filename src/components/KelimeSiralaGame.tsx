@@ -47,6 +47,38 @@ interface PlayerState {
   shake: boolean;
 }
 
+const getWordFontSize = (word: string, mode: number, count: number): string => {
+  const len = word.length;
+  // 3-Player mode (tightest columns)
+  if (mode === 3) {
+    if (len <= 4) return 'text-xs sm:text-sm md:text-base';
+    if (len <= 7) return 'text-[11px] sm:text-xs md:text-sm';
+    return 'text-[9.5px] xs:text-[10px] sm:text-[11px]';
+  }
+  // 2-Player mode
+  if (mode === 2) {
+    if (count === 4) {
+      if (len <= 4) return 'text-sm sm:text-base md:text-lg lg:text-xl';
+      if (len <= 7) return 'text-xs sm:text-sm md:text-base lg:text-lg';
+      return 'text-[10.5px] sm:text-xs md:text-sm';
+    }
+    // 3 words
+    if (len <= 4) return 'text-base sm:text-lg md:text-xl lg:text-2xl';
+    if (len <= 7) return 'text-sm sm:text-base md:text-lg lg:text-xl';
+    return 'text-xs sm:text-sm md:text-base';
+  }
+  // 1-Player mode (Single screen)
+  if (count === 4) {
+    if (len <= 4) return 'text-lg sm:text-xl md:text-2xl lg:text-3xl';
+    if (len <= 7) return 'text-base sm:text-lg md:text-xl lg:text-2xl';
+    return 'text-xs sm:text-sm md:text-base lg:text-lg';
+  }
+  // 3 words in 1-player
+  if (len <= 4) return 'text-xl sm:text-2xl md:text-3xl lg:text-4xl';
+  if (len <= 7) return 'text-lg sm:text-xl md:text-2xl lg:text-3xl';
+  return 'text-sm sm:text-base md:text-lg lg:text-xl';
+};
+
 export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
   onClose,
   onGoHome,
@@ -543,13 +575,45 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
     }
   };
 
+  /**
+   * Uzun veya kısa kelimelerin kutucuklara taşmadan, kesilmeden tam sığmasını sağlayan dinamik yazı boyutu
+   */
+  const getWordFontSize = (word: string | null, mode: number, count: number) => {
+    if (!word) return 'text-xs sm:text-sm';
+    const len = word.length;
+    if (mode === 3) {
+      if (len >= 9) return 'text-[9px] xs:text-[10px] leading-tight';
+      if (len >= 7) return 'text-[10px] xs:text-[11px] leading-tight';
+      if (len >= 5) return 'text-xs xs:text-sm leading-tight';
+      return 'text-sm xs:text-base leading-tight';
+    }
+    if (mode === 2) {
+      if (len >= 9) return 'text-xs sm:text-sm md:text-base leading-tight';
+      if (len >= 7) return 'text-sm sm:text-base md:text-lg leading-tight';
+      if (len >= 5) return 'text-base sm:text-lg md:text-xl leading-snug';
+      return 'text-lg sm:text-xl md:text-2xl leading-snug';
+    }
+    // mode === 1 (Tek Kişilik)
+    if (count === 4) {
+      if (len >= 10) return 'text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl leading-tight';
+      if (len >= 8) return 'text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl leading-tight';
+      if (len >= 6) return 'text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-snug';
+      return 'text-lg xs:text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-snug';
+    } else {
+      if (len >= 10) return 'text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl leading-tight';
+      if (len >= 8) return 'text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-tight';
+      if (len >= 6) return 'text-lg xs:text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-snug';
+      return 'text-xl xs:text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-snug';
+    }
+  };
+
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN (SIFIR KASMA, SIFIR DÖNEN ŞEKİL) */}
+      <TurkishActivityBackground darkness="normal" showFloatingAlphabet={false} />
 
       {/* 1. TOP HEADER / APP BAR */}
       <header className="relative z-20 shrink-0 h-12 sm:h-14 bg-slate-950/90 border-b border-slate-800/80 px-2 sm:px-4 flex items-center justify-between gap-1 sm:gap-2">
@@ -759,12 +823,12 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
               <React.Fragment key={player.id}>
                 {/* Individual Player Screen Panel */}
                 <div 
-                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 ${playerMode === 3 ? 'px-1 sm:px-2 py-1 sm:py-1.5' : 'px-2 sm:px-4 py-2 sm:py-3'} transition-transform ${
+                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 overflow-y-auto no-scrollbar ${playerMode === 3 ? 'px-1 sm:px-2 py-1' : 'px-2 sm:px-3 py-1.5'} transition-transform ${
                     player.shake ? 'animate-shake' : ''
                   }`}
                 >
                   {/* Top Player Info Bar */}
-                  <div className="relative z-10 flex items-center justify-between gap-1 pb-1">
+                  <div className="relative z-10 flex items-center justify-between gap-1 pb-1 shrink-0">
                     <div className="flex items-center gap-1.5">
                       {assignedPlayerStudent && (
                         <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-900/90 border border-white/40 flex items-center justify-center text-xs sm:text-sm">
@@ -786,63 +850,33 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                     </div>
                   </div>
 
-                  {/* 3.1 DECORATIVE LEXICON PORTAL / BOOK ICON */}
-                  <div className={`relative z-10 flex-1 flex flex-col items-center justify-center shrink-0 my-auto ${
-                    playerMode === 3 
-                      ? 'min-h-[30px] max-h-[48px]' 
-                      : playerMode === 1 
-                      ? 'min-h-[50px] max-h-[90px]' 
-                      : 'min-h-[40px] max-h-[70px]'
-                  }`}>
-                    <div className={`relative flex items-center justify-center ${
-                      playerMode === 3 
-                        ? 'w-10 h-10 sm:w-12 sm:h-12' 
-                        : playerMode === 1 
-                        ? 'w-16 h-16 sm:w-20 sm:h-20' 
-                        : 'w-12 h-12 sm:w-16 sm:h-16'
-                    }`}>
-                      {/* Outer segmented tick marks ring */}
-                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/40 animate-[spin_30s_linear_infinite]" />
-
-                      {/* Outer glow ring with color arc */}
-                      <div className={`absolute inset-1 sm:inset-1.5 rounded-full border-2 sm:border-3 ${theme.portalRing1} ${theme.portalGlow} animate-pulse`} />
-
-                      {/* Inner glowing radial portal */}
-                      <div className={`absolute inset-1.5 sm:inset-2 rounded-full ${theme.portalInner} flex items-center justify-center shadow-inner overflow-hidden`}>
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent animate-[spin_8s_linear_infinite]" />
-                        <BookOpen className={`${playerMode === 3 ? 'w-4 h-4' : 'w-6 h-6 sm:w-8 sm:h-8'} text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]`} />
+                  {/* 3.1 STATUS NOTIFICATION BADGE (NO LAG / NO ROTATING HEAVY CANVAS) */}
+                  <div className="h-6 sm:h-7 flex items-center justify-center shrink-0 my-0.5">
+                    {isWinnerThisRound ? (
+                      <div className="px-3 py-0.5 rounded-full bg-emerald-500/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-bounce">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <span>HARİKA! DOĞRU SIRALAMA</span>
                       </div>
-
-                      {/* Win celebration badge over portal */}
-                      {isWinnerThisRound && (
-                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-200">
-                          <CheckCircle2 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400 drop-shadow-md animate-bounce" />
-                          <span className="text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider">DOĞRU!</span>
-                        </div>
-                      )}
-
-                      {/* Wrong buzzer badge over portal */}
-                      {player.status === 'wrong' && (
-                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-rose-950/80 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-150">
-                          <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-rose-400 drop-shadow-md animate-bounce" />
-                          <span className="text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider">TEKRAR</span>
-                        </div>
-                      )}
-                    </div>
+                    ) : player.status === 'wrong' ? (
+                      <div className="px-3 py-0.5 rounded-full bg-rose-600/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-shake">
+                        <XCircle className="w-3.5 h-3.5 text-white" />
+                        <span>SIRALAMA YANLIŞ, TEKRAR DENE!</span>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* 3.2 MAIN INTERACTIVE WORDS CONSOLE CONTAINER */}
-                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-3xl' : playerMode === 2 ? 'max-w-2xl' : 'max-w-xl'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-2 sm:gap-2.5 pb-1'}`}>
+                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-2xl' : playerMode === 2 ? 'max-w-xl' : 'max-w-lg'} mx-auto flex flex-col items-center justify-center flex-1 min-h-0 ${playerMode === 3 ? 'gap-1' : 'gap-1.5'}`}>
                     {/* Console Header Pill Badge */}
-                    <div className={`px-3.5 sm:px-5 py-0.5 sm:py-1 rounded-full font-black ${playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm md:text-base'} uppercase tracking-wider border shadow-md flex items-center gap-1.5 ${theme.pillHeader}`}>
-                      <Layers className="w-4 h-4" />
+                    <div className={`px-3 py-0.5 rounded-full font-black ${playerMode === 3 ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} uppercase tracking-wider border shadow-md flex items-center gap-1.5 shrink-0 ${theme.pillHeader}`}>
+                      <Layers className="w-3.5 h-3.5" />
                       <span>SÖZLÜK SIRASINA GÖRE DİZ</span>
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-2xl sm:rounded-3xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-2 sm:p-2.5 gap-2' : 'p-3.5 sm:p-4.5 gap-3 sm:gap-3.5'} ${theme.cardBg}`}>
-                      {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR DICTIONARY ORDER - YÜKSEKLİK %50 ARTTIRILDI */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1.5 sm:gap-2' : 'gap-2 sm:gap-3'}`}>
+                    <div className={`w-full rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
+                      {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR DICTIONARY ORDER */}
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {player.upperSlots.map((word, slotIdx) => (
                           <div
                             key={`upper_${slotIdx}`}
@@ -851,27 +885,23 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                             onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
                             draggable={word !== null}
                             onDragStart={(e) => word && handleDragStartTarget(e, pIdx, word, slotIdx)}
-                            className={`min-h-[96px] xs:min-h-[108px] sm:min-h-[124px] md:min-h-[140px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-2 sm:p-3 transition-all cursor-pointer font-black select-none ${
+                            className={`min-h-[52px] xs:min-h-[60px] sm:min-h-[70px] md:min-h-[82px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
                               word 
                                 ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-lg` 
                                 : `${theme.slotEmpty} border-dashed hover:border-white/80`
                             }`}
                           >
-                            <span className="text-[11px] sm:text-xs md:text-sm uppercase font-extrabold opacity-80 leading-none mb-1.5">
+                            <span className="text-[8.5px] xs:text-[9.5px] sm:text-[10.5px] uppercase font-extrabold opacity-75 leading-none mb-0.5 shrink-0">
                               {slotIdx + 1}. Sözcük
                             </span>
                             {word ? (
-                              <span className={`font-black uppercase tracking-wide truncate max-w-full drop-shadow-sm ${
-                                playerMode === 3 
-                                  ? 'text-base xs:text-lg sm:text-xl' 
-                                  : playerMode === 1 
-                                  ? 'text-2xl xs:text-3xl sm:text-4xl md:text-5xl' 
-                                  : 'text-xl xs:text-2xl sm:text-3xl md:text-4xl'
-                              }`}>
+                              <span className={`font-black uppercase max-w-full w-full break-words text-center px-1 drop-shadow-sm ${
+                                word.length >= 7 ? 'tracking-normal' : 'tracking-wide'
+                              } ${getWordFontSize(word, playerMode, wordCount)}`}>
                                 {word}
                               </span>
                             ) : (
-                              <span className="text-white/40 text-base sm:text-lg font-black">
+                              <span className="text-white/40 text-xs sm:text-sm font-black">
                                 ---
                               </span>
                             )}
@@ -880,7 +910,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       </div>
 
                       {/* DIVIDER LINE WITH HELPFUL TIP */}
-                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[10px]' : 'text-[10px] sm:text-xs'}`}>
+                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[9.5px]' : 'text-[9.5px] sm:text-xs'}`}>
                         <span>Kelimelere dokunarak sıraya diz:</span>
                         {player.upperSlots.some(s => s !== null) && (
                           <button
@@ -892,32 +922,30 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                         )}
                       </div>
 
-                      {/* LOWER SOURCE ROW: SCRAMBLED WORDS AVAILABLE - YÜKSEKLİK %50 ARTTIRILDI */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1.5 sm:gap-2 min-h-[96px]' : 'gap-2 sm:gap-3 min-h-[120px]'}`}>
+                      {/* LOWER SOURCE ROW: SCRAMBLED WORDS AVAILABLE */}
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {Array.from({ length: wordCount }).map((_, wordIdx) => {
                           const word = player.availableWords[wordIdx];
                           return (
                             <div
                               key={`source_slot_${wordIdx}`}
-                              className="w-full min-h-[96px] xs:min-h-[108px] sm:min-h-[124px] md:min-h-[140px] flex items-center justify-center"
+                              className="w-full min-h-[52px] xs:min-h-[60px] sm:min-h-[70px] md:min-h-[82px] flex items-center justify-center"
                             >
                               {word ? (
                                 <div
                                   draggable
                                   onDragStart={(e) => handleDragStartSource(e, pIdx, word, wordIdx)}
                                   onClick={() => handleTapSourceWord(pIdx, word, wordIdx)}
-                                  className={`w-full h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_8px_18px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center px-2.5 sm:px-4 font-black uppercase tracking-wide cursor-pointer select-none text-center truncate ${
-                                    playerMode === 3 
-                                      ? 'text-base xs:text-lg sm:text-xl' 
-                                      : playerMode === 1 
-                                      ? 'text-2xl xs:text-3xl sm:text-4xl md:text-5xl' 
-                                      : 'text-xl xs:text-2xl sm:text-3xl md:text-4xl'
+                                  className={`w-full h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-1 sm:p-1.5 font-black uppercase cursor-pointer select-none text-center overflow-hidden ${
+                                    word.length >= 7 ? 'tracking-normal' : 'tracking-wide'
                                   }`}
                                 >
-                                  {word}
+                                  <span className={`max-w-full w-full break-words text-center px-0.5 ${getWordFontSize(word, playerMode, wordCount)}`}>
+                                    {word}
+                                  </span>
                                 </div>
                               ) : (
-                                <div className="w-full h-full rounded-xl sm:rounded-2xl bg-black/25 border border-white/10" />
+                                <div className="w-full h-full rounded-xl bg-black/25 border border-white/10" />
                               )}
                             </div>
                           );
@@ -929,11 +957,11 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                     <button
                       onClick={() => handleExecuteCheck(pIdx)}
                       disabled={roundWinner !== null}
-                      className={`w-full ${playerMode === 1 ? 'max-w-md' : 'max-w-sm'} ${
+                      className={`w-full ${playerMode === 1 ? 'max-w-sm' : 'max-w-xs'} ${
                         playerMode === 3 
                           ? 'py-1 sm:py-1.5 px-3 text-[11px] sm:text-xs' 
-                          : 'py-2 sm:py-2.5 px-6 text-sm sm:text-base'
-                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 ${
+                          : 'py-1.5 sm:py-2 px-5 text-xs sm:text-sm'
+                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 shrink-0 ${
                         theme.runBtn
                       } ${
                         roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''

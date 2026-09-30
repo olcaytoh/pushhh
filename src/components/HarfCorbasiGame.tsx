@@ -366,7 +366,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   return (
@@ -432,9 +432,9 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
       </header>
 
       {/* Main Game Area */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentW = words[player.wordIndex % words.length];
@@ -452,10 +452,10 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -475,22 +475,22 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                 </div>
 
                 {/* İpucu Kutusu */}
-                <div className="bg-black/50 border border-orange-500/30 rounded-xl p-2 mb-2 flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-2xl shrink-0">
+                <div className="bg-black/50 border border-orange-500/30 rounded-xl p-1.5 mb-1 flex items-center gap-2 shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-xl shrink-0">
                     {currentW.emoji}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[9.5px] uppercase font-bold text-orange-300 tracking-wider">İpucu</div>
+                    <div className="text-[9px] uppercase font-bold text-orange-300 tracking-wider">İpucu</div>
                     <div className="text-xs sm:text-sm text-slate-200 font-semibold leading-tight truncate">
                       {currentW.hint}
                     </div>
                   </div>
                 </div>
 
-                {/* Çorba Tenceresi & Oluşturulan Kelime Yuvaları */}
-                <div className={`p-3 rounded-2xl bg-black/45 border-2 ${
+                {/* 2. BÖLÜM: Çorba Tenceresi & Oluşturulan Kelime Yuvaları (3 Bölümlü Dengeli Orta Alan) */}
+                <div className={`p-2 sm:p-2.5 rounded-2xl bg-black/45 border-2 ${
                   player.showError ? 'border-rose-500 animate-shake' : player.isSuccess ? 'border-emerald-400' : 'border-white/20'
-                } my-auto flex flex-col items-center gap-2`}>
+                } flex-1 min-h-0 my-1 flex flex-col items-center justify-center gap-1.5`}>
                   <div className="text-[10.5px] font-bold text-slate-300">
                     🍲 Harfleri tıkla, doğru kelimeyi tabağa diz:
                   </div>
@@ -503,7 +503,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                         <button
                           key={idx}
                           onClick={() => placed && handleRemoveLetter(pIdx, idx)}
-                          className={`w-9 sm:w-11 h-10 sm:h-12 rounded-xl font-black text-lg sm:text-2xl border-2 flex items-center justify-center transition-all cursor-pointer ${
+                          className={`w-8 sm:w-10 h-9 sm:h-11 rounded-xl font-black text-base sm:text-xl border-2 flex items-center justify-center transition-all cursor-pointer ${
                             player.isSuccess
                               ? 'bg-emerald-500 text-white border-emerald-300 shadow-lg scale-105'
                               : placed
@@ -519,11 +519,11 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                 </div>
 
                 {/* Karışık Harfler Havuzu */}
-                <div className="my-2">
-                  <div className="text-[10px] text-center font-bold text-amber-300/80 mb-1.5 uppercase">
+                <div className="my-1 shrink-0">
+                  <div className="text-[9.5px] text-center font-bold text-amber-300/80 mb-1 uppercase">
                     Çorbadaki Harfler
                   </div>
-                  <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5">
                     {currentW.scrambled.map((char, poolIdx) => {
                       const isUsed = player.usedPoolIndices.includes(poolIdx);
                       return (
@@ -531,7 +531,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                           key={poolIdx}
                           disabled={isUsed || player.isSuccess !== null}
                           onClick={() => handlePickLetter(pIdx, char, poolIdx)}
-                          className={`w-8 sm:w-10 h-9 sm:h-11 rounded-xl font-black text-base sm:text-xl transition-all shadow cursor-pointer active:scale-95 ${
+                          className={`w-7 sm:w-9 h-8 sm:h-10 rounded-xl font-black text-sm sm:text-lg transition-all shadow cursor-pointer active:scale-95 ${
                             isUsed
                               ? 'opacity-20 bg-slate-800 border border-slate-700 pointer-events-none'
                               : 'bg-gradient-to-b from-orange-400 to-amber-500 hover:from-orange-300 hover:to-amber-400 text-slate-950 border border-orange-300'
@@ -544,12 +544,12 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                   </div>
                 </div>
 
-                {/* Butonlar: Temizle & Kontrol Et */}
-                <div className="flex items-center gap-2 pt-2 border-t border-white/15">
+                {/* 3. BÖLÜM: Butonlar: Temizle & Kontrol Et */}
+                <div className="flex items-center gap-2 pt-1 border-t border-white/15 shrink-0">
                   <button
                     onClick={() => handleClearLetters(pIdx)}
                     disabled={player.placedLetters.length === 0 || player.isSuccess !== null}
-                    className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
                     title="Harfleri Temizle"
                   >
                     <RotateCcw size={13} />
@@ -558,7 +558,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                   <button
                     onClick={() => handleCheckWord(pIdx)}
                     disabled={player.placedLetters.length !== currentW.word.length || player.isSuccess !== null}
-                    className="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
+                    className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
                   >
                     <Check size={16} /> KONTROL ET
                   </button>

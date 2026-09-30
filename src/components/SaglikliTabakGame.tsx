@@ -244,7 +244,7 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   return (
@@ -317,9 +317,9 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
       </header>
 
       {/* Main Game Area */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentFood = foods[player.foodIndex % foods.length];
@@ -337,10 +337,10 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -360,7 +360,7 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
                 </div>
 
                 {/* Tabak Görünümü (Toplanan Sağlıklı Besinler) */}
-                <div className="flex items-center justify-between px-3 py-1.5 bg-black/40 rounded-xl border border-white/10 mb-1">
+                <div className="flex items-center justify-between px-2.5 py-1 bg-black/40 rounded-xl border border-white/10 mb-0.5 shrink-0">
                   <span className="text-[10px] sm:text-xs font-bold text-amber-200">
                     🥗 Sağlıklı Tabağım:
                   </span>
@@ -369,33 +369,33 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
                       <span className="text-[10px] text-slate-400 italic">Tabak boş</span>
                     ) : (
                       player.plate.map((em, idx) => (
-                        <span key={idx} className="text-base animate-bounce">{em}</span>
+                        <span key={idx} className="text-sm sm:text-base animate-bounce">{em}</span>
                       ))
                     )}
                   </div>
                 </div>
 
-                {/* Yiyecek Kartı - Soru Görseli ve Punto Büyütüldü */}
-                <div className="my-auto py-4 sm:py-6 px-4 sm:px-6 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-amber-400/50 flex flex-col items-center justify-center gap-2.5 shadow-2xl">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-amber-500/20 to-orange-900/40 border-2 border-amber-400/40 flex items-center justify-center shadow-inner">
-                    <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-lg">
+                {/* 2. BÖLÜM: Yiyecek Kartı - 3 Bölümlü Dengeli Orta Alan */}
+                <div className="flex-1 min-h-0 my-1 py-2 sm:py-3 px-3 sm:px-4 rounded-2xl bg-black/60 border-2 border-amber-400/40 flex flex-col items-center justify-center gap-1.5 sm:gap-2 shadow-xl">
+                  <div className="w-18 h-18 sm:w-22 sm:h-22 md:w-26 md:h-26 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-900/40 border-2 border-amber-400/40 flex items-center justify-center shadow-inner shrink-0">
+                    <span className="text-5xl sm:text-6xl md:text-7xl animate-bounce filter drop-shadow-lg">
                       {currentFood.emoji}
                     </span>
                   </div>
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-white text-center tracking-wide drop-shadow-sm">
+                  <div className="text-lg sm:text-xl md:text-2xl font-black text-white text-center tracking-wide drop-shadow-sm">
                     {currentFood.name}
                   </div>
-                  <span className="px-3.5 py-1 rounded-full bg-white/15 text-xs sm:text-sm font-black text-amber-300 border border-amber-400/30">
+                  <span className="px-3 py-0.5 rounded-full bg-white/15 text-[11px] sm:text-xs font-black text-amber-300 border border-amber-400/30">
                     {currentFood.category}
                   </span>
                 </div>
 
-                {/* Karar Butonları: Sağlıklı mı? Abur Cubur mu? */}
-                <div className="grid grid-cols-2 gap-2.5 my-2">
+                {/* 3. BÖLÜM: Karar Butonları: Sağlıklı mı? Abur Cubur mu? */}
+                <div className="grid grid-cols-2 gap-2 my-1 shrink-0">
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, true)}
-                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
+                    className={`py-2 sm:py-2.5 px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 sm:gap-1 active:scale-95 shadow-md ${
                       player.showFeedback
                         ? currentFood.isHealthy
                           ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400 scale-102'
@@ -403,14 +403,14 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
                         : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border-emerald-400'
                     }`}
                   >
-                    <span className="text-2xl sm:text-3xl leading-none">🥗</span>
+                    <span className="text-xl sm:text-2xl leading-none">🥗</span>
                     <span>SAĞLIKLI BESİN</span>
                   </button>
 
                   <button
                     disabled={player.showFeedback}
                     onClick={() => handleChoice(pIdx, false)}
-                    className={`py-3.5 sm:py-4 px-2.5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm md:text-base border-2 sm:border-3 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 active:scale-95 shadow-lg ${
+                    className={`py-2 sm:py-2.5 px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 sm:gap-1 active:scale-95 shadow-md ${
                       player.showFeedback
                         ? !currentFood.isHealthy
                           ? 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400 scale-102'
@@ -418,18 +418,18 @@ export const SaglikliTabakGame: React.FC<SaglikliTabakGameProps> = ({
                         : 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white border-rose-400'
                     }`}
                   >
-                    <span className="text-2xl sm:text-3xl leading-none">🚫</span>
+                    <span className="text-xl sm:text-2xl leading-none">🚫</span>
                     <span>ABUR CUBUR</span>
                   </button>
                 </div>
 
                 {/* Didaktik Açıklama */}
                 {player.showFeedback && (
-                  <div className="mt-1 p-2 rounded-lg bg-black/60 border border-white/10 text-[11px] sm:text-xs text-amber-200 text-center animate-fade-in">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-black/60 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in shrink-0">
                     <span className={`font-black block ${currentFood.isHealthy ? 'text-emerald-300' : 'text-rose-300'}`}>
                       {currentFood.isHealthy ? '✓ Sağlıklı ve Faydalı Besin!' : '✗ Zararlı Abur Cubur!'}
                     </span>
-                    <span>{currentFood.explanation}</span>
+                    <span className="line-clamp-2">{currentFood.explanation}</span>
                   </div>
                 )}
               </div>

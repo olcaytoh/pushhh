@@ -592,7 +592,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       return (
         <div
           key={p.id}
-          className="relative flex-1 flex flex-col justify-between p-2 sm:p-3 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0a0f1d] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full max-w-[540px] mx-auto h-full"
+          className={`relative flex-1 flex flex-col justify-between p-2 sm:p-3 rounded-2xl sm:rounded-3xl border-4 border-yellow-400 bg-[#0a0f1d] shadow-[0_0_35px_rgba(250,204,21,0.85)] ring-4 ring-yellow-400/50 overflow-hidden min-h-0 z-30 scale-[1.02] transition-all w-full ${activeMode === 'duel2' ? 'max-w-[540px]' : 'max-w-none'} mx-auto h-full`}
         >
           <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-yellow-400 via-amber-300 to-yellow-600 border-2 border-white text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shrink-0 animate-bounce">
@@ -638,7 +638,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       return (
         <div
           key={p.id}
-          className="relative flex-1 flex flex-col justify-between p-2 rounded-2xl border-2 border-slate-700 bg-[#0a0f1d] opacity-60 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full max-w-[500px] mx-auto h-full"
+          className={`relative flex-1 flex flex-col justify-between p-2 rounded-2xl border-2 border-slate-700 bg-[#0a0f1d] opacity-60 shadow-xl overflow-hidden min-h-0 z-10 transition-all w-full ${activeMode === 'duel2' ? 'max-w-[500px]' : 'max-w-none'} mx-auto h-full`}
         >
           <div className="flex items-center justify-between z-10 shrink-0 w-full mb-1">
             <div className={`w-8 h-8 rounded-full ${theme.avatarBg} ${theme.avatarBorder} font-black text-xs flex items-center justify-center shrink-0`}>
@@ -908,7 +908,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-row items-center justify-center max-w-4xl mx-auto w-full min-h-0 overflow-hidden px-2 sm:px-3 py-1 sm:py-1.5">
+      <div className={`flex-1 flex flex-row items-center justify-center ${
+        activeMode === 'quiz1' 
+          ? 'max-w-4xl' 
+          : activeMode === 'duel2'
+          ? 'max-w-[1550px]'
+          : 'max-w-[1850px]'
+      } mx-auto w-full min-h-0 overflow-hidden px-1 sm:px-2 md:px-3 py-0.5 sm:py-1`}>
         {/* CENTER ACTIVITY CONTENT */}
         <div className="flex-1 flex flex-col items-center justify-center h-full min-h-0 min-w-0 max-w-full overflow-hidden">
           {activeMode === 'quiz1' ? (
@@ -1105,13 +1111,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             onClick={() => handleSelectOption(opt.count)}
-                            className={`relative group min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-[3.5px] sm:border-4 transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-gradient-to-b ${opt.bg} ${opt.border} ${opt.shadow} ${opt.hoverRing} overflow-hidden`}
+                            className={`relative group min-h-[64px] sm:min-h-[80px] md:min-h-[96px] py-2 sm:py-3 px-1.5 rounded-2xl sm:rounded-3xl font-black border-[3.5px] sm:border-4 transition-all transform hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-1 cursor-pointer bg-gradient-to-b ${opt.bg} ${opt.border} ${opt.shadow} ${opt.hoverRing} overflow-hidden`}
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className={`px-2.5 py-1 rounded-full ${opt.badge} font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm`}>
+                            <span className={`px-2 py-0.5 rounded-full ${opt.badge} font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm`}>
                               {opt.label}
                             </span>
                           </button>
@@ -1123,14 +1129,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             disabled={true}
-                            className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-emerald-200 bg-gradient-to-b from-emerald-500 via-teal-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.9)] ring-4 ring-emerald-400 scale-105 flex flex-col items-center justify-center gap-1.5 cursor-default overflow-hidden animate-pulse"
+                            className="relative min-h-[64px] sm:min-h-[80px] md:min-h-[96px] py-2 sm:py-3 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-emerald-200 bg-gradient-to-b from-emerald-500 via-teal-600 to-emerald-800 text-white shadow-[0_0_25px_rgba(16,185,129,0.9)] ring-4 ring-emerald-400 scale-105 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden animate-pulse"
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className="px-2.5 py-1 rounded-full bg-white text-emerald-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-1">
-                              <CheckCircle2 size={15} className="text-emerald-600" />
+                            <span className="px-2 py-0.5 rounded-full bg-white text-emerald-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-1">
+                              <CheckCircle2 size={13} className="text-emerald-600" />
                               <span>DOĞRU</span>
                             </span>
                           </button>
@@ -1142,14 +1148,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                           <button
                             key={opt.count}
                             disabled={true}
-                            className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-rose-200 bg-gradient-to-b from-rose-600 via-red-700 to-rose-900 text-white shadow-[0_0_25px_rgba(225,29,72,0.9)] ring-4 ring-rose-400 scale-100 flex flex-col items-center justify-center gap-1.5 cursor-default overflow-hidden"
+                            className="relative min-h-[64px] sm:min-h-[80px] md:min-h-[96px] py-2 sm:py-3 px-1.5 rounded-2xl sm:rounded-3xl font-black border-4 sm:border-[5px] border-rose-200 bg-gradient-to-b from-rose-600 via-red-700 to-rose-900 text-white shadow-[0_0_25px_rgba(225,29,72,0.9)] ring-4 ring-rose-400 scale-100 flex flex-col items-center justify-center gap-1 cursor-default overflow-hidden"
                           >
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-t-xl" />
-                            <span className="text-4xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
+                            <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] leading-none">
                               {opt.count}
                             </span>
-                            <span className="px-2.5 py-1 rounded-full bg-white text-rose-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow flex items-center gap-1">
-                              <XCircle size={15} className="text-rose-600" />
+                            <span className="px-2 py-0.5 rounded-full bg-white text-rose-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow flex items-center gap-1">
+                              <XCircle size={13} className="text-rose-600" />
                               <span>YANLIŞ</span>
                             </span>
                           </button>
@@ -1160,12 +1166,12 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                         <button
                           key={opt.count}
                           disabled={true}
-                          className="relative min-h-[85px] sm:min-h-[105px] md:min-h-[120px] py-3.5 sm:py-5 px-1.5 rounded-2xl sm:rounded-3xl font-black border-2 border-slate-700 bg-slate-900/80 text-slate-400 opacity-40 flex flex-col items-center justify-center gap-1.5 cursor-default"
+                          className="relative min-h-[64px] sm:min-h-[80px] md:min-h-[96px] py-2 sm:py-3 px-1.5 rounded-2xl sm:rounded-3xl font-black border-2 border-slate-700 bg-slate-900/80 text-slate-400 opacity-40 flex flex-col items-center justify-center gap-1 cursor-default"
                         >
-                          <span className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-400 leading-none">
+                          <span className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-400 leading-none">
                             {opt.count}
                           </span>
-                          <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">
+                          <span className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-bold">
                             {opt.label}
                           </span>
                         </button>
@@ -1204,10 +1210,10 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             </div>
           ) : (
             /* MULTIPLAYER DUEL: 2 & 3 PLAYERS */
-            <div className={`flex-1 flex flex-col p-1.5 sm:p-2.5 w-full h-full overflow-hidden min-h-0 relative z-10 ${
+            <div className={`flex-1 flex flex-col p-1 sm:p-2 w-full h-full overflow-hidden min-h-0 relative z-10 ${
               activeMode === 'duel2' 
-                ? 'max-w-[clamp(1024px,calc(512px+50vw),1800px)]' 
-                : 'max-w-[clamp(1200px,calc(500px+70vw),2200px)] w-full'
+                ? 'max-w-[1500px]' 
+                : 'max-w-[1850px] w-full'
             } mx-auto`}>
               {/* COMMON TOP BAR: SLEEK COMPACT GLASS CAPSULES */}
               <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1.5 shrink-0 h-8 sm:h-9 w-full">

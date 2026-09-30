@@ -7,7 +7,6 @@ import {
 import confetti from 'canvas-confetti';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 interface AblukaGameProps {
   onClose: () => void;
@@ -125,6 +124,10 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
     const curPos = turn === 1 ? p1Pos : p2Pos;
     return getValidMoves(curPos, board);
   }, [board, p1Pos, p2Pos, turn, turnPhase, winner, gameMode, getValidMoves]);
+
+  // Real-time mobility counts for tactical status display
+  const p1MovesCount = useMemo(() => getValidMoves(p1Pos, board).length, [p1Pos, board, getValidMoves]);
+  const p2MovesCount = useMemo(() => getValidMoves(p2Pos, board).length, [p2Pos, board, getValidMoves]);
 
   // Restart current round
   const restartGame = useCallback(() => {
@@ -390,12 +393,21 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-slate-900 via-[#0B132B] to-slate-950 text-white"
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-40 flex flex-col font-sans select-none overflow-hidden bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-white"
     >
-      <TurkishActivityBackground darkness="normal" />
+      {/* SAME BACKGROUND IMAGE AS XOX GAME (/dere3.jpg) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.jpg" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center scale-105"
+        />
+        <div className="absolute inset-0 bg-slate-950/20 pointer-events-none" />
+      </div>
 
       {/* TOP HEADER CONTROLS */}
-      <header className="relative z-20 px-2 sm:px-6 py-1.5 sm:py-2 bg-slate-950/85 border-b border-amber-400/30 flex items-center justify-between shrink-0 shadow-md">
+      <header className="relative z-20 px-2 sm:px-6 py-1.5 sm:py-2 bg-slate-950/85 backdrop-blur-md border-b border-amber-400/30 flex items-center justify-between shrink-0 shadow-md">
         {/* LEFT: BACK BUTTON & TITLE */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
@@ -411,7 +423,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
                 Abluka
               </span>
               <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/40">
-                ♟️ Zeka Oyunu
+                ♟️ Turnuva Arenası
               </span>
             </div>
             <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold hidden xs:inline-block">
@@ -542,153 +554,280 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
       {/* MAIN GAMEPLAY CONTAINER */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-between p-1.5 sm:p-2.5 overflow-hidden min-h-0 w-full max-w-5xl mx-auto">
         {/* TURN & INSTRUCTION STATUS BAR */}
-        <div className="w-full flex items-center justify-between gap-2 px-2 sm:px-4 py-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 shrink-0 shadow-lg">
+        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-slate-950/85 backdrop-blur-md border border-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.6)] shrink-0">
           {/* PLAYER 1 (RED) BADGE */}
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all ${
+          <div className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl transition-all ${
             turn === 1 && winner === null
-              ? 'bg-rose-950/90 border-2 border-rose-500 text-rose-200 ring-2 ring-rose-500/40 shadow-md scale-102'
-              : 'bg-slate-900/60 border border-slate-800 text-slate-400'
+              ? 'bg-gradient-to-r from-rose-950/95 to-red-950/90 border-2 border-rose-500 text-rose-100 ring-2 ring-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.4)] scale-102'
+              : 'bg-slate-900/60 border border-slate-800/80 text-slate-400'
           }`}>
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-rose-500 to-red-700 border border-white flex items-center justify-center text-xs shadow-xs shrink-0">
-              😎
+            <div className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-rose-500 via-red-600 to-rose-800 border-2 border-white/90 flex items-center justify-center text-xs sm:text-sm shadow-md shrink-0 ${
+              turn === 1 && winner === null ? 'animate-pulse' : ''
+            }`}>
+              {p1Student?.avatar || '😎'}
+              {turn === 1 && winner === null && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-slate-950 animate-ping" />
+              )}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-black text-xs uppercase tracking-wide truncate">
-                {p1Student ? p1Student.name : '1. Oyuncu (Kırmızı)'}
-              </span>
-              <span className="text-[10px] font-bold text-slate-400">
-                Skor: {scores.p1}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-xs sm:text-sm uppercase tracking-wide truncate text-white">
+                  {p1Student ? p1Student.name : '1. Kırmızı'}
+                </span>
+                <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                  {scores.p1}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                {p1MovesCount <= 2 ? (
+                  <span className="text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded bg-rose-600 text-white animate-pulse">
+                    ⚠️ Kritik: {p1MovesCount} Çıkış!
+                  </span>
+                ) : (
+                  <span className="text-[9px] sm:text-[10px] font-bold text-rose-300/80">
+                    Çıkış: <strong className="text-white">{p1MovesCount}</strong> yol
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
           {/* INSTRUCTION PILL (CENTER) */}
           <div className="flex-1 text-center px-1">
             {winner !== null ? (
-              <div className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider animate-bounce">
-                🎉 {winner === 1 ? (p1Student ? p1Student.name : '1. Oyuncu (Kırmızı)') : (p2Student ? p2Student.name : gameMode === 'pve' ? 'Bilgisayar' : '2. Oyuncu (Mavi)')} KAZANDI!
+              <div className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wider animate-bounce flex items-center justify-center gap-1.5 drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]">
+                <span>🏆</span>
+                <span>{winner === 1 ? (p1Student ? p1Student.name : '1. Oyuncu (Kırmızı)') : (p2Student ? p2Student.name : gameMode === 'pve' ? 'Bilgisayar' : '2. Oyuncu (Mavi)')} KAZANDI!</span>
               </div>
             ) : isBotThinking ? (
-              <div className="text-xs sm:text-sm font-black text-blue-300 uppercase tracking-wider animate-pulse flex items-center justify-center gap-1.5">
-                <span>🤖 Bilgisayar düşünüyor...</span>
+              <div className="text-xs sm:text-sm font-black text-sky-300 uppercase tracking-wider animate-pulse flex items-center justify-center gap-2">
+                <span className="animate-spin text-sm">⚙️</span>
+                <span>Bilgisayar en iyi hamleyi hesaplıyor...</span>
               </div>
             ) : turnPhase === 'move' ? (
-              <div className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide flex items-center justify-center gap-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/60 shadow-[0_0_12px_rgba(52,211,153,0.3)]">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" />
-                <span>1. Aşama: Taşını komşu yeşil karelerden birine taşı!</span>
+                <span className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
+                  {turn === 1 ? '1. Aşama (Kırmızı)' : '1. Aşama (Mavi)'}: Taşını Yeşil Kareye Oynat!
+                </span>
               </div>
             ) : (
-              <div className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wide flex items-center justify-center gap-1.5">
-                <span className="text-base">🧱</span>
-                <span>2. Aşama: Boş bir kareye Engel Taşı (Blok) koy!</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-400/60 shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+                <span className="text-sm">🧱</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wide">
+                  2. Aşama: Boş Kareye Engel Taşı (Blok) Yerleştir!
+                </span>
               </div>
             )}
           </div>
 
           {/* PLAYER 2 (BLUE / BOT) BADGE */}
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-xl transition-all ${
+          <div className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl transition-all ${
             turn === 2 && winner === null
-              ? 'bg-blue-950/90 border-2 border-blue-500 text-blue-200 ring-2 ring-blue-500/40 shadow-md scale-102'
-              : 'bg-slate-900/60 border border-slate-800 text-slate-400'
+              ? 'bg-gradient-to-r from-blue-950/95 to-indigo-950/90 border-2 border-blue-500 text-blue-100 ring-2 ring-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.4)] scale-102'
+              : 'bg-slate-900/60 border border-slate-800/80 text-slate-400'
           }`}>
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border border-white flex items-center justify-center text-xs shadow-xs shrink-0">
-              😎
-            </div>
             <div className="flex flex-col min-w-0 text-right">
-              <span className="font-black text-xs uppercase tracking-wide truncate">
-                {gameMode === 'pve' ? 'Bilgisayar' : p2Student ? p2Student.name : '2. Oyuncu (Mavi)'}
-              </span>
-              <span className="text-[10px] font-bold text-slate-400">
-                Skor: {scores.p2}
-              </span>
+              <div className="flex items-center justify-end gap-1.5">
+                <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                  {scores.p2}
+                </span>
+                <span className="font-black text-xs sm:text-sm uppercase tracking-wide truncate text-white">
+                  {gameMode === 'pve' ? 'Bilgisayar' : p2Student ? p2Student.name : '2. Mavi'}
+                </span>
+              </div>
+              <div className="flex items-center justify-end gap-1 mt-0.5">
+                {p2MovesCount <= 2 ? (
+                  <span className="text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 animate-pulse">
+                    ⚠️ Kritik: {p2MovesCount} Çıkış!
+                  </span>
+                ) : (
+                  <span className="text-[9px] sm:text-[10px] font-bold text-blue-300/80">
+                    Çıkış: <strong className="text-white">{p2MovesCount}</strong> yol
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 via-indigo-600 to-blue-800 border-2 border-white/90 flex items-center justify-center text-xs sm:text-sm shadow-md shrink-0 ${
+              turn === 2 && winner === null ? 'animate-pulse' : ''
+            }`}>
+              {gameMode === 'pve' ? '🤖' : p2Student?.avatar || '😎'}
+              {turn === 2 && winner === null && (
+                <span className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full bg-cyan-400 border border-slate-950 animate-ping" />
+              )}
             </div>
           </div>
         </div>
 
-        {/* 7x7 ABLUKA BOARD (EXACT VISUAL DESIGN MATCHING USER'S SCREENSHOT) */}
+        {/* 7x7 TOURNAMENT BOARD CONTAINER */}
         <div className="flex-1 flex items-center justify-center w-full min-h-0 py-1">
-          {/* Outer Rounded Container with thick tactile border */}
-          <div className="relative aspect-square w-full max-w-[min(65vh,480px)] p-2 sm:p-3 rounded-3xl sm:rounded-4xl bg-slate-300/60 dark:bg-slate-900/80 border-[8px] sm:border-[12px] border-white/80 dark:border-slate-800/90 shadow-[0_12px_40px_rgba(0,0,0,0.6)] flex items-center justify-center">
+          {/* Physical Tournament Board Casing (Rich Walnut / Ebony Wood Bezel) */}
+          <div className="relative aspect-square w-full max-w-[min(67vh,490px)] sm:max-w-[min(70vh,530px)] p-2 sm:p-3.5 rounded-3xl sm:rounded-[2.25rem] bg-gradient-to-b from-[#2d1b11] via-[#1d1109] to-[#0e0704] border-[4px] sm:border-[6px] border-[#663e20] shadow-[0_20px_50px_rgba(0,0,0,0.85),_0_0_35px_rgba(245,158,11,0.18),_inset_0_2px_4px_rgba(255,255,255,0.2)] flex flex-col justify-between">
             
-            {/* 7x7 Grid */}
-            <div className="grid grid-cols-7 grid-rows-7 gap-1 sm:gap-1.5 w-full h-full p-1 bg-slate-400/40 dark:bg-slate-950/60 rounded-2xl sm:rounded-3xl border-2 border-slate-400/30">
-              {board.map((cellValue, idx) => {
-                const isP1 = cellValue === 1;
-                const isP2 = cellValue === 2;
-                const isObstacle = cellValue === 3;
-                const isValidMove = activeValidMoves.includes(idx);
-                const canPlaceObstacle = turnPhase === 'block' && cellValue === 0 && !isBotThinking && winner === null;
+            {/* Four Corner Brass Screws / Decorative Metal Rivets */}
+            <div className="absolute top-2 left-2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-sm border border-amber-900/60 flex items-center justify-center pointer-events-none">
+              <div className="w-1.5 h-0.5 bg-amber-950/80 rotate-45" />
+            </div>
+            <div className="absolute top-2 right-2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-sm border border-amber-900/60 flex items-center justify-center pointer-events-none">
+              <div className="w-1.5 h-0.5 bg-amber-950/80 -rotate-45" />
+            </div>
+            <div className="absolute bottom-2 left-2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-sm border border-amber-900/60 flex items-center justify-center pointer-events-none">
+              <div className="w-1.5 h-0.5 bg-amber-950/80 -rotate-45" />
+            </div>
+            <div className="absolute bottom-2 right-2 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 shadow-sm border border-amber-900/60 flex items-center justify-center pointer-events-none">
+              <div className="w-1.5 h-0.5 bg-amber-950/80 rotate-45" />
+            </div>
 
-                let cellBgClass = "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs";
-                let cursorClass = "cursor-default";
+            {/* Top Coordinate Header (A to G) */}
+            <div className="grid grid-cols-7 w-full text-center px-4 sm:px-6 pb-0.5 sm:pb-1">
+              {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(col => (
+                <span key={col} className="text-[10px] sm:text-xs font-black text-amber-300/80 uppercase tracking-widest drop-shadow-sm select-none">
+                  {col}
+                </span>
+              ))}
+            </div>
 
-                if (isValidMove) {
-                  // Mint green valid move (matching user's screenshot exactly!)
-                  cellBgClass = "bg-emerald-200/90 dark:bg-emerald-900/80 border-2 border-emerald-400 text-emerald-800 hover:bg-emerald-300 hover:scale-102 shadow-sm";
-                  cursorClass = "cursor-pointer active:scale-95";
-                } else if (canPlaceObstacle) {
-                  // Selectable for placing obstacle
-                  cellBgClass = "bg-white dark:bg-slate-800 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 shadow-xs";
-                  cursorClass = "cursor-pointer hover:scale-102 active:scale-95";
-                } else if (isObstacle) {
-                  // Solid Blockade Stone
-                  cellBgClass = "bg-slate-900 dark:bg-slate-950 border-2 border-slate-700 shadow-inner";
-                }
+            {/* Middle Row (Left Numbers + 7x7 Grid + Right Numbers) */}
+            <div className="flex-1 flex items-stretch w-full min-h-0 gap-1 sm:gap-1.5">
+              {/* Left Row Coordinates (1 to 7) */}
+              <div className="flex flex-col justify-around text-center shrink-0 w-3 sm:w-4 select-none">
+                {['1', '2', '3', '4', '5', '6', '7'].map(row => (
+                  <span key={row} className="text-[10px] sm:text-xs font-black text-amber-300/80 drop-shadow-sm">
+                    {row}
+                  </span>
+                ))}
+              </div>
 
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleCellClick(idx)}
-                    disabled={!isValidMove && !canPlaceObstacle}
-                    className={`relative w-full h-full rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center transition-all ${cellBgClass} ${cursorClass}`}
-                    aria-label={`Kare ${idx + 1}`}
-                  >
-                    {/* PLAYER 1: GLOSSY RED DISC WITH SUNGLASSES EMOJI */}
-                    {isP1 && (
-                      <div className="w-[82%] h-[82%] rounded-full bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 border-2 sm:border-3 border-white shadow-lg flex items-center justify-center transform transition-transform duration-200 hover:scale-105 filter drop-shadow-md">
-                        <span className="text-base sm:text-xl md:text-2xl filter drop-shadow-xs select-none">
-                          {p1Student?.avatar || '😎'}
-                        </span>
-                      </div>
-                    )}
+              {/* 7x7 Grid with Tactile Inlay Tray */}
+              <div className="flex-1 grid grid-cols-7 grid-rows-7 gap-1 sm:gap-1.5 w-full h-full p-1 sm:p-1.5 bg-[#090e18] rounded-2xl sm:rounded-3xl border-2 border-[#4a2e18] shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)]">
+                {board.map((cellValue, idx) => {
+                  const isP1 = cellValue === 1;
+                  const isP2 = cellValue === 2;
+                  const isObstacle = cellValue === 3;
+                  const isValidMove = activeValidMoves.includes(idx);
+                  const canPlaceObstacle = turnPhase === 'block' && cellValue === 0 && !isBotThinking && winner === null;
 
-                    {/* PLAYER 2: GLOSSY BLUE DISC WITH SUNGLASSES EMOJI */}
-                    {isP2 && (
-                      <div className="w-[82%] h-[82%] rounded-full bg-gradient-to-br from-blue-500 via-indigo-600 to-blue-700 border-2 sm:border-3 border-white shadow-lg flex items-center justify-center transform transition-transform duration-200 hover:scale-105 filter drop-shadow-md">
-                        <span className="text-base sm:text-xl md:text-2xl filter drop-shadow-xs select-none">
-                          {p2Student?.avatar || '😎'}
-                        </span>
-                      </div>
-                    )}
+                  let cellBgClass = "bg-gradient-to-b from-[#ffffff] via-[#f8fafc] to-[#e2e8f0] border-t border-t-white border-b-[3px] border-b-slate-400 shadow-[0_2px_4px_rgba(0,0,0,0.25)] hover:brightness-105";
+                  let cursorClass = "cursor-default";
 
-                    {/* OBSTACLE: DARK STONE WITH BLOCK ICON */}
-                    {isObstacle && (
-                      <div className="w-full h-full rounded-md sm:rounded-lg bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 border border-slate-600/80 shadow-inner flex items-center justify-center">
-                        <span className="text-xs sm:text-sm md:text-base filter drop-shadow-xs select-none opacity-85">
-                          🧱
-                        </span>
-                      </div>
-                    )}
+                  if (isValidMove) {
+                    // Radiant Emerald Portal Tile
+                    cellBgClass = "bg-gradient-to-b from-emerald-200 via-emerald-300 to-emerald-400 border-2 border-emerald-500 border-b-[3px] border-b-emerald-700 shadow-[0_0_16px_rgba(16,185,129,0.85),_inset_0_2px_4px_rgba(255,255,255,0.7)] animate-pulse";
+                    cursorClass = "cursor-pointer active:scale-95";
+                  } else if (canPlaceObstacle) {
+                    // Tactile interactive cell for placing obstacle
+                    cellBgClass = "bg-white/95 hover:bg-amber-100/95 border border-slate-300 hover:border-amber-400 border-b-[3px] border-b-slate-400 hover:border-b-amber-500 shadow-xs";
+                    cursorClass = "cursor-pointer hover:scale-102 active:scale-95";
+                  } else if (isObstacle) {
+                    // 3D Stone Monolith Blockade
+                    cellBgClass = "bg-gradient-to-b from-[#334155] via-[#1e293b] to-[#0f172a] border-t-2 border-t-slate-400 border-b-[4px] border-b-[#020617] border-x border-x-slate-700 shadow-[0_6px_14px_rgba(0,0,0,0.8)]";
+                  }
 
-                    {/* SUBTLE INDICATOR ON HOVER FOR PLACING OBSTACLE */}
-                    {canPlaceObstacle && (
-                      <span className="opacity-0 hover:opacity-100 text-xs sm:text-sm filter drop-shadow-sm select-none transition-opacity">
-                        ➕
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleCellClick(idx)}
+                      disabled={!isValidMove && !canPlaceObstacle}
+                      className={`relative w-full h-full rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center transition-all ${cellBgClass} ${cursorClass}`}
+                      aria-label={`Kare ${idx + 1}`}
+                    >
+                      {/* PLAYER 1: GLOSSY RED TOURNAMENT PUCK */}
+                      {isP1 && (
+                        <div className={`relative w-[84%] h-[84%] rounded-full bg-gradient-to-br from-rose-400 via-red-600 to-rose-950 border-2 sm:border-[3px] border-amber-300 shadow-[0_6px_16px_rgba(225,29,72,0.7),_inset_0_2px_4px_rgba(255,255,255,0.7)] flex items-center justify-center transform transition-all duration-200 ${
+                          turn === 1 && turnPhase === 'move' && winner === null
+                            ? 'ring-4 ring-amber-400 ring-offset-2 ring-offset-[#090e18] animate-bounce scale-105'
+                            : 'hover:scale-105'
+                        }`}>
+                          {/* Gloss highlight reflection */}
+                          <div className="absolute top-1 left-1.5 w-3 sm:w-4 h-1.5 sm:h-2 rounded-full bg-white/60 -rotate-35 pointer-events-none" />
+                          <span className="text-base sm:text-xl md:text-2xl filter drop-shadow-sm select-none">
+                            {p1Student?.avatar || '😎'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* PLAYER 2: GLOSSY BLUE TOURNAMENT PUCK */}
+                      {isP2 && (
+                        <div className={`relative w-[84%] h-[84%] rounded-full bg-gradient-to-br from-sky-400 via-blue-600 to-indigo-950 border-2 sm:border-[3px] border-cyan-300 shadow-[0_6px_16px_rgba(37,99,235,0.7),_inset_0_2px_4px_rgba(255,255,255,0.7)] flex items-center justify-center transform transition-all duration-200 ${
+                          turn === 2 && turnPhase === 'move' && winner === null
+                            ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-[#090e18] animate-bounce scale-105'
+                            : 'hover:scale-105'
+                        }`}>
+                          {/* Gloss highlight reflection */}
+                          <div className="absolute top-1 left-1.5 w-3 sm:w-4 h-1.5 sm:h-2 rounded-full bg-white/60 -rotate-35 pointer-events-none" />
+                          <span className="text-base sm:text-xl md:text-2xl filter drop-shadow-sm select-none">
+                            {gameMode === 'pve' ? '🤖' : p2Student?.avatar || '😎'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* VALID MOVE TARGET RETICLE */}
+                      {isValidMove && (
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/80 border-2 border-white shadow-md flex items-center justify-center pointer-events-none">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                        </div>
+                      )}
+
+                      {/* OBSTACLE: 3D STONE MONOLITH BARRICADE */}
+                      {isObstacle && (
+                        <div className="w-full h-full rounded-md sm:rounded-xl bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950 border border-slate-600/70 shadow-inner flex flex-col items-center justify-center">
+                          <span className="text-sm sm:text-base md:text-lg filter drop-shadow-md select-none transform hover:scale-110 transition-transform">
+                            🧱
+                          </span>
+                          <span className="text-[7px] sm:text-[8px] font-black text-amber-400/90 tracking-widest uppercase -mt-0.5">
+                            BLOK
+                          </span>
+                        </div>
+                      )}
+
+                      {/* PLACING OBSTACLE HOVER PREVIEW */}
+                      {canPlaceObstacle && (
+                        <div className="opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-amber-700 font-black">
+                          <span className="text-xs sm:text-sm">🧱</span>
+                          <span className="text-[7px] font-black tracking-tighter uppercase -mt-0.5">ENGEL</span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Right Row Coordinates (1 to 7) */}
+              <div className="flex flex-col justify-around text-center shrink-0 w-3 sm:w-4 select-none">
+                {['1', '2', '3', '4', '5', '6', '7'].map(row => (
+                  <span key={row} className="text-[10px] sm:text-xs font-black text-amber-300/80 drop-shadow-sm">
+                    {row}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom Coordinate Footer (A to G) */}
+            <div className="grid grid-cols-7 w-full text-center px-4 sm:px-6 pt-0.5 sm:pt-1">
+              {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(col => (
+                <span key={col} className="text-[10px] sm:text-xs font-black text-amber-300/80 uppercase tracking-widest drop-shadow-sm select-none">
+                  {col}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
         {/* BOTTOM GAME INFO BANNER */}
-        <div className="w-full flex items-center justify-between text-xs text-slate-400 font-semibold px-2 py-0.5 shrink-0">
-          <span>Toplam Engel Taşı: {placedObstaclesCount}</span>
-          <span className="hidden sm:inline">Her turda: 1. Taşını taşı → 2. Engel koy!</span>
-          <span>Hedef: Rakibin tüm komşu karelerini kapatmak</span>
+        <div className="w-full flex items-center justify-between text-xs text-slate-300 font-semibold px-3 py-1 rounded-xl bg-slate-950/70 border border-slate-800/80 shadow-md shrink-0">
+          <div className="flex items-center gap-1.5 text-amber-300 font-bold">
+            <span>🧱</span>
+            <span>Kullanılan Engel: <strong className="text-white font-black">{placedObstaclesCount}</strong></span>
+          </div>
+          <span className="hidden sm:inline text-slate-400">
+            Kural: 1. Taşını komşu kareye taşı ➜ 2. İstediğin boş kareye engel koy
+          </span>
+          <div className="flex items-center gap-1 text-emerald-400 font-bold">
+            <span>🎯</span>
+            <span className="hidden xs:inline">Amaç:</span>
+            <span>Rakibi Kıstır!</span>
+          </div>
         </div>
       </main>
 

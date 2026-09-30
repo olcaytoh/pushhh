@@ -462,15 +462,15 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
             return (
               <React.Fragment key={player.id}>
                 <div
-                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 ${
-                    playerMode === 3 ? 'px-1 sm:px-2 py-1.5' : 'px-2 sm:px-4 py-2 sm:py-3'
+                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 overflow-y-auto no-scrollbar ${
+                    playerMode === 3 ? 'px-1 sm:px-2 py-1' : 'px-2 sm:px-3 py-1.5 sm:py-2'
                   } transition-all`}
                 >
                   {/* Top Bar for Player */}
-                  <div className="relative z-10 flex items-center justify-between gap-1 pb-1 border-b border-white/10">
+                  <div className="relative z-10 flex items-center justify-between gap-1 pb-1 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-2">
                       {assignedStudent && (
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 border border-white/40 flex items-center justify-center text-xs sm:text-base shadow">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-900 border border-white/40 flex items-center justify-center text-xs sm:text-base shadow">
                           <span>{assignedStudent.avatar}</span>
                         </div>
                       )}
@@ -487,7 +487,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-400/40 shadow-inner">
+                    <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-xl bg-slate-950/80 border border-amber-400/40 shadow-inner">
                       <Trophy size={14} className="text-amber-400" />
                       <span className="font-black text-xs sm:text-sm text-amber-300">
                         {player.score} Puan
@@ -496,11 +496,11 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                   </div>
 
                   {/* Category Pill */}
-                  <div className="flex items-center justify-between gap-2 mt-2 px-1">
+                  <div className="flex items-center justify-between gap-2 mt-1 sm:mt-1.5 px-1 shrink-0">
                     <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 border border-amber-400/30 text-[10px] sm:text-xs font-bold text-amber-300">
                       🔍 {currentQ.category}
                     </span>
-                    <span className="text-[11px] sm:text-xs font-semibold text-slate-300">
+                    <span className="text-[10px] sm:text-xs font-semibold text-slate-300">
                       {player.step === 'find_wrong' 
                         ? '1. Adım: Yanlış yazılan kelimeye tıkla!' 
                         : player.step === 'choose_correct' 
@@ -510,10 +510,10 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                   </div>
 
                   {/* Detective Workspace */}
-                  <div className="flex-1 flex flex-col items-center justify-center my-2 min-h-0">
+                  <div className="flex-1 flex flex-col items-center justify-center my-1 sm:my-2 min-h-0">
                     {/* Sentence Board */}
-                    <div className={`w-full max-w-2xl p-4 sm:p-6 rounded-3xl border-2 shadow-2xl ${theme.boardBg} flex flex-col items-center gap-4`}>
-                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                    <div className={`w-full max-w-2xl p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 shadow-2xl ${theme.boardBg} flex flex-col items-center gap-2 sm:gap-3`}>
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
                         {currentQ.words.map((word, wIdx) => {
                           const isWrongTarget = wIdx === currentQ.wrongWordIndex;
                           const isFound = player.step !== 'find_wrong' && isWrongTarget;
@@ -524,7 +524,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                               key={wIdx}
                               onClick={() => handleWordClick(pIdx, wIdx)}
                               disabled={player.step !== 'find_wrong'}
-                              className={`px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all cursor-pointer border-2 ${
+                              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg md:text-xl transition-all cursor-pointer border-2 ${
                                 isShaking
                                   ? 'bg-rose-600 border-white text-white animate-shake'
                                   : isFound
@@ -542,16 +542,16 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
                       {/* Step 2: Options Selection Area */}
                       {player.step === 'choose_correct' && (
-                        <div className="w-full mt-2 pt-3 border-t border-white/20 flex flex-col items-center animate-in zoom-in duration-300">
-                          <span className="text-xs sm:text-sm font-bold text-amber-200 mb-2">
+                        <div className="w-full mt-1 pt-2 sm:pt-2.5 border-t border-white/20 flex flex-col items-center animate-in zoom-in duration-300">
+                          <span className="text-[11px] sm:text-xs md:text-sm font-bold text-amber-200 mb-1.5 text-center">
                             "{currentQ.wrongWord}" sözcüğünün doğru yazılışı hangisidir?
                           </span>
-                          <div className="flex items-center gap-3 w-full justify-center">
+                          <div className="flex items-center gap-2 sm:gap-3 w-full justify-center">
                             {options.map((opt, oIdx) => (
                               <button
                                 key={oIdx}
                                 onClick={() => handleChooseOption(pIdx, opt)}
-                                className={`flex-1 max-w-[200px] py-3 px-4 rounded-2xl bg-slate-950 border-2 font-black text-sm sm:text-lg transition-all cursor-pointer shadow-lg active:scale-95 ${
+                                className={`flex-1 max-w-[190px] py-1.5 sm:py-2 px-3 rounded-xl sm:rounded-2xl bg-slate-950 border-2 font-black text-xs sm:text-base transition-all cursor-pointer shadow-lg active:scale-95 ${
                                   player.chosenOption === opt
                                     ? player.isCorrectOption
                                       ? 'bg-emerald-600 border-white text-white'
@@ -568,13 +568,13 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
                       {/* Step 3: Solved banner with rule explanation */}
                       {player.step === 'solved' && (
-                        <div className="w-full mt-2 p-3 rounded-2xl bg-emerald-500/20 border border-emerald-400 text-emerald-200 flex items-center gap-3 animate-in zoom-in duration-200">
-                          <ShieldCheck size={24} className="text-emerald-400 shrink-0" />
+                        <div className="w-full mt-1 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-emerald-500/20 border border-emerald-400 text-emerald-200 flex items-center gap-2 sm:gap-3 animate-in zoom-in duration-200">
+                          <ShieldCheck size={20} className="text-emerald-400 shrink-0" />
                           <div className="text-left">
-                            <span className="font-black text-xs sm:text-sm text-emerald-300 block">
+                            <span className="font-black text-[11px] sm:text-xs md:text-sm text-emerald-300 block">
                               Doğrusu: "{currentQ.correctWord}" (+10 Puan)
                             </span>
-                            <span className="text-[11px] sm:text-xs text-slate-200">
+                            <span className="text-[10px] sm:text-[11px] text-slate-200">
                               💡 Kural: {currentQ.explanation}
                             </span>
                           </div>

@@ -249,7 +249,7 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   return (
@@ -322,9 +322,9 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
       </header>
 
       {/* Main Game Area */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentItem = items[player.itemIndex % items.length];
@@ -342,10 +342,10 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -364,23 +364,23 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
                   </div>
                 </div>
 
-                {/* Atık Nesnesi Kartı - Soru Görseli ve Punto Büyütüldü */}
-                <div className="my-auto py-4 sm:py-6 px-4 sm:px-6 rounded-2xl sm:rounded-3xl bg-black/60 border-2 sm:border-3 border-emerald-400/50 flex flex-col items-center justify-center gap-2.5 shadow-2xl">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-teal-900/40 border-2 border-emerald-400/40 flex items-center justify-center shadow-inner">
-                    <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-lg">
+                {/* 2. BÖLÜM: Atık Nesnesi Kartı - 3 Bölümlü Dengeli Orta Alan */}
+                <div className="flex-1 min-h-0 my-1 py-2 sm:py-3 px-3 sm:px-4 rounded-2xl bg-black/60 border-2 border-emerald-400/40 flex flex-col items-center justify-center gap-1.5 sm:gap-2 shadow-xl">
+                  <div className="w-18 h-18 sm:w-22 sm:h-22 md:w-26 md:h-26 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-900/40 border-2 border-emerald-400/40 flex items-center justify-center shadow-inner shrink-0">
+                    <span className="text-5xl sm:text-6xl md:text-7xl animate-bounce filter drop-shadow-lg">
                       {currentItem.emoji}
                     </span>
                   </div>
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-amber-200 text-center tracking-wide drop-shadow-sm">
+                  <div className="text-lg sm:text-xl md:text-2xl font-black text-amber-200 text-center tracking-wide drop-shadow-sm">
                     {currentItem.name}
                   </div>
-                  <div className="text-xs sm:text-sm md:text-base font-bold text-emerald-300 text-center">
+                  <div className="text-[11px] sm:text-xs md:text-sm font-bold text-emerald-300 text-center">
                     👉 Bu atığı hangi geri dönüşüm kutusuna atmalıyız?
                   </div>
                 </div>
 
-                {/* Geri Dönüşüm Kutuları */}
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 my-2">
+                {/* 3. BÖLÜM: Geri Dönüşüm Kutuları */}
+                <div className="grid grid-cols-5 gap-1 sm:gap-1.5 my-1 shrink-0">
                   {RECYCLING_BINS.map((bin) => {
                     const isChosen = player.chosenBin === bin.type;
                     const isRight = bin.type === currentItem.bin;
@@ -401,10 +401,10 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
                         key={bin.type}
                         disabled={player.showFeedback}
                         onClick={() => handleSelectBin(pIdx, bin.type)}
-                        className={`flex flex-col items-center justify-between p-2 sm:p-3 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 shadow-md ${binStyle}`}
+                        className={`flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border-2 transition-all cursor-pointer active:scale-95 shadow-md ${binStyle}`}
                       >
-                        <span className="text-2xl sm:text-3xl md:text-4xl leading-none">{bin.icon}</span>
-                        <span className={`text-[9px] sm:text-xs md:text-sm font-black uppercase tracking-tight mt-1 truncate max-w-full ${bin.color}`}>
+                        <span className="text-xl sm:text-2xl md:text-3xl leading-none">{bin.icon}</span>
+                        <span className={`text-[8.5px] sm:text-[10px] md:text-xs font-black uppercase tracking-tight mt-0.5 truncate max-w-full ${bin.color}`}>
                           {bin.name}
                         </span>
                       </button>
@@ -414,9 +414,9 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
 
                 {/* Didaktik Açıklama */}
                 {player.showFeedback && (
-                  <div className="mt-1 p-2 rounded-lg bg-black/60 border border-white/10 text-[11px] sm:text-xs text-amber-200 text-center animate-fade-in">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-black/60 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in shrink-0">
                     <span className="font-black text-emerald-300 block">{currentItem.binName}</span>
-                    <span>{currentItem.explanation}</span>
+                    <span className="line-clamp-2">{currentItem.explanation}</span>
                   </div>
                 )}
               </div>

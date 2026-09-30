@@ -11,6 +11,7 @@ interface OtherGamesHubProps {
   onOpen3DLab?: () => void;
   onOpenGeoboard?: () => void;
   onOpenAynisiniBul?: () => void;
+  onOpenYirmiyiBul?: () => void;
   onOpenGeometricNets?: () => void;
   onOpenKuralliCumle?: () => void;
   onOpenSozlukSirala?: () => void;
@@ -38,6 +39,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpen3DLab,
   onOpenGeoboard,
   onOpenAynisiniBul,
+  onOpenYirmiyiBul,
   onOpenGeometricNets,
   onOpenKuralliCumle,
   onOpenSozlukSirala,
@@ -64,7 +66,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   const games = [
     {
       id: 'sozluk_sirala',
-      title: 'Sözlük Sıralama (Alfabe Portalı)',
+      title: 'Sözlük Sıralama (Harf Sıralaması)',
       subtitle: '1, 2 ve 3 Kişilik Alfabetik Harf Sıralama Yarışı (1-2. Sınıf: 3 Harf, 3-4. Sınıf: 4 Harf)',
       icon: '/MENUIKON/grid_icon_25.png',
       sound: '/coin.mp3',
@@ -110,6 +112,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/coin.mp3',
       action: () => {
         if (onOpenAynisiniBul) onOpenAynisiniBul();
+      },
+    },
+    {
+      id: 'yirmiyi_bul',
+      title: "20'yi Bul (2 Kişilik)",
+      subtitle: 'Toplamı 20 Yapan Çiftleri Bulma Yarışı (60 Saniye Geri Sayım)',
+      icon: '/MENUIKON/grid_icon_19.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenYirmiyiBul) onOpenYirmiyiBul();
       },
     },
     {
@@ -336,7 +348,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
           {games.map((game, index) => {
             const accent = getIconAccentColor(game.icon);
             return (
@@ -346,12 +358,12 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   triggerSound(game.sound);
                   game.action();
                 }}
-                className={`group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-500/70 border-l-4 border-l-pink-400 hover:border-pink-400 rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3.5 min-h-[76px] sm:min-h-[86px] md:min-h-[96px] flex items-center gap-2.5 sm:gap-3.5 shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left ${
+                className={`group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-500/70 border-l-4 border-l-pink-400 hover:border-pink-400 rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 min-h-[72px] sm:min-h-[82px] md:min-h-[90px] flex items-center gap-2.5 sm:gap-3.5 shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left ${
                   index === games.length - 1 && games.length % 2 === 1 ? 'sm:col-span-2 sm:max-w-xl sm:mx-auto' : ''
                 }`}
               >
-                {/* Pure 3D borderless icon without box */}
-                <div className="relative shrink-0 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1">
+                {/* Pure 3D borderless icon without box - Same size as 2. Sınıf Diğer Oyunlar */}
+                <div className="relative shrink-0 flex items-center justify-center w-13 h-13 sm:w-15 sm:h-15 md:w-17 md:h-17 -my-1">
                   <img
                     src={game.icon}
                     alt={game.title}
@@ -370,10 +382,10 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   </p>
                 </div>
 
-                {/* Modern BAŞLA Button */}
-                <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                  <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                  <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                {/* Modern BAŞLA Button - Same height and dimensions as 2. Sınıf Diğer Oyunlar */}
+                <div className="z-10 shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all">
+                  <span className="font-black text-[10px] sm:text-xs text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
                     ▶
                   </div>
                 </div>

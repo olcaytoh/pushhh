@@ -549,8 +549,8 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 font-sans select-none overflow-hidden text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN (SIFIR KASMA, SIFIR DÖNEN ŞEKİL) */}
+      <TurkishActivityBackground darkness="normal" showFloatingAlphabet={false} />
 
       {/* 1. TOP HEADER NAVIGATION BAR */}
       <header className="relative z-30 bg-[#070e1c] border-b border-slate-800 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-md shrink-0 gap-1.5">
@@ -749,7 +749,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
               <React.Fragment key={player.id}>
                 {/* Individual Player Screen Panel */}
                 <div 
-                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 ${playerMode === 3 ? 'px-1 sm:px-2 py-1 sm:py-1.5' : 'px-2 sm:px-4 py-2 sm:py-3'} transition-transform ${
+                  className={`flex-1 flex flex-col relative bg-gradient-to-b ${theme.bgGrad} min-h-0 overflow-y-auto no-scrollbar ${playerMode === 3 ? 'px-1 sm:px-2 py-1' : 'px-2 sm:px-3 py-1.5'} transition-transform ${
                     player.shake ? 'animate-shake' : ''
                   }`}
                 >
@@ -779,69 +779,32 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                     </div>
                   </div>
 
-                  {/* 3.1 ALFABE PORTALI (CONCENTRIC GLOWING CIRCLES) */}
-                  <div className={`relative z-10 flex-1 flex flex-col items-center justify-center shrink-0 my-auto ${
-                    playerMode === 3 
-                      ? 'min-h-[40px] max-h-[64px]' 
-                      : playerMode === 1 
-                      ? 'min-h-[90px] max-h-[170px]' 
-                      : 'min-h-[65px] max-h-[125px]'
-                  }`}>
-                    <div className={`relative flex items-center justify-center ${
-                      playerMode === 3 
-                        ? 'w-12 h-12 sm:w-14 sm:h-14' 
-                        : playerMode === 1 
-                        ? 'w-28 h-28 sm:w-36 sm:h-36' 
-                        : 'w-20 h-20 sm:w-26 sm:h-26'
-                    }`}>
-                      {/* Outer segmented tick marks ring */}
-                      <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/40 animate-[spin_30s_linear_infinite]" />
-
-                      {/* Outer glow ring with white arc */}
-                      <div className={`absolute inset-1 sm:inset-2 rounded-full border-2 sm:border-4 ${theme.portalRing1} ${theme.portalGlow} animate-pulse`} />
-
-                      {/* Inner glowing radial portal */}
-                      <div className={`absolute inset-2 sm:inset-3 rounded-full ${theme.portalInner} flex items-center justify-center shadow-inner overflow-hidden`}>
-                        {/* Swirling energy effect */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent animate-[spin_8s_linear_infinite]" />
-
-                        {/* Concentric middle ring */}
-                        <div className={`${playerMode === 3 ? 'w-8 h-8' : 'w-12 h-12 sm:w-16 sm:h-16'} rounded-full border border-white/60 flex items-center justify-center bg-white/10 backdrop-blur-xs`}>
-                          {/* Center core pulse */}
-                          <div className={`${playerMode === 3 ? 'w-4 h-4' : 'w-6 h-6 sm:w-8 sm:h-8'} rounded-full bg-white ${theme.coreRing} flex items-center justify-center animate-ping`} />
-                          <div className={`absolute ${playerMode === 3 ? 'w-3 h-3' : 'w-5 h-5 sm:w-6 sm:h-6'} rounded-full bg-white shadow-[0_0_12px_#fff]`} />
-                        </div>
+                  {/* 3.1 STATUS NOTIFICATION BADGE (NO LAG / NO ROTATING HEAVY CANVAS) */}
+                  <div className="h-6 sm:h-7 flex items-center justify-center shrink-0 my-0.5">
+                    {isWinnerThisRound ? (
+                      <div className="px-3 py-0.5 rounded-full bg-emerald-500/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-bounce">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <span>HARİKA! DOĞRU SIRALAMA</span>
                       </div>
-
-                      {/* Win celebration badge over portal */}
-                      {isWinnerThisRound && (
-                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/70 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-200">
-                          <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 drop-shadow-md animate-bounce" />
-                          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-wider">DOĞRU!</span>
-                        </div>
-                      )}
-
-                      {/* Wrong buzzer badge over portal */}
-                      {player.status === 'wrong' && (
-                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-rose-950/80 backdrop-blur-xs rounded-full animate-in zoom-in-75 duration-150">
-                          <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-rose-400 drop-shadow-md animate-bounce" />
-                          <span className="text-white font-black text-[10px] sm:text-xs uppercase tracking-wider">TEKRAR</span>
-                        </div>
-                      )}
-                    </div>
+                    ) : player.status === 'wrong' ? (
+                      <div className="px-3 py-0.5 rounded-full bg-rose-600/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-shake">
+                        <XCircle className="w-3.5 h-3.5 text-white" />
+                        <span>SIRALAMA YANLIŞ, TEKRAR DENE!</span>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* 3.2 MAIN INTERACTIVE LETTER CONSOLE CONTAINER */}
-                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-2xl' : playerMode === 2 ? 'max-w-xl' : 'max-w-lg'} mx-auto flex flex-col items-center shrink-0 ${playerMode === 3 ? 'gap-1 pb-0.5' : 'gap-2 sm:gap-2.5 pb-1'}`}>
+                  <div className={`relative z-10 w-full ${playerMode === 1 ? 'max-w-xl' : playerMode === 2 ? 'max-w-lg' : 'max-w-md'} mx-auto flex flex-col items-center justify-center flex-1 min-h-0 ${playerMode === 3 ? 'gap-1' : 'gap-1.5'}`}>
                     {/* Console Header Pill Badge */}
-                    <div className={`px-3.5 sm:px-5 py-0.5 sm:py-1 rounded-full font-black ${playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm md:text-base'} uppercase tracking-wider border shadow-md ${theme.pillHeader}`}>
+                    <div className={`px-3 py-0.5 rounded-full font-black ${playerMode === 3 ? 'text-[10px] sm:text-xs' : 'text-xs sm:text-sm'} uppercase tracking-wider border shadow-md shrink-0 ${theme.pillHeader}`}>
                       HARFLERİ SIRALA
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-2xl sm:rounded-3xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 sm:p-2 gap-1.5' : 'p-3 sm:p-4 gap-2.5 sm:gap-3'} ${theme.cardBg}`}>
+                    <div className={`w-full rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR ALPHABETICAL ORDER */}
-                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-2 sm:gap-3'}`}>
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {player.upperSlots.map((letter, slotIdx) => (
                           <div
                             key={`upper_${slotIdx}`}
@@ -852,10 +815,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                             onDragStart={(e) => letter && handleDragStartTarget(e, pIdx, letter, slotIdx)}
                             className={`flex-1 ${
                               playerMode === 3 
-                                ? 'max-w-[76px] sm:max-w-[88px] min-h-[76px] sm:min-h-[88px] rounded-xl text-2xl sm:text-3xl' 
+                                ? 'max-w-[62px] sm:max-w-[72px] min-h-[62px] sm:min-h-[72px] rounded-xl text-xl sm:text-2xl' 
                                 : playerMode === 1 
-                                ? 'max-w-[130px] sm:max-w-[155px] min-h-[130px] sm:min-h-[155px] rounded-2xl text-5xl sm:text-6xl md:text-7xl' 
-                                : 'max-w-[105px] sm:max-w-[125px] min-h-[105px] sm:min-h-[125px] rounded-2xl text-4xl sm:text-5xl'
+                                ? 'max-w-[85px] sm:max-w-[110px] min-h-[85px] sm:min-h-[110px] rounded-2xl text-4xl sm:text-5xl' 
+                                : 'max-w-[75px] sm:max-w-[92px] min-h-[75px] sm:min-h-[92px] rounded-xl text-3xl sm:text-4xl'
                             } aspect-square border-2 sm:border-3 flex items-center justify-center transition-all cursor-pointer font-black select-none ${
                               letter 
                                 ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-xl` 
@@ -874,7 +837,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* DIVIDER LINE WITH HELPFUL TIP */}
-                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[10px]' : 'text-[10px] sm:text-xs'}`}>
+                      <div className={`w-full flex items-center justify-between px-1 font-semibold text-white/70 ${playerMode === 3 ? 'text-[8.5px] sm:text-[9.5px]' : 'text-[9.5px] sm:text-xs'}`}>
                         <span>Harflere dokunarak sıraya koy:</span>
                         {player.upperSlots.some(s => s !== null) && (
                           <button
@@ -887,7 +850,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* LOWER SOURCE ROW: SCRAMBLED LETTERS AVAILABLE */}
-                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[60px] sm:min-h-[72px]' : 'gap-2 sm:gap-3 min-h-[85px] sm:min-h-[105px]'}`}>
+                      <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5 min-h-[50px] sm:min-h-[62px]' : 'gap-1.5 sm:gap-2 min-h-[70px] sm:min-h-[85px]'}`}>
                         {Array.from({ length: letterCount }).map((_, letterIdx) => {
                           const letter = player.availableLetters[letterIdx];
                           return (
@@ -895,10 +858,10 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                               key={`source_slot_${letterIdx}`}
                               className={`flex-1 ${
                                 playerMode === 3 
-                                  ? 'max-w-[76px] sm:max-w-[88px]' 
+                                  ? 'max-w-[62px] sm:max-w-[72px]' 
                                   : playerMode === 1 
-                                  ? 'max-w-[130px] sm:max-w-[155px]' 
-                                  : 'max-w-[105px] sm:max-w-[125px]'
+                                  ? 'max-w-[85px] sm:max-w-[110px]' 
+                                  : 'max-w-[75px] sm:max-w-[92px]'
                               } aspect-square flex items-center justify-center`}
                             >
                               {letter ? (
@@ -908,16 +871,16 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                                   onClick={() => handleTapSourceLetter(pIdx, letter, letterIdx)}
                                   className={`w-full h-full ${
                                     playerMode === 3 
-                                      ? 'rounded-xl text-2xl sm:text-3xl' 
+                                      ? 'rounded-xl text-xl sm:text-2xl' 
                                       : playerMode === 1 
-                                      ? 'rounded-2xl text-5xl sm:text-6xl md:text-7xl' 
-                                      : 'rounded-2xl text-4xl sm:text-5xl'
+                                      ? 'rounded-2xl text-4xl sm:text-5xl' 
+                                      : 'rounded-xl text-3xl sm:text-4xl'
                                   } bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black cursor-pointer select-none`}
                                 >
                                   {letter}
                                 </div>
                               ) : (
-                                <div className="w-full h-full rounded-xl sm:rounded-2xl bg-black/25 border border-white/10" />
+                                <div className="w-full h-full rounded-xl bg-black/25 border border-white/10" />
                               )}
                             </div>
                           );
@@ -929,11 +892,11 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                     <button
                       onClick={() => handleExecuteCheck(pIdx)}
                       disabled={roundWinner !== null}
-                      className={`w-full ${playerMode === 1 ? 'max-w-md' : 'max-w-sm'} ${
+                      className={`w-full ${playerMode === 1 ? 'max-w-sm' : 'max-w-xs'} ${
                         playerMode === 3 
                           ? 'py-1 sm:py-1.5 px-3 text-[11px] sm:text-xs' 
-                          : 'py-2 sm:py-2.5 px-6 text-sm sm:text-base'
-                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 ${
+                          : 'py-1.5 sm:py-2 px-5 text-xs sm:text-sm'
+                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 shrink-0 ${
                         theme.runBtn
                       } ${
                         roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''

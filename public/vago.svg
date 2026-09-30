@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220" width="300" height="220">
+  <!-- BACKGROUND: COMPLETELY TRANSPARENT (NO GREY BG) - ELONGATED (+25% LENGTH) -->
+
+  <!-- RAILS & SLEEPERS (TIED TRACKS) -->
+  <g id="tracks">
+    <!-- Sleepers / Ties -->
+    <rect x="20" y="196" width="36" height="10" rx="1" fill="#8c533c" />
+    <rect x="80" y="196" width="36" height="10" rx="1" fill="#8c533c" />
+    <rect x="140" y="196" width="36" height="10" rx="1" fill="#8c533c" />
+    <rect x="200" y="196" width="36" height="10" rx="1" fill="#8c533c" />
+    <rect x="255" y="196" width="36" height="10" rx="1" fill="#8c533c" />
+    <!-- Steel Rails -->
+    <rect x="5" y="190" width="290" height="6" rx="1.5" fill="#60656a" />
+  </g>
+
+  <!-- COUPLERS (LEFT & RIGHT) -->
+  <rect x="0" y="146" width="28" height="6" rx="2" fill="#43484c" />
+  <rect x="272" y="146" width="28" height="6" rx="2" fill="#43484c" />
+
+  <!-- HOPPER BUCKET BODY (TURQUOISE / CYAN) -->
+  <polygon points="30,48 270,48 258,140 42,140" fill="#48b8c8" />
+
+  <!-- YELLOW TOP RIM -->
+  <rect x="22" y="38" width="256" height="14" rx="4" fill="#ffd100" />
+
+  <!-- WOODEN PLANK BED / BASE (BROWN) -->
+  <rect x="28" y="140" width="244" height="14" rx="2" fill="#8c533c" />
+
+  <!-- DARK CHARCOAL UNDERCARRIAGE -->
+  <rect x="52" y="154" width="196" height="24" rx="4" fill="#3d4246" />
+
+  <!-- WHEELS (2 WHEELS) -->
+  <!-- Wheel 1 (Left) -->
+  <g id="wheel1" transform="translate(100, 166)">
+    <circle cx="0" cy="0" r="28" fill="#cf1b6a" />
+    <circle cx="0" cy="0" r="20" fill="#ffd100" />
+    <circle cx="0" cy="0" r="7" fill="#ffffff" />
+  </g>
+
+  <!-- Wheel 2 (Right) -->
+  <g id="wheel2" transform="translate(200, 166)">
+    <circle cx="0" cy="0" r="28" fill="#cf1b6a" />
+    <circle cx="0" cy="0" r="20" fill="#ffd100" />
+    <circle cx="0" cy="0" r="7" fill="#ffffff" />
+  </g>
+</svg>

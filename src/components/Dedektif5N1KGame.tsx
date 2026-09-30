@@ -357,7 +357,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
   };
 
   const currentLeaderIdx = useMemo(() => {
@@ -434,10 +434,10 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
       </header>
 
       {/* Main Game Arena */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex flex-col justify-between overflow-y-auto no-scrollbar min-h-0">
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
         {/* Story & Questions Area: 1, 2, or 3 columns */}
-        <div className={`w-full flex-1 grid gap-2 sm:gap-3 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentQ = questions[player.questionIndex % questions.length];
@@ -455,10 +455,10 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
-                {/* Player Header */}
-                <div className="flex items-center justify-between border-b border-white/15 pb-1.5 mb-1.5">
+                {/* 1. BÖLÜM: Player Header */}
+                <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm sm:text-base shrink-0">
                       {player.colorName === 'rose' ? '🔴' : player.colorName === 'blue' ? '🔵' : '🟢'}
@@ -477,31 +477,32 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                   </div>
                 </div>
 
-                {/* Vaka Dosyası (Hikaye Metni) - Puntosu Büyütüldü */}
-                <div className="bg-black/55 border-2 border-indigo-400/40 rounded-2xl p-3 sm:p-4 mb-2 relative overflow-hidden shadow-lg">
-                  <div className="flex items-center gap-2 mb-1.5 text-xs sm:text-sm font-black text-amber-300">
-                    <span className="text-base sm:text-lg">🔍</span>
-                    <span className="uppercase tracking-wider">Vaka Dosyası: {currentQ.title}</span>
+                {/* 2. BÖLÜM: Vaka Dosyası & Soru (3 Bölümlü Dengeli Orta Alan) */}
+                <div className="flex-1 min-h-0 flex flex-col justify-center my-1">
+                  {/* Vaka Dosyası (Hikaye Metni) */}
+                  <div className="bg-black/55 border-2 border-indigo-400/40 rounded-xl p-2 sm:p-2.5 mb-1 relative overflow-hidden shadow-md">
+                    <div className="flex items-center gap-1.5 mb-1 text-[11px] sm:text-xs font-black text-amber-300">
+                      <span className="text-sm sm:text-base">🔍</span>
+                      <span className="uppercase tracking-wider">Vaka Dosyası: {currentQ.title}</span>
+                    </div>
+                    <p className="text-xs sm:text-sm md:text-base text-slate-100 leading-snug font-semibold">
+                      "{currentQ.story}"
+                    </p>
                   </div>
-                  <p className="text-sm sm:text-base md:text-lg text-slate-100 leading-relaxed font-semibold">
-                    "{currentQ.story}"
-                  </p>
+
+                  {/* 5N 1K Soru Rozeti & Soru Cümlesi */}
+                  <div className="flex items-center justify-center gap-2 my-0.5 shrink-0">
+                    <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[10.5px] sm:text-xs uppercase shadow-sm">
+                      {currentQ.qTypeLabel}
+                    </span>
+                  </div>
+                  <h3 className="text-center font-black text-xs sm:text-sm md:text-base text-amber-200 mb-1 leading-snug px-1 drop-shadow-sm">
+                    {currentQ.question}
+                  </h3>
                 </div>
 
-                {/* 5N 1K Soru Rozeti */}
-                <div className="flex items-center justify-center gap-2 mb-1.5">
-                  <span className="px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-xs sm:text-sm md:text-base tracking-wider uppercase shadow-md">
-                    {currentQ.qTypeLabel}
-                  </span>
-                </div>
-
-                {/* Soru Cümlesi - Puntosu Büyütüldü */}
-                <h3 className="text-center font-black text-sm sm:text-base md:text-lg lg:text-xl text-amber-200 mb-2 leading-snug px-2 drop-shadow-sm">
-                  {currentQ.question}
-                </h3>
-
-                {/* Şıklar - Aşağıya İndirildi (mt-auto) ve Puntoları Büyütüldü */}
-                <div className="grid grid-cols-1 gap-2 mt-auto mb-1 w-full">
+                {/* 3. BÖLÜM: Şıklar (1 oyuncuda 2x2 grid, 2-3 oyuncuda 1 veya 2 sütun) */}
+                <div className={`grid ${playerMode === 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5 mt-auto mb-0.5 w-full shrink-0`}>
                   {currentQ.options.map((opt, oIdx) => {
                     const isChosen = player.selectedOption === opt;
                     const isRight = opt === currentQ.correctAnswer;
@@ -522,16 +523,16 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                         key={oIdx}
                         disabled={player.showFeedback}
                         onClick={() => handleOptionClick(pIdx, opt)}
-                        className={`w-full py-2.5 sm:py-3 px-3.5 sm:px-4 rounded-xl sm:rounded-2xl border-2 font-bold text-xs sm:text-sm md:text-base transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 shadow-md ${btnStyle}`}
+                        className={`w-full py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-xl border-2 font-bold text-xs sm:text-sm transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 shadow-sm ${btnStyle}`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black/40 flex items-center justify-center text-xs font-black shrink-0 border border-white/20">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/40 flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 border border-white/20">
                             {['A', 'B', 'C', 'D'][oIdx]}
                           </span>
                           <span className="truncate">{opt}</span>
                         </div>
-                        {player.showFeedback && isRight && <span className="text-white shrink-0 font-black text-base">✓</span>}
-                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0 font-black text-base">✗</span>}
+                        {player.showFeedback && isRight && <span className="text-white shrink-0 font-black text-sm">✓</span>}
+                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0 font-black text-sm">✗</span>}
                       </button>
                     );
                   })}
@@ -539,8 +540,8 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
 
                 {/* Didaktik Açıklama */}
                 {player.showFeedback && (
-                  <div className="mt-2 p-1.5 rounded-lg bg-black/50 border border-white/10 text-[10.5px] sm:text-xs text-amber-200 text-center animate-fade-in">
-                    {currentQ.explanation}
+                  <div className="mt-1 p-1 rounded-lg bg-black/50 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in shrink-0">
+                    <span className="line-clamp-2">{currentQ.explanation}</span>
                   </div>
                 )}
               </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Sparkles, CheckCircle2, RotateCcw, Shuffle, HelpCircle, 
@@ -365,6 +365,150 @@ function shuffleWords(words: string[]): WordItem[] {
   return items;
 }
 
+
+// ---------------------------------------------------------------------------
+// FitTrain: 2 / 3 oyunculu modda treni, bulunduğu kutuya SIĞACAK şekilde
+// otomatik ölçekler. Gerekirse treni 2-4 satıra böler (lokomotif + vagonlar),
+// hangi düzen daha büyük ölçek veriyorsa onu seçer. Kutu boyutu değişince
+// (pencere, 2↔3 oyuncu, kelime sayısı) kendiliğinden yeniden hesaplar.
+// ---------------------------------------------------------------------------
+interface FitTrainItem {
+  key: string;
+  node: React.ReactNode;
+}
+
+const FitTrain: React.FC<{
+  items: FitTrainItem[];
+  className?: string;
+  gapX?: number;
+  gapY?: number;
+  maxScale?: number;
+}> = ({ items, className = '', gapX = 6, gapY = 4, maxScale = 1.35 }) => {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [layout, setLayout] = useState({ rows: 1, scale: 1, ready: false });
+  const count = items.length;
+
+  const recompute = useCallback(() => {
+    const box = boxRef.current;
+    if (!box || count === 0) return;
+    const aw = box.clientWidth - 12;
+    const ah = box.clientHeight - 8;
+    if (aw <= 0 || ah <= 0) return;
+
+    const nodes = itemRefs.current.slice(0, count);
+    if (nodes.some(n => !n)) return;
+    const widths = nodes.map(n => (n as HTMLDivElement).offsetWidth);
+    if (widths.some(w => w === 0)) return;
+    const itemH = Math.max(...nodes.map(n => (n as HTMLDivElement).offsetHeight));
+    if (itemH === 0) return;
+
+    let best = { rows: 1, scale: -1 };
+    for (let r = 1; r <= Math.min(4, count); r++) {
+      const perRow = Math.ceil(count / r);
+      const realRows = Math.ceil(count / perRow);
+      let maxW = 0;
+      for (let i = 0; i < count; i += perRow) {
+        const chunk = widths.slice(i, i + perRow);
+        const w = chunk.reduce((a, b) => a + b, 0) + gapX * (chunk.length - 1);
+        if (w > maxW) maxW = w;
+      }
+      const totalH = realRows * itemH + (realRows - 1) * gapY;
+      const sc = Math.min(aw / maxW, ah / totalH, maxScale);
+      // Sadece belirgin kazanç varsa satır sayısını artır (titreme olmasın)
+      if (best.scale < 0 || sc > best.scale * 1.04) {
+        best = { rows: r, scale: sc };
+      }
+    }
+    const scale = Math.max(0.2, best.scale * 0.98);
+    setLayout(prev =>
+      prev.rows === best.rows && Math.abs(prev.scale - scale) < 0.005 && prev.ready
+        ? prev
+        : { rows: best.rows, scale, ready: true }
+    );
+  }, [count, gapX, gapY, maxScale]);
+
+  useLayoutEffect(() => {
+    recompute();
+  }, [recompute, items]);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    const inner = innerRef.current;
+    if (!box || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => recompute());
+    ro.observe(box);
+    if (inner) ro.observe(inner); // görseller yüklenince boyut değişir
+    return () => ro.disconnect();
+  }, [recompute]);
+
+  const perRow = Math.ceil(count / layout.rows) || 1;
+  const chunks: { item: FitTrainItem; index: number }[][] = [];
+  for (let i = 0; i < count; i += perRow) {
+    chunks.push(items.slice(i, i + perRow).map((item, k) => ({ item, index: i + k })));
+  }
+
+  return (
+    <div ref={boxRef} className={`relative flex-1 min-h-0 w-full overflow-hidden ${className}`}>
+      <div
+        ref={innerRef}
+        className="flex flex-col items-center"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          width: 'max-content',
+          gap: gapY,
+          transform: `translate(-50%, -50%) scale(${layout.scale})`,
+          transformOrigin: 'center center',
+          opacity: layout.ready ? 1 : 0,
+        }}
+      >
+        {chunks.map((row, ri) => (
+          <div key={ri} className="flex items-end justify-center" style={{ gap: gapX }}>
+            {row.map(({ item, index }) => (
+              <div
+                key={item.key}
+                ref={el => { itemRefs.current[index] = el; }}
+                className="shrink-0"
+              >
+                {item.node}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Çok oyunculu mod: vagon boyutu (doğal) ve kelime uzunluğuna göre yazı boyutu
+const MULTI_CAR_H = 120;
+const multiCarFont = (text: string) =>
+  text.length <= 6 ? 22 : text.length <= 9 ? 19 : text.length <= 11 ? 16 : 14;
+
+const PLAYER_THEMES = {
+  p1: {
+    panelBg: 'bg-[#3f161f]/90', border: 'border-rose-500/80', divider: 'border-rose-500/30',
+    dot: '🔴', nameText: 'text-rose-200', labelText: 'text-rose-200',
+    previewText: 'text-rose-100 border-rose-400/20',
+    btn: 'from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 border-rose-300',
+  },
+  p2: {
+    panelBg: 'bg-[#132847]/90', border: 'border-sky-500/80', divider: 'border-sky-500/30',
+    dot: '🔵', nameText: 'text-sky-200', labelText: 'text-sky-200',
+    previewText: 'text-sky-100 border-sky-400/20',
+    btn: 'from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 border-sky-300',
+  },
+  p3: {
+    panelBg: 'bg-[#0f2e20]/90', border: 'border-emerald-500/80', divider: 'border-emerald-500/30',
+    dot: '🟢', nameText: 'text-emerald-200', labelText: 'text-emerald-200',
+    previewText: 'text-emerald-100 border-emerald-400/20',
+    btn: 'from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 border-emerald-300',
+  },
+} as const;
+
 const TARGET_WIN_SCORE = 7;
 const MAX_MISTAKES = 3;
 
@@ -669,7 +813,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   };
 
   const handleNextSentence = () => {
-    triggerSound('/nextlvl.mp3');
+    triggerSound('/op.mp3');
     if (currentSentenceIndex < currentGradeSentences.length - 1) {
       setCurrentSentenceIndex(prev => prev + 1);
     } else {
@@ -838,6 +982,24 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   const p2Student = selectedStudentIds[1] ? students?.find(s => s.id === selectedStudentIds[1]) : null;
   const p3Student = selectedStudentIds[2] ? students?.find(s => s.id === selectedStudentIds[2]) : null;
 
+  const multiPlayers = [
+    {
+      key: 'p1' as const, label: '1. Oyuncu', student: p1Student, score: player1Score, mistakes: player1Mistakes,
+      words: p1Words, selIdx: p1SelectedIdx, draggedIdx: p1DraggedIdx, overIdx: p1DragOverIdx, shake: p1Shake,
+      setDragged: setP1DraggedIdx, setOver: setP1DragOverIdx,
+    },
+    {
+      key: 'p2' as const, label: '2. Oyuncu', student: p2Student, score: player2Score, mistakes: player2Mistakes,
+      words: p2Words, selIdx: p2SelectedIdx, draggedIdx: p2DraggedIdx, overIdx: p2DragOverIdx, shake: p2Shake,
+      setDragged: setP2DraggedIdx, setOver: setP2DragOverIdx,
+    },
+    {
+      key: 'p3' as const, label: '3. Oyuncu', student: p3Student, score: player3Score, mistakes: player3Mistakes,
+      words: p3Words, selIdx: p3SelectedIdx, draggedIdx: p3DraggedIdx, overIdx: p3DragOverIdx, shake: p3Shake,
+      setDragged: setP3DraggedIdx, setOver: setP3DragOverIdx,
+    },
+  ];
+
   const assembledText = words.map(w => w.text).join(' ') + currentSentence.punctuation;
   const gradeCompletedCount = currentGradeSentences.filter(s => completedSentences.includes(s.id)).length;
 
@@ -919,7 +1081,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       </header>
 
       {/* 3. OYUN ALANI (ORTA ALAN) */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-between w-full overflow-y-auto no-scrollbar p-1.5 sm:p-2.5">
+      <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-between w-full overflow-y-auto no-scrollbar p-1.5 sm:p-2.5">
         
         {/* Sınıf Düzeyi Seçici */}
         <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2.5 shrink-0 pt-0.5 flex-wrap">
@@ -951,13 +1113,13 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         {/* A) 1 OYUNCU MODU */}
         {/* =================================================================== */}
         {activePlayerMode === 1 ? (
-          <div className="w-full flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto min-h-0 overflow-hidden px-1 sm:px-2">
-            <main className="flex-1 w-full flex flex-col items-center justify-center gap-2.5 py-2">
+          <div className="w-full flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto min-h-0 overflow-y-auto no-scrollbar px-1 sm:px-2">
+            <main className="flex-1 w-full flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-1">
             
             {/* Cümle Kartı Başlığı */}
-            <div className="flex items-center gap-3 bg-black/60 px-4 py-1.5 rounded-2xl border border-white/15 shadow-md">
-              <span className="text-xl">{currentSentence.themeEmoji}</span>
-              <span className="text-base font-black text-amber-300 uppercase tracking-wide">
+            <div className="flex items-center gap-2 sm:gap-3 bg-black/60 px-3 sm:px-4 py-1 rounded-2xl border border-white/15 shadow-md shrink-0">
+              <span className="text-lg sm:text-xl">{currentSentence.themeEmoji}</span>
+              <span className="text-sm sm:text-base font-black text-amber-300 uppercase tracking-wide">
                 {currentSentence.themeTitle}
               </span>
               <span className="text-xs text-slate-400">
@@ -966,35 +1128,68 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
             </div>
 
             {/* Kelimeler Alanı */}
-            <div className={`w-full max-w-3xl p-4 sm:p-6 rounded-3xl bg-gradient-to-b ${currentSentence.themeGradient} border-2 ${currentSentence.borderColor} ${currentSentence.glowColor} shadow-2xl flex flex-col items-center gap-4 transition-all ${
+            <div className={`w-full max-w-4xl p-2.5 sm:p-3.5 md:p-4 rounded-3xl bg-gradient-to-b ${currentSentence.themeGradient} border-2 ${currentSentence.borderColor} ${currentSentence.glowColor} shadow-2xl flex flex-col items-center gap-2 sm:gap-2.5 transition-all ${
               showErrorShake ? 'animate-shake' : ''
             }`}>
               
               {/* Cümle Treni (Vagon Sıralama) Bilgilendirme */}
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 border border-amber-400/40 text-[11px] sm:text-xs font-bold text-amber-200 text-center">
-                <span>🚂</span>
+              <div className="flex items-center gap-2 px-3 py-0.5 rounded-full bg-black/40 border border-amber-400/40 text-[10px] sm:text-xs font-bold text-amber-200 text-center shrink-0">
+                <img src="/loko.png" alt="Lokomotif" className="w-4 sm:w-5 h-auto object-contain inline-block" />
                 <span>Vagonları sürükleyerek veya tıklayarak doğru sıraya diz!</span>
               </div>
 
               {/* Tren Rayı & Vagonlar */}
-              <div className="w-full flex items-center justify-center gap-1 sm:gap-2 my-2 overflow-x-auto py-2 px-2 no-scrollbar">
-                {/* LOKOMOTİF BAŞI */}
-                <div className="shrink-0 flex flex-col items-center justify-center px-2.5 sm:px-3.5 py-2 sm:py-3 bg-gradient-to-b from-amber-500 via-amber-600 to-amber-700 border-2 border-amber-300 rounded-2xl shadow-xl text-slate-950 font-black select-none">
-                  <span className="text-2xl sm:text-3xl">🚂</span>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-900 mt-0.5">TREN</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-amber-200 inline-block shadow-inner" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-amber-200 inline-block shadow-inner" />
+              <div className="w-full overflow-x-auto py-1 px-2 no-scrollbar my-1">
+                <div className="flex items-end justify-start sm:justify-center gap-1 sm:gap-2 min-w-max mx-auto">
+                  {/* LOKOMOTİF BAŞI (loko.png - ARKA PLANI ŞEFFAF) */}
+                  <div className="shrink-0 relative flex flex-col items-center justify-end select-none group pb-1">
+                    <div className="relative">
+                      <img 
+                        src="/loko.png" 
+                        alt="Lokomotif" 
+                        className={`${
+                          words.length <= 3 
+                            ? 'h-24 sm:h-30 md:h-36 lg:h-42' 
+                            : words.length === 4
+                            ? 'h-22 sm:h-26 md:h-32 lg:h-36'
+                            : words.length === 5
+                            ? 'h-20 sm:h-24 md:h-28 lg:h-32'
+                            : 'h-16 sm:h-20 md:h-24 lg:h-28'
+                        } w-auto object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] pointer-events-none select-none transition-transform group-hover:scale-105`}
+                        draggable={false}
+                      />
+                      <div className="absolute -top-2 left-4 sm:left-6 px-1.5 sm:px-2 py-0.5 bg-black/75 backdrop-blur-xs rounded-full border border-amber-400/50 text-[8px] sm:text-[9px] font-black text-amber-300 shadow-md flex items-center gap-1">
+                        <span className="animate-pulse">💨</span>
+                        <span>LOKO</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <span className="text-amber-400/80 font-black text-sm sm:text-base shrink-0 select-none">🔗</span>
+                  <span className="text-amber-400/80 font-black text-xs sm:text-sm shrink-0 select-none pb-5">🔗</span>
 
-                {/* VAGONLAR (KELİMELER) */}
-                {words.map((word, idx) => {
-                  const isSelected = selectedWordIndex === idx;
-                  const isDragged = draggedIndex === idx;
-                  const isOver = dragOverIndex === idx;
+                  {/* VAGONLAR (vago.png - ARKA PLANI ŞEFFAF) */}
+                  {words.map((word, idx) => {
+                    const isSelected = selectedWordIndex === idx;
+                    const isDragged = draggedIndex === idx;
+                    const isOver = dragOverIndex === idx;
+                    
+                    const wCount = words.length;
+                    const vagonHClass = wCount <= 3 
+                      ? 'h-24 sm:h-30 md:h-36 lg:h-42' 
+                      : wCount === 4
+                      ? 'h-22 sm:h-26 md:h-32 lg:h-36'
+                      : wCount === 5
+                      ? 'h-20 sm:h-24 md:h-28 lg:h-32'
+                      : 'h-16 sm:h-20 md:h-24 lg:h-28';
+                    const vagonMinW = wCount <= 3 ? '135px' : wCount === 4 ? '120px' : wCount === 5 ? '105px' : '95px';
+                    const vagonFontClass = wCount <= 3
+                      ? (word.text.length > 8 ? 'text-xs sm:text-sm md:text-base font-extrabold' : 'text-sm sm:text-lg md:text-xl lg:text-2xl font-black')
+                      : wCount === 4
+                      ? (word.text.length > 8 ? 'text-[11px] sm:text-xs md:text-sm font-extrabold' : 'text-xs sm:text-base md:text-lg lg:text-xl font-black')
+                      : wCount === 5
+                      ? (word.text.length > 8 ? 'text-[10px] sm:text-[11px] md:text-xs font-extrabold' : 'text-[11px] sm:text-sm md:text-base lg:text-lg font-black')
+                      : (word.text.length > 8 ? 'text-[9px] sm:text-[10px] md:text-[11px] font-extrabold' : 'text-[10px] sm:text-[11px] md:text-sm lg:text-base font-black');
+
                   return (
                     <React.Fragment key={word.id}>
                       <div
@@ -1019,52 +1214,70 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                           setDragOverIndex(null);
                         }}
                         onClick={() => handleWordClick(idx)}
-                        className={`group relative flex flex-col items-center justify-between px-4 sm:px-7 py-3 sm:py-4 rounded-2xl min-w-[90px] sm:min-w-[125px] font-black transition-all cursor-grab active:cursor-grabbing shadow-xl select-none ${
+                        className={`group relative flex flex-col items-center justify-end select-none cursor-grab active:cursor-grabbing transition-all duration-200 pb-1 ${
                           isCorrect
-                            ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 text-white border-2 border-emerald-200 shadow-emerald-500/50 scale-102'
+                            ? 'scale-105 filter drop-shadow-[0_0_16px_rgba(16,185,129,0.85)] animate-bounce'
                             : isOver
-                            ? 'bg-amber-300 text-slate-950 border-3 border-yellow-300 ring-4 ring-yellow-400 scale-108 shadow-2xl'
+                            ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(251,191,36,0.95)] z-20'
                             : isSelected
-                            ? 'bg-amber-400 text-slate-950 border-3 border-white ring-4 ring-amber-300/80 scale-105'
+                            ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(245,158,11,0.95)] z-20 animate-pulse'
                             : isDragged
-                            ? 'opacity-50 scale-95 border-2 border-dashed border-amber-300'
-                            : 'bg-gradient-to-b from-slate-100 to-slate-200 hover:from-white hover:to-slate-100 text-slate-900 hover:border-amber-400 border-2 border-slate-300'
+                            ? 'opacity-40 scale-95'
+                            : 'hover:scale-105 active:scale-95 filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]'
                         }`}
+                        style={{ minWidth: vagonMinW }}
                       >
-                        {/* Wagon Roof Header */}
-                        <div className="w-full flex items-center justify-between gap-1 pb-1 border-b border-black/10 text-[10px] sm:text-xs font-black text-slate-600">
-                          <GripVertical size={13} className="text-slate-400 group-hover:text-amber-600" />
-                          <span className="uppercase tracking-wider">Vagon #{idx + 1}</span>
-                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        {/* Vagon Numarası Etiketi */}
+                        <div className={`px-2 py-0.5 rounded-full text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider mb-0.5 shadow-sm border transition-colors ${
+                          isCorrect 
+                            ? 'bg-emerald-500 text-white border-emerald-300'
+                            : isSelected
+                            ? 'bg-amber-400 text-slate-950 border-amber-200'
+                            : 'bg-black/75 text-amber-200 border-amber-400/40'
+                        }`}>
+                          Vagon #{idx + 1}
                         </div>
 
-                        {/* Word Text */}
-                        <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black my-2 sm:my-3 text-slate-900 tracking-wide drop-shadow-xs">
-                          {word.text}
-                        </span>
+                        {/* Vagon Görseli (vago.png) ve İçindeki Kelime */}
+                        <div className="relative flex items-center justify-center">
+                          <img 
+                            src="/vago.png" 
+                            alt={`Vagon ${idx + 1}`}
+                            className={`${vagonHClass} w-auto object-contain select-none pointer-events-none`}
+                            draggable={false}
+                          />
 
-                        {/* Wagon Wheels */}
-                        <div className="w-full flex items-center justify-between px-1 pt-1 border-t border-black/10">
-                          <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[8px] text-amber-300">⚙</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-bold">━━━━</span>
-                          <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 shadow-inner flex items-center justify-center text-[8px] text-amber-300">⚙</span>
+                          {/* Kelime: Vagonun Turkuaz Haznesine Yerleşir */}
+                          <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
+                            <span className={`text-center tracking-tight leading-tight select-none transition-all drop-shadow-xs text-slate-950 ${vagonFontClass}`}>
+                              {word.text}
+                            </span>
+                          </div>
+
+                          {/* Doğruluk veya Seçim Rozeti */}
+                          {isCorrect ? (
+                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px] shadow-md">✓</span>
+                          ) : isSelected ? (
+                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-slate-950 text-[10px] font-black shadow-md animate-ping">●</span>
+                          ) : null}
                         </div>
                       </div>
 
                       {idx < words.length - 1 && (
-                        <span className="text-amber-400/80 font-black text-base sm:text-xl shrink-0 select-none">🔗</span>
+                        <span className="text-amber-400/80 font-black text-xs sm:text-sm shrink-0 select-none pb-5">🔗</span>
                       )}
                     </React.Fragment>
                   );
                 })}
-              </div>
+                  </div>
+                </div>
 
               {/* Önizleme Cümlesi */}
-              <div className="w-full bg-black/40 border border-white/10 rounded-2xl p-3 sm:p-4 text-center">
-                <span className="text-xs text-slate-400 uppercase tracking-widest block mb-1">
+              <div className="w-full bg-black/40 border border-white/10 rounded-2xl px-3 py-1.5 sm:py-2 text-center shrink-0">
+                <span className="text-[10px] sm:text-xs text-amber-300 uppercase tracking-widest block font-bold mb-0.5">
                   Oluşturulan Cümle
                 </span>
-                <span className={`text-lg sm:text-2xl md:text-3xl font-black ${
+                <span className={`text-base sm:text-xl md:text-2xl font-black ${
                   isCorrect ? 'text-emerald-400' : 'text-white'
                 }`}>
                   "{assembledText}"
@@ -1072,10 +1285,10 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
               </div>
 
               {/* Aksiyon Butonları */}
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 <button
                   onClick={handleShuffle}
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
+                  className="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
                   title="Kelimeleri Karıştır"
                 >
                   <Shuffle size={14} />
@@ -1085,24 +1298,24 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 {!isCorrect ? (
                   <button
                     onClick={handleCheck}
-                    className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg border border-emerald-300 flex items-center gap-2 cursor-pointer transition active:scale-95"
+                    className="px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm md:text-base rounded-2xl shadow-lg border border-emerald-300 flex items-center gap-2 cursor-pointer transition active:scale-95"
                   >
-                    <CheckCircle2 size={18} />
+                    <CheckCircle2 size={16} />
                     <span>KONTROL ET</span>
                   </button>
                 ) : (
                   <button
                     onClick={handleNextSentence}
-                    className="px-6 py-2.5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-sm sm:text-base rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2 cursor-pointer transition active:scale-95 animate-bounce"
+                    className="px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm md:text-base rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2 cursor-pointer transition active:scale-95 animate-bounce"
                   >
                     <span>SONRAKİ CÜMLE</span>
-                    <ArrowRight size={18} />
+                    <ArrowRight size={16} />
                   </button>
                 )}
 
                 <button
                   onClick={() => speakSentence(assembledText)}
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
+                  className="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
                   title="Sesli Oku"
                 >
                   <Volume2 size={14} />
@@ -1110,20 +1323,20 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 </button>
               </div>
 
-              {/* Didaktik İpucu ve Eğlenceli Bilgi */}
-              <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
-                <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl p-2.5 text-xs text-amber-200 flex items-start gap-2">
-                  <HelpCircle size={15} className="text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block text-amber-300">Kurallı Cümle Kuralı:</span>
+              {/* Didaktik İpucu ve Eğlenceli Bilgi (Kompakt Tek Satır Izgara) */}
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-1.5 shrink-0">
+                <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl px-2.5 py-1 text-xs text-amber-200 flex items-center gap-2">
+                  <HelpCircle size={14} className="text-amber-400 shrink-0" />
+                  <div className="text-[11px] leading-tight truncate">
+                    <span className="font-bold text-amber-300 mr-1">Kural:</span>
                     <span>{currentSentence.didacticHint}</span>
                   </div>
                 </div>
 
-                <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl p-2.5 text-xs text-sky-200 flex items-start gap-2">
-                  <Sparkles size={15} className="text-sky-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block text-sky-300">Biliyor muydunuz?</span>
+                <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl px-2.5 py-1 text-xs text-sky-200 flex items-center gap-2">
+                  <Sparkles size={14} className="text-sky-400 shrink-0" />
+                  <div className="text-[11px] leading-tight truncate">
+                    <span className="font-bold text-sky-300 mr-1">İpucu:</span>
                     <span>{currentSentence.funFact}</span>
                   </div>
                 </div>
@@ -1135,290 +1348,151 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
           /* =================================================================== */
           /* B) 2 VE 3 OYUNCU MODU (KAPIŞMA DÜELLOSU) */
           /* =================================================================== */
-          <main className="flex-1 w-full flex flex-col items-center justify-between gap-2 py-1">
+          <main className="flex-1 min-h-[290px] w-full flex flex-col items-center gap-1.5 py-0.5">
             
             {/* Cümle Konusu Bilgi Şeridi */}
-            <div className="bg-black/60 px-4 py-1 rounded-2xl border border-white/20 flex items-center gap-2">
-              <span className="text-lg">{currentSentence.themeEmoji}</span>
-              <span className="text-sm font-black text-amber-300 uppercase">
+            <div className="bg-black/60 px-3 py-0.5 rounded-2xl border border-white/20 flex items-center gap-2 shrink-0 max-w-full">
+              <span className="text-base">{currentSentence.themeEmoji}</span>
+              <span className="text-xs sm:text-sm font-black text-amber-300 uppercase whitespace-nowrap">
                 {currentSentence.themeTitle}
               </span>
-              <span className="text-xs text-slate-300">
+              <span className="text-[10px] sm:text-xs text-slate-300 truncate">
                 — Cümleyi ilk kurup "KONTROL ET" butonuna basan kazanır!
               </span>
             </div>
 
-            {/* Oyuncu Alanları (2 veya 3 sütun) */}
-            <div className="w-full flex-1 flex flex-row gap-2 sm:gap-3 min-h-[340px]">
-              
-              {/* 1. OYUNCU (KIRMIZI / KAPLAN) */}
-              <div className={`flex-1 rounded-2xl bg-[#3f161f]/90 border-2 ${
-                roundWinner === 'p1' ? 'border-emerald-400 ring-4 ring-emerald-400/50' : 'border-rose-500/80'
-              } p-2 sm:p-3 flex flex-col justify-between shadow-xl transition-all ${
-                p1Shake ? 'animate-shake' : ''
-              }`}>
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-rose-500/30 pb-1.5 mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">🔴</span>
-                    <span className="font-black text-rose-200 text-xs sm:text-sm uppercase truncate max-w-[130px]">
-                      {p1Student ? p1Student.name : '1. Oyuncu'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-black text-amber-300 text-xs sm:text-sm">{player1Score} Puan</span>
-                    <div className="flex items-center gap-0.5">
-                      {[0, 1, 2].map(idx => (
-                        <span key={idx} className={idx >= (MAX_MISTAKES - player1Mistakes) ? 'opacity-30 grayscale' : ''}>
-                          {idx < (MAX_MISTAKES - player1Mistakes) ? '❤️' : '❌'}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kelimeler Listesi */}
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 my-auto">
-                  {p1Words.map((word, idx) => {
-                    const isSel = p1SelectedIdx === idx;
-                    const isDragged = p1DraggedIdx === idx;
-                    const isOver = p1DragOverIdx === idx;
-                    return (
-                      <div
-                        key={`p1-${word.id}`}
-                        draggable={roundWinner === null}
-                        onDragStart={(e) => {
-                          setP1DraggedIdx(idx);
-                          e.dataTransfer.setData('text/plain', String(idx));
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (p1DragOverIdx !== idx) setP1DragOverIdx(idx);
-                        }}
-                        onDragLeave={() => setP1DragOverIdx(null)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (p1DraggedIdx !== null) {
-                            handleMultiDropWord('p1', p1DraggedIdx, idx);
-                          }
-                        }}
-                        onDragEnd={() => {
-                          setP1DraggedIdx(null);
-                          setP1DragOverIdx(null);
-                        }}
-                        onClick={() => handleMultiWordClick('p1', idx)}
-                        className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
-                          roundWinner === 'p1'
-                            ? 'bg-emerald-500 text-white border-2 border-emerald-300'
-                            : isOver
-                            ? 'bg-amber-300 text-slate-950 ring-4 ring-yellow-400 scale-105'
-                            : isSel
-                            ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-300 scale-105'
-                            : isDragged
-                            ? 'opacity-40 border-2 border-dashed border-rose-300'
-                            : 'bg-white text-slate-950 hover:bg-rose-100 border border-slate-300'
-                        }`}
-                      >
-                        <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
-                        <div className="font-black tracking-wide">{word.text}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Önizleme & Kontrol Butonu */}
-                <div className="pt-2 border-t border-rose-500/30 flex flex-col gap-1.5">
-                  <div className="text-xs sm:text-sm font-bold text-rose-100/90 text-center truncate px-1">
-                    "{p1Words.map(w => w.text).join(' ')}"
-                  </div>
-                  <button
-                    onClick={() => handleMultiCheck('p1')}
-                    className="w-full py-2.5 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-rose-300 active:scale-95 cursor-pointer"
-                  >
-                    ✓ KONTROL ET
-                  </button>
-                </div>
-              </div>
-
-              {/* 2. OYUNCU (MAVİ / EJDERHA) */}
-              <div className={`flex-1 rounded-2xl bg-[#132847]/90 border-2 ${
-                roundWinner === 'p2' ? 'border-emerald-400 ring-4 ring-emerald-400/50' : 'border-sky-500/80'
-              } p-2 sm:p-3 flex flex-col justify-between shadow-xl transition-all ${
-                p2Shake ? 'animate-shake' : ''
-              }`}>
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-sky-500/30 pb-1.5 mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">🔵</span>
-                    <span className="font-black text-sky-200 text-xs sm:text-sm uppercase truncate max-w-[130px]">
-                      {p2Student ? p2Student.name : '2. Oyuncu'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-black text-amber-300 text-xs sm:text-sm">{player2Score} Puan</span>
-                    <div className="flex items-center gap-0.5">
-                      {[0, 1, 2].map(idx => (
-                        <span key={idx} className={idx >= (MAX_MISTAKES - player2Mistakes) ? 'opacity-30 grayscale' : ''}>
-                          {idx < (MAX_MISTAKES - player2Mistakes) ? '❤️' : '❌'}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kelimeler Listesi */}
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 my-auto">
-                  {p2Words.map((word, idx) => {
-                    const isSel = p2SelectedIdx === idx;
-                    const isDragged = p2DraggedIdx === idx;
-                    const isOver = p2DragOverIdx === idx;
-                    return (
-                      <div
-                        key={`p2-${word.id}`}
-                        draggable={roundWinner === null}
-                        onDragStart={(e) => {
-                          setP2DraggedIdx(idx);
-                          e.dataTransfer.setData('text/plain', String(idx));
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (p2DragOverIdx !== idx) setP2DragOverIdx(idx);
-                        }}
-                        onDragLeave={() => setP2DragOverIdx(null)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (p2DraggedIdx !== null) {
-                            handleMultiDropWord('p2', p2DraggedIdx, idx);
-                          }
-                        }}
-                        onDragEnd={() => {
-                          setP2DraggedIdx(null);
-                          setP2DragOverIdx(null);
-                        }}
-                        onClick={() => handleMultiWordClick('p2', idx)}
-                        className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
-                          roundWinner === 'p2'
-                            ? 'bg-emerald-500 text-white border-2 border-emerald-300'
-                            : isOver
-                            ? 'bg-amber-300 text-slate-950 ring-4 ring-yellow-400 scale-105'
-                            : isSel
-                            ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-300 scale-105'
-                            : isDragged
-                            ? 'opacity-40 border-2 border-dashed border-sky-300'
-                            : 'bg-white text-slate-950 hover:bg-sky-100 border border-slate-300'
-                        }`}
-                      >
-                        <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
-                        <div className="font-black tracking-wide">{word.text}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Önizleme & Kontrol Butonu */}
-                <div className="pt-2 border-t border-sky-500/30 flex flex-col gap-1.5">
-                  <div className="text-xs sm:text-sm font-bold text-sky-100/90 text-center truncate px-1">
-                    "{p2Words.map(w => w.text).join(' ')}"
-                  </div>
-                  <button
-                    onClick={() => handleMultiCheck('p2')}
-                    className="w-full py-2.5 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-sky-300 active:scale-95 cursor-pointer"
-                  >
-                    ✓ KONTROL ET
-                  </button>
-                </div>
-              </div>
-
-              {/* 3. OYUNCU (YEŞİL / SAVAŞÇI - SADECE 3 OYUNCU MODUNDA) */}
-              {activePlayerMode === 3 && (
-                <div className={`flex-1 rounded-2xl bg-[#0f2e20]/90 border-2 ${
-                  roundWinner === 'p3' ? 'border-emerald-400 ring-4 ring-emerald-400/50' : 'border-emerald-500/80'
-                } p-2 sm:p-3 flex flex-col justify-between shadow-xl transition-all ${
-                  p3Shake ? 'animate-shake' : ''
-                }`}>
-                  {/* Header */}
-                  <div className="flex items-center justify-between border-b border-emerald-500/30 pb-1.5 mb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-base">🟢</span>
-                      <span className="font-black text-emerald-200 text-xs sm:text-sm uppercase truncate max-w-[130px]">
-                        {p3Student ? p3Student.name : '3. Oyuncu'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-black text-amber-300 text-xs sm:text-sm">{player3Score} Puan</span>
-                      <div className="flex items-center gap-0.5">
-                        {[0, 1, 2].map(idx => (
-                          <span key={idx} className={idx >= (MAX_MISTAKES - player3Mistakes) ? 'opacity-30 grayscale' : ''}>
-                            {idx < (MAX_MISTAKES - player3Mistakes) ? '❤️' : '❌'}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Kelimeler Listesi */}
-                  <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 my-auto">
-                    {p3Words.map((word, idx) => {
-                      const isSel = p3SelectedIdx === idx;
-                      const isDragged = p3DraggedIdx === idx;
-                      const isOver = p3DragOverIdx === idx;
-                      return (
+            {/* Oyuncu Alanları: sütunlar eşit paylaşır (min-w-0), tren kutuya otomatik sığar */}
+            <div className="w-full flex-1 min-h-0 flex flex-row gap-1.5 sm:gap-3">
+              {multiPlayers.slice(0, activePlayerMode).map((p) => {
+                const t = PLAYER_THEMES[p.key];
+                const carItems: FitTrainItem[] = [
+                  {
+                    key: `${p.key}-loko`,
+                    node: (
+                      <img
+                        src="/loko.png"
+                        alt="Lokomotif"
+                        style={{ height: MULTI_CAR_H }}
+                        className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
+                        draggable={false}
+                      />
+                    ),
+                  },
+                  ...p.words.map((word, idx) => {
+                    const isSel = p.selIdx === idx;
+                    const isDragged = p.draggedIdx === idx;
+                    const isOver = p.overIdx === idx;
+                    return {
+                      key: `${p.key}-${word.id}`,
+                      node: (
                         <div
-                          key={`p3-${word.id}`}
                           draggable={roundWinner === null}
                           onDragStart={(e) => {
-                            setP3DraggedIdx(idx);
+                            p.setDragged(idx);
                             e.dataTransfer.setData('text/plain', String(idx));
                           }}
                           onDragOver={(e) => {
                             e.preventDefault();
-                            if (p3DragOverIdx !== idx) setP3DragOverIdx(idx);
+                            if (p.overIdx !== idx) p.setOver(idx);
                           }}
-                          onDragLeave={() => setP3DragOverIdx(null)}
+                          onDragLeave={() => p.setOver(null)}
                           onDrop={(e) => {
                             e.preventDefault();
-                            if (p3DraggedIdx !== null) {
-                              handleMultiDropWord('p3', p3DraggedIdx, idx);
+                            if (p.draggedIdx !== null) {
+                              handleMultiDropWord(p.key, p.draggedIdx, idx);
                             }
                           }}
                           onDragEnd={() => {
-                            setP3DraggedIdx(null);
-                            setP3DragOverIdx(null);
+                            p.setDragged(null);
+                            p.setOver(null);
                           }}
-                          onClick={() => handleMultiWordClick('p3', idx)}
-                          className={`px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-2xl font-black text-base sm:text-xl md:text-2xl transition-all active:scale-95 cursor-grab active:cursor-grabbing shadow-lg select-none min-w-[75px] sm:min-w-[95px] text-center ${
-                            roundWinner === 'p3'
-                              ? 'bg-emerald-500 text-white border-2 border-emerald-300'
+                          onClick={() => handleMultiWordClick(p.key, idx)}
+                          className={`group relative flex flex-col items-center justify-end select-none cursor-grab active:cursor-grabbing transition-all ${
+                            roundWinner === p.key
+                              ? 'scale-105 filter drop-shadow-[0_0_12px_rgba(16,185,129,0.9)] animate-bounce'
                               : isOver
-                              ? 'bg-amber-300 text-slate-950 ring-4 ring-yellow-400 scale-105'
+                              ? 'scale-110 filter drop-shadow-[0_0_15px_rgba(251,191,36,0.9)] z-20'
                               : isSel
-                              ? 'bg-amber-400 text-slate-950 ring-4 ring-amber-300 scale-105'
+                              ? 'scale-110 filter drop-shadow-[0_0_15px_rgba(245,158,11,0.9)] z-20'
                               : isDragged
-                              ? 'opacity-40 border-2 border-dashed border-emerald-300'
-                              : 'bg-white text-slate-950 hover:bg-emerald-100 border border-slate-300'
+                              ? 'opacity-40 scale-95'
+                              : 'hover:scale-105 active:scale-95'
                           }`}
                         >
-                          <div className="text-[10px] sm:text-xs opacity-60 font-bold uppercase mb-0.5">#{idx + 1}</div>
-                          <div className="font-black tracking-wide">{word.text}</div>
+                          <div className={`text-[11px] font-black uppercase mb-0.5 ${t.labelText}`}>#{idx + 1}</div>
+                          <div className="relative flex items-center justify-center">
+                            <img
+                              src="/vago.png"
+                              alt={`Vagon ${idx + 1}`}
+                              style={{ height: MULTI_CAR_H }}
+                              className="w-auto object-contain select-none pointer-events-none block"
+                              draggable={false}
+                            />
+                            <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
+                              <span
+                                style={{ fontSize: multiCarFont(word.text) }}
+                                className="text-slate-950 font-black text-center leading-tight tracking-tight whitespace-nowrap"
+                              >
+                                {word.text}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ),
+                    };
+                  }),
+                ];
 
-                  {/* Önizleme & Kontrol Butonu */}
-                  <div className="pt-2 border-t border-emerald-500/30 flex flex-col gap-1.5">
-                    <div className="text-xs sm:text-sm font-bold text-emerald-100/90 text-center truncate px-1">
-                      "{p3Words.map(w => w.text).join(' ')}"
+                return (
+                  <div
+                    key={p.key}
+                    className={`flex-1 basis-0 min-w-0 min-h-0 rounded-2xl sm:rounded-3xl ${t.panelBg} border-2 ${
+                      roundWinner === p.key ? 'border-emerald-400 ring-4 ring-emerald-400/50' : t.border
+                    } p-1.5 sm:p-2 flex flex-col shadow-xl transition-all ${p.shake ? 'animate-shake' : ''}`}
+                  >
+                    {/* OYUNCU BİLGİ VE SKOR ŞERİDİ */}
+                    <div className={`flex items-center justify-between gap-1 border-b ${t.divider} pb-1 shrink-0 h-8`}>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-base sm:text-lg shrink-0">{t.dot}</span>
+                        <span className={`font-black ${t.nameText} text-xs sm:text-sm uppercase truncate`}>
+                          {p.student ? p.student.name : p.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="font-black text-amber-300 text-xs sm:text-sm bg-black/40 px-1.5 py-0.5 rounded-lg border border-amber-400/30 whitespace-nowrap">
+                          {p.score} Puan
+                        </span>
+                        <div className="flex items-center gap-0.5 text-xs sm:text-sm">
+                          {[0, 1, 2].map(i => (
+                            <span key={i} className={i >= (MAX_MISTAKES - p.mistakes) ? 'opacity-30 grayscale' : ''}>
+                              {i < (MAX_MISTAKES - p.mistakes) ? '❤️' : '❌'}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleMultiCheck('p3')}
-                      className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm sm:text-base rounded-xl shadow-md border border-emerald-300 active:scale-95 cursor-pointer"
-                    >
-                      ✓ KONTROL ET
-                    </button>
+
+                    {/* TREN ARENASI: kutuya otomatik sığdırılır */}
+                    <FitTrain
+                      items={carItems}
+                      className={`my-1 bg-black/40 border ${t.divider} rounded-2xl`}
+                    />
+
+                    {/* ÖNİZLEME VE KONTROL BUTONU */}
+                    <div className={`pt-1 border-t ${t.divider} flex flex-col gap-1 shrink-0`}>
+                      <div className={`bg-black/50 px-2 py-0.5 rounded-xl text-xs sm:text-sm font-bold text-center truncate border ${t.previewText}`}>
+                        "{p.words.map(w => w.text).join(' ')}"
+                      </div>
+                      <button
+                        onClick={() => handleMultiCheck(p.key)}
+                        className={`w-full py-1.5 sm:py-2 bg-gradient-to-r ${t.btn} text-white font-black text-xs sm:text-sm md:text-base rounded-xl sm:rounded-2xl shadow-lg border active:scale-95 cursor-pointer transition-all`}
+                      >
+                        ✓ KONTROL ET
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })}
             </div>
           </main>
         )}

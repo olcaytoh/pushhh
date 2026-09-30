@@ -185,7 +185,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
     if (!soundEnabled || !playMp3) return;
     if (type === 'correct') playMp3('/correct.mp3');
     else if (type === 'wrong') playMp3('/hata.mp3');
-    else if (type === 'win') playMp3('/nextlvl.mp3');
+    else if (type === 'win') playMp3('/coin.mp3');
     else playMp3('/op.mp3');
   }, [soundEnabled, playMp3]);
 
