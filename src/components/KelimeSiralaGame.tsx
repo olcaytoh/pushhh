@@ -30,7 +30,8 @@ interface KelimeSiralaGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (pIdx: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type GradeGroup = '1-2' | '3-4';
@@ -46,38 +47,6 @@ interface PlayerState {
   status: 'idle' | 'checking' | 'correct' | 'wrong';
   shake: boolean;
 }
-
-const getWordFontSize = (word: string, mode: number, count: number): string => {
-  const len = word.length;
-  // 3-Player mode (tightest columns)
-  if (mode === 3) {
-    if (len <= 4) return 'text-xs sm:text-sm md:text-base';
-    if (len <= 7) return 'text-[11px] sm:text-xs md:text-sm';
-    return 'text-[9.5px] xs:text-[10px] sm:text-[11px]';
-  }
-  // 2-Player mode
-  if (mode === 2) {
-    if (count === 4) {
-      if (len <= 4) return 'text-sm sm:text-base md:text-lg lg:text-xl';
-      if (len <= 7) return 'text-xs sm:text-sm md:text-base lg:text-lg';
-      return 'text-[10.5px] sm:text-xs md:text-sm';
-    }
-    // 3 words
-    if (len <= 4) return 'text-base sm:text-lg md:text-xl lg:text-2xl';
-    if (len <= 7) return 'text-sm sm:text-base md:text-lg lg:text-xl';
-    return 'text-xs sm:text-sm md:text-base';
-  }
-  // 1-Player mode (Single screen)
-  if (count === 4) {
-    if (len <= 4) return 'text-lg sm:text-xl md:text-2xl lg:text-3xl';
-    if (len <= 7) return 'text-base sm:text-lg md:text-xl lg:text-2xl';
-    return 'text-xs sm:text-sm md:text-base lg:text-lg';
-  }
-  // 3 words in 1-player
-  if (len <= 4) return 'text-xl sm:text-2xl md:text-3xl lg:text-4xl';
-  if (len <= 7) return 'text-lg sm:text-xl md:text-2xl lg:text-3xl';
-  return 'text-sm sm:text-base md:text-lg lg:text-xl';
-};
 
 export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
   onClose,
@@ -95,6 +64,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
   onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered,
+  onGameCompleted,
 }) => {
   // Config state
   const [gradeGroup, setGradeGroup] = useState<GradeGroup>(initialGradeGroup);
@@ -452,7 +422,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
       triggerSound('/coin.mp3');
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(true);
+        onQuestionAnswered(true, playerIdx);
       }
 
       // Confetti burst
@@ -464,15 +434,13 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
         origin: { x: isLeft ? 0.25 : isRight ? 0.75 : 0.5, y: 0.6 }
       });
 
-      setPlayers(prev => {
-        const next = [...prev];
-        next[playerIdx] = {
-          ...next[playerIdx],
-          score: next[playerIdx].score + 1,
-          status: 'correct'
-        };
-        return next;
-      });
+      const nextPlayers = [...players];
+      nextPlayers[playerIdx] = {
+        ...nextPlayers[playerIdx],
+        score: nextPlayers[playerIdx].score + 1,
+        status: 'correct'
+      };
+      setPlayers(nextPlayers);
 
       // Advance round or end game after 2.4s
       setTimeout(() => {
@@ -480,6 +448,9 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
           setGameOver(true);
           triggerSound('/para.mp3');
           confetti({ particleCount: 150, spread: 100, origin: { x: 0.5, y: 0.5 } });
+          const bestPlayer = [...nextPlayers].sort((a, b) => b.score - a.score)[0];
+          const bestIdx = bestPlayer ? (bestPlayer.id - 1) : null;
+          onGameCompleted?.(bestIdx, playerMode);
         } else {
           startNewRound(currentRound + 1, gradeGroup, playerMode, false);
         }
@@ -488,7 +459,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
       // INCORRECT ORDER
       triggerSound('/hata.mp3');
       if (onQuestionAnswered) {
-        onQuestionAnswered(false);
+        onQuestionAnswered(false, playerIdx);
       }
       setPlayers(prev => {
         const next = [...prev];
@@ -582,28 +553,28 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
     if (!word) return 'text-xs sm:text-sm';
     const len = word.length;
     if (mode === 3) {
-      if (len >= 9) return 'text-[9px] xs:text-[10px] leading-tight';
-      if (len >= 7) return 'text-[10px] xs:text-[11px] leading-tight';
-      if (len >= 5) return 'text-xs xs:text-sm leading-tight';
-      return 'text-sm xs:text-base leading-tight';
+      if (len >= 10) return 'text-[8.5px] xs:text-[9.5px] sm:text-[10px] leading-tight';
+      if (len >= 8) return 'text-[9.5px] xs:text-[10px] sm:text-[11px] leading-tight';
+      if (len >= 6) return 'text-[10.5px] xs:text-xs sm:text-[12px] leading-tight';
+      return 'text-xs xs:text-sm sm:text-base leading-tight';
     }
     if (mode === 2) {
-      if (len >= 9) return 'text-xs sm:text-sm md:text-base leading-tight';
-      if (len >= 7) return 'text-sm sm:text-base md:text-lg leading-tight';
-      if (len >= 5) return 'text-base sm:text-lg md:text-xl leading-snug';
-      return 'text-lg sm:text-xl md:text-2xl leading-snug';
+      if (len >= 10) return 'text-[10px] sm:text-[11px] md:text-xs leading-tight';
+      if (len >= 8) return 'text-[11px] sm:text-xs md:text-sm leading-tight';
+      if (len >= 6) return 'text-xs sm:text-sm md:text-base leading-tight';
+      return 'text-sm sm:text-base md:text-lg leading-tight';
     }
     // mode === 1 (Tek Kişilik)
     if (count === 4) {
-      if (len >= 10) return 'text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl leading-tight';
-      if (len >= 8) return 'text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl leading-tight';
-      if (len >= 6) return 'text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-snug';
-      return 'text-lg xs:text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-snug';
+      if (len >= 10) return 'text-[11px] sm:text-xs md:text-sm leading-tight';
+      if (len >= 8) return 'text-xs sm:text-sm md:text-base leading-tight';
+      if (len >= 6) return 'text-sm sm:text-base md:text-lg leading-tight';
+      return 'text-base sm:text-lg md:text-xl leading-snug';
     } else {
-      if (len >= 10) return 'text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl leading-tight';
-      if (len >= 8) return 'text-base xs:text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-tight';
-      if (len >= 6) return 'text-lg xs:text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-snug';
-      return 'text-xl xs:text-2xl sm:text-4xl md:text-5xl lg:text-6xl leading-snug';
+      if (len >= 10) return 'text-xs sm:text-sm md:text-base leading-tight';
+      if (len >= 8) return 'text-sm sm:text-base md:text-lg leading-tight';
+      if (len >= 6) return 'text-base sm:text-lg md:text-xl leading-tight';
+      return 'text-lg sm:text-xl md:text-2xl leading-snug';
     }
   };
 
@@ -885,17 +856,17 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                             onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
                             draggable={word !== null}
                             onDragStart={(e) => word && handleDragStartTarget(e, pIdx, word, slotIdx)}
-                            className={`min-h-[52px] xs:min-h-[60px] sm:min-h-[70px] md:min-h-[82px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
+                            className={`min-w-0 w-full min-h-[46px] xs:min-h-[52px] sm:min-h-[62px] md:min-h-[72px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
                               word 
                                 ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-lg` 
                                 : `${theme.slotEmpty} border-dashed hover:border-white/80`
                             }`}
                           >
-                            <span className="text-[8.5px] xs:text-[9.5px] sm:text-[10.5px] uppercase font-extrabold opacity-75 leading-none mb-0.5 shrink-0">
+                            <span className="text-[8.5px] xs:text-[9px] sm:text-[10px] uppercase font-extrabold opacity-75 leading-none mb-0.5 shrink-0">
                               {slotIdx + 1}. Sözcük
                             </span>
                             {word ? (
-                              <span className={`font-black uppercase max-w-full w-full break-words text-center px-1 drop-shadow-sm ${
+                              <span className={`font-black uppercase max-w-full w-full break-words hyphens-auto text-center px-0.5 drop-shadow-sm ${
                                 word.length >= 7 ? 'tracking-normal' : 'tracking-wide'
                               } ${getWordFontSize(word, playerMode, wordCount)}`}>
                                 {word}
@@ -929,18 +900,18 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                           return (
                             <div
                               key={`source_slot_${wordIdx}`}
-                              className="w-full min-h-[52px] xs:min-h-[60px] sm:min-h-[70px] md:min-h-[82px] flex items-center justify-center"
+                              className="w-full min-w-0 min-h-[46px] xs:min-h-[52px] sm:min-h-[62px] md:min-h-[72px] flex items-center justify-center"
                             >
                               {word ? (
                                 <div
                                   draggable
                                   onDragStart={(e) => handleDragStartSource(e, pIdx, word, wordIdx)}
                                   onClick={() => handleTapSourceWord(pIdx, word, wordIdx)}
-                                  className={`w-full h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-1 sm:p-1.5 font-black uppercase cursor-pointer select-none text-center overflow-hidden ${
+                                  className={`w-full min-w-0 h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center p-1 sm:p-1.5 font-black uppercase cursor-pointer select-none text-center overflow-hidden ${
                                     word.length >= 7 ? 'tracking-normal' : 'tracking-wide'
                                   }`}
                                 >
-                                  <span className={`max-w-full w-full break-words text-center px-0.5 ${getWordFontSize(word, playerMode, wordCount)}`}>
+                                  <span className={`max-w-full w-full break-words hyphens-auto text-center px-0.5 ${getWordFontSize(word, playerMode, wordCount)}`}>
                                     {word}
                                   </span>
                                 </div>

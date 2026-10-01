@@ -18,6 +18,8 @@ interface XOXGameProps {
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type Player = 'X' | 'O';
@@ -35,6 +37,8 @@ export const XOXGame: React.FC<XOXGameProps> = ({
   selectedStudentIds,
   onSelectStudentForPlayer,
   onOpenRosterModal,
+  onQuestionAnswered,
+  onGameCompleted,
 }) => {
   const [board, setBoard] = useState<CellValue[]>(Array(9).fill(null));
   const [turn, setTurn] = useState<Player>('X');
@@ -158,13 +162,16 @@ export const XOXGame: React.FC<XOXGameProps> = ({
   const handleMathAnswer = (selectedAns: number) => {
     if (!mathQuestion || pendingMoveIndex === null) return;
 
+    const pIdx = turn === 'X' ? 0 : 1;
     if (selectedAns === mathQuestion.answer) {
       triggerSound('win');
+      onQuestionAnswered?.(true, pIdx);
       makeMove(pendingMoveIndex, turn);
       setMathQuestion(null);
       setPendingMoveIndex(null);
     } else {
       triggerSound('error');
+      onQuestionAnswered?.(false, pIdx);
       // Pass turn to other player or miss turn
       setMathQuestion(null);
       setPendingMoveIndex(null);
@@ -236,6 +243,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
     setWinningLine(line);
 
     if (winResult === 'X') {
+      onGameCompleted?.(0, gameMode === 'pvp' ? 2 : 1);
       setScores(prev => ({ ...prev, X: prev.X + 1 }));
       setStreak(prev => prev + 1);
       triggerSound('win');
@@ -247,6 +255,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
         });
       } catch {}
     } else if (winResult === 'O') {
+      onGameCompleted?.(1, 2);
       setScores(prev => ({ ...prev, O: prev.O + 1 }));
       setStreak(0);
       triggerSound(gameMode === 'pve' ? 'error' : 'win');

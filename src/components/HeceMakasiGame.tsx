@@ -77,7 +77,8 @@ interface HeceMakasiGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type PlayerMode = 1 | 2 | 3;
@@ -110,7 +111,8 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 2);
   const [filterSyllables, setFilterSyllables] = useState<number | null>(null); // null = all, 2, 3, 4
@@ -261,7 +263,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
 
       if (isWordFullyCut) {
         triggerSound('/ding.mp3');
-        onQuestionAnswered?.(true);
+        onQuestionAnswered?.(true, playerIdx);
 
         const nextCompleted = player.completedCount + 1;
         const nextIdx = player.currentWordIndex + 1;
@@ -284,6 +286,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
           setFinalWinner(playerIdx);
           setGameOver(true);
           triggerSound('/coin.mp3');
+          onGameCompleted?.(playerIdx, playerMode);
           confetti({
             particleCount: 130,
             spread: 90,
@@ -316,7 +319,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
     } else {
       // Wrong cut attempt!
       triggerSound('/buzzer.mp3');
-      onQuestionAnswered?.(false);
+      onQuestionAnswered?.(false, playerIdx);
 
       setPlayers(prev => prev.map((p, idx) => {
         if (idx !== playerIdx) return p;

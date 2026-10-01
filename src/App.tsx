@@ -3201,14 +3201,9 @@ export default function App() {
     saveStudents(students);
   }, [students]);
 
-  // Sınıf değiştiğinde veya başlangıçta kimse seçili olmasın
+  // Clean up selected student slots only if a student was completely deleted from roster
   useEffect(() => {
-    setSelectedStudentIds([null, null, null]);
-  }, [activeGradeNumber]);
-
-  // Clean up selected student slots if a student was deleted from roster
-  useEffect(() => {
-    const validIds = new Set(students.filter(s => s.grade === activeGradeNumber).map(s => s.id));
+    const validIds = new Set(students.map(s => s.id));
     setSelectedStudentIds(prev => {
       let changed = false;
       const updated = prev.map(id => {
@@ -3220,7 +3215,7 @@ export default function App() {
       });
       return changed ? updated : prev;
     });
-  }, [students, activeGradeNumber]);
+  }, [students]);
 
   // Memoized students for current active grade
   const currentGradeStudents = useMemo(() => {
@@ -4089,6 +4084,7 @@ export default function App() {
     setShowGeometricNets(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
+    setShowYirmiyiBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -4108,7 +4104,10 @@ export default function App() {
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
     setShowStatsModal(false);
+    setShowPodiumVideoModal(false);
+    setTrackVictoryVideoActive(false);
     setWordGameType(null);
+    setOpenedFromOtherGamesModal(entry.id.startsWith('other_'));
 
     if (entry.type === 'grade_topic' && entry.topicKey) {
       if (entry.grade) {
@@ -4122,13 +4121,27 @@ export default function App() {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
         setSelectedCategoryId(getCategoryIdForTopic('geometrik_sekil_cisim'));
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowGeometricNets(true);
+    } else if (entry.type === 'geoboard' || entry.topicKey === 'geometri_tahtasi') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId(getCategoryIdForTopic('geometrik_sekil_cisim'));
+      } else {
+        setSelectedGrade(null);
+      }
+      setGameState('welcome');
+      setShowGeoboard(true);
     } else if (entry.type === '3d_lab') {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShow3DLab(true);
@@ -4136,13 +4149,25 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowAynisiniBul(true);
+    } else if (entry.type === 'yirmiyi_bul') {
+      setSelectedGrade(null);
+      setGameState('welcome');
+      setShowYirmiyiBul(true);
+    } else if (entry.type === 'xox') {
+      setSelectedGrade(null);
+      setGameState('welcome');
+      setShowXOXGame(true);
     } else if (entry.type === 'kuralli_cumle' || entry.id.includes('kuralli_cumle')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowKuralliCumle(true);
@@ -4150,6 +4175,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowSozlukSirala(true);
@@ -4157,6 +4184,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowKelimeSirala(true);
@@ -4164,6 +4193,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowHeceMakasi(true);
@@ -4171,6 +4202,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowYazimDedektifi(true);
@@ -4178,16 +4211,26 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowHeceSayisi(true);
     } else if (entry.type === 'geometrik_sekilleri_bul' || entry.id.includes('geometrik_sekilleri_bul')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
+      }
       setGameState('welcome');
       setShowGeometrikSekilleriBul(true);
     } else if (entry.type === 'dedektif_5n1k' || entry.id.includes('dedektif_5n1k')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowDedektif5N1K(true);
@@ -4195,6 +4238,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowNoktalamaAvcisi(true);
@@ -4202,6 +4247,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowHarfCorbasi(true);
@@ -4209,6 +4256,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowGeriDonusum(true);
@@ -4216,6 +4265,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowSaglikliTabak(true);
@@ -4223,6 +4274,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowIstekIhtiyac(true);
@@ -4230,6 +4283,8 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowMevsimGardirobu(true);
@@ -4237,20 +4292,18 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
       setGameState('welcome');
       setShowAblukaGame(true);
-    } else if (entry.type === 'geoboard') {
+    } else if (entry.type === 'word_game' && entry.wordGameType) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
       }
-      setGameState('welcome');
-      setShowGeoboard(true);
-    } else if (entry.type === 'xox') {
-      setGameState('welcome');
-      setShowXOXGame(true);
-    } else if (entry.type === 'word_game' && entry.wordGameType) {
       setGameState('welcome');
       setWordGameType(entry.wordGameType);
     }
@@ -4261,8 +4314,209 @@ export default function App() {
     }, 2800);
   };
 
+  /**
+   * Aktif oyun veya menü durumuna göre ALL_ACTIVITIES_LIST içerisindeki
+   * güncel indeks numarasını anında ve hatasız tespit eder.
+   */
+  const getCurrentLiveActivityIndex = (): number => {
+    // 1. Özel modal aktiviteleri
+    if (wordGameType === 'ingilizce') {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_ingilizce');
+      if (idx !== -1) return idx;
+    }
+    if (wordGameType === 'zit_anlam') {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_zit_anlam');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_zit_anlam');
+      if (idx !== -1) return idx;
+    }
+    if (wordGameType === 'es_anlam') {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_es_anlam');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_es_anlam');
+      if (idx !== -1) return idx;
+    }
+    if (showKuralliCumle) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kuralli_cumle' || a.id.includes('kuralli_cumle')) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_kuralli_cumle' || a.type === 'kuralli_cumle');
+      if (idx !== -1) return idx;
+    }
+    if (showHeceSayisi) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'hece_sayisi' || a.id.includes('hece_sayisi')) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'hece_sayisi');
+      if (idx !== -1) return idx;
+    }
+    if (showSozlukSirala) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sozluk_sirala' || a.id.includes('sozluk_sirala')) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_sozluk_sirala');
+      if (idx !== -1) return idx;
+    }
+    if (showKelimeSirala) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'kelime_sirala' || a.id.includes('kelime_sirala')) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_kelime_sirala');
+      if (idx !== -1) return idx;
+    }
+    if (showHeceMakasi) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_hece_makasi');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_hece_makasi');
+      if (idx !== -1) return idx;
+    }
+    if (showYazimDedektifi) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_yazim_dedektifi');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_yazim_dedektifi');
+      if (idx !== -1) return idx;
+    }
+    if (showDedektif5N1K) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_dedektif_5n1k');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_dedektif_5n1k');
+      if (idx !== -1) return idx;
+    }
+    if (showNoktalamaAvcisi) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_noktalama_avcisi');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_noktalama_avcisi');
+      if (idx !== -1) return idx;
+    }
+    if (showHarfCorbasi) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_harf_corbasi');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_harf_corbasi');
+      if (idx !== -1) return idx;
+    }
+    if (showGeriDonusum) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_geri_donusum');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_geri_donusum');
+      if (idx !== -1) return idx;
+    }
+    if (showSaglikliTabak) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_saglikli_tabak');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_saglikli_tabak');
+      if (idx !== -1) return idx;
+    }
+    if (showIstekIhtiyac) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_istek_ihtiyac');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_istek_ihtiyac');
+      if (idx !== -1) return idx;
+    }
+    if (showMevsimGardirobu) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_mevsim_gardirobu');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_mevsim_gardirobu');
+      if (idx !== -1) return idx;
+    }
+    if (showAblukaGame) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_abluka');
+      if (idx !== -1) return idx;
+    }
+    if (showXOXGame) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_xox');
+      if (idx !== -1) return idx;
+    }
+    if (showYirmiyiBul) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_yirmiyi_bul');
+      if (idx !== -1) return idx;
+    }
+    if (showAynisiniBul) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'aynisini_bul' && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_aynisini_bul');
+      if (idx !== -1) return idx;
+    }
+    if (showGeometrikSekilleriBul) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'geometrik_sekilleri_bul' && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_geometrik_sekilleri_bul');
+      if (idx !== -1) return idx;
+    }
+    if (showGeometricNets) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'geometric_nets' || a.topicKey === 'cisimler_acilimi') && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_cisimler_acilimi');
+      if (idx !== -1) return idx;
+    }
+    if (showGeoboard) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'geoboard' || a.topicKey === 'geometri_tahtasi') && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_geoboard');
+      if (idx !== -1) return idx;
+    }
+    if (show3DLab) {
+      if (selectedGrade === 2) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_other_3dlab');
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_3d_lab');
+      if (idx !== -1) return idx;
+    }
+
+    // 2. Standart ders & müfredat soruları (currentTopic)
+    if (currentTopic && (gameState === 'playing' || gameState === 'gameover')) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.topicKey === currentTopic || a.id === `g${selectedGrade}_${currentTopic}`) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.topicKey === currentTopic || a.id.includes(currentTopic));
+      if (idx !== -1) return idx;
+    }
+
+    // 3. Fallback: saklanan index
+    if (currentActivityIndex >= 0 && currentActivityIndex < ALL_ACTIVITIES_LIST.length) {
+      return currentActivityIndex;
+    }
+
+    return 0;
+  };
+
   const getCurrentActivityIndex = (): number => {
-    return currentActivityIndex;
+    return getCurrentLiveActivityIndex();
   };
 
   const getCurrentOtherGameIndex = (): number => {
@@ -4325,6 +4579,8 @@ export default function App() {
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
     setShowStatsModal(false);
+    setShowPodiumVideoModal(false);
+    setTrackVictoryVideoActive(false);
     setWordGameType(null);
     setGameState('welcome');
 
@@ -4378,6 +4634,7 @@ export default function App() {
     setShowGeometricNets(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
+    setShowYirmiyiBul(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -4397,6 +4654,8 @@ export default function App() {
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
     setShowStatsModal(false);
+    setShowPodiumVideoModal(false);
+    setTrackVictoryVideoActive(false);
     setWordGameType(null);
 
     if (entry.type === 'aynisini_bul') {
@@ -4420,63 +4679,23 @@ export default function App() {
     }, 2800);
   };
 
+  /**
+   * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
+   * kesintisiz, sırayla bir önceki etkinliğe geçer.
+   */
   const handlePrevActivity = () => {
-    // 1. Grade-specific "5. Diğer Oyunlar"
-    if (selectedGrade && selectedCategoryId === 'diger_oyunlar') {
-      const list = getGradeOtherGamesList(selectedGrade as 1 | 2 | 3 | 4);
-      let currIdx = -1;
-      if (showAynisiniBul) currIdx = 0;
-      else if (showGeometrikSekilleriBul) currIdx = 1;
-      else if (currentTopic) {
-        currIdx = list.findIndex(a => a.topicKey === currentTopic);
-      }
-      if (currIdx === -1) currIdx = 0;
-      const prevIdx = (currIdx - 1 + list.length) % list.length;
-      switchToGradeOtherGame(prevIdx, selectedGrade as 1 | 2 | 3 | 4);
-      return;
-    }
-
-    // 2. Hub "5. Diğer Oyunlar" (Modal or opened from other games)
-    const otherIdx = getCurrentOtherGameIndex();
-    if (openedFromOtherGamesModal || (otherIdx !== -1 && !selectedGrade)) {
-      const activeIdx = otherIdx !== -1 ? otherIdx : 0;
-      const prevIdx = (activeIdx - 1 + OTHER_GAMES_HUB_LIST.length) % OTHER_GAMES_HUB_LIST.length;
-      switchToOtherGameByIndex(prevIdx);
-      return;
-    }
-
-    // 3. Fallback / Standard sequential navigation through all activities
-    const prevIdx = (currentActivityIndex - 1 + ALL_ACTIVITIES_LIST.length) % ALL_ACTIVITIES_LIST.length;
+    const currentIdx = getCurrentLiveActivityIndex();
+    const prevIdx = (currentIdx - 1 + ALL_ACTIVITIES_LIST.length) % ALL_ACTIVITIES_LIST.length;
     switchToActivityByIndex(prevIdx);
   };
 
+  /**
+   * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
+   * kesintisiz, sırayla bir sonraki etkinliğe geçer.
+   */
   const handleNextActivity = () => {
-    // 1. Grade-specific "5. Diğer Oyunlar"
-    if (selectedGrade && selectedCategoryId === 'diger_oyunlar') {
-      const list = getGradeOtherGamesList(selectedGrade as 1 | 2 | 3 | 4);
-      let currIdx = -1;
-      if (showAynisiniBul) currIdx = 0;
-      else if (showGeometrikSekilleriBul) currIdx = 1;
-      else if (currentTopic) {
-        currIdx = list.findIndex(a => a.topicKey === currentTopic);
-      }
-      if (currIdx === -1) currIdx = 0;
-      const nextIdx = (currIdx + 1) % list.length;
-      switchToGradeOtherGame(nextIdx, selectedGrade as 1 | 2 | 3 | 4);
-      return;
-    }
-
-    // 2. Hub "5. Diğer Oyunlar" (Modal or opened from other games)
-    const otherIdx = getCurrentOtherGameIndex();
-    if (openedFromOtherGamesModal || (otherIdx !== -1 && !selectedGrade)) {
-      const activeIdx = otherIdx !== -1 ? otherIdx : 0;
-      const nextIdx = (activeIdx + 1) % OTHER_GAMES_HUB_LIST.length;
-      switchToOtherGameByIndex(nextIdx);
-      return;
-    }
-
-    // 3. Fallback / Standard sequential navigation through all activities
-    const nextIdx = (currentActivityIndex + 1) % ALL_ACTIVITIES_LIST.length;
+    const currentIdx = getCurrentLiveActivityIndex();
+    const nextIdx = (currentIdx + 1) % ALL_ACTIVITIES_LIST.length;
     switchToActivityByIndex(nextIdx);
   };
 
@@ -4649,6 +4868,57 @@ export default function App() {
     } catch (e) {
       console.error('Error incrementing single win:', e);
     }
+  };
+
+  const handleUniversalActivityAnswer = (
+    topicKey: string,
+    isCorrect: boolean,
+    playerIndex: number = 0,
+    categoryKey: GradeCategoryKey = 'otherGames'
+  ) => {
+    // 1. Update class & category counters
+    const updatedCounters = recordClassQuestionSolved(categoryKey, isCorrect);
+    setCountersData(updatedCounters);
+
+    // 2. Global statistics
+    kaydetIstatistik(topicKey, isCorrect);
+
+    // 3. Single player stats or Group stats
+    if (playerCountMode === 1 || (playerIndex === 0 && !selectedStudentIds[1] && !selectedStudentIds[2])) {
+      kaydetSingleIstatistik(topicKey, isCorrect);
+    }
+    if (playerIndex >= 0 && playerIndex < 3) {
+      kaydetGrupIstatistik(playerIndex, topicKey, isCorrect);
+    }
+
+    // 4. Student individual stats
+    const studentId = selectedStudentIds[playerIndex] || (playerCountMode === 1 ? selectedStudentIds[0] : null);
+    if (studentId) {
+      setStudents(recordStudentAnswer(studentId, topicKey, isCorrect));
+    }
+  };
+
+  const handleUniversalGameCompleted = (
+    winnerPlayerIndex: number | null,
+    totalPlayers: number = playerCountMode
+  ) => {
+    if (winnerPlayerIndex === null || winnerPlayerIndex < 0) return;
+
+    // Record group win
+    kaydetGrupGalibiyet(winnerPlayerIndex);
+
+    // Record winner student game results
+    const winnerStudentId = selectedStudentIds[winnerPlayerIndex];
+    if (winnerStudentId) {
+      setStudents(recordStudentGameResult(winnerStudentId, true));
+    }
+
+    // Loser participating students
+    selectedStudentIds.forEach((sId, idx) => {
+      if (sId && idx !== winnerPlayerIndex && idx < totalPlayers) {
+        setStudents(recordStudentGameResult(sId, false));
+      }
+    });
   };
 
   const handleAnswer = (option: string | number) => {
@@ -5191,31 +5461,7 @@ export default function App() {
               setShowAndroidAppsModal(false);
               return;
             }
-            if (
-              gameState === 'playing' || 
-              gameState === 'gameover' || 
-              showGeoboard || 
-              show3DLab || 
-              showGeometricNets ||
-              showAynisiniBul || 
-              showYirmiyiBul || 
-              showXOXGame || 
-              showKuralliCumle ||
-              showHeceSayisi ||
-              showSozlukSirala ||
-              showKelimeSirala ||
-              showHeceMakasi ||
-              showYazimDedektifi ||
-              showGeometrikSekilleriBul ||
-              showDedektif5N1K ||
-              showNoktalamaAvcisi ||
-              showHarfCorbasi ||
-              showGeriDonusum ||
-              showSaglikliTabak ||
-              showIstekIhtiyac ||
-              showMevsimGardirobu ||
-              wordGameType !== null
-            ) {
+            if (isInsideAnyGame) {
               handlePrevActivity();
               return;
             }
@@ -5401,31 +5647,7 @@ export default function App() {
           onClick={() => {
             playMp3('/op.mp3');
             // If inside an active game/activity, navigate to next activity sequentially!
-            if (
-              gameState === 'playing' || 
-              gameState === 'gameover' || 
-              showGeoboard || 
-              show3DLab || 
-              showGeometricNets ||
-              showAynisiniBul || 
-              showYirmiyiBul || 
-              showXOXGame || 
-              showKuralliCumle ||
-              showHeceSayisi ||
-              showSozlukSirala ||
-              showKelimeSirala ||
-              showHeceMakasi ||
-              showYazimDedektifi ||
-              showGeometrikSekilleriBul ||
-              showDedektif5N1K ||
-              showNoktalamaAvcisi ||
-              showHarfCorbasi ||
-              showGeriDonusum ||
-              showSaglikliTabak ||
-              showIstekIhtiyac ||
-              showMevsimGardirobu ||
-              wordGameType !== null
-            ) {
+            if (isInsideAnyGame) {
               handleNextActivity();
               return;
             }
@@ -7960,7 +8182,7 @@ export default function App() {
             {students && (
               <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
                 <StudentAvatarDock
-                  students={currentGradeStudents}
+                  students={students}
                   currentGrade={activeGradeNumber}
                   playerCount={1}
                   selectedStudentIds={[selectedStudentIds[0] || null]}
@@ -8363,7 +8585,7 @@ export default function App() {
           {/* EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ (2 VE 3 KİŞİLİK MODLAR İÇİN) */}
           <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
             <StudentAvatarDock
-              students={currentGradeStudents}
+              students={students}
               currentGrade={activeGradeNumber}
               playerCount={playerCountMode}
               selectedStudentIds={selectedStudentIds}
@@ -8897,6 +9119,8 @@ export default function App() {
               setShowOtherGamesModal(true);
             }
           }}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
         />
       )}
 
@@ -8911,6 +9135,8 @@ export default function App() {
             }
           }}
           playMp3={playMp3}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
         />
       )}
 
@@ -8978,7 +9204,7 @@ export default function App() {
           initialGrade={selectedGrade || 1}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0]}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -8999,11 +9225,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 1);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            kaydetIstatistik('turkce_kuralli_cumle', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kuralli_cumle', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_kuralli_cumle', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9024,15 +9250,7 @@ export default function App() {
           soundEnabled={soundEnabled}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('turkce_hece_sayisi', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_sayisi', isCorrect));
-            }
-          }}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0]}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9052,6 +9270,12 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_hece_sayisi', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9072,7 +9296,7 @@ export default function App() {
           initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9099,13 +9323,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('turkce_sozluk_sirala', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_sozluk_sirala', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_sozluk_sirala', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9126,7 +9348,7 @@ export default function App() {
           initialGradeGroup={selectedGrade && selectedGrade >= 3 ? '3-4' : '1-2'}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9153,13 +9375,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('turkce_kelime_sirala', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_kelime_sirala', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_kelime_sirala', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9180,7 +9400,7 @@ export default function App() {
           initialGradeGroup="1-2"
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9207,13 +9427,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('turkce_hece_makasi', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_hece_makasi', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_hece_makasi', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9233,7 +9451,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9260,13 +9478,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('turkce_yazim_dedektifi', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'turkce_yazim_dedektifi', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('turkce_yazim_dedektifi', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9287,7 +9503,7 @@ export default function App() {
           soundEnabled={soundEnabled}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0]}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9308,13 +9524,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('geometrik_sekilleri_bul', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'geometrik_sekilleri_bul', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('geometrik_sekilleri_bul', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9334,7 +9548,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9357,13 +9571,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('dedektif_5n1k', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'dedektif_5n1k', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('dedektif_5n1k', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9383,7 +9595,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9406,13 +9618,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('noktalama_avcisi', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'noktalama_avcisi', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('noktalama_avcisi', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9432,7 +9642,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9455,13 +9665,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('harf_corbasi', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'harf_corbasi', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('harf_corbasi', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9481,7 +9689,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9504,13 +9712,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('geri_donusum', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'geri_donusum', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('geri_donusum', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9530,7 +9736,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9553,13 +9759,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('saglikli_tabak', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'saglikli_tabak', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('saglikli_tabak', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9579,7 +9783,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9602,13 +9806,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('istek_ihtiyac', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'istek_ihtiyac', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('istek_ihtiyac', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9628,7 +9830,7 @@ export default function App() {
           playMp3={playMp3}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9651,13 +9853,11 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            const updated = recordClassQuestionSolved('otherGames', isCorrect);
-            setCountersData(updated);
-            kaydetIstatistik('mevsim_gardirobu', isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], 'mevsim_gardirobu', isCorrect));
-            }
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('mevsim_gardirobu', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9675,7 +9875,7 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentIds={selectedStudentIds}
           onSelectStudentForPlayer={(pIdx, id) => {
             setSelectedStudentIds(prev => {
@@ -9688,6 +9888,9 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9704,7 +9907,7 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentIds={selectedStudentIds}
           onSelectStudentForPlayer={(pIdx, id) => {
             setSelectedStudentIds(prev => {
@@ -9717,6 +9920,12 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('aynisini_bul', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9734,7 +9943,7 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentIds={selectedStudentIds}
           onSelectStudentForPlayer={(pIdx, id) => {
             setSelectedStudentIds(prev => {
@@ -9747,6 +9956,12 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('yirmiyi_bul', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9779,7 +9994,7 @@ export default function App() {
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentIds={selectedStudentIds}
           onSelectStudentForPlayer={(pIdx, id) => {
             setSelectedStudentIds(prev => {
@@ -9792,6 +10007,12 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('xox_matematik', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}
@@ -9823,7 +10044,7 @@ export default function App() {
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
           soundEnabled={soundEnabled}
-          students={currentGradeStudents}
+          students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
@@ -9850,15 +10071,13 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect, gType) => {
+          onQuestionAnswered={(isCorrect, gType, pIdx = 0) => {
             const cat: GradeCategoryKey = gType === 'ingilizce' ? 'englishGames' : 'otherGames';
-            const updated = recordClassQuestionSolved(cat, isCorrect);
-            setCountersData(updated);
             const topicKey = gType === 'zit_anlam' ? 'turkce_zit_anlam' : gType === 'es_anlam' ? 'turkce_es_anlam' : 'ingilizce';
-            kaydetIstatistik(topicKey, isCorrect);
-            if (selectedStudentIds[0]) {
-              setStudents(recordStudentAnswer(selectedStudentIds[0], topicKey, isCorrect));
-            }
+            handleUniversalActivityAnswer(topicKey, isCorrect, pIdx, cat);
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
           }}
         />
       )}

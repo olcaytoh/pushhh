@@ -8,6 +8,7 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { TurkishActivityBackground } from './TurkishActivityBackground';
+import { AutoFitOptionContent } from './AutoFitOptionContent';
 
 export interface Dedektif5N1KStory {
   id: string;
@@ -164,7 +165,8 @@ interface Dedektif5N1KGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type PlayerMode = 1 | 2 | 3;
@@ -194,7 +196,8 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 1);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -304,10 +307,10 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
 
     if (isCorrect) {
       triggerSound('/coin.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(true);
+      if (onQuestionAnswered) onQuestionAnswered(true, playerIndex);
     } else {
       triggerSound('/hata.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(false);
+      if (onQuestionAnswered) onQuestionAnswered(false, playerIndex);
     }
 
     setPlayers(prev => {
@@ -335,6 +338,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
           setGameOver(true);
           setRoundWinner(playerIndex);
           triggerSound('/para.mp3');
+          onGameCompleted?.(playerIndex, playerMode);
           confetti({
             particleCount: 80,
             spread: 70,
@@ -437,7 +441,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
         {/* Story & Questions Area: 1, 2, or 3 columns */}
         <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentQ = questions[player.questionIndex % questions.length];
@@ -455,7 +459,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2.5 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
                 {/* 1. BÖLÜM: Player Header */}
                 <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
@@ -480,29 +484,43 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                 {/* 2. BÖLÜM: Vaka Dosyası & Soru (3 Bölümlü Dengeli Orta Alan) */}
                 <div className="flex-1 min-h-0 flex flex-col justify-center my-1">
                   {/* Vaka Dosyası (Hikaye Metni) */}
-                  <div className="bg-black/55 border-2 border-indigo-400/40 rounded-xl p-2 sm:p-2.5 mb-1 relative overflow-hidden shadow-md">
-                    <div className="flex items-center gap-1.5 mb-1 text-[11px] sm:text-xs font-black text-amber-300">
+                  <div className="bg-black/55 border-2 border-indigo-400/40 rounded-xl p-2.5 sm:p-3 mb-1.5 relative overflow-hidden shadow-md">
+                    <div className="flex items-center gap-1.5 mb-1 text-xs sm:text-sm font-black text-amber-300">
                       <span className="text-sm sm:text-base">🔍</span>
                       <span className="uppercase tracking-wider">Vaka Dosyası: {currentQ.title}</span>
                     </div>
-                    <p className="text-xs sm:text-sm md:text-base text-slate-100 leading-snug font-semibold">
+                    <p className={`${
+                      playerMode === 1 
+                        ? 'text-sm sm:text-base md:text-lg leading-relaxed font-semibold' 
+                        : playerMode === 2 
+                        ? 'text-xs sm:text-sm md:text-base leading-snug font-semibold' 
+                        : 'text-xs sm:text-sm leading-tight font-semibold'
+                    } text-slate-100`}>
                       "{currentQ.story}"
                     </p>
                   </div>
 
                   {/* 5N 1K Soru Rozeti & Soru Cümlesi */}
                   <div className="flex items-center justify-center gap-2 my-0.5 shrink-0">
-                    <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[10.5px] sm:text-xs uppercase shadow-sm">
+                    <span className={`rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black uppercase shadow-sm ${
+                      playerMode === 1 ? 'px-4 py-1 text-xs sm:text-sm' : 'px-3 py-0.5 text-[10.5px] sm:text-xs'
+                    }`}>
                       {currentQ.qTypeLabel}
                     </span>
                   </div>
-                  <h3 className="text-center font-black text-xs sm:text-sm md:text-base text-amber-200 mb-1 leading-snug px-1 drop-shadow-sm">
+                  <h3 className={`text-center font-black text-amber-200 mb-1.5 leading-snug px-1 drop-shadow-sm ${
+                    playerMode === 1 
+                      ? 'text-base sm:text-lg md:text-xl lg:text-2xl font-black' 
+                      : playerMode === 2 
+                      ? 'text-sm sm:text-base md:text-lg font-black' 
+                      : 'text-xs sm:text-sm md:text-base font-black'
+                  }`}>
                     {currentQ.question}
                   </h3>
                 </div>
 
                 {/* 3. BÖLÜM: Şıklar (1 oyuncuda 2x2 grid, 2-3 oyuncuda 1 veya 2 sütun) */}
-                <div className={`grid ${playerMode === 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5 mt-auto mb-0.5 w-full shrink-0`}>
+                <div className={`grid ${playerMode === 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-2 sm:gap-2.5 mt-auto mb-0.5 w-full shrink-0`}>
                   {currentQ.options.map((opt, oIdx) => {
                     const isChosen = player.selectedOption === opt;
                     const isRight = opt === currentQ.correctAnswer;
@@ -523,16 +541,26 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                         key={oIdx}
                         disabled={player.showFeedback}
                         onClick={() => handleOptionClick(pIdx, opt)}
-                        className={`w-full py-1.5 sm:py-2 px-2.5 sm:px-3 rounded-xl border-2 font-bold text-xs sm:text-sm transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 shadow-sm ${btnStyle}`}
+                        className={`w-full rounded-xl sm:rounded-2xl border-2 font-bold transition-all text-left flex items-center justify-between cursor-pointer active:scale-98 shadow-sm ${
+                          playerMode === 1 
+                            ? 'py-1 px-3 sm:px-4 h-[58px] sm:h-[70px]' 
+                            : playerMode === 2
+                            ? 'py-1 px-2.5 sm:px-3 h-[48px] sm:h-[54px]'
+                            : 'py-1 px-2 sm:px-2.5 h-[46px] sm:h-[50px]'
+                        } overflow-hidden ${btnStyle}`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/40 flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0 border border-white/20">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1 h-full">
+                          <span className={`rounded-xl bg-black/45 flex items-center justify-center font-black shrink-0 border border-white/20 ${
+                            playerMode === 1 ? 'w-7 h-7 sm:w-8 sm:h-8 text-xs sm:text-sm md:text-base' : 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs'
+                          }`}>
                             {['A', 'B', 'C', 'D'][oIdx]}
                           </span>
-                          <span className="truncate">{opt}</span>
+                          <div className="flex-1 min-w-0 h-full">
+                            <AutoFitOptionContent opt={opt} displayOpt={opt} mode={playerMode as 1 | 2 | 3} />
+                          </div>
                         </div>
-                        {player.showFeedback && isRight && <span className="text-white shrink-0 font-black text-sm">✓</span>}
-                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0 font-black text-sm">✗</span>}
+                        {player.showFeedback && isRight && <span className="text-white shrink-0 font-black text-base ml-1">✓</span>}
+                        {player.showFeedback && isChosen && !isRight && <span className="text-white shrink-0 font-black text-base ml-1">✗</span>}
                       </button>
                     );
                   })}

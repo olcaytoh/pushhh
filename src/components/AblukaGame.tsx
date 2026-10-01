@@ -18,6 +18,7 @@ interface AblukaGameProps {
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 // Board is 7x7 (49 cells)
@@ -54,6 +55,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
   selectedStudentIds = [],
   onSelectStudentForPlayer,
   onOpenRosterModal,
+  onGameCompleted,
 }) => {
   // Board State
   const [board, setBoard] = useState<CellValue[]>(() => {
@@ -149,6 +151,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
   // Handle victory
   const handleVictory = useCallback((winningPlayer: Turn) => {
     setWinner(winningPlayer);
+    onGameCompleted?.(winningPlayer === 1 ? 0 : 1, 2);
     setScores(prev => ({
       ...prev,
       [winningPlayer === 1 ? 'p1' : 'p2']: prev[winningPlayer === 1 ? 'p1' : 'p2'] + 1

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import {
   Sparkles, CheckCircle2, XCircle, RotateCcw, Volume2,
@@ -16,7 +16,8 @@ export interface HeceSayisiActivityProps {
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
   playerCountMode?: 1 | 2 | 3;
   onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
   soundEnabled?: boolean;
@@ -242,6 +243,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   onNextActivity,
   playMp3,
   onQuestionAnswered,
+  onGameCompleted,
   playerCountMode = 1,
   onSwitchPlayerCountMode,
   soundEnabled = true,
@@ -343,8 +345,13 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   const [showExplanation, setShowExplanation] = useState(false);
   const [showRuleCard, setShowRuleCard] = useState(false);
   const [roundCompleted, setRoundCompleted] = useState(false);
+  const singleAutoNextTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const initSingleGame = useCallback(() => {
+    if (singleAutoNextTimerRef.current) {
+      clearTimeout(singleAutoNextTimerRef.current);
+      singleAutoNextTimerRef.current = null;
+    }
     const shuffled = [...HECE_WORDS_POOL].sort(() => Math.random() - 0.5);
     setShuffledList(shuffled);
     setQuestionIndex(0);
@@ -359,12 +366,42 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (singleAutoNextTimerRef.current) {
+        clearTimeout(singleAutoNextTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (activeMode === 'quiz1') {
       initSingleGame();
     }
   }, [activeMode, initSingleGame]);
 
   const currentWord = shuffledList[questionIndex] || HECE_WORDS_POOL[0];
+
+  const handleNextQuestion = useCallback(() => {
+    if (singleAutoNextTimerRef.current) {
+      clearTimeout(singleAutoNextTimerRef.current);
+      singleAutoNextTimerRef.current = null;
+    }
+    if (questionIndex + 1 >= 10 || questionIndex + 1 >= shuffledList.length) {
+      setRoundCompleted(true);
+      triggerSound('/alkis.mp3');
+      onGameCompleted?.(0, 1);
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.5 }
+      });
+      return;
+    }
+    setQuestionIndex(idx => idx + 1);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setShowExplanation(false);
+  }, [questionIndex, shuffledList.length, triggerSound, onGameCompleted]);
 
   const handleSelectOption = (chosenCount: number) => {
     if (isAnswered || roundCompleted) return;
@@ -374,7 +411,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     setShowExplanation(true);
 
     const isCorrect = chosenCount === currentWord.count;
-    onQuestionAnswered?.(isCorrect);
+    onQuestionAnswered?.(isCorrect, 0);
 
     if (isCorrect) {
       triggerSound('/coin.mp3');
@@ -391,23 +428,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       setStreak(0);
       setWrongCount(w => w + 1);
     }
-  };
 
-  const handleNextQuestion = () => {
-    if (questionIndex + 1 >= 10 || questionIndex + 1 >= shuffledList.length) {
-      setRoundCompleted(true);
-      triggerSound('/alkis.mp3');
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.5 }
-      });
-      return;
+    // Kullanıcı cevabı verdikten sonra otomatik bir sonraki soruya geç
+    if (singleAutoNextTimerRef.current) {
+      clearTimeout(singleAutoNextTimerRef.current);
     }
-    setQuestionIndex(idx => idx + 1);
-    setSelectedOption(null);
-    setIsAnswered(false);
-    setShowExplanation(false);
+    singleAutoNextTimerRef.current = setTimeout(() => {
+      handleNextQuestion();
+    }, 1100);
   };
 
   // =========================================================================
@@ -463,7 +491,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     if (!question) return;
 
     const isCorrect = chosenOption === question.correct;
-    onQuestionAnswered?.(isCorrect);
+    onQuestionAnswered?.(isCorrect, pIdx);
 
     if (isCorrect) {
       triggerSound('/coin.mp3');
@@ -484,6 +512,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
         setDuelWinnerIndex(pIdx);
         setTrackVictoryVideoActive(true);
         triggerSound('/alkis.mp3');
+        onGameCompleted?.(pIdx, activeMode === 'duel3' ? 3 : 2);
         confetti({
           particleCount: 120,
           spread: 80,
@@ -526,6 +555,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             setDuelWinnerIndex(active[0].id);
             setTrackVictoryVideoActive(true);
             triggerSound('/alkis.mp3');
+            onGameCompleted?.(active[0].id, activeMode === 'duel3' ? 3 : 2);
           }
           return prev.map((p, idx) => {
             if (idx !== pIdx) return p;

@@ -9,25 +9,43 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   turkce_zit_anlam: { title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', icon: '⚡' },
   es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
   turkce_es_anlam: { title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', icon: '🔄' },
-  turkce_sozcuk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
-  turkce_sozluk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
-  sozluk_sirala: { title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', icon: '🔤' },
-  turkce_kelime_sirala: { title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', icon: '📚' },
-  kelime_sirala: { title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', icon: '📚' },
-  turkce_kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
-  kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', icon: '✍️' },
-  turkce_hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', icon: '🗣️' },
-  hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', icon: '🗣️' },
+  turkce_sozcuk_sirala: { title: 'Sözlük Sıralama (Harf Sıralaması)', desc: 'Harfleri alfabetik sıraya dizme portalı', icon: '🔤' },
+  turkce_sozluk_sirala: { title: 'Sözlük Sıralama (Harf Sıralaması)', desc: 'Harfleri alfabetik sıraya dizme portalı', icon: '🔤' },
+  sozluk_sirala: { title: 'Sözlük Sıralama (Harf Sıralaması)', desc: 'Harfleri alfabetik sıraya dizme portalı', icon: '🔤' },
+  turkce_kelime_sirala: { title: 'Kelime Sıralama (Sözlük Sırası)', desc: 'Kelimeleri sözlük sırasına dizme portalı', icon: '📚' },
+  kelime_sirala: { title: 'Kelime Sıralama (Sözlük Sırası)', desc: 'Kelimeleri sözlük sırasına dizme portalı', icon: '📚' },
+  turkce_kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Kelimelerle anlamlı ve kurallı cümle kurma treni', icon: '🚂' },
+  kuralli_cumle: { title: 'Kurallı Cümle Oluşturma', desc: 'Kelimelerle anlamlı ve kurallı cümle kurma treni', icon: '🚂' },
+  turkce_hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme & sesli harf analizi', icon: '🗣️' },
+  hece_sayisi: { title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme & sesli harf analizi', icon: '🗣️' },
+  turkce_hece_makasi: { title: 'Hece Makası (Hecelere Ayırma)', desc: 'Sözcükleri heceleme çizgilerinden doğru kesme', icon: '✂️' },
+  hece_makasi: { title: 'Hece Makası (Hecelere Ayırma)', desc: 'Sözcükleri heceleme çizgilerinden doğru kesme', icon: '✂️' },
+  turkce_yazim_dedektifi: { title: 'Yazım Yanlışı Dedektifi', desc: 'Cümledeki yazım ve imla hatalarını keşfetme', icon: '🔍' },
+  yazim_dedektifi: { title: 'Yazım Yanlışı Dedektifi', desc: 'Cümledeki yazım ve imla hatalarını keşfetme', icon: '🔍' },
+  dedektif_5n1k: { title: '5N1K Dedektifi', desc: 'Ne, Nerede, Ne Zaman, Nasıl, Neden, Kim sorularını çözme', icon: '🕵️' },
+  turkce_5n1k: { title: '5N1K Dedektifi', desc: 'Ne, Nerede, Ne Zaman, Nasıl, Neden, Kim sorularını çözme', icon: '🕵️' },
+  noktalama_avcisi: { title: 'Noktalama İşaretleri Avcısı', desc: 'Nokta, virgül, soru ve ünlem işaretlerini tamamlama', icon: '🎯' },
+  turkce_noktalama: { title: 'Noktalama İşaretleri Avcısı', desc: 'Nokta, virgül, soru ve ünlem işaretlerini tamamlama', icon: '🎯' },
+  harf_corbasi: { title: 'Harf Çorbası (Anagram Kelime)', desc: 'Karışık harflerden anlamlı kelime türetme', icon: '🍲' },
+  turkce_harf_corbasi: { title: 'Harf Çorbası (Anagram Kelime)', desc: 'Karışık harflerden anlamlı kelime türetme', icon: '🍲' },
+  geometrik_sekilleri_bul: { title: 'Geometrik Cisimleri Bul', desc: 'Günlük hayat nesnelerini geometrik cisimlerle eşleştirme', icon: '🔷' },
+  saglikli_tabak: { title: 'Sağlıklı Tabak (Dengeli Beslenme)', desc: 'Yararlı ve zararlı besinleri ayırt etme', icon: '🥗' },
+  geri_donusum: { title: 'Geri Dönüşüm Kahramanı', desc: 'Atıkları cam, plastik, kağıt ve metal kutularına ayırma', icon: '♻️' },
+  istek_ihtiyac: { title: 'İstek mi, İhtiyaç mı?', desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme', icon: '💡' },
+  mevsim_gardirobu: { title: 'Mevsim Gardırobu', desc: 'Hava durumuna ve mevsime uygun giysileri seçme', icon: '🧥' },
+  aynisini_bul: { title: 'Aynısını Bul Dikkat Düellosu', desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır', icon: '👀' },
+  yirmiyi_bul: { title: '20\'yi Bul Matematik Düellosu', desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet', icon: '🔢' },
   es_sesli: { title: 'Eş Sesli (Sesteş) Sözcükler', desc: 'Yazılışları aynı anlamları farklı sözcükler', icon: '📝' },
-  ingilizce: { title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları', icon: '🌍' },
+  ingilizce: { title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları & quiz', icon: '🌍' },
   ingilizce_kelimeler: { title: 'İngilizce Sözlük Oyunu', desc: 'Görseller ve İngilizce kelimeler', icon: '🇬🇧' },
   xox: { title: 'XOX Bilgi Düellosu', desc: 'Strateji ve hızlı soru çözümü', icon: '❌' },
   geoboard: { title: 'Geoboard Şekil Çizimi', desc: 'Geometrik şekiller ve alan hesapları', icon: '📐' },
-  cisimler_acilimi: { title: 'Geometrik Cisimler Açılımı', desc: 'Küp, prizma, silindir ve koninin 3D katlanma ve açınım simülasyonu', icon: '🧊' },
-  aynisini_bul: { title: 'Aynısını Bul Dikkat Oyunu', desc: 'Görsel eşleme ve hafıza', icon: '👀' },
+  geometric_nets: { title: 'Geometrik Cisimler Açılımı', desc: 'Küp, prizma, silindir ve koninin 3D açınım simülasyonu', icon: '🧊' },
+  cisimler_acilimi: { title: 'Geometrik Cisimler Açılımı', desc: 'Küp, prizma, silindir ve koninin 3D açınım simülasyonu', icon: '🧊' },
   surukle_birak: { title: 'Sürükle Bırak Eşleştirme', desc: 'Kavram ve nesne eşleştirme', icon: '🎯' },
   tug_of_war: { title: 'Halat Çekmece Yarışı', desc: 'Hızlı cevapla halatı grubuna çek', icon: '🪢' },
-  basketball: { title: 'Basketbol Yarışı', desc: 'Doğru cevapla basket at', icon: '🏀' }
+  basketball: { title: 'Basketbol Yarışı', desc: 'Doğru cevapla basket at', icon: '🏀' },
+  abluka: { title: 'Abluka Strateji Oyunu', desc: 'Hedefi çevreleme ve abluka kurma zeka oyunu', icon: '🛡️' }
 };
 
 export interface TopicInfo {
@@ -106,21 +124,33 @@ export function getCurriculumTopicsForGrade(grade: number): TopicInfo[] {
     grade
   }));
 
-  if (grade === 2) {
-    const turkceTopics: TopicInfo[] = [
-      { key: 'turkce_hece_sayisi', title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme', grade: 2 },
-      { key: 'turkce_kuralli_cumle', title: 'Kurallı Cümle Oluşturma', desc: 'Karışık verilen kelimelerle anlamlı ve kurallı cümle kurma', grade: 2 },
-      { key: 'turkce_sozluk_sirala', title: 'Sözlük Sıralama (Alfabe)', desc: 'Harfleri alfabetik sıraya dizme', grade: 2 },
-      { key: 'turkce_kelime_sirala', title: 'Kelime Sıralama (Sözlük)', desc: 'Kelimeleri sözlük sırasına dizme', grade: 2 },
-      { key: 'turkce_zit_anlam', title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', grade: 2 },
-      { key: 'turkce_es_anlam', title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', grade: 2 }
-    ];
-    turkceTopics.forEach(t => {
-      if (!list.some(item => item.key === t.key)) {
-        list.push(t);
-      }
-    });
-  }
+  const commonInteractiveTopics: TopicInfo[] = [
+    { key: 'turkce_sozluk_sirala', title: 'Sözlük Sıralama (Harf Sıralaması)', desc: 'Harfleri alfabetik sıraya dizme portalı', grade },
+    { key: 'turkce_kelime_sirala', title: 'Kelime Sıralama (Sözlük Sırası)', desc: 'Kelimeleri sözlük sırasına dizme portalı', grade },
+    { key: 'turkce_zit_anlam', title: 'Zıt Anlamlı Kelimeler', desc: 'Kelimelerin zıt anlamlarını bulma', grade },
+    { key: 'turkce_es_anlam', title: 'Eş Anlamlı Kelimeler', desc: 'Anlamdaş sözcükleri eşleştirme', grade },
+    { key: 'turkce_kuralli_cumle', title: 'Kurallı Cümle Oluşturma', desc: 'Kelimelerle anlamlı ve kurallı cümle kurma treni', grade },
+    { key: 'turkce_hece_sayisi', title: 'Kelimelerin Hece Sayısı', desc: 'Kelimelerin hece sayısını belirleme & sesli harf analizi', grade },
+    { key: 'turkce_hece_makasi', title: 'Hece Makası (Hecelere Ayırma)', desc: 'Sözcükleri heceleme çizgilerinden doğru kesme', grade },
+    { key: 'turkce_yazim_dedektifi', title: 'Yazım Yanlışı Dedektifi', desc: 'Cümledeki yazım ve imla hatalarını keşfetme', grade },
+    { key: 'dedektif_5n1k', title: '5N1K Dedektifi', desc: 'Ne, Nerede, Ne Zaman, Nasıl, Neden, Kim sorularını çözme', grade },
+    { key: 'noktalama_avcisi', title: 'Noktalama İşaretleri Avcısı', desc: 'Nokta, virgül, soru ve ünlem işaretlerini tamamlama', grade },
+    { key: 'harf_corbasi', title: 'Harf Çorbası (Anagram Kelime)', desc: 'Karışık harflerden anlamlı kelime türetme', grade },
+    { key: 'geometrik_sekilleri_bul', title: 'Geometrik Cisimleri Bul', desc: 'Günlük hayat nesnelerini geometrik cisimlerle eşleştirme', grade },
+    { key: 'saglikli_tabak', title: 'Sağlıklı Tabak (Dengeli Beslenme)', desc: 'Yararlı ve zararlı besinleri ayırt etme', grade },
+    { key: 'geri_donusum', title: 'Geri Dönüşüm Kahramanı', desc: 'Atıkları cam, plastik, kağıt ve metal kutularına ayırma', grade },
+    { key: 'istek_ihtiyac', title: 'İstek mi, İhtiyaç mı?', desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme', grade },
+    { key: 'mevsim_gardirobu', title: 'Mevsim Gardırobu', desc: 'Hava durumuna ve mevsime uygun giysileri seçme', grade },
+    { key: 'aynisini_bul', title: 'Aynısını Bul Dikkat Düellosu', desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır', grade },
+    { key: 'yirmiyi_bul', title: '20\'yi Bul Matematik Düellosu', desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet', grade },
+    { key: 'ingilizce', title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları & quiz', grade },
+  ];
+
+  commonInteractiveTopics.forEach(t => {
+    if (!list.some(item => item.key === t.key)) {
+      list.push(t);
+    }
+  });
 
   return list;
 }

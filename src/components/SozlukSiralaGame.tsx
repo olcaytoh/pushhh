@@ -30,7 +30,8 @@ interface SozlukSiralaGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (pIdx: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type GradeGroup = '1-2' | '3-4';
@@ -63,6 +64,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
   onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered,
+  onGameCompleted,
 }) => {
   // Config state
   const [gradeGroup, setGradeGroup] = useState<GradeGroup>(initialGradeGroup);
@@ -419,7 +421,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       triggerSound('/coin.mp3');
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(true);
+        onQuestionAnswered(true, playerIdx);
       }
 
       // Confetti burst
@@ -431,15 +433,13 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
         origin: { x: isLeft ? 0.25 : isRight ? 0.75 : 0.5, y: 0.6 }
       });
 
-      setPlayers(prev => {
-        const next = [...prev];
-        next[playerIdx] = {
-          ...next[playerIdx],
-          score: next[playerIdx].score + 1,
-          status: 'correct'
-        };
-        return next;
-      });
+      const nextPlayers = [...players];
+      nextPlayers[playerIdx] = {
+        ...nextPlayers[playerIdx],
+        score: nextPlayers[playerIdx].score + 1,
+        status: 'correct'
+      };
+      setPlayers(nextPlayers);
 
       // Advance round or end game after 2.5s
       setTimeout(() => {
@@ -447,6 +447,9 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
           setGameOver(true);
           triggerSound('/para.mp3');
           confetti({ particleCount: 150, spread: 100, origin: { x: 0.5, y: 0.5 } });
+          const bestPlayer = [...nextPlayers].sort((a, b) => b.score - a.score)[0];
+          const bestIdx = bestPlayer ? (bestPlayer.id - 1) : null;
+          onGameCompleted?.(bestIdx, playerMode);
         } else {
           startNewRound(currentRound + 1, gradeGroup, playerMode, false);
         }
@@ -455,7 +458,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       // INCORRECT ORDER
       triggerSound('/hata.mp3');
       if (onQuestionAnswered) {
-        onQuestionAnswered(false);
+        onQuestionAnswered(false, playerIdx);
       }
       setPlayers(prev => {
         const next = [...prev];

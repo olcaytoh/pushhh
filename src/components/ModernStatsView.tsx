@@ -81,10 +81,10 @@ interface ModernStatsViewProps {
   onOpenOdevAkvaryumu?: () => void;
 }
 
-const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
+const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
   turkce_sozluk_sirala: {
-    title: 'Sözlük Sıralama (Alfabe Portalı)',
-    desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
+    title: 'Sözlük Sıralama (Harf Sıralaması)',
+    desc: 'Alfabetik harf sıralama portalı (1, 2 & 3 Kişilik Yarış)',
     icon: '/MENUIKON/grid_icon_25.png',
   },
   turkce_kelime_sirala: {
@@ -93,7 +93,7 @@ const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; ic
     icon: '/MENUIKON/grid_icon_26.png',
   },
   turkce_sozcuk_sirala: {
-    title: 'Sözlük Sıralama (Alfabe Portalı)',
+    title: 'Sözlük Sıralama (Harf Sıralaması)',
     desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
     icon: '/MENUIKON/grid_icon_25.png',
   },
@@ -109,12 +109,72 @@ const TURKCE_2ND_GRADE_TOPICS: Record<string, { title: string; desc?: string; ic
   },
   turkce_kuralli_cumle: {
     title: 'Kurallı Cümle Oluşturma',
-    desc: 'Kelimeleri kurallı ve anlamlı şekilde doğru sıraya dizme',
+    desc: 'Kelimeleri kurallı ve anlamlı şekilde doğru sıraya dizme treni',
     icon: '/MENUIKON/grid_icon_28.png',
   },
   turkce_hece_sayisi: {
     title: 'Kelimelerin Hece Sayısını Belirleme',
     desc: 'Sözcükleri hecelerine ayırma & sesli harfe göre hece sayma',
+    icon: '/MENUIKON/grid_icon_05.png',
+  },
+  turkce_hece_makasi: {
+    title: 'Hece Makası (Hecelere Ayırma)',
+    desc: 'Sözcükleri heceleme çizgilerinden doğru kesme yarışı',
+    icon: '/MENUIKON/grid_icon_28.png',
+  },
+  turkce_yazim_dedektifi: {
+    title: 'Yazım Yanlışı Dedektifi',
+    desc: 'Cümledeki yazım ve imla hatalarını keşfetme dedektifi',
+    icon: '/MENUIKON/grid_icon_31.png',
+  },
+  dedektif_5n1k: {
+    title: '5N1K Dedektifi',
+    desc: 'Ne, Nerede, Ne Zaman, Nasıl, Neden, Kim sorularını çözme',
+    icon: '/MENUIKON/grid_icon_32.png',
+  },
+  noktalama_avcisi: {
+    title: 'Noktalama İşaretleri Avcısı',
+    desc: 'Nokta, virgül, soru ve ünlem işaretlerini tamamlama',
+    icon: '/MENUIKON/grid_icon_35.png',
+  },
+  harf_corbasi: {
+    title: 'Harf Çorbası (Anagram Kelime)',
+    desc: 'Karışık harflerden anlamlı kelime türetme yarışı',
+    icon: '/MENUIKON/grid_icon_04.png',
+  },
+  geometrik_sekilleri_bul: {
+    title: 'Geometrik Cisimleri Bul',
+    desc: 'Günlük hayat nesnelerini geometrik cisimlerle eşleştirme',
+    icon: '/MENUIKON/grid_icon_10.png',
+  },
+  saglikli_tabak: {
+    title: 'Sağlıklı Tabak (Dengeli Beslenme)',
+    desc: 'Yararlı ve zararlı besinleri ayırt etme',
+    icon: '/MENUIKON/grid_icon_15.png',
+  },
+  geri_donusum: {
+    title: 'Geri Dönüşüm Kahramanı',
+    desc: 'Atıkları cam, plastik, kağıt ve metal kutularına ayırma',
+    icon: '/MENUIKON/grid_icon_11.png',
+  },
+  istek_ihtiyac: {
+    title: 'İstek mi, İhtiyaç mı?',
+    desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme',
+    icon: '/MENUIKON/grid_icon_07.png',
+  },
+  mevsim_gardirobu: {
+    title: 'Mevsim Gardırobu',
+    desc: 'Hava durumuna ve mevsime uygun giysileri seçme',
+    icon: '/MENUIKON/grid_icon_21.png',
+  },
+  aynisini_bul: {
+    title: 'Aynısını Bul Dikkat Düellosu',
+    desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır',
+    icon: '/MENUIKON/grid_icon_26.png',
+  },
+  yirmiyi_bul: {
+    title: '20\'yi Bul Matematik Düellosu',
+    desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet',
     icon: '/MENUIKON/grid_icon_05.png',
   },
 };
@@ -225,10 +285,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const baseGradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = 
     (topicsByGrade && topicsByGrade[currentGrade as 1 | 2 | 3 | 4]) || topics;
 
-  const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> =
-    currentGrade === 2
-      ? { ...baseGradeTopics, ...TURKCE_2ND_GRADE_TOPICS }
-      : baseGradeTopics;
+  const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = {
+    ...baseGradeTopics,
+    ...ALL_INTERACTIVE_TOPICS
+  };
 
   const topicKeys = Object.keys(gradeTopics);
 
@@ -261,6 +321,39 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   // Category classification per grade
   const getTopicCategory = (key: string, grade: number): string => {
+    if (
+      key.startsWith('turkce_') ||
+      key === 'sozluk_sirala' ||
+      key === 'kelime_sirala' ||
+      key === 'zit_anlam' ||
+      key === 'es_anlam' ||
+      key === 'kuralli_cumle' ||
+      key === 'hece_sayisi' ||
+      key === 'hece_makasi' ||
+      key === 'yazim_dedektifi' ||
+      key === 'dedektif_5n1k' ||
+      key === 'turkce_5n1k' ||
+      key === 'noktalama_avcisi' ||
+      key === 'turkce_noktalama' ||
+      key === 'harf_corbasi' ||
+      key === 'turkce_harf_corbasi'
+    ) return 'turkce';
+
+    if (
+      key === 'saglikli_tabak' ||
+      key === 'geri_donusum' ||
+      key === 'istek_ihtiyac' ||
+      key === 'mevsim_gardirobu'
+    ) return 'hayat_bilgisi';
+
+    if (
+      key === 'aynisini_bul' ||
+      key === 'yirmiyi_bul' ||
+      key === 'xox' ||
+      key === 'xox_matematik' ||
+      key === 'abluka'
+    ) return 'diger_oyunlar';
+
     if (grade === 1) {
       if (key.includes('geometri') || key.includes('uzamsal') || key.includes('es_nesneler')) return 'geometri';
       if (key.includes('ritmik')) return 'ritmik';
@@ -270,17 +363,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       return 'sayilar';
     }
     if (grade === 2) {
-      if (
-        key.startsWith('turkce_') ||
-        key === 'sozluk_sirala' ||
-        key === 'kelime_sirala' ||
-        key === 'zit_anlam' ||
-        key === 'es_anlam' ||
-        key === 'kuralli_cumle' ||
-        key === 'hece_sayisi'
-      ) return 'turkce';
       if (key.includes('problem')) return 'problemler';
-      if (key.includes('cisim') || key.includes('geometri') || key.includes('simetri') || (key.includes('oruntu') && !key.includes('sayi'))) return 'geometri';
+      if (key === 'geometrik_sekilleri_bul' || key.includes('cisim') || key.includes('geometri') || key.includes('simetri') || (key.includes('oruntu') && !key.includes('sayi'))) return 'geometri';
       if (key.includes('saat') || key.includes('takvim') || key.includes('zaman') || key.includes('uzunluk') || key.includes('sivi') || key.includes('tartma') || key.includes('paralar')) return 'zaman_olcme';
       if (key.includes('toplama')) return 'toplama';
       if (key.includes('cikarma')) return 'cikarma';
@@ -309,42 +393,51 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     if (grade === 1) {
       return [
         { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
+        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
+        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.png' },
         { id: 'geometri', label: 'Geometri & Uzamsal', icon: '/MENUIKON/grid_icon_10.png' },
         { id: 'sayilar', label: 'Sayılar', icon: '/MENUIKON/grid_icon_05.png' },
         { id: 'ritmik', label: 'Ritmik Sayma', icon: '/MENUIKON/grid_icon_07.png' },
         { id: 'toplama', label: 'Toplama', icon: '/MENUIKON/grid_icon_04.png' },
         { id: 'cikarma', label: 'Çıkarma', icon: '/MENUIKON/grid_icon_11.png' },
-        { id: 'olcme', label: 'Ölçme & Veri', icon: '/MENUIKON/grid_icon_21.png' }
+        { id: 'olcme', label: 'Ölçme & Veri', icon: '/MENUIKON/grid_icon_21.png' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
       ];
     }
     if (grade === 2) {
       return [
         { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
-        { id: 'turkce', label: '📖 2. Sınıf Türkçe (5)', icon: '/MENUIKON/grid_icon_28.png' },
+        { id: 'turkce', label: '📖 2. Sınıf Türkçe', icon: '/MENUIKON/grid_icon_28.png' },
+        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.png' },
         { id: 'sayilar', label: 'Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_05.png' },
         { id: 'toplama', label: 'Toplama İşlemi', icon: '/MENUIKON/grid_icon_04.png' },
         { id: 'cikarma', label: 'Çıkarma İşlemi', icon: '/MENUIKON/grid_icon_11.png' },
         { id: 'carpma_bolme', label: 'Çarpma & Bölme', icon: '/MENUIKON/grid_icon_15.png' },
         { id: 'geometri', label: 'Geometri & Şekiller', icon: '/MENUIKON/grid_icon_10.png' },
         { id: 'zaman_olcme', label: 'Zaman & Ölçme', icon: '/MENUIKON/grid_icon_35.png' },
-        { id: 'problemler', label: 'Problemler', icon: '/MENUIKON/grid_icon_31.png' }
+        { id: 'problemler', label: 'Problemler', icon: '/MENUIKON/grid_icon_31.png' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
       ];
     }
     if (grade === 3) {
       return [
         { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
+        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
         { id: 'g3_tema1', label: 'Tema 1: Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_21.png' },
         { id: 'g3_tema2', label: 'Tema 2: Kesirler & Ölçme', icon: '/MENUIKON/grid_icon_11.png' },
         { id: 'g3_tema3', label: 'Tema 3: İşlemler & Problemler', icon: '/MENUIKON/grid_icon_15.png' },
-        { id: 'g3_tema4', label: 'Tema 4: Geometri & Veri', icon: '/MENUIKON/grid_icon_26.png' }
+        { id: 'g3_tema4', label: 'Tema 4: Geometri & Veri', icon: '/MENUIKON/grid_icon_26.png' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
       ];
     }
     return [
       { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
+      { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
       { id: 'g4_tema1', label: 'Tema 1: Sayılar ve Nicelikler (1)', icon: '/MENUIKON/grid_icon_21.png' },
       { id: 'g4_tema2', label: 'Tema 2: Sayılar ve Nicelikler (2)', icon: '/MENUIKON/grid_icon_11.png' },
       { id: 'g4_tema3', label: 'Tema 3: İşlemler ve Cebirsel', icon: '/MENUIKON/grid_icon_15.png' },
-      { id: 'g4_tema4', label: 'Tema 4: Geometri ve Ölçme', icon: '/MENUIKON/grid_icon_26.png' }
+      { id: 'g4_tema4', label: 'Tema 4: Geometri ve Ölçme', icon: '/MENUIKON/grid_icon_26.png' },
+      { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
     ];
   };
 

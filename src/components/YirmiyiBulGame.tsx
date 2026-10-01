@@ -14,6 +14,8 @@ interface YirmiyiBulGameProps {
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 // Toplamı 20 yapan tüm pozitif tam sayı ikilileri havuzu
@@ -101,6 +103,8 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
   selectedStudentIds,
   onSelectStudentForPlayer,
   onOpenRosterModal,
+  onQuestionAnswered,
+  onGameCompleted,
 }) => {
   const p1Student = selectedStudentIds?.[0] ? students?.find(s => s.id === selectedStudentIds[0]) : null;
   const p2Student = selectedStudentIds?.[1] ? students?.find(s => s.id === selectedStudentIds[1]) : null;
@@ -218,8 +222,10 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
 
       if (p1Pairs > p2Pairs) {
         setWinner('p1');
+        onGameCompleted?.(0, 2);
       } else if (p2Pairs > p1Pairs) {
         setWinner('p2');
+        onGameCompleted?.(1, 2);
       } else {
         setWinner('tie');
       }
@@ -274,6 +280,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
       const sum = firstTile.value + tile.value;
       if (sum === 20) {
         // DOĞRU İKİLİ!
+        onQuestionAnswered?.(true, 0);
         const newMatched = [...p1MatchedIds, firstTile.id, tile.id];
         setP1MatchedIds(newMatched);
         setP1SelectedId(null);
@@ -290,6 +297,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
           setWinner('p1');
           setWinReason('all_pairs');
           triggerSound('win');
+          onGameCompleted?.(0, 2);
           try {
             confetti({ particleCount: 90, spread: 80, origin: { x: 0.35, y: 0.5 } });
           } catch {
@@ -298,6 +306,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
         }
       } else {
         // YANLIŞ İKİLİ!
+        onQuestionAnswered?.(false, 0);
         setP1WrongPair([firstTile.id, tile.id]);
         triggerSound('wrong');
         setTimeout(() => {
@@ -331,6 +340,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
       const sum = firstTile.value + tile.value;
       if (sum === 20) {
         // DOĞRU İKİLİ!
+        onQuestionAnswered?.(true, 1);
         const newMatched = [...p2MatchedIds, firstTile.id, tile.id];
         setP2MatchedIds(newMatched);
         setP2SelectedId(null);
@@ -347,6 +357,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
           setWinner('p2');
           setWinReason('all_pairs');
           triggerSound('win');
+          onGameCompleted?.(1, 2);
           try {
             confetti({ particleCount: 90, spread: 80, origin: { x: 0.65, y: 0.5 } });
           } catch {
@@ -355,6 +366,7 @@ export const YirmiyiBulGame: React.FC<YirmiyiBulGameProps> = ({
         }
       } else {
         // YANLIŞ İKİLİ!
+        onQuestionAnswered?.(false, 1);
         setP2WrongPair([firstTile.id, tile.id]);
         triggerSound('wrong');
         setTimeout(() => {

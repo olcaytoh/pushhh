@@ -19,7 +19,8 @@ interface WordGameModalProps {
   playerCountMode?: 1 | 2 | 3;
   onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
   soundEnabled?: boolean;
-  onQuestionAnswered?: (isCorrect: boolean, gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce') => void;
+  onQuestionAnswered?: (isCorrect: boolean, gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce', playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
   students?: Student[];
   selectedStudentId?: string | null;
   selectedStudentIds?: (string | null)[];
@@ -185,6 +186,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   onSwitchPlayerCountMode,
   soundEnabled = true,
   onQuestionAnswered,
+  onGameCompleted,
   students,
   selectedStudentId,
   selectedStudentIds: propSelectedStudentIds,
@@ -342,6 +344,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
       if (card1.pairId === card2.pairId) {
         // MATCH!
+        onQuestionAnswered?.(true, gameType, 0);
         setTimeout(() => {
           playSound('correct');
           setCards(prev => prev.map(c => 
@@ -355,6 +358,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
             if (nextCount >= matchDifficulty) {
               setIsMatchComplete(true);
               playSound('win');
+              onGameCompleted?.(0, 1);
               try {
                 confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
               } catch {}
@@ -364,6 +368,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         }, 400);
       } else {
         // MISMATCH
+        onQuestionAnswered?.(false, gameType, 0);
         setTimeout(() => {
           playSound('wrong');
           setCards(prev => prev.map(c => 
@@ -412,7 +417,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
     setQuizSelectedOption(option);
     const isCorrect = option === quizQuestion.correct;
-    onQuestionAnswered?.(isCorrect, gameType);
+    onQuestionAnswered?.(isCorrect, gameType, 0);
 
     if (isCorrect) {
       playSound('correct');
@@ -503,7 +508,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       }
 
       const isCorrect = option === p.currentQuestion.correct;
-      onQuestionAnswered?.(isCorrect, gameType);
+      onQuestionAnswered?.(isCorrect, gameType, pIdx);
       const nextPlayers = [...prev];
 
       if (isCorrect) {
@@ -521,6 +526,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
             setDuelWinnerIndex(pIdx);
             setTrackVictoryVideoActive(true);
             playSound('win');
+            onGameCompleted?.(pIdx, activeMode === 'duel3' ? 3 : 2);
             try {
               confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
             } catch {}
@@ -562,6 +568,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               setDuelWinnerIndex(winner.id);
               setTrackVictoryVideoActive(true);
               playSound('win');
+              onGameCompleted?.(winner.id, activeMode === 'duel3' ? 3 : 2);
               try {
                 confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
               } catch {}
@@ -575,6 +582,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               setDuelWinnerIndex(maxScorer.id);
               setTrackVictoryVideoActive(true);
               playSound('win');
+              onGameCompleted?.(maxScorer.id, activeMode === 'duel3' ? 3 : 2);
             }, 500);
           } else {
             setTimeout(() => {
@@ -1236,168 +1244,149 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               </div>
             )}
 
-            {/* 1-PLAYER TEST QUIZ */}
+            {/* 1-PLAYER TEST QUIZ — TAKVİM (GÜNLER-AYLAR) TEK KİŞİLİK TASARIMI & ÖLÇÜLERİ */}
             {activeMode === 'quiz1' && quizQuestion && (
-              <div className="flex-1 flex flex-col items-center justify-between w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto py-1 px-2 sm:px-4">
-                {/* TOP BAR: GLASS CAPSULES MATCHING MAIN CLASSROOM LAYOUT */}
-                <div className="flex items-center justify-between gap-2 mb-2 shrink-0 w-full">
-                  {/* LEFT: GROUP BADGE & TOPIC */}
-                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                    {assignedStudent ? (
-                      <div 
-                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
-                        title={`Aktif Öğrenci: ${assignedStudent.name}`}
-                      >
-                        {assignedStudent.avatar}
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-purple-400 text-purple-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
-                        1
-                      </div>
-                    )}
-                    <div className="h-8 sm:h-9 bg-[#0e172a] border border-slate-700/80 border-l-4 border-l-purple-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-2 min-w-0 shadow-xs">
-                      <div className="flex flex-col min-w-0 justify-center">
-                        <span className="font-black text-xs text-purple-200 uppercase tracking-wide leading-tight truncate">
-                          {assignedStudent ? assignedStudent.name : '1. GRUP'}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-300 truncate leading-tight">
-                          {gameTitle} ({gameConcept.toUpperCase()})
-                        </span>
-                      </div>
-                      <img 
-                        src={isIng ? '/icon_6.png' : '/icon_5.png'} 
-                        alt="Oyun İkonu" 
-                        className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-md ml-1" 
-                      />
-                    </div>
-                  </div>
-
-                  {/* RIGHT: SCORE & LIVES */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="h-8 sm:h-9 bg-[#0e172a] border border-slate-700/80 rounded-xl px-2.5 sm:px-3 flex items-center gap-2 shadow-xs">
-                      <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
-                        PUAN: {quizScore} / 10
-                      </span>
-                      {quizStreak >= 2 && (
-                        <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-300 font-black text-[11px] uppercase tracking-wider hidden sm:inline-block">
-                          🔥 {quizStreak}x
-                        </span>
-                      )}
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                          <span key={i} className={`text-xs sm:text-sm transition-all ${i < quizLives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
-                            ❤️
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* QUESTION CARD - MODERN SOLID DARK CONTAINER MATCHING GRADE ACTIVITIES */}
-                <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-purple-400/50 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] p-3 sm:p-5 my-1 flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-[130px] sm:min-h-[160px] w-full mx-auto">
-                  {/* Inner top glare */}
-                  <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
-                  
-                  <div className="relative z-10 flex flex-col items-center justify-center w-full px-2">
-                    <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest mb-1.5 [text-shadow:_0_2px_4px_#000]">
-                      {isIng ? 'BU KELİMENİN TÜRKÇE KARŞILIĞI:' : `BU KELİMENİN ${gameConcept.toUpperCase()} ANLAMLISI:`}
-                    </span>
-                    
-                    <div className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black shadow-[0_6px_20px_rgba(245,158,11,0.5)] border-2 sm:border-3 border-white flex items-center justify-center gap-2 sm:gap-3 my-1 max-w-full">
-                      {!isIng && quizQuestion.emoji && (
-                        <span className="text-xl sm:text-2xl md:text-3xl filter drop-shadow-md shrink-0">
-                          {quizQuestion.emoji}
-                        </span>
-                      )}
-                      {(() => {
-                        const word = quizQuestion.word || '';
-                        const len = word.length;
-                        const wordFontClass = len <= 6
-                          ? 'text-2xl sm:text-3xl md:text-4xl'
-                          : len <= 10
-                          ? 'text-xl sm:text-2xl md:text-3xl'
-                          : len <= 14
-                          ? 'text-lg sm:text-xl md:text-2xl'
-                          : 'text-base sm:text-lg md:text-xl';
-                        return (
-                          <span className={`${wordFontClass} font-black tracking-wide uppercase text-slate-950 text-center leading-tight break-words max-w-full`}>
-                            {word}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4 CHOICES - FAST-QUIZ-BTN DESIGN */}
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 w-full shrink-0 mt-auto">
-                  {(() => {
-                    const OPTION_COLOR_THEMES = [
-                      {
-                        border: "border-blue-500/35 hover:border-blue-400/70",
-                        bg: "bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] active:from-[#0e1726] active:to-[#090f1a] text-blue-50/95",
-                        glare: "from-blue-300/10 to-transparent",
-                      },
-                      {
-                        border: "border-rose-500/35 hover:border-rose-400/70",
-                        bg: "bg-gradient-to-b from-[#2e1925] via-[#24131d] to-[#180b13] hover:from-[#3a2030] hover:via-[#2c1724] hover:to-[#1d0e17] active:from-[#190c14] active:to-[#10070c] text-rose-50/95",
-                        glare: "from-rose-300/10 to-transparent",
-                      },
-                      {
-                        border: "border-emerald-500/35 hover:border-emerald-400/70",
-                        bg: "bg-gradient-to-b from-[#142821] via-[#0f201a] to-[#091511] hover:from-[#1a332a] hover:via-[#142921] hover:to-[#0c1c16] active:from-[#0a1612] active:to-[#050c0a] text-emerald-50/95",
-                        glare: "from-emerald-300/10 to-transparent",
-                      },
-                      {
-                        border: "border-amber-500/35 hover:border-amber-400/70",
-                        bg: "bg-gradient-to-b from-[#2a2012] via-[#22180c] to-[#171007] hover:from-[#362917] hover:via-[#2a1d0f] hover:to-[#1c1308] active:from-[#160f06] active:to-[#0d0903] text-amber-50/95",
-                        glare: "from-amber-300/10 to-transparent",
-                      }
-                    ];
-
-                    return quizQuestion.options.map((opt, oIdx) => {
-                      const isSelected = quizSelectedOption === opt;
-                      const isCorrect = opt === quizQuestion.correct;
-                      const optFontClass = getWordOptionFontSize(quizQuestion.options, 1);
-                      const theme = OPTION_COLOR_THEMES[oIdx % OPTION_COLOR_THEMES.length];
-                      
-                      let btnClass = `${theme.border} ${theme.bg} shadow-md active:shadow-xs`;
-                      if (quizFeedback !== 'none') {
-                        if (isCorrect) {
-                          btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
-                        } else if (isSelected) {
-                          btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
-                        } else {
-                          btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
-                        }
-                      }
-
-                      return (
-                        <button
-                          key={oIdx}
-                          disabled={quizFeedback !== 'none'}
-                          onClick={() => handleQuizAnswer(opt)}
-                          className={`fast-quiz-btn relative w-full h-[52px] sm:h-[62px] md:h-[70px] min-h-[52px] sm:min-h-[62px] md:min-h-[70px] py-1.5 sm:py-2 px-3 sm:px-4 rounded-xl sm:rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wide overflow-hidden active:scale-98 ${btnClass}`}
-                        >
-                          {/* Inner top glare */}
-                          <div className={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b ${theme.glare} pointer-events-none rounded-t-xl sm:rounded-t-2xl`} />
-                          <AutoFitOptionContent
-                            opt={opt}
-                            displayOpt={opt}
-                            mode={1}
-                            fallbackFontClass={optFontClass}
+              <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
+                {/* MERKEZ: SORU ÇERÇEVESİ (ŞIKLARIN GENİŞLİĞİ KADAR, ŞIKLAR ÇERÇEVENİN İÇİNDE) */}
+                <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
+                  <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+                    {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                      {/* LEFT: GROUP BADGE & TOPIC */}
+                      <div className="flex items-center gap-1.5 min-w-0 h-full">
+                        {assignedStudent ? (
+                          <div
+                            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                            title={`Aktif Öğrenci: ${assignedStudent.name}`}
+                          >
+                            {assignedStudent.avatar}
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                            1
+                          </div>
+                        )}
+                        <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                          <div className="flex items-center min-w-0">
+                            <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                              {assignedStudent ? assignedStudent.name : '1. GRUP'}
+                            </span>
+                            <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                              • {gameTitle}
+                            </span>
+                          </div>
+                          <img
+                            src={isIng ? '/icon_6.png' : '/icon_5.png'}
+                            alt="Oyun İkonu"
+                            className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                           />
-                          {quizFeedback !== 'none' && isCorrect && (
-                            <CheckCircle2 size={20} className="absolute right-3 text-emerald-300 shrink-0 filter drop-shadow-md z-20" />
+                        </div>
+                      </div>
+
+                      {/* RIGHT: SCORE & LIVES */}
+                      <div className="flex items-center gap-1.5 shrink-0 h-full">
+                        <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                          <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                            {quizScore} / 10
+                          </span>
+                          {quizStreak >= 2 && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-300 font-black text-[11px] uppercase tracking-wider hidden sm:inline-block">
+                              🔥 {quizStreak}x
+                            </span>
                           )}
-                          {quizFeedback !== 'none' && isSelected && !isCorrect && (
-                            <XCircle size={20} className="absolute right-3 text-rose-300 shrink-0 filter drop-shadow-md z-20" />
-                          )}
-                        </button>
-                      );
-                    });
-                  })()}
+                          <div className="flex items-center gap-1 px-1">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <span key={i} className={`text-xs sm:text-sm transition-all ${i < quizLives ? 'text-rose-500 scale-100' : 'text-slate-600 opacity-30 grayscale'}`}>
+                                ❤️
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                    <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                      <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2 sm:p-3 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
+                        {/* Subtle top inner gradient */}
+                        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full min-h-0 max-h-full overflow-hidden px-2">
+                          <span className="text-[11px] sm:text-xs font-black text-amber-300 uppercase tracking-widest mb-1 [text-shadow:_0_2px_4px_#000]">
+                            {isIng ? 'BU KELİMENİN TÜRKÇE KARŞILIĞI:' : `BU KELİMENİN ${gameConcept.toUpperCase()} ANLAMLISI:`}
+                          </span>
+
+                          <div className="px-3 py-1.5 sm:px-5 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black shadow-[0_6px_20px_rgba(245,158,11,0.5)] border-2 border-white flex items-center justify-center gap-2 sm:gap-3 my-0.5 max-w-full">
+                            {!isIng && quizQuestion.emoji && (
+                              <span className="text-xl sm:text-2xl md:text-3xl filter drop-shadow-md shrink-0">
+                                {quizQuestion.emoji}
+                              </span>
+                            )}
+                            {(() => {
+                              const word = quizQuestion.word || '';
+                              const len = word.length;
+                              const wordFontClass = len <= 6
+                                ? 'text-2xl sm:text-3xl md:text-4xl'
+                                : len <= 10
+                                ? 'text-xl sm:text-2xl md:text-3xl'
+                                : len <= 14
+                                ? 'text-lg sm:text-xl md:text-2xl'
+                                : 'text-base sm:text-lg md:text-xl';
+                              return (
+                                <span className={`${wordFontClass} font-black tracking-wide uppercase text-slate-950 text-center leading-tight break-words max-w-full`}>
+                                  {word}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID) */}
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 w-full shrink-0 mt-1">
+                      {quizQuestion.options.map((opt, oIdx) => {
+                        const isSelected = quizSelectedOption === opt;
+                        const isCorrect = opt === quizQuestion.correct;
+                        const optFontClass = getWordOptionFontSize(quizQuestion.options, 1);
+
+                        let btnClass = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
+                        if (quizFeedback !== 'none') {
+                          if (isCorrect) {
+                            btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                          } else if (isSelected) {
+                            btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
+                          } else {
+                            btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={oIdx}
+                            disabled={quizFeedback !== 'none'}
+                            onClick={() => handleQuizAnswer(opt)}
+                            className={`fast-quiz-btn relative w-full py-1.5 sm:py-2 px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] max-h-[58px] rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${btnClass}`}
+                          >
+                            {/* Subtle top glare in button */}
+                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
+                            <AutoFitOptionContent
+                              opt={opt}
+                              displayOpt={opt}
+                              mode={1}
+                              fallbackFontClass={optFontClass}
+                            />
+                            {quizFeedback !== 'none' && isCorrect && (
+                              <CheckCircle2 size={18} className="absolute right-2.5 text-emerald-300 shrink-0 filter drop-shadow-md z-20" />
+                            )}
+                            {quizFeedback !== 'none' && isSelected && !isCorrect && (
+                              <XCircle size={18} className="absolute right-2.5 text-rose-300 shrink-0 filter drop-shadow-md z-20" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

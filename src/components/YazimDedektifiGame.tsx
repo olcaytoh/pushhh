@@ -23,7 +23,8 @@ interface YazimDedektifiGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type PlayerMode = 1 | 2 | 3;
@@ -55,7 +56,8 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 2);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -218,7 +220,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
     if (isCorrect) {
       triggerSound('/ding.mp3');
-      onQuestionAnswered?.(true);
+      onQuestionAnswered?.(true, playerIdx);
 
       setPlayers(prev => prev.map((p, idx) => {
         if (idx !== playerIdx) return p;
@@ -237,27 +239,38 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
       // Advance after delay
       setTimeout(() => {
-        setPlayers(prev => prev.map((p, idx) => {
-          if (idx !== playerIdx) return p;
-          const nextQ = p.questionIndex + 1;
-          if (nextQ >= 10) {
-            setGameOver(true);
+        setPlayers(prev => {
+          const nextPlayers = prev.map((p, idx) => {
+            if (idx !== playerIdx) return p;
+            const nextQ = p.questionIndex + 1;
+            if (nextQ >= 10) {
+              setGameOver(true);
+            }
+            return {
+              ...p,
+              questionIndex: nextQ,
+              step: 'find_wrong' as const,
+              clickedWordIndex: null,
+              wrongClickedWordIndex: null,
+              chosenOption: null,
+              isCorrectOption: null
+            };
+          });
+
+          const isEnd = nextPlayers.some(p => p.questionIndex >= 10);
+          if (isEnd) {
+            const bestP = [...nextPlayers].sort((a, b) => b.score - a.score)[0];
+            const bestIdx = bestP ? (bestP.id - 1) : null;
+            onGameCompleted?.(bestIdx, playerMode);
           }
-          return {
-            ...p,
-            questionIndex: nextQ,
-            step: 'find_wrong',
-            clickedWordIndex: null,
-            wrongClickedWordIndex: null,
-            chosenOption: null,
-            isCorrectOption: null
-          };
-        }));
+
+          return nextPlayers;
+        });
         setRoundWinner(null);
       }, 1600);
     } else {
       triggerSound('/buzzer.mp3');
-      onQuestionAnswered?.(false);
+      onQuestionAnswered?.(false, playerIdx);
       setPlayers(prev => prev.map((p, idx) => {
         if (idx !== playerIdx) return p;
         return {
@@ -445,7 +458,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
       </header>
 
       {/* 2. MAIN BATTLE ARENA */}
-      <main className="relative z-10 flex-1 flex flex-row items-center justify-center gap-2 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-1 sm:px-3 py-1 sm:py-2">
+      <main className={`relative z-10 flex-1 flex flex-row items-center justify-center gap-2 ${playerMode === 1 ? 'max-w-4xl lg:max-w-5xl xl:max-w-6xl' : 'max-w-[1850px]'} mx-auto w-full min-h-0 overflow-hidden px-1 sm:px-3 py-1 sm:py-2`}>
         <div className="flex-1 flex flex-row relative min-h-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800/80 shadow-2xl bg-[#080d1a]">
           {players.map((player, pIdx) => {
             const theme = getPlayerTheme(player.colorName);

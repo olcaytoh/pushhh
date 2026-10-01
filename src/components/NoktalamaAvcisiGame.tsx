@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { AutoFitOptionContent } from './AutoFitOptionContent';
 import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface NoktalamaQuestion {
@@ -159,7 +160,8 @@ interface NoktalamaAvcisiGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type PlayerMode = 1 | 2 | 3;
@@ -189,7 +191,8 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 1);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -307,10 +310,10 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
 
     if (isCorrect) {
       triggerSound('/coin.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(true);
+      if (onQuestionAnswered) onQuestionAnswered(true, playerIndex);
     } else {
       triggerSound('/hata.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(false);
+      if (onQuestionAnswered) onQuestionAnswered(false, playerIndex);
     }
 
     setPlayers(prev => {
@@ -336,6 +339,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
           setGameOver(true);
           setRoundWinner(playerIndex);
           triggerSound('/para.mp3');
+          onGameCompleted?.(playerIndex, playerMode);
           confetti({
             particleCount: 80,
             spread: 70,
@@ -439,8 +443,122 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
 
       {/* Main Game Area */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+
+        {playerMode === 1 && players[0] ? (() => {
+          const sPlayer = players[0];
+          const currentQ = questions[sPlayer.questionIndex % questions.length];
+          const sStudent = effectiveSelectedStudentIds[0]
+            ? students?.find(s => s.id === effectiveSelectedStudentIds[0])
+            : null;
+          return (
+
+          <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
+            <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
+              <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+
+              {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+              <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                <div className="flex items-center gap-1.5 min-w-0 h-full">
+                  {sStudent ? (
+                    <div
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${sStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                      title={`Aktif Öğrenci: ${sStudent.name}`}
+                    >
+                      {sStudent.avatar}
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                      1
+                    </div>
+                  )}
+                  <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                    <div className="flex items-center min-w-0">
+                      <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                        {sStudent ? sStudent.name : '1. GRUP'}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                        • Noktalama Avcısı
+                      </span>
+                    </div>
+                    <img src="/MENUIKON/grid_icon_25.png" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 h-full">
+                  <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-300">
+                      {sPlayer.questionIndex + 1}/5
+                    </span>
+                    <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                      {sPlayer.score} P
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+                {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                  <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2 sm:p-3 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
+                    <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-1.5">
+                      <span className="px-3 py-0.5 rounded-full bg-cyan-900/70 border border-cyan-400/60 text-cyan-200 font-black text-[10.5px] sm:text-xs uppercase shadow-sm shrink-0">
+                        🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
+                      </span>
+                      <div className="text-base sm:text-lg md:text-xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                        <span>{currentQ.before}</span>
+                        <span className={`inline-flex items-center justify-center min-w-[38px] sm:min-w-[46px] h-8 sm:h-10 px-2 rounded-xl font-black text-lg sm:text-2xl border-2 shadow-lg transition-all ${
+                          sPlayer.showFeedback
+                            ? sPlayer.isCorrect
+                              ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
+                              : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400'
+                            : 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse'
+                        }`}>
+                          {sPlayer.selectedMark || '\u00A0'}
+                        </span>
+                        <span>{currentQ.after}</span>
+                      </div>
+                    </div>
+                    {sPlayer.showFeedback && (
+                      <div className="absolute bottom-1 inset-x-2 z-20 px-2 py-0.5 rounded-lg bg-black/80 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in">
+                        <span className="font-bold text-cyan-300 mr-1">{currentQ.markName}:</span>
+                        <span className="line-clamp-2">{currentQ.explanation}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* BOTTOM: NOKTALAMA TUŞLARI (ÇERÇEVENİN İÇİNDE, TAKVİM ŞIK STİLİ) */}
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full shrink-0 mt-1">
+                  {availableMarks.map((m) => {
+                    const isChosen = sPlayer.selectedMark === m.symbol;
+                    const isRight = m.symbol === currentQ.correctMark;
+                    let btnClass = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
+                    if (sPlayer.showFeedback) {
+                      if (isRight) btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                      else if (isChosen) btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
+                      else btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
+                    }
+                    return (
+                      <button
+                        key={m.symbol}
+                        disabled={sPlayer.showFeedback}
+                        onClick={() => handleMarkClick(0, m.symbol)}
+                        className={`fast-quiz-btn relative w-full py-1 sm:py-1.5 px-1 min-h-[44px] sm:min-h-[50px] md:min-h-[56px] rounded-2xl border-2 transition-colors duration-75 flex flex-col items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${btnClass}`}
+                      >
+                        <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
+                        <span className="relative text-2xl sm:text-3xl leading-none font-black">{m.symbol}</span>
+                        <span className="relative text-[9px] sm:text-[10px] font-black mt-0.5 truncate max-w-full">{m.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          );
+        })() : (
         <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentQ = questions[player.questionIndex % questions.length];
@@ -458,7 +576,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2.5 sm:p-3 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-y-auto no-scrollbar`}
               >
                 {/* 1. BÖLÜM: Header */}
                 <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
@@ -482,16 +600,16 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
 
                 {/* Soru Görevi Rozeti */}
                 <div className="text-center my-0.5 shrink-0">
-                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-900/60 border border-cyan-400/50 text-cyan-200 font-bold text-[10px] sm:text-xs uppercase">
+                  <span className="px-3 py-0.5 rounded-full bg-cyan-900/70 border border-cyan-400/60 text-cyan-200 font-black text-[11px] sm:text-xs uppercase shadow-sm">
                     🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
                   </span>
                 </div>
 
                 {/* 2. BÖLÜM: Cümle Kartı & Boşluk Alanı - 3 Bölümlü Dengeli Orta Alan */}
-                <div className="flex-1 min-h-0 bg-black/50 border-2 border-white/20 rounded-2xl p-2 sm:p-3 my-1 flex items-center justify-center text-center shadow-inner">
+                <div className="flex-1 min-h-0 bg-black/50 border-2 border-white/20 rounded-2xl p-2.5 sm:p-3.5 my-1 flex items-center justify-center text-center shadow-inner">
                   <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                     <span>{currentQ.before}</span>
-                    <span className={`inline-flex items-center justify-center min-w-[36px] sm:min-w-[44px] h-8 sm:h-10 px-2 rounded-xl font-black text-lg sm:text-2xl border-2 shadow-lg transition-all ${
+                    <span className={`inline-flex items-center justify-center min-w-[42px] sm:min-w-[50px] h-9 sm:h-12 px-2.5 rounded-xl font-black text-xl sm:text-2xl md:text-3xl border-2 shadow-lg transition-all ${
                       player.showFeedback
                         ? player.isCorrect
                           ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
@@ -504,18 +622,24 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </div>
                 </div>
 
-                {/* 3. BÖLÜM: Noktalama İşareti Tuşları */}
-                <div className="grid grid-cols-5 gap-1 sm:gap-1.5 my-1 w-full shrink-0">
+                {/* 3. BÖLÜM: Noktalama İşareti Tuşları (ŞIKLAR) */}
+                <div className={`grid grid-cols-5 ${
+                  playerMode === 1 
+                    ? 'gap-2 sm:gap-3.5 my-2 max-w-2xl mx-auto' 
+                    : playerMode === 2 
+                    ? 'gap-1.5 sm:gap-2 my-1.5' 
+                    : 'gap-1 my-1'
+                } w-full shrink-0`}>
                   {availableMarks.map((m) => {
                     const isChosen = player.selectedMark === m.symbol;
                     const isRight = m.symbol === currentQ.correctMark;
-                    let btnStyle = `${m.color} text-slate-950 shadow-md`;
+                    let btnStyle = `${m.color} text-slate-950 shadow-lg`;
 
                     if (player.showFeedback) {
                       if (isRight) {
-                        btnStyle = 'bg-emerald-500 text-white ring-2 ring-emerald-300 scale-105';
+                        btnStyle = 'bg-emerald-500 text-white ring-4 ring-emerald-300 scale-105 shadow-xl';
                       } else if (isChosen && !isRight) {
-                        btnStyle = 'bg-rose-500 text-white ring-2 ring-rose-300';
+                        btnStyle = 'bg-rose-500 text-white ring-4 ring-rose-300';
                       } else {
                         btnStyle = 'opacity-30 bg-slate-700 text-slate-400';
                       }
@@ -526,10 +650,30 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                         key={m.symbol}
                         disabled={player.showFeedback}
                         onClick={() => handleMarkClick(pIdx, m.symbol)}
-                        className={`flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-xl transition-all font-black cursor-pointer active:scale-95 ${btnStyle}`}
+                        className={`flex flex-col items-center justify-center rounded-xl sm:rounded-2xl transition-all font-black cursor-pointer active:scale-95 border-2 border-white/30 ${
+                          playerMode === 1
+                            ? 'py-3 sm:py-4 px-2 min-h-[70px] sm:min-h-[84px] md:min-h-[94px]'
+                            : playerMode === 2
+                            ? 'py-2 sm:py-2.5 px-1.5 min-h-[56px] sm:min-h-[64px]'
+                            : 'py-1.5 sm:py-2 px-1 min-h-[48px]'
+                        } ${btnStyle}`}
                       >
-                        <span className="text-xl sm:text-2xl leading-none">{m.symbol}</span>
-                        <span className="text-[8.5px] sm:text-[9.5px] font-bold mt-0.5 uppercase truncate max-w-full">
+                        <span className={`${
+                          playerMode === 1 
+                            ? 'text-3xl sm:text-4xl md:text-5xl' 
+                            : playerMode === 2 
+                            ? 'text-2xl sm:text-3xl' 
+                            : 'text-xl sm:text-2xl'
+                        } leading-none font-black drop-shadow`}>
+                          {m.symbol}
+                        </span>
+                        <span className={`${
+                          playerMode === 1 
+                            ? 'text-xs sm:text-sm font-black mt-1' 
+                            : playerMode === 2 
+                            ? 'text-[10px] sm:text-xs font-black mt-0.5' 
+                            : 'text-[9px] sm:text-[10px] font-bold mt-0.5'
+                        } uppercase tracking-wider truncate max-w-full`}>
                           {m.label}
                         </span>
                       </button>
@@ -548,6 +692,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
             );
           })}
         </div>
+        )}
       </main>
 
       {/* Student Avatar Dock (Single Row) */}

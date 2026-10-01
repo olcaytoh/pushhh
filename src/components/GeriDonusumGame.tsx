@@ -58,7 +58,8 @@ interface GeriDonusumGameProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 type PlayerMode = 1 | 2 | 3;
@@ -88,7 +89,8 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(playerCountMode || 1);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -198,10 +200,10 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
 
     if (isCorrect) {
       triggerSound('/coin.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(true);
+      if (onQuestionAnswered) onQuestionAnswered(true, playerIndex);
     } else {
       triggerSound('/hata.mp3');
-      if (onQuestionAnswered && playerIndex === 0) onQuestionAnswered(false);
+      if (onQuestionAnswered) onQuestionAnswered(false, playerIndex);
     }
 
     setPlayers(prev => {
@@ -227,6 +229,7 @@ export const GeriDonusumGame: React.FC<GeriDonusumGameProps> = ({
           setGameOver(true);
           setRoundWinner(playerIndex);
           triggerSound('/para.mp3');
+          onGameCompleted?.(playerIndex, playerMode);
           confetti({
             particleCount: 80,
             spread: 70,

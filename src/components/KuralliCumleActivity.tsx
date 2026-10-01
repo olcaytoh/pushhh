@@ -26,7 +26,8 @@ export interface KuralliCumleActivityProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 interface SentenceData {
@@ -367,6 +368,74 @@ function shuffleWords(words: string[]): WordItem[] {
 
 
 // ---------------------------------------------------------------------------
+// TrimmedImg: PNG'nin sağ/solundaki SAYDAM boşlukları otomatik kırpar.
+// Lokomotif ve vagonların önündeki/arkasındaki boş alan silinir, tren kısalır.
+// (Yalnızca yatayda kırpar; yükseklik ve vagon üstü yazı konumu değişmez.)
+// ---------------------------------------------------------------------------
+const trimCache = new Map<string, Promise<string | null>>();
+function trimTransparentX(src: string): Promise<string | null> {
+  const cached = trimCache.get(src);
+  if (cached) return cached;
+  const p = new Promise<string | null>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        if (!w || !h) return resolve(null);
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        if (!ctx) return resolve(null);
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let minX = w;
+        let maxX = -1;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            if (data[(y * w + x) * 4 + 3] > 16) {
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+            }
+          }
+        }
+        if (maxX < minX || (minX === 0 && maxX === w - 1)) return resolve(null);
+        const cw = maxX - minX + 1;
+        const out = document.createElement('canvas');
+        out.width = cw;
+        out.height = h;
+        const octx = out.getContext('2d');
+        if (!octx) return resolve(null);
+        octx.drawImage(c, minX, 0, cw, h, 0, 0, cw, h);
+        resolve(out.toDataURL('image/png'));
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+  trimCache.set(src, p);
+  return p;
+}
+
+const TrimmedImg: React.FC<React.ImgHTMLAttributes<HTMLImageElement> & { src: string }> = ({ src, style, ...rest }) => {
+  const [trimmed, setTrimmed] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    trimTransparentX(src).then((r) => {
+      if (!alive) return;
+      setTrimmed(r);
+      setDone(true);
+    });
+    return () => { alive = false; };
+  }, [src]);
+  return <img src={trimmed ?? src} style={{ ...style, opacity: done ? undefined : 0 }} {...rest} />;
+};
+
+// ---------------------------------------------------------------------------
 // FitTrain: 2 / 3 oyunculu modda treni, bulunduğu kutuya SIĞACAK şekilde
 // otomatik ölçekler. Gerekirse treni 2-4 satıra böler (lokomotif + vagonlar),
 // hangi düzen daha büyük ölçek veriyorsa onu seçer. Kutu boyutu değişince
@@ -527,7 +596,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   // Aktif Oyuncu Modu (1, 2 veya 3)
   const [activePlayerMode, setActivePlayerMode] = useState<1 | 2 | 3>(playerCountMode || 1);
@@ -773,7 +843,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       triggerSound('/farklilvl.mp3');
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(true);
+        onQuestionAnswered(true, 0);
       }
 
       confetti({
@@ -792,6 +862,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setTimeout(() => {
           setShowVictoryModal(true);
           triggerSound('/para.mp3');
+          onGameCompleted?.(0, 1);
           confetti({
             particleCount: 120,
             spread: 90,
@@ -805,7 +876,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       triggerSound('/hata.mp3');
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(false);
+        onQuestionAnswered(false, 0);
       }
 
       setTimeout(() => setShowErrorShake(false), 800);
@@ -894,7 +965,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         origin: { y: 0.55 }
       });
 
-      if (onQuestionAnswered) onQuestionAnswered(true);
+      const pIdx = player === 'p1' ? 0 : player === 'p2' ? 1 : 2;
+      if (onQuestionAnswered) onQuestionAnswered(true, pIdx);
 
       let nextScore = 0;
       if (player === 'p1') {
@@ -902,6 +974,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setPlayer1Score(nextScore);
         if (nextScore >= TARGET_WIN_SCORE) {
           setMatchWinner('p1');
+          onGameCompleted?.(0, activePlayerMode);
           return;
         }
       } else if (player === 'p2') {
@@ -909,6 +982,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setPlayer2Score(nextScore);
         if (nextScore >= TARGET_WIN_SCORE) {
           setMatchWinner('p2');
+          onGameCompleted?.(1, activePlayerMode);
           return;
         }
       } else if (player === 'p3') {
@@ -916,6 +990,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setPlayer3Score(nextScore);
         if (nextScore >= TARGET_WIN_SCORE) {
           setMatchWinner('p3');
+          onGameCompleted?.(2, activePlayerMode);
           return;
         }
       }
@@ -930,7 +1005,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       }, 1500);
     } else {
       triggerSound('/hata.mp3');
-      if (onQuestionAnswered) onQuestionAnswered(false);
+      const pIdx = player === 'p1' ? 0 : player === 'p2' ? 1 : 2;
+      if (onQuestionAnswered) onQuestionAnswered(false, pIdx);
 
       if (player === 'p1') {
         setP1Shake(true);
@@ -938,6 +1014,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setPlayer1Mistakes(nextMistakes);
         if (nextMistakes >= MAX_MISTAKES) {
           setMatchWinner('p2');
+          onGameCompleted?.(1, activePlayerMode);
           return;
         }
         setTimeout(() => setP1Shake(false), 800);
@@ -947,6 +1024,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         setPlayer2Mistakes(nextMistakes);
         if (nextMistakes >= MAX_MISTAKES) {
           setMatchWinner('p1');
+          onGameCompleted?.(0, activePlayerMode);
           return;
         }
         setTimeout(() => setP2Shake(false), 800);
@@ -1112,239 +1190,209 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         {/* =================================================================== */}
         {/* A) 1 OYUNCU MODU */}
         {/* =================================================================== */}
-        {activePlayerMode === 1 ? (
-          <div className="w-full flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto min-h-0 overflow-y-auto no-scrollbar px-1 sm:px-2">
-            <main className="flex-1 w-full flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-1">
-            
-            {/* Cümle Kartı Başlığı */}
-            <div className="flex items-center gap-2 sm:gap-3 bg-black/60 px-3 sm:px-4 py-1 rounded-2xl border border-white/15 shadow-md shrink-0">
-              <span className="text-lg sm:text-xl">{currentSentence.themeEmoji}</span>
-              <span className="text-sm sm:text-base font-black text-amber-300 uppercase tracking-wide">
-                {currentSentence.themeTitle}
-              </span>
-              <span className="text-xs text-slate-400">
-                ({currentSentenceIndex + 1} / {currentGradeSentences.length})
-              </span>
-            </div>
-
-            {/* Kelimeler Alanı */}
-            <div className={`w-full max-w-4xl p-2.5 sm:p-3.5 md:p-4 rounded-3xl bg-gradient-to-b ${currentSentence.themeGradient} border-2 ${currentSentence.borderColor} ${currentSentence.glowColor} shadow-2xl flex flex-col items-center gap-2 sm:gap-2.5 transition-all ${
-              showErrorShake ? 'animate-shake' : ''
-            }`}>
-              
-              {/* Cümle Treni (Vagon Sıralama) Bilgilendirme */}
-              <div className="flex items-center gap-2 px-3 py-0.5 rounded-full bg-black/40 border border-amber-400/40 text-[10px] sm:text-xs font-bold text-amber-200 text-center shrink-0">
-                <img src="/loko.png" alt="Lokomotif" className="w-4 sm:w-5 h-auto object-contain inline-block" />
-                <span>Vagonları sürükleyerek veya tıklayarak doğru sıraya diz!</span>
-              </div>
-
-              {/* Tren Rayı & Vagonlar */}
-              <div className="w-full overflow-x-auto py-1 px-2 no-scrollbar my-1">
-                <div className="flex items-end justify-start sm:justify-center gap-1 sm:gap-2 min-w-max mx-auto">
-                  {/* LOKOMOTİF BAŞI (loko.png - ARKA PLANI ŞEFFAF) */}
-                  <div className="shrink-0 relative flex flex-col items-center justify-end select-none group pb-1">
-                    <div className="relative">
-                      <img 
-                        src="/loko.png" 
-                        alt="Lokomotif" 
-                        className={`${
-                          words.length <= 3 
-                            ? 'h-24 sm:h-30 md:h-36 lg:h-42' 
-                            : words.length === 4
-                            ? 'h-22 sm:h-26 md:h-32 lg:h-36'
-                            : words.length === 5
-                            ? 'h-20 sm:h-24 md:h-28 lg:h-32'
-                            : 'h-16 sm:h-20 md:h-24 lg:h-28'
-                        } w-auto object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)] pointer-events-none select-none transition-transform group-hover:scale-105`}
-                        draggable={false}
-                      />
-                      <div className="absolute -top-2 left-4 sm:left-6 px-1.5 sm:px-2 py-0.5 bg-black/75 backdrop-blur-xs rounded-full border border-amber-400/50 text-[8px] sm:text-[9px] font-black text-amber-300 shadow-md flex items-center gap-1">
-                        <span className="animate-pulse">💨</span>
-                        <span>LOKO</span>
-                      </div>
+        {activePlayerMode === 1 ? (() => {
+          const singleCarItems: FitTrainItem[] = [
+            {
+              key: 'single-loko',
+              node: (
+                <div className="relative flex flex-col items-center justify-end select-none pb-0.5">
+                  <div className="relative">
+                    <TrimmedImg
+                      src="/loko.png"
+                      alt="Lokomotif"
+                      style={{ height: MULTI_CAR_H }}
+                      className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
+                      draggable={false}
+                    />
+                    <div className="absolute -top-2 left-4 px-1.5 py-0.5 bg-black/75 rounded-full border border-amber-400/50 text-[8.5px] font-black text-amber-300 shadow flex items-center gap-0.5">
+                      <span>💨</span>
+                      <span>LOKO</span>
                     </div>
                   </div>
-
-                  <span className="text-amber-400/80 font-black text-xs sm:text-sm shrink-0 select-none pb-5">🔗</span>
-
-                  {/* VAGONLAR (vago.png - ARKA PLANI ŞEFFAF) */}
-                  {words.map((word, idx) => {
-                    const isSelected = selectedWordIndex === idx;
-                    const isDragged = draggedIndex === idx;
-                    const isOver = dragOverIndex === idx;
-                    
-                    const wCount = words.length;
-                    const vagonHClass = wCount <= 3 
-                      ? 'h-24 sm:h-30 md:h-36 lg:h-42' 
-                      : wCount === 4
-                      ? 'h-22 sm:h-26 md:h-32 lg:h-36'
-                      : wCount === 5
-                      ? 'h-20 sm:h-24 md:h-28 lg:h-32'
-                      : 'h-16 sm:h-20 md:h-24 lg:h-28';
-                    const vagonMinW = wCount <= 3 ? '135px' : wCount === 4 ? '120px' : wCount === 5 ? '105px' : '95px';
-                    const vagonFontClass = wCount <= 3
-                      ? (word.text.length > 8 ? 'text-xs sm:text-sm md:text-base font-extrabold' : 'text-sm sm:text-lg md:text-xl lg:text-2xl font-black')
-                      : wCount === 4
-                      ? (word.text.length > 8 ? 'text-[11px] sm:text-xs md:text-sm font-extrabold' : 'text-xs sm:text-base md:text-lg lg:text-xl font-black')
-                      : wCount === 5
-                      ? (word.text.length > 8 ? 'text-[10px] sm:text-[11px] md:text-xs font-extrabold' : 'text-[11px] sm:text-sm md:text-base lg:text-lg font-black')
-                      : (word.text.length > 8 ? 'text-[9px] sm:text-[10px] md:text-[11px] font-extrabold' : 'text-[10px] sm:text-[11px] md:text-sm lg:text-base font-black');
-
-                  return (
-                    <React.Fragment key={word.id}>
-                      <div
-                        draggable={!isCorrect}
-                        onDragStart={(e) => {
-                          setDraggedIndex(idx);
-                          e.dataTransfer.setData('text/plain', String(idx));
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          if (dragOverIndex !== idx) setDragOverIndex(idx);
-                        }}
-                        onDragLeave={() => setDragOverIndex(null)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (draggedIndex !== null) {
-                            handleDropWord(draggedIndex, idx);
-                          }
-                        }}
-                        onDragEnd={() => {
-                          setDraggedIndex(null);
-                          setDragOverIndex(null);
-                        }}
-                        onClick={() => handleWordClick(idx)}
-                        className={`group relative flex flex-col items-center justify-end select-none cursor-grab active:cursor-grabbing transition-all duration-200 pb-1 ${
-                          isCorrect
-                            ? 'scale-105 filter drop-shadow-[0_0_16px_rgba(16,185,129,0.85)] animate-bounce'
-                            : isOver
-                            ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(251,191,36,0.95)] z-20'
-                            : isSelected
-                            ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(245,158,11,0.95)] z-20 animate-pulse'
-                            : isDragged
-                            ? 'opacity-40 scale-95'
-                            : 'hover:scale-105 active:scale-95 filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]'
-                        }`}
-                        style={{ minWidth: vagonMinW }}
-                      >
-                        {/* Vagon Numarası Etiketi */}
-                        <div className={`px-2 py-0.5 rounded-full text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider mb-0.5 shadow-sm border transition-colors ${
-                          isCorrect 
-                            ? 'bg-emerald-500 text-white border-emerald-300'
-                            : isSelected
-                            ? 'bg-amber-400 text-slate-950 border-amber-200'
-                            : 'bg-black/75 text-amber-200 border-amber-400/40'
-                        }`}>
-                          Vagon #{idx + 1}
-                        </div>
-
-                        {/* Vagon Görseli (vago.png) ve İçindeki Kelime */}
-                        <div className="relative flex items-center justify-center">
-                          <img 
-                            src="/vago.png" 
-                            alt={`Vagon ${idx + 1}`}
-                            className={`${vagonHClass} w-auto object-contain select-none pointer-events-none`}
-                            draggable={false}
-                          />
-
-                          {/* Kelime: Vagonun Turkuaz Haznesine Yerleşir */}
-                          <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
-                            <span className={`text-center tracking-tight leading-tight select-none transition-all drop-shadow-xs text-slate-950 ${vagonFontClass}`}>
-                              {word.text}
-                            </span>
-                          </div>
-
-                          {/* Doğruluk veya Seçim Rozeti */}
-                          {isCorrect ? (
-                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px] shadow-md">✓</span>
-                          ) : isSelected ? (
-                            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-slate-950 text-[10px] font-black shadow-md animate-ping">●</span>
-                          ) : null}
-                        </div>
+                </div>
+              ),
+            },
+            ...words.map((word, idx) => {
+              const isSelected = selectedWordIndex === idx;
+              const isDragged = draggedIndex === idx;
+              const isOver = dragOverIndex === idx;
+              return {
+                key: `single-${word.id}`,
+                node: (
+                  <div
+                    draggable={!isCorrect}
+                    onDragStart={(e) => {
+                      setDraggedIndex(idx);
+                      e.dataTransfer.setData('text/plain', String(idx));
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (dragOverIndex !== idx) setDragOverIndex(idx);
+                    }}
+                    onDragLeave={() => setDragOverIndex(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedIndex !== null) {
+                        handleDropWord(draggedIndex, idx);
+                      }
+                    }}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    onClick={() => handleWordClick(idx)}
+                    className={`group relative flex flex-col items-center justify-end select-none cursor-grab active:cursor-grabbing transition-all pb-0.5 ${
+                      isCorrect
+                        ? 'scale-105 filter drop-shadow-[0_0_16px_rgba(16,185,129,0.85)] animate-bounce'
+                        : isOver
+                        ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(251,191,36,0.95)] z-20'
+                        : isSelected
+                        ? 'scale-110 filter drop-shadow-[0_0_20px_rgba(245,158,11,0.95)] z-20 animate-pulse'
+                        : isDragged
+                        ? 'opacity-40 scale-95'
+                        : 'hover:scale-105 active:scale-95'
+                    }`}
+                  >
+                    <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider mb-0.5 shadow-sm border ${
+                      isCorrect
+                        ? 'bg-emerald-500 text-white border-emerald-300'
+                        : isSelected
+                        ? 'bg-amber-400 text-slate-950 border-amber-200'
+                        : 'bg-black/75 text-amber-200 border-amber-400/40'
+                    }`}>
+                      Vagon #{idx + 1}
+                    </div>
+                    <div className="relative flex items-center justify-center">
+                      <TrimmedImg
+                        src="/vago.png"
+                        alt={`Vagon ${idx + 1}`}
+                        style={{ height: MULTI_CAR_H }}
+                        className="w-auto object-contain select-none pointer-events-none block"
+                        draggable={false}
+                      />
+                      <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
+                        <span
+                          style={{ fontSize: multiCarFont(word.text) }}
+                          className="text-slate-950 font-black text-center leading-tight tracking-tight whitespace-nowrap"
+                        >
+                          {word.text}
+                        </span>
                       </div>
-
-                      {idx < words.length - 1 && (
-                        <span className="text-amber-400/80 font-black text-xs sm:text-sm shrink-0 select-none pb-5">🔗</span>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
+                      {isCorrect ? (
+                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[10px] shadow-md">✓</span>
+                      ) : isSelected ? (
+                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-slate-950 text-[10px] font-black shadow-md animate-ping">●</span>
+                      ) : null}
+                    </div>
                   </div>
+                ),
+              };
+            }),
+          ];
+
+          return (
+            <div className="w-full flex-1 flex flex-col items-center justify-between max-w-5xl mx-auto min-h-0 overflow-hidden px-1 sm:px-2 py-0.5">
+              <main className="flex-1 w-full flex flex-col items-center justify-between gap-1 sm:gap-1.5 min-h-0 overflow-hidden py-0.5">
+              
+                {/* Cümle Kartı Başlığı */}
+                <div className="flex items-center gap-2 sm:gap-3 bg-black/60 px-3 sm:px-4 py-0.5 rounded-xl border border-white/15 shadow-sm shrink-0">
+                  <span className="text-base sm:text-lg">{currentSentence.themeEmoji}</span>
+                  <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wide">
+                    {currentSentence.themeTitle}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    ({currentSentenceIndex + 1} / {currentGradeSentences.length})
+                  </span>
                 </div>
 
-              {/* Önizleme Cümlesi */}
-              <div className="w-full bg-black/40 border border-white/10 rounded-2xl px-3 py-1.5 sm:py-2 text-center shrink-0">
-                <span className="text-[10px] sm:text-xs text-amber-300 uppercase tracking-widest block font-bold mb-0.5">
-                  Oluşturulan Cümle
-                </span>
-                <span className={`text-base sm:text-xl md:text-2xl font-black ${
-                  isCorrect ? 'text-emerald-400' : 'text-white'
+                {/* Kelimeler & Tren Alanı */}
+                <div className={`w-full flex-1 min-h-0 p-2 sm:p-2.5 rounded-2xl bg-gradient-to-b ${currentSentence.themeGradient} border-2 ${currentSentence.borderColor} ${currentSentence.glowColor} shadow-xl flex flex-col items-center justify-between gap-1 overflow-hidden transition-all ${
+                  showErrorShake ? 'animate-shake' : ''
                 }`}>
-                  "{assembledText}"
-                </span>
-              </div>
+                  {/* Bilgilendirme */}
+                  <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/40 border border-amber-400/40 text-[10px] sm:text-xs font-bold text-amber-200 text-center shrink-0">
+                    <img src="/loko.png" alt="Lokomotif" className="w-4 h-auto object-contain inline-block" />
+                    <span>Vagonları sürükleyerek veya tıklayarak doğru sıraya diz!</span>
+                  </div>
 
-              {/* Aksiyon Butonları */}
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                <button
-                  onClick={handleShuffle}
-                  className="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
-                  title="Kelimeleri Karıştır"
-                >
-                  <Shuffle size={14} />
-                  <span>Karıştır</span>
-                </button>
+                  {/* TREN ARENASI: FitTrain ile kutuya otomatik sığdırılır, asla ekrandan taşmaz */}
+                  <FitTrain
+                    items={singleCarItems}
+                    className="w-full flex-1 min-h-0 my-0.5 bg-black/40 border border-amber-400/30 rounded-xl"
+                    gapX={0}
+                    maxScale={1.5}
+                  />
 
-                {!isCorrect ? (
-                  <button
-                    onClick={handleCheck}
-                    className="px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm md:text-base rounded-2xl shadow-lg border border-emerald-300 flex items-center gap-2 cursor-pointer transition active:scale-95"
-                  >
-                    <CheckCircle2 size={16} />
-                    <span>KONTROL ET</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleNextSentence}
-                    className="px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm md:text-base rounded-2xl shadow-lg border border-amber-200 flex items-center gap-2 cursor-pointer transition active:scale-95 animate-bounce"
-                  >
-                    <span>SONRAKİ CÜMLE</span>
-                    <ArrowRight size={16} />
-                  </button>
-                )}
+                  {/* Önizleme Cümlesi */}
+                  <div className="w-full bg-black/50 border border-white/10 rounded-xl px-2.5 py-1 text-center shrink-0">
+                    <span className="text-[9px] sm:text-[10px] text-amber-300 uppercase tracking-widest block font-bold">
+                      Oluşturulan Cümle
+                    </span>
+                    <span className={`text-sm sm:text-base md:text-lg font-black ${
+                      isCorrect ? 'text-emerald-400' : 'text-white'
+                    }`}>
+                      "{assembledText}"
+                    </span>
+                  </div>
 
-                <button
-                  onClick={() => speakSentence(assembledText)}
-                  className="px-3 py-1.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
-                  title="Sesli Oku"
-                >
-                  <Volume2 size={14} />
-                  <span>Dinle</span>
-                </button>
-              </div>
+                  {/* Aksiyon Butonları */}
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button
+                      onClick={handleShuffle}
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
+                      title="Kelimeleri Karıştır"
+                    >
+                      <Shuffle size={13} />
+                      <span>Karıştır</span>
+                    </button>
 
-              {/* Didaktik İpucu ve Eğlenceli Bilgi (Kompakt Tek Satır Izgara) */}
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-1.5 shrink-0">
-                <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl px-2.5 py-1 text-xs text-amber-200 flex items-center gap-2">
-                  <HelpCircle size={14} className="text-amber-400 shrink-0" />
-                  <div className="text-[11px] leading-tight truncate">
-                    <span className="font-bold text-amber-300 mr-1">Kural:</span>
-                    <span>{currentSentence.didacticHint}</span>
+                    {!isCorrect ? (
+                      <button
+                        onClick={handleCheck}
+                        className="px-5 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg border border-emerald-300 flex items-center gap-2 cursor-pointer transition active:scale-95"
+                      >
+                        <CheckCircle2 size={15} />
+                        <span>KONTROL ET</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleNextSentence}
+                        className="px-5 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg border border-amber-200 flex items-center gap-2 cursor-pointer transition active:scale-95 animate-bounce"
+                      >
+                        <span>SONRAKİ CÜMLE</span>
+                        <ArrowRight size={15} />
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => speakSentence(assembledText)}
+                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-600 transition"
+                      title="Sesli Oku"
+                    >
+                      <Volume2 size={13} />
+                      <span>Dinle</span>
+                    </button>
+                  </div>
+
+                  {/* Didaktik İpucu ve Eğlenceli Bilgi (Kompakt Tek Satır Izgara) */}
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-1 shrink-0">
+                    <div className="bg-amber-950/40 border border-amber-500/30 rounded-lg px-2 py-0.5 text-[11px] text-amber-200 flex items-center gap-1.5 truncate">
+                      <HelpCircle size={13} className="text-amber-400 shrink-0" />
+                      <span className="font-bold text-amber-300 shrink-0">Kural:</span>
+                      <span className="truncate">{currentSentence.didacticHint}</span>
+                    </div>
+
+                    <div className="bg-sky-950/40 border border-sky-500/30 rounded-lg px-2 py-0.5 text-[11px] text-sky-200 flex items-center gap-1.5 truncate">
+                      <Sparkles size={13} className="text-sky-400 shrink-0" />
+                      <span className="font-bold text-sky-300 shrink-0">İpucu:</span>
+                      <span className="truncate">{currentSentence.funFact}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl px-2.5 py-1 text-xs text-sky-200 flex items-center gap-2">
-                  <Sparkles size={14} className="text-sky-400 shrink-0" />
-                  <div className="text-[11px] leading-tight truncate">
-                    <span className="font-bold text-sky-300 mr-1">İpucu:</span>
-                    <span>{currentSentence.funFact}</span>
-                  </div>
-                </div>
-              </div>
+              </main>
             </div>
-          </main>
-        </div>
-      ) : (
+          );
+        })() : (
           /* =================================================================== */
           /* B) 2 VE 3 OYUNCU MODU (KAPIŞMA DÜELLOSU) */
           /* =================================================================== */

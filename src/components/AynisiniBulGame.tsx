@@ -13,6 +13,8 @@ interface AynisiniBulGameProps {
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 export type ThemeCategory = 'all' | 'meyveler' | 'sevimli' | 'okul' | 'rozets';
@@ -185,6 +187,8 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
   selectedStudentIds,
   onSelectStudentForPlayer,
   onOpenRosterModal,
+  onQuestionAnswered,
+  onGameCompleted,
 }) => {
   const p1Student = selectedStudentIds?.[0] ? students?.find(s => s.id === selectedStudentIds[0]) : null;
   const p2Student = selectedStudentIds?.[1] ? students?.find(s => s.id === selectedStudentIds[1]) : null;
@@ -312,11 +316,13 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
     if (winner || isTransitioningRef.current) return;
 
     // Ortak nesneye mi basıldı?
+    const pIdx = player === 'p1' ? 0 : 1;
     if (item.id === commonItem.id) {
       isTransitioningRef.current = true;
       triggerSound('correct');
       setRoundWinnerPlayer(player);
       setFoundItemId(item.id);
+      onQuestionAnswered?.(true, pIdx);
 
       const nextP1 = player === 'p1' ? player1Score + 1 : player1Score;
       const nextP2 = player === 'p2' ? player2Score + 1 : player2Score;
@@ -328,11 +334,13 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
       if (nextP1 >= TARGET_WIN_SCORE) {
         setWinner('p1');
         setWinReason('score');
+        onGameCompleted?.(0, 2);
         return;
       }
       if (nextP2 >= TARGET_WIN_SCORE) {
         setWinner('p2');
         setWinReason('score');
+        onGameCompleted?.(1, 2);
         return;
       }
 
@@ -343,6 +351,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
     } else {
       // Yanlış nesneye basıldı! Hata ekle
       triggerSound('wrong');
+      onQuestionAnswered?.(false, pIdx);
       if (player === 'p1') {
         const nextMistakes = player1Mistakes + 1;
         setPlayer1Mistakes(nextMistakes);
@@ -355,6 +364,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
           isTransitioningRef.current = true;
           setWinner('p2'); // Karşı taraf kazanır
           setWinReason('mistake');
+          onGameCompleted?.(1, 2);
         }
       } else {
         const nextMistakes = player2Mistakes + 1;
@@ -368,6 +378,7 @@ export const AynisiniBulGame: React.FC<AynisiniBulGameProps> = ({
           isTransitioningRef.current = true;
           setWinner('p1'); // Karşı taraf kazanır
           setWinReason('mistake');
+          onGameCompleted?.(0, 2);
         }
       }
     }

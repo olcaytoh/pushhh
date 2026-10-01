@@ -31,7 +31,8 @@ export interface GeometrikSekilleriBulProps {
   onSelectStudent?: (id: string | null) => void;
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
+  onGameCompleted?: (winnerPlayerIndex: number | null, playerCount: number) => void;
 }
 
 export type GeometricThemeCategory = 'all' | '3d_cisimler' | 'gunluk_esya' | 'prizmalar' | 'yuvarlak';
@@ -126,7 +127,8 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
   onSelectStudent,
   onSelectStudentForPlayer,
   onOpenRosterModal,
-  onQuestionAnswered
+  onQuestionAnswered,
+  onGameCompleted
 }) => {
   // Aktif Oyuncu Modu (1, 2 veya 3)
   const [activePlayerMode, setActivePlayerMode] = useState<1 | 2 | 3>(playerCountMode || 2);
@@ -314,7 +316,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       });
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(true);
+        onQuestionAnswered(true, 0);
       }
 
       const nextScore = player1Score + 1;
@@ -323,6 +325,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       if (nextScore >= TARGET_WIN_SCORE) {
         setWinner('p1');
         setWinReason('score');
+        onGameCompleted?.(0, 1);
         return;
       }
 
@@ -340,7 +343,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       });
 
       if (onQuestionAnswered) {
-        onQuestionAnswered(false);
+        onQuestionAnswered(false, 0);
       }
 
       const nextMistakes = player1Mistakes + 1;
@@ -349,6 +352,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       if (nextMistakes >= MAX_MISTAKES) {
         setWinner('p1');
         setWinReason('mistake');
+        onGameCompleted?.(0, 1);
         return;
       }
 
@@ -373,8 +377,9 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       setFoundPlayer(player);
       setFoundItemId(item.id);
 
+      const pIdx = player === 'p1' ? 0 : player === 'p2' ? 1 : 2;
       if (onQuestionAnswered) {
-        onQuestionAnswered(true);
+        onQuestionAnswered(true, pIdx);
       }
 
       if (player === 'p1') {
@@ -383,6 +388,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextScore >= TARGET_WIN_SCORE) {
           setWinner('p1');
           setWinReason('score');
+          onGameCompleted?.(0, activePlayerMode);
           return;
         }
       } else if (player === 'p2') {
@@ -391,6 +397,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextScore >= TARGET_WIN_SCORE) {
           setWinner('p2');
           setWinReason('score');
+          onGameCompleted?.(1, activePlayerMode);
           return;
         }
       } else if (player === 'p3') {
@@ -399,6 +406,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextScore >= TARGET_WIN_SCORE) {
           setWinner('p3');
           setWinReason('score');
+          onGameCompleted?.(2, activePlayerMode);
           return;
         }
       }
@@ -409,6 +417,11 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
     } else {
       triggerSound('wrong');
 
+      const pIdx = player === 'p1' ? 0 : player === 'p2' ? 1 : 2;
+      if (onQuestionAnswered) {
+        onQuestionAnswered(false, pIdx);
+      }
+
       if (player === 'p1') {
         setP1WrongId(item.id);
         const nextMistakes = player1Mistakes + 1;
@@ -416,6 +429,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextMistakes >= MAX_MISTAKES) {
           setWinner('p2');
           setWinReason('mistake');
+          onGameCompleted?.(1, activePlayerMode);
           return;
         }
       } else if (player === 'p2') {
@@ -425,6 +439,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextMistakes >= MAX_MISTAKES) {
           setWinner('p1');
           setWinReason('mistake');
+          onGameCompleted?.(0, activePlayerMode);
           return;
         }
       } else if (player === 'p3') {
@@ -434,12 +449,9 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
         if (nextMistakes >= MAX_MISTAKES) {
           setWinner('p1');
           setWinReason('mistake');
+          onGameCompleted?.(0, activePlayerMode);
           return;
         }
-      }
-
-      if (onQuestionAnswered) {
-        onQuestionAnswered(false);
       }
 
       setTimeout(() => {

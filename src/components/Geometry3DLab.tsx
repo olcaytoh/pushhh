@@ -83,7 +83,13 @@ const SHAPES: Shape3D[] = [
   }
 ];
 
-export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+export interface Geometry3DLabProps {
+  onClose: () => void;
+  onPrevActivity?: () => void;
+  onNextActivity?: () => void;
+}
+
+export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevActivity, onNextActivity }) => {
   const [selectedShape, setSelectedShape] = useState<Shape3D>(SHAPES[0]);
   const [wireframe, setWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -309,14 +315,34 @@ export const Geometry3DLab: React.FC<{ onClose: () => void }> = ({ onClose }) =>
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-black text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer border border-white/30 shadow-md flex items-center gap-1"
-            title="Kapat"
-          >
-            <span>✕</span>
-            <span>Kapat</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {onPrevActivity && (
+              <button
+                onClick={onPrevActivity}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer border border-slate-600/80"
+                title="Önceki Etkinlik"
+              >
+                ◀ Önceki
+              </button>
+            )}
+            {onNextActivity && (
+              <button
+                onClick={onNextActivity}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer border border-slate-600/80"
+                title="Sonraki Etkinlik"
+              >
+                Sonraki ▶
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="group relative px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-black text-xs transition-all transform hover:scale-105 active:scale-95 cursor-pointer border border-white/30 shadow-md flex items-center gap-1"
+              title="Kapat"
+            >
+              <span>✕</span>
+              <span>Kapat</span>
+            </button>
+          </div>
         </div>
 
         {/* COMPACT CATEGORY HEADER BADGE (MATCHING OTHER GRADES) */}

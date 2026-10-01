@@ -23,10 +23,13 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
 }) => {
   const effectiveGrade = (currentGrade && [1, 2, 3, 4].includes(currentGrade)) ? currentGrade : 2;
 
-  // Tüm etkinliklerde ve modlarda alfabetik olarak sıralı liste
+  // Tüm etkinliklerde ve modlarda alfabetik olarak sıralı liste (ilgili sınıfa göre süzülmüş)
   const sortedStudents = React.useMemo(() => {
-    return [...students].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
-  }, [students]);
+    const list = students.some(s => s.grade === effectiveGrade) 
+      ? students.filter(s => s.grade === effectiveGrade) 
+      : students;
+    return [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+  }, [students, effectiveGrade]);
 
   // Group theme definitions (1: Red/Kırmızı or Amber for single player, 2: Blue/Mavi, 3: Green/Yeşil)
   const groupThemes = [
@@ -126,7 +129,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
               title={`${effectiveGrade}. Sınıf Öğrenci Listesini Aç / Düzenle`}
             >
               <Users size={12} className="text-amber-400 shrink-0" />
-              <span>{effectiveGrade}. Sınıf ({students.length})</span>
+              <span>{effectiveGrade}. Sınıf ({sortedStudents.length})</span>
             </button>
 
             {/* ORTA: TÜM ÖĞRENCİLER - KESİNLİKLE TEK SIRA, HEPSİ GÖZÜKÜR, KAYDIRMAYA ASLA NEDEN OLMAZ */}
