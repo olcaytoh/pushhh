@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, UserPlus, Sparkles } from 'lucide-react';
 import { Student } from '../types/student';
+import { loadSchoolSettings } from '../utils/schoolSettings';
 
 interface StudentAvatarDockProps {
   students: Student[];
@@ -25,9 +26,15 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
 
   // Tüm etkinliklerde ve modlarda alfabetik olarak sıralı liste (ilgili sınıfa göre süzülmüş)
   const sortedStudents = React.useMemo(() => {
-    const list = students.some(s => s.grade === effectiveGrade) 
-      ? students.filter(s => s.grade === effectiveGrade) 
+    const gradeStudents = students.some(s => s.grade === effectiveGrade)
+      ? students.filter(s => s.grade === effectiveGrade)
       : students;
+    const selectedClassName = loadSchoolSettings().className.trim();
+    const classStudents = gradeStudents.filter(s => s.className === selectedClassName);
+    const selectedClassGrade = Number(selectedClassName.match(/^[1-4]/)?.[0] || 0);
+    // Apply the selected section to its own grade; other grade activities keep
+    // their grade-wide list until that grade has its own section setting.
+    const list = selectedClassGrade === effectiveGrade ? classStudents : gradeStudents;
     return [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
   }, [students, effectiveGrade]);
 
@@ -97,7 +104,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
   return (
     <div className="w-full shrink-0 z-20 mt-auto mb-0 px-1 sm:px-2 select-none">
       <div className="relative rounded-2xl bg-[#070c18]/95 border border-slate-700/80 shadow-[0_8px_24px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] px-2 py-1 backdrop-blur-md">
-        {students.length === 0 ? (
+        {sortedStudents.length === 0 ? (
           <div className="flex items-center justify-between gap-2 p-1.5 bg-slate-900/80 rounded-xl border border-dashed border-amber-500/40">
             <div className="flex items-center gap-2 text-xs text-amber-200">
               <span className="text-base">🎒</span>

@@ -2,10 +2,16 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Student } from '../types/student';
 import { getTopicInfo } from './topicHelper';
+import { loadSchoolSettings } from './schoolSettings';
 
 // In-memory cache for fonts to avoid re-fetching
 let cachedRegularBase64: string | null = null;
 let cachedBoldBase64: string | null = null;
+let cachedSchoolLogoDataUrl: string | null = null;
+let cachedSchoolLogoPath: string | null = null;
+
+const SCHOOL_NAVY: [number, number, number] = [30, 58, 125];
+const SCHOOL_RED: [number, number, number] = [198, 30, 45];
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
@@ -15,6 +21,32 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
     binary += String.fromCharCode(bytes[i]);
   }
   return window.btoa(binary);
+}
+
+async function loadSchoolLogo(logoPath: string): Promise<string | null> {
+  if (cachedSchoolLogoDataUrl && cachedSchoolLogoPath === logoPath) return cachedSchoolLogoDataUrl;
+
+  try {
+    if (!logoPath) return null;
+    const response = await fetch(logoPath);
+    if (!response.ok) return null;
+    const buffer = await response.arrayBuffer();
+    cachedSchoolLogoDataUrl = `data:image/png;base64,${arrayBufferToBase64(buffer)}`;
+    cachedSchoolLogoPath = logoPath;
+    return cachedSchoolLogoDataUrl;
+  } catch (err) {
+    console.warn('School logo could not be loaded', err);
+    return null;
+  }
+}
+
+function getReportDateRange(startDate: string): string {
+  const reportDate = new Date().toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  return `${startDate} – ${reportDate}`;
 }
 
 // Fallback character transliteration in case external TTF fails to load
@@ -170,16 +202,19 @@ function generatePedagogicalReport(student: Student): PedagogicalReport {
 }
 
 /**
- * Generates a dedicated, 1-page A4 Individual Student Report.
- * Formatted cleanly so it strictly fits within a single A4 page without overflowing.
+ * Generates a dedicated Individual Student Report.
+ * The activity table may continue onto additional A4 pages so every recorded
+ * activity remains visible as its own row instead of being merged into a summary.
  */
 function generateIndividualStudentReport(
   doc: jsPDF,
   student: Student,
   gradeTab: number | 'ALL',
   fontLoaded: boolean,
-  fontName: string
+  fontName: string,
+  schoolLogoDataUrl: string | null
 ) {
+  const schoolSettings = loadSchoolSettings();
   const dateStr = new Date().toLocaleDateString('tr-TR', {
     day: '2-digit',
     month: 'long',
@@ -192,34 +227,40 @@ function generateIndividualStudentReport(
 
   const branchText = student.className ? student.className : `${student.grade}. Sınıf`;
 
-  // 1. TOP HEADER BANNER (y: 0 to 22mm)
-  doc.setFillColor(15, 23, 42); // Slate-900
+  // 1. SCHOOL-BRANDED TOP HEADER
+  doc.setFillColor(SCHOOL_NAVY[0], SCHOOL_NAVY[1], SCHOOL_NAVY[2]);
   doc.rect(0, 0, 210, 22, 'F');
 
-  // Decorative Indigo Accent Line
-  doc.setFillColor(79, 70, 229); // Indigo-600
+  if (schoolLogoDataUrl) {
+    doc.addImage(schoolLogoDataUrl, 'PNG', 14, 3, 16, 16);
+  }
+
+  // School red accent line
+  doc.setFillColor(SCHOOL_RED[0], SCHOOL_RED[1], SCHOOL_RED[2]);
   doc.rect(0, 22, 210, 1.5, 'F');
 
-  const mainTitle = fontLoaded
-    ? 'BİREYSEL ÖĞRENCİ GELİŞİM VE KAZANIM DEĞERLENDİRME RAPORU'
-    : cleanTurkishForStandardFont('BİREYSEL ÖĞRENCİ GELİŞİM VE KAZANIM DEĞERLENDİRME RAPORU');
+  const schoolTitle = fontLoaded ? schoolSettings.schoolName.toUpperCase() : cleanTurkishForStandardFont(schoolSettings.schoolName.toUpperCase());
   doc.setFont(fontName, 'bold');
-  doc.setFontSize(13);
+  doc.setFontSize(10.5);
   doc.setTextColor(255, 255, 255);
-  doc.text(mainTitle, 14, 11);
+  doc.text(schoolTitle, 34, 8);
 
+  const reportTitle = 'BİREYSEL ÖĞRENCİ GELİŞİM VE KAZANIM RAPORU';
   const subTitle = fontLoaded
-    ? `Öğrenci: ${student.name}   |   Sınıf: ${branchText}   |   Matematik ve Bilişsel Etkinlikler`
-    : cleanTurkishForStandardFont(`Öğrenci: ${student.name}   |   Sınıf: ${branchText}   |   Matematik ve Bilişsel Etkinlikler`);
+    ? `${reportTitle}  |  Öğrenci: ${student.name}  |  Sınıf: ${branchText}`
+    : cleanTurkishForStandardFont(`${reportTitle}  |  Öğrenci: ${student.name}  |  Sınıf: ${branchText}`);
   doc.setFont(fontName, 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(7.2);
   doc.setTextColor(203, 213, 225);
-  doc.text(subTitle, 14, 18);
+  doc.text(subTitle, 34, 14);
 
-  // Date on top-right
-  doc.setFontSize(8);
+  const schoolMeta = fontLoaded
+    ? `Öğretmen: ${schoolSettings.teacherName}  |  Tarih aralığı: ${getReportDateRange(schoolSettings.reportStartDate)}`
+    : cleanTurkishForStandardFont(`Ogretmen: ${schoolSettings.teacherName}  |  Tarih araligi: ${getReportDateRange(schoolSettings.reportStartDate)}`);
+  doc.setFontSize(6.8);
   doc.setTextColor(226, 232, 240);
-  doc.text(`${dateStr} | ${timeStr}`, 196, 18, { align: 'right' });
+  doc.text(schoolMeta, 34, 19);
+  doc.text(`${dateStr} | ${timeStr}`, 196, 7, { align: 'right' });
 
   // 2. MINI METRIC CARDS (y: 27 to 40mm)
   const totalQuestions = student.totalCorrect + student.totalWrong;
@@ -338,11 +379,10 @@ function generateIndividualStudentReport(
   let topicBody: string[][] = [];
 
   if (topicEntries.length > 0) {
-    // To strictly guarantee a single A4 page, limit table rows to 18 most active topics
-    const maxTopicsToShow = 18;
-    const displayedTopics = topicEntries.slice(0, maxTopicsToShow);
-
-    topicBody = displayedTopics.map(([tKey, stat], idx) => {
+    // Keep every solved activity as a separate row. Do not merge the remaining
+    // activities into a single "Diğer ... (Özet)" row; autoTable can paginate
+    // the table when the student has more activities than fit on one page.
+    topicBody = topicEntries.map(([tKey, stat], idx) => {
       const tInfo = getTopicInfo(tKey, student.grade);
       const c = stat.correct || 0;
       const w = stat.wrong || 0;
@@ -368,24 +408,6 @@ function generateIndividualStudentReport(
         cleanStatus
       ];
     });
-
-    // If there were additional topics beyond maxTopicsToShow, add a summary row
-    if (topicEntries.length > maxTopicsToShow) {
-      const remainder = topicEntries.slice(maxTopicsToShow);
-      const remCorrect = remainder.reduce((sum, [_, s]) => sum + (s.correct || 0), 0);
-      const remWrong = remainder.reduce((sum, [_, s]) => sum + (s.wrong || 0), 0);
-      const remTot = remCorrect + remWrong;
-      const remRate = remTot > 0 ? Math.round((remCorrect / remTot) * 100) : 0;
-      topicBody.push([
-        '+',
-        fontLoaded ? `Diğer ${remainder.length} Etkinlik (Özet)` : `Diger ${remainder.length} Etkinlik (Ozet)`,
-        `${remCorrect}`,
-        `${remWrong}`,
-        `${remTot}`,
-        `%${remRate}`,
-        fontLoaded ? 'Özet' : 'Ozet'
-      ]);
-    }
   } else {
     topicBody = [[
       '-',
@@ -492,7 +514,8 @@ function generateClassRosterReport(
   sortedStudents: Student[],
   gradeTab: number | 'ALL',
   fontLoaded: boolean,
-  fontName: string
+  fontName: string,
+  schoolLogoDataUrl: string | null
 ) {
   const totalStudents = sortedStudents.length;
   const totalCorrect = sortedStudents.reduce((sum, s) => sum + s.totalCorrect, 0);
@@ -504,6 +527,7 @@ function generateClassRosterReport(
     ? 'TÜM SINIFLAR (1, 2, 3 ve 4. Sınıf)'
     : `${gradeTab}. SINIF`;
 
+  const schoolSettings = loadSchoolSettings();
   const dateStr = new Date().toLocaleDateString('tr-TR', {
     day: '2-digit',
     month: 'long',
@@ -514,31 +538,39 @@ function generateClassRosterReport(
     minute: '2-digit'
   });
 
-  const titleText = fontLoaded
-    ? `ÖĞRENCİ BAŞARI VE İSTATİSTİK RAPORU`
-    : cleanTurkishForStandardFont('ÖĞRENCİ BAŞARI VE İSTATİSTİK RAPORU');
+  const titleText = fontLoaded ? schoolSettings.schoolName.toUpperCase() : cleanTurkishForStandardFont(schoolSettings.schoolName.toUpperCase());
 
   const subTitleText = fontLoaded
     ? `${gradeTitle} DÜZEYİ MATEMATİK DERSİ ETKİNLİK SONUÇLARI`
     : cleanTurkishForStandardFont(`${gradeTitle} DÜZEYİ MATEMATİK DERSİ ETKİNLİK SONUÇLARI`);
 
-  // PAGE DECORATION & HEADER
-  doc.setFillColor(30, 41, 59); // Slate-800
+  // SCHOOL-BRANDED PAGE HEADER
+  doc.setFillColor(SCHOOL_NAVY[0], SCHOOL_NAVY[1], SCHOOL_NAVY[2]);
   doc.rect(0, 0, 210, 28, 'F');
 
-  // Decorative accent line
-  doc.setFillColor(79, 70, 229); // Indigo-600
+  if (schoolLogoDataUrl) {
+    doc.addImage(schoolLogoDataUrl, 'PNG', 14, 3, 20, 20);
+  }
+
+  // School red accent line
+  doc.setFillColor(SCHOOL_RED[0], SCHOOL_RED[1], SCHOOL_RED[2]);
   doc.rect(0, 28, 210, 2, 'F');
 
   doc.setFont(fontName, 'bold');
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text(titleText, 14, 13);
+  doc.text(titleText, 39, 10);
 
   doc.setFont(fontName, 'normal');
   doc.setFontSize(9.5);
   doc.setTextColor(203, 213, 225);
-  doc.text(subTitleText, 14, 21);
+  doc.text(subTitleText, 39, 17);
+
+  doc.setFontSize(7.5);
+  const classMeta = fontLoaded
+    ? `Öğretmen: ${schoolSettings.teacherName}  |  Sınıf: ${schoolSettings.className}  |  Tarih aralığı: ${getReportDateRange(schoolSettings.reportStartDate)}`
+    : cleanTurkishForStandardFont(`Ogretmen: ${schoolSettings.teacherName}  |  Sinif: ${schoolSettings.className}  |  Tarih araligi: ${getReportDateRange(schoolSettings.reportStartDate)}`);
+  doc.text(classMeta, 39, 23);
 
   // Date and Time on right side
   doc.setFontSize(8.5);
@@ -593,7 +625,15 @@ function generateClassRosterReport(
     'Değerlendirme'
   ];
 
-  const tableBody = sortedStudents.map((s, index) => {
+  const rankedStudents = [...sortedStudents].sort((a, b) => {
+    const aTotal = a.totalCorrect + a.totalWrong;
+    const bTotal = b.totalCorrect + b.totalWrong;
+    const aRate = aTotal > 0 ? a.totalCorrect / aTotal : 0;
+    const bRate = bTotal > 0 ? b.totalCorrect / bTotal : 0;
+    return bRate - aRate || b.totalCorrect - a.totalCorrect || a.name.localeCompare(b.name, 'tr');
+  });
+
+  const tableBody = rankedStudents.map((s, index) => {
     const total = s.totalCorrect + s.totalWrong;
     const rate = total > 0 ? Math.round((s.totalCorrect / total) * 100) : 0;
     
@@ -690,12 +730,30 @@ function generateClassRosterReport(
       doc.line(14, 286, 196, 286);
     }
   });
+
+  // Teacher signature area after the class ranking table.
+  const classTableEndY = (doc as any).lastAutoTable?.finalY || 90;
+  if (classTableEndY > 245) {
+    doc.addPage();
+  }
+  const signatureY = classTableEndY > 245 ? 45 : Math.max(classTableEndY + 12, 82);
+  doc.setDrawColor(SCHOOL_RED[0], SCHOOL_RED[1], SCHOOL_RED[2]);
+  doc.setLineWidth(0.4);
+  doc.line(14, signatureY - 5, 196, signatureY - 5);
+  doc.setFont(fontName, 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(SCHOOL_NAVY[0], SCHOOL_NAVY[1], SCHOOL_NAVY[2]);
+  doc.text(fontLoaded ? 'Öğretmen Değerlendirmesi ve İmza' : 'Ogretmen Degerlendirmesi ve Imza', 14, signatureY);
+  doc.setFont(fontName, 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(fontLoaded ? `Sınıf: ${schoolSettings.className}   |   Öğretmen: ${schoolSettings.teacherName}` : `Sinif: ${schoolSettings.className}   |   Ogretmen: ${schoolSettings.teacherName}`, 14, signatureY + 6);
+  doc.text(fontLoaded ? 'İmza: _______________________________' : 'Imza: _______________________________', 135, signatureY + 6);
 }
 
 /**
  * Main export function for PDF generation.
- * Handles both individual student reports (dedicated 1-page A4 format)
- * and full-class roster reports.
+ * Handles both individual student reports and full-class roster reports.
  */
 export async function exportStudentsToPDF(
   students: Student[],
@@ -711,13 +769,15 @@ export async function exportStudentsToPDF(
 
   const fontLoaded = await loadFonts(doc);
   const fontName = fontLoaded ? 'LiberationSans' : 'helvetica';
+  const schoolSettings = loadSchoolSettings();
+  const schoolLogoDataUrl = await loadSchoolLogo(schoolSettings.logoPath);
 
   if (sortedStudents.length === 1) {
     // Dedicated Single A4 Individual Student Report with dynamic Kazanım & Seviye evaluation
-    generateIndividualStudentReport(doc, sortedStudents[0], gradeTab, fontLoaded, fontName);
+    generateIndividualStudentReport(doc, sortedStudents[0], gradeTab, fontLoaded, fontName, schoolLogoDataUrl);
   } else {
-    // Class Roster Overview Report
-    generateClassRosterReport(doc, sortedStudents, gradeTab, fontLoaded, fontName);
+    // Full Class Roster Report
+    generateClassRosterReport(doc, sortedStudents, gradeTab, fontLoaded, fontName, schoolLogoDataUrl);
   }
 
   // SAVE FILE
