@@ -50,6 +50,8 @@ import { Student } from './types/student';
 import { 
   loadStudents, 
   saveStudents, 
+  setActiveStoreUserId,
+  getActiveStoreUserId,
   loadSelectedStudentIdsForGrade, 
   saveSelectedStudentIdsForGrade, 
   recordStudentAnswer, 
@@ -3075,30 +3077,44 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
+        // 1. Switch active store scope immediately to this user
+        setActiveStoreUserId(user.uid);
+
+        // 2. Load locally cached students for this specific user so the UI updates instantly
+        const userLocalStudents = loadStudents(user.uid);
+        setStudents(userLocalStudents);
+        setLastCloudSyncedAt(getLocalLastSyncedAt(user.uid));
+
         setIsCloudSyncing(true);
         try {
           const cloudData = await loadUserDataFromCloud(user.uid);
           if (cloudData) {
-            if (cloudData.students && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+            // User already has saved cloud data: strictly use their cloud students
+            if (cloudData.students && Array.isArray(cloudData.students)) {
               setStudents(cloudData.students);
-              saveStudents(cloudData.students);
+              saveStudents(cloudData.students, user.uid);
             }
             if (cloudData.counters) {
               setCountersData(cloudData.counters);
               try {
-                localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+                localStorage.setItem(`olcico_class_counters_user_${user.uid}`, JSON.stringify(cloudData.counters));
               } catch {}
+            }
+            if (cloudData.selectedStudentIds && Array.isArray(cloudData.selectedStudentIds)) {
+              setSelectedStudentIds(cloudData.selectedStudentIds);
             }
             if (cloudData.lastSyncedAt) {
               setLastCloudSyncedAt(cloudData.lastSyncedAt);
             }
-            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Veriler eşitlendi.`);
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Öğrencileriniz eşitlendi.`);
             setTimeout(() => setActivityToast(null), 3500);
           } else {
-            // First time cloud user: backup current local data to cloud
-            const initialSyncTime = await saveUserDataToCloud(user.uid, students, countersData, selectedStudentIds);
+            // First time cloud user for this account:
+            // Do NOT inherit another email's or previous session's students!
+            // Start fresh with this user's local students (or DEFAULT_STUDENTS) and save to this user's cloud
+            const initialSyncTime = await saveUserDataToCloud(user.uid, userLocalStudents, countersData, selectedStudentIds);
             setLastCloudSyncedAt(initialSyncTime);
-            setActivityToast('Öğrenci listeniz ve istatistikleriniz Google hesabınıza yedeklendi! ☁️');
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Bu hesaba özel öğrenci alanınız oluşturuldu. ☁️`);
             setTimeout(() => setActivityToast(null), 3500);
           }
         } catch (err) {
@@ -3106,6 +3122,13 @@ export default function App() {
         } finally {
           setIsCloudSyncing(false);
         }
+      } else {
+        // User logged out: switch store to guest
+        setActiveStoreUserId(null);
+        const guestStudents = loadStudents(null);
+        setStudents(guestStudents);
+        setSelectedStudentIds([null, null, null]);
+        setLastCloudSyncedAt(null);
       }
     });
 
@@ -3116,20 +3139,23 @@ export default function App() {
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!currentUser) return;
+    const targetUid = currentUser.uid;
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
     syncTimeoutRef.current = setTimeout(async () => {
+      // Ensure user didn't switch or logout during debounce
+      if (!auth.currentUser || auth.currentUser.uid !== targetUid) return;
       try {
         setIsCloudSyncing(true);
-        const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+        const syncTime = await saveUserDataToCloud(targetUid, students, countersData, selectedStudentIds);
         setLastCloudSyncedAt(syncTime);
       } catch (err) {
         console.error('Debounced cloud sync error:', err);
       } finally {
         setIsCloudSyncing(false);
       }
-    }, 3000);
+    }, 2000);
 
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -3169,12 +3195,12 @@ export default function App() {
       if (cloudData) {
         if (cloudData.students && Array.isArray(cloudData.students)) {
           setStudents(cloudData.students);
-          saveStudents(cloudData.students);
+          saveStudents(cloudData.students, currentUser.uid);
         }
         if (cloudData.counters) {
           setCountersData(cloudData.counters);
           try {
-            localStorage.setItem('mathGameClassCounters_v1', JSON.stringify(cloudData.counters));
+            localStorage.setItem(`olcico_class_counters_user_${currentUser.uid}`, JSON.stringify(cloudData.counters));
           } catch {}
         }
         if (cloudData.selectedStudentIds && Array.isArray(cloudData.selectedStudentIds)) {
@@ -3183,7 +3209,7 @@ export default function App() {
         if (cloudData.lastSyncedAt) {
           setLastCloudSyncedAt(cloudData.lastSyncedAt);
         }
-        setActivityToast('Buluttan tüm veriler başarıyla geri yüklendi! 📥');
+        setActivityToast('Buluttan hesabınıza ait öğrenciler başarıyla geri yüklendi! 📥');
         setTimeout(() => setActivityToast(null), 3000);
       } else {
         setActivityToast('Bulutta henüz kayıtlı veri bulunamadı.');
@@ -3198,10 +3224,10 @@ export default function App() {
     }
   };
 
-  // Auto-persist students state changes to localStorage
+  // Auto-persist students state changes to localStorage for active user
   useEffect(() => {
-    saveStudents(students);
-  }, [students]);
+    saveStudents(students, currentUser?.uid);
+  }, [students, currentUser]);
 
   // Clean up selected student slots only if a student was completely deleted from roster
   useEffect(() => {
@@ -9114,6 +9140,11 @@ export default function App() {
         onSignOut={async () => {
           await signOutUser();
           setCurrentUser(null);
+          setActiveStoreUserId(null);
+          const guestStudents = loadStudents(null);
+          setStudents(guestStudents);
+          setSelectedStudentIds([null, null, null]);
+          setLastCloudSyncedAt(null);
         }}
         students={students}
         countersData={countersData}

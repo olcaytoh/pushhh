@@ -29,17 +29,19 @@ export interface SyncStatus {
 
 const LAST_SYNCED_STORAGE_KEY = 'olcico_last_cloud_synced_at';
 
-export function getLocalLastSyncedAt(): string | null {
+export function getLocalLastSyncedAt(userId?: string | null): string | null {
   try {
-    return localStorage.getItem(LAST_SYNCED_STORAGE_KEY);
+    const key = userId ? `${LAST_SYNCED_STORAGE_KEY}_${userId}` : LAST_SYNCED_STORAGE_KEY;
+    return localStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-export function setLocalLastSyncedAt(timestamp: string): void {
+export function setLocalLastSyncedAt(timestamp: string, userId?: string | null): void {
   try {
-    localStorage.setItem(LAST_SYNCED_STORAGE_KEY, timestamp);
+    const key = userId ? `${LAST_SYNCED_STORAGE_KEY}_${userId}` : LAST_SYNCED_STORAGE_KEY;
+    localStorage.setItem(key, timestamp);
   } catch {
     // Ignore storage errors
   }
@@ -116,7 +118,7 @@ export async function saveUserDataToCloud(
   };
 
   await setDoc(classroomRef, payload, { merge: true });
-  setLocalLastSyncedAt(timestamp);
+  setLocalLastSyncedAt(timestamp, userId);
 
   return timestamp;
 }
@@ -161,14 +163,22 @@ export async function loadUserDataFromCloud(userId: string): Promise<CloudClassr
     console.warn('Could not parse cloud selectedStudentIds JSON', e);
   }
 
-  if (!counters) {
-    return null;
-  }
-
   return {
     userId,
-    students,
-    counters,
+    students: Array.isArray(students) ? students : [],
+    counters: counters || {
+      version: 1,
+      visits: { total: 0, today: 0, lastVisitDate: '', lastVisitTime: '', firstVisitDate: '' },
+      clicks: { grade1: 0, grade2: 0, grade3: 0, grade4: 0, otherGames: 0, englishGames: 0 },
+      questions: {
+        grade1: { correct: 0, wrong: 0 },
+        grade2: { correct: 0, wrong: 0 },
+        grade3: { correct: 0, wrong: 0 },
+        grade4: { correct: 0, wrong: 0 },
+        otherGames: { correct: 0, wrong: 0 },
+        englishGames: { correct: 0, wrong: 0 },
+      },
+    },
     selectedStudentIds,
     lastSyncedAt: data.lastSyncedAt || new Date().toISOString()
   };

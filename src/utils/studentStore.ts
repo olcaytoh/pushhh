@@ -54,15 +54,52 @@ const INITIALIZED_KEY = 'classroom_students_init_v1';
 export const SELECTED_STUDENTS_STORAGE_KEY = 'classroom_selected_students_v1';
 export const SELECTED_STUDENTS_BY_GRADE_KEY = 'classroom_selected_students_by_grade_v1';
 
+let currentStoreUserId: string | null = null;
+
 /**
- * Loads students from localStorage.
+ * Sets the active user id in studentStore so all load/save operations
+ * automatically target this user's private roster.
+ */
+export function setActiveStoreUserId(userId: string | null): void {
+  currentStoreUserId = userId;
+}
+
+export function getActiveStoreUserId(): string | null {
+  return currentStoreUserId;
+}
+
+export function getStudentsStorageKey(userId?: string | null): string {
+  const uid = userId !== undefined ? userId : currentStoreUserId;
+  return uid ? `classroom_students_user_${uid}` : 'classroom_students_guest_v1';
+}
+
+export function getStudentsInitKey(userId?: string | null): string {
+  const uid = userId !== undefined ? userId : currentStoreUserId;
+  return uid ? `classroom_students_init_${uid}` : 'classroom_students_init_guest_v1';
+}
+
+/**
+ * Loads students from localStorage scoped to active user or specified userId.
  * Ensures every student is assigned to their proper grade (1, 2, 3, 4).
  * If previously created without grade, defaults to 2 (since 2. Sınıf was default).
  */
-export function loadStudents(): Student[] {
+export function loadStudents(userId?: string | null): Student[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const isInitialized = localStorage.getItem(INITIALIZED_KEY);
+    const uid = userId !== undefined ? userId : currentStoreUserId;
+    const storageKey = getStudentsStorageKey(uid);
+    const initKey = getStudentsInitKey(uid);
+
+    let raw = localStorage.getItem(storageKey);
+    let isInitialized = localStorage.getItem(initKey);
+
+    // If guest and not yet initialized in guest_v1, check legacy 'classroom_students_v1'
+    if (!uid && raw === null) {
+      const legacyRaw = localStorage.getItem(STORAGE_KEY);
+      if (legacyRaw !== null) {
+        raw = legacyRaw;
+        isInitialized = localStorage.getItem(INITIALIZED_KEY);
+      }
+    }
 
     if (raw !== null) {
       const parsed = JSON.parse(raw);
@@ -74,9 +111,9 @@ export function loadStudents(): Student[] {
       }
     }
 
-    // First time EVER visit: seed default students
+    // First time EVER visit for this specific user or guest: seed default sample students
     if (!isInitialized) {
-      saveStudents(DEFAULT_STUDENTS);
+      saveStudents(DEFAULT_STUDENTS, uid);
       return DEFAULT_STUDENTS;
     }
 
@@ -88,12 +125,22 @@ export function loadStudents(): Student[] {
 }
 
 /**
- * Saves students to localStorage with initialization flag
+ * Saves students to localStorage scoped to active user or specified userId.
  */
-export function saveStudents(students: Student[]): void {
+export function saveStudents(students: Student[], userId?: string | null): void {
   try {
-    localStorage.setItem(INITIALIZED_KEY, 'true');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    const uid = userId !== undefined ? userId : currentStoreUserId;
+    const storageKey = getStudentsStorageKey(uid);
+    const initKey = getStudentsInitKey(uid);
+
+    localStorage.setItem(initKey, 'true');
+    localStorage.setItem(storageKey, JSON.stringify(students));
+
+    // Also mirror to legacy key if guest
+    if (!uid) {
+      localStorage.setItem(INITIALIZED_KEY, 'true');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    }
   } catch (err) {
     console.error('Error saving students to localStorage:', err);
   }

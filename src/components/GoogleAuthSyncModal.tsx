@@ -129,7 +129,7 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
         await signOutUser();
       }
       setActionMessage({
-        text: 'Başarıyla çıkış yapıldı. Verileriniz bu cihazın hafızasında saklanmaya devam ediyor.',
+        text: 'Başarıyla çıkış yapıldı. Hesabınıza ait öğrenciler ve veriler hesabınızda güvenle korundu.',
         type: 'info'
       });
     } catch (err: any) {
@@ -354,6 +354,14 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
                   <CloudCheck className="w-3 h-3 text-cyan-400" />
                   Son Senkron: {formatFriendlyDate(lastSyncedAt)}
                 </p>
+              </div>
+            </div>
+
+            {/* Account Isolation Notice */}
+            <div className="p-3 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 text-indigo-200 text-xs flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-white">Hesaba Özel Öğrenci Alanı:</span> Eklediğiniz ve düzenlediğiniz öğrenciler sadece bu hesaba (<span className="text-amber-300 font-semibold">{currentUser.email}</span>) kaydedilir. Farklı bir mail ile giriş yaptığınızda sadece o mailin öğrencileri gözükür.
               </div>
             </div>
 

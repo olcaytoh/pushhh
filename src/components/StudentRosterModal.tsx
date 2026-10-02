@@ -368,7 +368,9 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-indigo-200/80 truncate">
-                Her sınıfın (1, 2, 3, 4. Sınıf) öğrenci listesi bağımsız olarak tutulur ve kaydedilir
+                {currentUser 
+                  ? `Google Hesabı: ${currentUser.email} (Öğrenciler sadece bu hesaba özeldir)` 
+                  : 'Her sınıfın (1, 2, 3, 4. Sınıf) öğrenci listesi bağımsız olarak tutulur ve kaydedilir'}
               </p>
             </div>
           </div>
@@ -386,11 +388,11 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                     ? 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border-emerald-500/50 hover:border-emerald-400'
                     : 'bg-blue-950/80 hover:bg-blue-900 text-blue-300 border-blue-500/50 hover:border-blue-400'
                 }`}
-                title="Google ile Bulut Senkronizasyonu & Yedekleme"
+                title={currentUser ? `${currentUser.email} hesabına bağlı (Öğrenciler bu hesaba özeldir)` : "Google ile Bulut Senkronizasyonu & Yedekleme"}
               >
                 <Cloud size={14} className={currentUser ? "text-emerald-400" : "text-cyan-400"} />
                 <span className="hidden sm:inline">
-                  {currentUser ? 'Buluta Bağlı' : 'Google ile Eşitle'}
+                  {currentUser ? (currentUser.email ? currentUser.email.split('@')[0] : 'Buluta Bağlı') : 'Google ile Eşitle'}
                 </span>
                 {currentUser && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
               </button>
