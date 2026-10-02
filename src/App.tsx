@@ -58,8 +58,11 @@ import {
   loadSelectedStudentIdsForGrade, 
   saveSelectedStudentIdsForGrade, 
   recordStudentAnswer, 
-  recordStudentGameResult 
+  recordStudentGameResult,
+  resetAllStudentStats,
+  resetGradeStudentStats
 } from './utils/studentStore';
+import { getCurriculumTopicsForGrade } from './utils/topicHelper';
 import { StudentAvatarDock } from './components/StudentAvatarDock';
 import { StudentRosterModal } from './components/StudentRosterModal';
 import { OdevAkvaryumuModal } from './components/OdevAkvaryumuModal';
@@ -3375,6 +3378,151 @@ export default function App() {
     return DEFAULT_SINGLE_STATS;
   });
 
+  const handleResetGradeStats = (grade: number) => {
+    // 1. Get all topic keys for this grade
+    const gradeTopicsList = getCurriculumTopicsForGrade(grade);
+    const gradeTopicKeys = new Set(gradeTopicsList.map(t => t.key));
+
+    // 2. Reset single player stats for this grade's topics
+    try {
+      const rawSingle = localStorage.getItem('mathGameSingleStats_v1');
+      const currentSingle: SinglePlayerStatsRecord = rawSingle
+        ? JSON.parse(rawSingle)
+        : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      if (currentSingle.topicStats) {
+        gradeTopicKeys.forEach(key => {
+          delete currentSingle.topicStats[key];
+        });
+      }
+      let remainingDogru = 0;
+      let remainingYanlis = 0;
+      if (currentSingle.topicStats) {
+        Object.values(currentSingle.topicStats).forEach(st => {
+          remainingDogru += st.dogru || 0;
+          remainingYanlis += st.yanlis || 0;
+        });
+      }
+      currentSingle.dogru = remainingDogru;
+      currentSingle.yanlis = remainingYanlis;
+      if (grade === 2 || grade === selectedGrade) {
+        currentSingle.wins = 0;
+      }
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(currentSingle));
+      setSingleStatsData({ ...currentSingle });
+    } catch (e) {
+      console.error('Error resetting grade single stats:', e);
+    }
+
+    // 3. Reset statsData for this grade's topics
+    try {
+      const rawStats = localStorage.getItem('mathGameStats_v1');
+      const currentStats: Record<string, StatRecord> = rawStats ? JSON.parse(rawStats) : {};
+      gradeTopicKeys.forEach(key => {
+        delete currentStats[key];
+      });
+      localStorage.setItem('mathGameStats_v1', JSON.stringify(currentStats));
+      setStatsData({ ...currentStats });
+    } catch (e) {
+      console.error('Error resetting grade statsData:', e);
+    }
+
+    // 4. Reset group stats for this grade's topics
+    try {
+      const rawGroup = localStorage.getItem('mathGameGroupStats_v1');
+      const currentGroup: GroupStatsRecord = rawGroup ? JSON.parse(rawGroup) : { ...DEFAULT_GROUP_STATS };
+      Object.keys(currentGroup).forEach(grpKey => {
+        const grp = currentGroup[grpKey];
+        if (grp && grp.topicStats) {
+          gradeTopicKeys.forEach(k => {
+            delete grp.topicStats[k];
+          });
+        }
+      });
+      localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(currentGroup));
+      setGroupStatsData({ ...currentGroup });
+    } catch (e) {
+      console.error('Error resetting grade groupStats:', e);
+    }
+
+    // 5. Reset students' stats for this grade
+    const updatedStudents = resetGradeStudentStats(grade);
+    setStudents(updatedStudents);
+
+    // 6. Sync to cloud if user is authenticated
+    if (currentUser) {
+      saveUserDataToCloud(currentUser.uid, updatedStudents, countersData, selectedStudentIds, currentUser.email).catch(e => {
+        console.error('Cloud sync after grade reset failed:', e);
+      });
+    }
+  };
+
+  const handleResetAllStats = () => {
+    const keysToRemove = [
+      'mathGameStats_v1',
+      'mathGameGroupStats_v1',
+      'mathGameSingleStats_v1',
+      'mathGameBadges_v1',
+      'mathGameBadgeCounts_v1',
+      'mathGameTopicWins_v1',
+      'openedTopics_v1',
+      'mathGameStats',
+      'mathGameBadges',
+      'mathGameBadgeCounts',
+      'mathGameTopicWins',
+      'openedTopics'
+    ];
+    keysToRemove.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.error('Error removing key:', key, e);
+      }
+    });
+    try {
+      localStorage.setItem('mathGameStats_v1', '{}');
+      localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(DEFAULT_GROUP_STATS));
+      localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(DEFAULT_SINGLE_STATS));
+      localStorage.setItem('mathGameBadges_v1', '[]');
+      localStorage.setItem('mathGameBadgeCounts_v1', '{}');
+      localStorage.setItem('mathGameTopicWins_v1', '{}');
+      localStorage.setItem('openedTopics_v1', JSON.stringify(['nesne_sayisi']));
+    } catch (e) {
+      console.error('Error setting empty stats:', e);
+    }
+    setStatsData({});
+    setGroupStatsData(DEFAULT_GROUP_STATS);
+    setSingleStatsData(DEFAULT_SINGLE_STATS);
+    setUnlockedBadges([]);
+    setBadgeCounts({});
+    setTopicWinCounts({});
+    setOpenedTopics(['nesne_sayisi']);
+    setScore(0);
+    setStreak(0);
+    setLives(3);
+    setGameResult(null);
+    setFeedbackState('none');
+    setNewlyUnlockedBadge(null);
+
+    // Reset all student stats
+    const resetStudents = resetAllStudentStats();
+    setStudents(resetStudents);
+
+    // Cloud sync
+    if (currentUser) {
+      saveUserDataToCloud(currentUser.uid, resetStudents, countersData, selectedStudentIds, currentUser.email).catch(e => {
+        console.error('Cloud sync after all reset failed:', e);
+      });
+    }
+  };
+
+  const handleResetGameStatsFromRoster = (grade?: number | 'ALL') => {
+    if (grade === 'ALL' || !grade) {
+      handleResetAllStats();
+    } else {
+      handleResetGradeStats(grade);
+    }
+  };
+
   const totalCorrect = Object.values(statsData).reduce<number>((sum, item) => sum + ((item as StatRecord)?.dogru || 0), 0);
   const totalCoins = totalCorrect * 10;
 
@@ -5843,6 +5991,10 @@ export default function App() {
             playMp3('/op.mp3');
             try {
               setStatsData(JSON.parse(localStorage.getItem('mathGameStats_v1') || '{}'));
+              const rawSingle = localStorage.getItem('mathGameSingleStats_v1');
+              if (rawSingle) setSingleStatsData(JSON.parse(rawSingle));
+              const rawGroup = localStorage.getItem('mathGameGroupStats_v1');
+              if (rawGroup) setGroupStatsData(JSON.parse(rawGroup));
             } catch {}
             setStatsModalGrade(selectedGrade || 2);
             setShowStatsModal(true);
@@ -9121,53 +9273,8 @@ export default function App() {
             playerLevel={playerLevel}
             streak={streak}
             onSelectTopic={(key) => selectTopicAndStart(key)}
-            onResetStats={() => {
-              const keysToRemove = [
-                'mathGameStats_v1',
-                'mathGameGroupStats_v1',
-                'mathGameSingleStats_v1',
-                'mathGameBadges_v1',
-                'mathGameBadgeCounts_v1',
-                'mathGameTopicWins_v1',
-                'openedTopics_v1',
-                'mathGameStats',
-                'mathGameBadges',
-                'mathGameBadgeCounts',
-                'mathGameTopicWins',
-                'openedTopics'
-              ];
-              keysToRemove.forEach((key) => {
-                try {
-                  localStorage.removeItem(key);
-                } catch (e) {
-                  console.error('Error removing key:', key, e);
-                }
-              });
-              try {
-                localStorage.setItem('mathGameStats_v1', '{}');
-                localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(DEFAULT_GROUP_STATS));
-                localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(DEFAULT_SINGLE_STATS));
-                localStorage.setItem('mathGameBadges_v1', '[]');
-                localStorage.setItem('mathGameBadgeCounts_v1', '{}');
-                localStorage.setItem('mathGameTopicWins_v1', '{}');
-                localStorage.setItem('openedTopics_v1', JSON.stringify(['nesne_sayisi']));
-              } catch (e) {
-                console.error('Error setting empty stats:', e);
-              }
-              setStatsData({});
-              setGroupStatsData(DEFAULT_GROUP_STATS);
-              setSingleStatsData(DEFAULT_SINGLE_STATS);
-              setUnlockedBadges([]);
-              setBadgeCounts({});
-              setTopicWinCounts({});
-              setOpenedTopics(['nesne_sayisi']);
-              setScore(0);
-              setStreak(0);
-              setLives(3);
-              setGameResult(null);
-              setFeedbackState('none');
-              setNewlyUnlockedBadge(null);
-            }}
+            onResetStats={handleResetAllStats}
+            onResetGradeStats={handleResetGradeStats}
             confirmReset={confirmReset}
             setConfirmReset={setConfirmReset}
             students={students}
@@ -9217,6 +9324,7 @@ export default function App() {
         currentUser={currentUser}
         onOpenCloudSync={() => setShowGoogleAuthModal(true)}
         onRecoverStudents={handleManualRecovery}
+        onResetGameStats={handleResetGameStatsFromRoster}
       />
 
       {/* SINIF & ZİYARETÇİ SAYAÇLARI MODAL (YÖNETİCİ & ÖĞRETMEN) */}

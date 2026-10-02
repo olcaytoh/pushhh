@@ -27,6 +27,7 @@ import {
   saveStudents,
   importStudentsFromText,
   resetAllStudentStats,
+  resetGradeStudentStats,
   resetSingleStudentStat,
   exportStudentsToCSV,
   clearAllStudents,
@@ -48,6 +49,7 @@ interface StudentRosterModalProps {
   currentUser?: User | null;
   onOpenCloudSync?: () => void;
   onRecoverStudents?: () => Promise<void>;
+  onResetGameStats?: (grade?: number | 'ALL') => void;
 }
 
 export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
@@ -60,7 +62,8 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   playMp3,
   currentUser,
   onOpenCloudSync,
-  onRecoverStudents
+  onRecoverStudents,
+  onResetGameStats
 }) => {
   // Sınıf seviyesi sekmesi (1, 2, 3, 4 veya 'ALL' - Varsayılan: Aktif oyunun sınıfı)
   const [activeGradeTab, setActiveGradeTab] = useState<number | 'ALL'>(() => {
@@ -281,10 +284,20 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   // Tüm skorları sıfırlama
   const handleResetAll = () => {
     playMp3?.('/op.mp3');
-    const updated = resetAllStudentStats();
+    let updated: Student[];
+    if (activeGradeTab === 'ALL') {
+      updated = resetAllStudentStats();
+    } else {
+      updated = resetGradeStudentStats(activeGradeTab);
+    }
     onStudentsUpdated(updated);
+    onResetGameStats?.(activeGradeTab);
     setConfirmResetAll(false);
-    setSuccessNotice('🔄 Tüm öğrencilerin doğru-yanlış puanları sıfırlandı.');
+    setSuccessNotice(
+      activeGradeTab === 'ALL'
+        ? '🔄 Tüm öğrencilerin ve etkinliklerin puanları sıfırlandı.'
+        : `🔄 ${activeGradeTab}. Sınıfın tüm puanları ve etkinlik skorları sıfırlandı.`
+    );
     setTimeout(() => setSuccessNotice(null), 4000);
   };
 

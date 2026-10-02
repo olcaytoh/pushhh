@@ -530,6 +530,25 @@ export function resetAllStudentStats(): Student[] {
   return reset;
 }
 
+export function resetGradeStudentStats(grade: number): Student[] {
+  const students = loadStudents();
+  const reset = students.map(s => {
+    if (s.grade === grade) {
+      return {
+        ...s,
+        totalCorrect: 0,
+        totalWrong: 0,
+        gamesPlayed: 0,
+        gamesWon: 0,
+        topicStats: {}
+      };
+    }
+    return s;
+  });
+  saveStudents(reset);
+  return reset;
+}
+
 export function resetSingleStudentStat(studentId: string): Student[] {
   const students = loadStudents();
   const idx = students.findIndex(s => s.id === studentId);

@@ -223,6 +223,21 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     setLocalStudents(students || []);
   }, [students]);
 
+  const [localSingleStats, setLocalSingleStats] = useState<SinglePlayerStatsRecord | undefined>(singleStatsData);
+  useEffect(() => {
+    setLocalSingleStats(singleStatsData);
+  }, [singleStatsData]);
+
+  const [localStatsData, setLocalStatsData] = useState<Record<string, StatRecord>>(statsData || {});
+  useEffect(() => {
+    setLocalStatsData(statsData || {});
+  }, [statsData]);
+
+  const [localGroupStats, setLocalGroupStats] = useState<GroupStatsRecord | undefined>(groupStatsData);
+  useEffect(() => {
+    setLocalGroupStats(groupStatsData);
+  }, [groupStatsData]);
+
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState<string>('');
   const [homeworkMap, setHomeworkMap] = useState<Record<string, any>>(() => loadHomeworkData());
@@ -293,7 +308,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const topicKeys = Object.keys(gradeTopics);
 
   // Grade-specific group stats
-  const activeGradeGroups = (gradeGroupStatsData && gradeGroupStatsData[currentGrade]) || groupStatsData || defaultGroups;
+  const activeGradeGroups = (gradeGroupStatsData && gradeGroupStatsData[currentGrade]) || localGroupStats || defaultGroups;
   const groupsList = [
     activeGradeGroups.grup1 || defaultGroups.grup1,
     activeGradeGroups.grup2 || defaultGroups.grup2,
@@ -317,7 +332,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   });
 
   // Grade-specific individual / topic stats (Doğru / Yanlış)
-  const activeGradeStats = (gradeStatsData && gradeStatsData[currentGrade]) || (currentGrade === 2 ? statsData : {});
+  const activeGradeStats = (gradeStatsData && gradeStatsData[currentGrade]) || (currentGrade === 2 ? localStatsData : {});
 
   // Category classification per grade
   const getTopicCategory = (key: string, grade: number): string => {
@@ -455,7 +470,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const gradeAccuracy = gradeTotalSolved > 0 ? Math.round((gradeTotalDogru / gradeTotalSolved) * 100) : 0;
 
   // Single player topic stats calculation
-  const singleTopicStats = singleStatsData?.topicStats || {};
+  const currentSingleStats = localSingleStats || singleStatsData;
+  const singleTopicStats = currentSingleStats?.topicStats || {};
   let gradeSingleDogru = 0;
   let gradeSingleYanlis = 0;
   topicKeys.forEach(k => {
@@ -695,7 +711,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                   <Sparkles size={12} className="text-cyan-400" />
                   <span>Tamamlanan Oyun</span>
                 </div>
-                <div className="text-base sm:text-xl font-black text-cyan-300 leading-tight mt-0.5">{singleStatsData?.wins || 0}</div>
+                <div className="text-base sm:text-xl font-black text-cyan-300 leading-tight mt-0.5">{currentSingleStats?.wins || 0}</div>
               </div>
             </div>
           ) : viewMode === 'ogrenciler' ? (
@@ -1346,10 +1362,59 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => {
-                      if (resetScope === 'grade' && onResetGradeStats) {
-                        onResetGradeStats(currentGrade);
-                      } else if (onResetStats) {
-                        onResetStats();
+                      if (resetScope === 'grade') {
+                        if (onResetGradeStats) {
+                          onResetGradeStats(currentGrade);
+                        } else if (onResetStats) {
+                          onResetStats();
+                        }
+                        if (currentSingleStats) {
+                          const updatedTopicStats = { ...(currentSingleStats.topicStats || {}) };
+                          topicKeys.forEach(k => {
+                            delete updatedTopicStats[k];
+                          });
+                          let remainingDogru = 0;
+                          let remainingYanlis = 0;
+                          Object.values(updatedTopicStats).forEach(st => {
+                            remainingDogru += st.dogru || 0;
+                            remainingYanlis += st.yanlis || 0;
+                          });
+                          setLocalSingleStats({
+                            ...currentSingleStats,
+                            dogru: remainingDogru,
+                            yanlis: remainingYanlis,
+                            wins: currentGrade === 2 ? 0 : (currentSingleStats.wins || 0),
+                            topicStats: updatedTopicStats
+                          });
+                        }
+                        const updatedStats = { ...localStatsData };
+                        topicKeys.forEach(k => {
+                          delete updatedStats[k];
+                        });
+                        setLocalStatsData(updatedStats);
+                        setLocalStudents(prev => prev.map(s => s.grade === currentGrade ? {
+                          ...s,
+                          totalCorrect: 0,
+                          totalWrong: 0,
+                          gamesPlayed: 0,
+                          gamesWon: 0,
+                          topicStats: {}
+                        } : s));
+                      } else {
+                        if (onResetStats) {
+                          onResetStats();
+                        }
+                        setLocalSingleStats({ dogru: 0, yanlis: 0, wins: 0, topicStats: {} });
+                        setLocalStatsData({});
+                        setLocalGroupStats(defaultGroups);
+                        setLocalStudents(prev => prev.map(s => ({
+                          ...s,
+                          totalCorrect: 0,
+                          totalWrong: 0,
+                          gamesPlayed: 0,
+                          gamesWon: 0,
+                          topicStats: {}
+                        })));
                       }
                       setConfirmReset(false);
                     }}
