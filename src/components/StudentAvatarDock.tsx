@@ -23,20 +23,24 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
   playMp3
 }) => {
   const effectiveGrade = (currentGrade && [1, 2, 3, 4].includes(currentGrade)) ? currentGrade : 2;
+  const selectedClassName = loadSchoolSettings().className.trim();
+  const normalizeClassName = (value: string) => value.trim().replace(/\s+/g, '').toLocaleUpperCase('tr');
 
   // Tüm etkinliklerde ve modlarda alfabetik olarak sıralı liste (ilgili sınıfa göre süzülmüş)
   const sortedStudents = React.useMemo(() => {
     const gradeStudents = students.some(s => s.grade === effectiveGrade)
       ? students.filter(s => s.grade === effectiveGrade)
       : students;
-    const selectedClassName = loadSchoolSettings().className.trim();
-    const classStudents = gradeStudents.filter(s => s.className === selectedClassName);
+    const classStudents = gradeStudents.filter(s => normalizeClassName(s.className || '') === normalizeClassName(selectedClassName));
     const selectedClassGrade = Number(selectedClassName.match(/^[1-4]/)?.[0] || 0);
-    // Apply the selected section to its own grade; other grade activities keep
-    // their grade-wide list until that grade has its own section setting.
-    const list = selectedClassGrade === effectiveGrade ? classStudents : gradeStudents;
+    // Use the selected section when it has students. If the setting was changed
+    // after an older roster was created, keep the grade list visible instead of
+    // incorrectly showing the empty-list prompt.
+    const list = selectedClassGrade === effectiveGrade && classStudents.length > 0
+      ? classStudents
+      : gradeStudents;
     return [...list].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
-  }, [students, effectiveGrade]);
+  }, [students, effectiveGrade, selectedClassName]);
 
   // Group theme definitions (1: Red/Kırmızı or Amber for single player, 2: Blue/Mavi, 3: Green/Yeşil)
   const groupThemes = [
