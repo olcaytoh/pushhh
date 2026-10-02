@@ -3,7 +3,7 @@ import {
   Sun, Moon, Volume2, VolumeX, Trophy, Heart, Flame, RotateCcw, Home, BarChart2,
   ChevronDown, ChevronRight, Play, Sparkles, X, Trash2, ArrowLeft, Grid, Check, Image, Plus,
   Award, Lock, ShieldCheck, Medal, Activity, SkipBack, SkipForward, Mail, Users, UserPlus,
-  Cloud, Globe, Settings
+  Cloud, Globe
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
@@ -5857,18 +5857,6 @@ export default function App() {
             decoding="async"
             className="w-full h-full object-contain pointer-events-none" 
           />
-        </button>
-
-        {/* OKUL VE RAPOR AYARLARI */}
-        <button
-          onClick={() => {
-            playMp3('/op.mp3');
-            setShowSchoolSettingsModal(true);
-          }}
-          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square rounded-2xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer bg-[#1e3a7d] border-2 border-red-500/70 shadow-[0_3px_10px_rgba(198,30,45,0.35)] shrink-0"
-          title="Okul ve Rapor Ayarları"
-        >
-          <Settings className="w-6 h-6 sm:w-8 sm:h-8 text-white group-hover:rotate-45 transition-transform" />
         </button>
 
         {/* AYIRICI ÇİZGİ */}
