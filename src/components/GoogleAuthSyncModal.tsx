@@ -196,7 +196,7 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
       <div 
