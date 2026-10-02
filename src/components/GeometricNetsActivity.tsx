@@ -12,6 +12,7 @@ export interface GeometricNetsActivityProps {
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialShapeId?: string;
+  onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
 interface SolidDefinition {
@@ -131,7 +132,8 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   onPrevActivity,
   onNextActivity,
   playMp3,
-  initialShapeId = 'cube'
+  initialShapeId = 'cube',
+  onQuestionAnswered
 }) => {
   const [selectedSolid, setSelectedSolid] = useState<SolidDefinition>(() => {
     return SOLIDS.find(s => s.id === initialShapeId) || SOLIDS[0];
@@ -1049,7 +1051,9 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
                       onClick={() => {
                         setQuizSelected(opt);
                         setQuizAnswered(true);
-                        if (opt === quizQuestion.correct) {
+                        const isRight = opt === quizQuestion.correct;
+                        onQuestionAnswered?.(isRight);
+                        if (isRight) {
                           triggerSound('/para.mp3');
                         } else {
                           triggerSound('/op.mp3');

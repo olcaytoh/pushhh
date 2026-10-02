@@ -17,7 +17,8 @@ import {
   Sparkles,
   GraduationCap,
   ArrowLeft,
-  Cloud
+  Cloud,
+  ArchiveRestore
 } from 'lucide-react';
 import { User } from '../firebase';
 import { Student } from '../types/student';
@@ -46,6 +47,7 @@ interface StudentRosterModalProps {
   playMp3?: (src: string) => void;
   currentUser?: User | null;
   onOpenCloudSync?: () => void;
+  onRecoverStudents?: () => Promise<void>;
 }
 
 export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
@@ -57,7 +59,8 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   currentGrade = 2,
   playMp3,
   currentUser,
-  onOpenCloudSync
+  onOpenCloudSync,
+  onRecoverStudents
 }) => {
   // Sınıf seviyesi sekmesi (1, 2, 3, 4 veya 'ALL' - Varsayılan: Aktif oyunun sınıfı)
   const [activeGradeTab, setActiveGradeTab] = useState<number | 'ALL'>(() => {
@@ -376,6 +379,21 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onRecoverStudents && (
+              <button
+                type="button"
+                onClick={async () => {
+                  playMp3?.('/op.mp3');
+                  await onRecoverStudents();
+                }}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-950/80 hover:bg-amber-900 text-amber-300 hover:text-amber-200 border border-amber-500/50 hover:border-amber-400 font-black text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow"
+                title="Kayıtlı/silinen öğrencileri yedekten geri getir"
+              >
+                <ArchiveRestore size={14} className="text-amber-400" />
+                <span className="hidden sm:inline">Öğrencileri Kurtar</span>
+              </button>
+            )}
+
             {onOpenCloudSync && (
               <button
                 type="button"

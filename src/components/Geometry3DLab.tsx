@@ -87,9 +87,10 @@ export interface Geometry3DLabProps {
   onClose: () => void;
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
+  onQuestionAnswered?: (isCorrect: boolean) => void;
 }
 
-export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevActivity, onNextActivity }) => {
+export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevActivity, onNextActivity, onQuestionAnswered }) => {
   const [selectedShape, setSelectedShape] = useState<Shape3D>(SHAPES[0]);
   const [wireframe, setWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -548,7 +549,9 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
                             disabled={quizSelected !== null}
                             onClick={() => {
                               setQuizSelected(opt);
-                              setQuizFeedback(opt === activeQuizQuestion.answer);
+                              const isRight = opt === activeQuizQuestion.answer;
+                              setQuizFeedback(isRight);
+                              onQuestionAnswered?.(isRight);
                             }}
                             className={`py-1.5 px-2 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${btnStyle}`}
                           >

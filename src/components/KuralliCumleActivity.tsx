@@ -858,7 +858,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       setCompletedSentences(nextCompleted);
 
       const gradeCompletedCount = currentGradeSentences.filter(s => nextCompleted.includes(s.id)).length;
-      if (gradeCompletedCount >= currentGradeSentences.length) {
+      if (gradeCompletedCount >= 10 || gradeCompletedCount >= currentGradeSentences.length) {
         setTimeout(() => {
           setShowVictoryModal(true);
           triggerSound('/para.mp3');

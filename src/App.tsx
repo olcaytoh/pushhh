@@ -50,8 +50,11 @@ import { Student } from './types/student';
 import { 
   loadStudents, 
   saveStudents, 
+  DEFAULT_STUDENTS,
   setActiveStoreUserId,
   getActiveStoreUserId,
+  isDefaultSampleList,
+  recoverLegacyOrBackupStudents,
   loadSelectedStudentIdsForGrade, 
   saveSelectedStudentIdsForGrade, 
   recordStudentAnswer, 
@@ -3071,6 +3074,7 @@ export default function App() {
   const [showGoogleAuthModal, setShowGoogleAuthModal] = useState(false);
   const [lastCloudSyncedAt, setLastCloudSyncedAt] = useState<string | null>(() => getLocalLastSyncedAt());
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const isInitialCloudSyncDone = useRef(false);
 
   // Listen to Firebase Auth state
   useEffect(() => {
@@ -3079,21 +3083,24 @@ export default function App() {
       if (user) {
         // 1. Switch active store scope immediately to this user
         setActiveStoreUserId(user.uid);
+        isInitialCloudSyncDone.current = false;
 
         // 2. Load locally cached students for this specific user so the UI updates instantly
         const userLocalStudents = loadStudents(user.uid);
-        setStudents(userLocalStudents);
+        if (userLocalStudents && userLocalStudents.length > 0) {
+          setStudents(userLocalStudents);
+        }
         setLastCloudSyncedAt(getLocalLastSyncedAt(user.uid));
 
         setIsCloudSyncing(true);
         try {
-          const cloudData = await loadUserDataFromCloud(user.uid);
-          if (cloudData) {
-            // User already has saved cloud data: strictly use their cloud students
-            if (cloudData.students && Array.isArray(cloudData.students)) {
-              setStudents(cloudData.students);
-              saveStudents(cloudData.students, user.uid);
-            }
+          // 3. IMMEDIATELY load from Firestore Cloud (both UID and Email lookup paths)
+          const cloudData = await loadUserDataFromCloud(user.uid, user.email);
+          if (cloudData && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+            // THE CLOUD IS THE SOURCE OF TRUTH ACROSS DEVICES!
+            setStudents(cloudData.students);
+            saveStudents(cloudData.students, user.uid);
+
             if (cloudData.counters) {
               setCountersData(cloudData.counters);
               try {
@@ -3106,25 +3113,46 @@ export default function App() {
             if (cloudData.lastSyncedAt) {
               setLastCloudSyncedAt(cloudData.lastSyncedAt);
             }
-            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Öğrencileriniz eşitlendi.`);
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Bilgileriniz buluttan yüklendi. ☁️`);
             setTimeout(() => setActivityToast(null), 3500);
           } else {
             // First time cloud user for this account:
-            // Do NOT inherit another email's or previous session's students!
-            // Start fresh with this user's local students (or DEFAULT_STUDENTS) and save to this user's cloud
-            const initialSyncTime = await saveUserDataToCloud(user.uid, userLocalStudents, countersData, selectedStudentIds);
+            // Check if userLocalStudents or legacy backup on this machine has real students
+            let studentsToSave = userLocalStudents;
+            if (!studentsToSave || isDefaultSampleList(studentsToSave)) {
+              const recovered = recoverLegacyOrBackupStudents(user.uid, user.email);
+              if (recovered && recovered.length > 0) {
+                studentsToSave = recovered;
+                setStudents(recovered);
+              }
+            }
+            if (!studentsToSave || studentsToSave.length === 0) {
+              studentsToSave = DEFAULT_STUDENTS;
+              setStudents(DEFAULT_STUDENTS);
+            }
+
+            const initialSyncTime = await saveUserDataToCloud(user.uid, studentsToSave, countersData, selectedStudentIds, user.email);
             setLastCloudSyncedAt(initialSyncTime);
-            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Bu hesaba özel öğrenci alanınız oluşturuldu. ☁️`);
+            setActivityToast(`Google Hesabı Bağlandı (${user.displayName || user.email})! Öğrenci alanınız buluta eşitlendi. ☁️`);
             setTimeout(() => setActivityToast(null), 3500);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('Cloud auto-sync error on login:', err);
+          // If cloud sync has an error, fallback to local recovered students so user never sees lost data
+          const recovered = recoverLegacyOrBackupStudents(user.uid, user.email);
+          if (recovered && recovered.length > 0) {
+            setStudents(recovered);
+            setActivityToast('Kayıtlı öğrencileriniz cihaz yedeğinden başarıyla yüklendi! 📥');
+            setTimeout(() => setActivityToast(null), 4000);
+          }
         } finally {
           setIsCloudSyncing(false);
+          isInitialCloudSyncDone.current = true;
         }
       } else {
         // User logged out: switch store to guest
         setActiveStoreUserId(null);
+        isInitialCloudSyncDone.current = false;
         const guestStudents = loadStudents(null);
         setStudents(guestStudents);
         setSelectedStudentIds([null, null, null]);
@@ -3135,32 +3163,43 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Debounced auto-sync to Cloud when students or counters change and user is logged in
+  // Immediate and fast debounced auto-sync to Cloud
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  useEffect(() => {
-    if (!currentUser) return;
-    const targetUid = currentUser.uid;
+
+  const triggerImmediateCloudSync = (
+    updatedStudents?: Student[],
+    updatedCounters?: ClassCountersData,
+    updatedSelectedIds?: (string | null)[]
+  ) => {
+    if (!auth.currentUser) return;
+    const targetUid = auth.currentUser.uid;
+    const email = auth.currentUser.email;
+    const sList = updatedStudents || students;
+    const cData = updatedCounters || countersData;
+    const selIds = updatedSelectedIds || selectedStudentIds;
+
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
     syncTimeoutRef.current = setTimeout(async () => {
-      // Ensure user didn't switch or logout during debounce
       if (!auth.currentUser || auth.currentUser.uid !== targetUid) return;
       try {
         setIsCloudSyncing(true);
-        const syncTime = await saveUserDataToCloud(targetUid, students, countersData, selectedStudentIds);
+        const syncTime = await saveUserDataToCloud(targetUid, sList, cData, selIds, email);
         setLastCloudSyncedAt(syncTime);
       } catch (err) {
         console.error('Debounced cloud sync error:', err);
       } finally {
         setIsCloudSyncing(false);
       }
-    }, 2000);
+    }, 400);
+  };
 
-    return () => {
-      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-    };
-  }, [students, countersData, currentUser]);
+  useEffect(() => {
+    if (!currentUser) return;
+    if (!isInitialCloudSyncDone.current) return;
+    triggerImmediateCloudSync(students, countersData, selectedStudentIds);
+  }, [students, countersData, selectedStudentIds, currentUser]);
 
   // Manual Sync Up Handler (Forced upload)
   const handleManualSyncUp = async () => {
@@ -3170,7 +3209,7 @@ export default function App() {
     }
     setIsCloudSyncing(true);
     try {
-      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds);
+      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds, currentUser.email);
       setLastCloudSyncedAt(syncTime);
       setActivityToast('Buluta başarıyla yedeklendi! ☁️');
       setTimeout(() => setActivityToast(null), 3000);
@@ -3191,9 +3230,9 @@ export default function App() {
     }
     setIsCloudSyncing(true);
     try {
-      const cloudData = await loadUserDataFromCloud(currentUser.uid);
+      const cloudData = await loadUserDataFromCloud(currentUser.uid, currentUser.email);
       if (cloudData) {
-        if (cloudData.students && Array.isArray(cloudData.students)) {
+        if (cloudData.students && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
           setStudents(cloudData.students);
           saveStudents(cloudData.students, currentUser.uid);
         }
@@ -3209,7 +3248,7 @@ export default function App() {
         if (cloudData.lastSyncedAt) {
           setLastCloudSyncedAt(cloudData.lastSyncedAt);
         }
-        setActivityToast('Buluttan hesabınıza ait öğrenciler başarıyla geri yüklendi! 📥');
+        setActivityToast('Buluttan hesabınıza ait veriler başarıyla geri yüklendi! 📥');
         setTimeout(() => setActivityToast(null), 3000);
       } else {
         setActivityToast('Bulutta henüz kayıtlı veri bulunamadı.');
@@ -3218,6 +3257,46 @@ export default function App() {
     } catch (err) {
       console.error('Manual sync down error:', err);
       setActivityToast('Geri yükleme sırasında bir hata oluştu.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Manual Student Recovery Handler (Searches cloud, legacy, and backup storage)
+  const handleManualRecovery = async () => {
+    setIsCloudSyncing(true);
+    try {
+      // 1. Try recovering from cloud first if logged in
+      if (currentUser) {
+        const cloudData = await loadUserDataFromCloud(currentUser.uid, currentUser.email);
+        if (cloudData && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
+          setStudents(cloudData.students);
+          saveStudents(cloudData.students, currentUser.uid);
+          setActivityToast('Öğrenci listeniz bulut yedeğinden başarıyla geri getirildi! 🎉');
+          setTimeout(() => setActivityToast(null), 4000);
+          return;
+        }
+      }
+
+      // 2. Try recovering from local legacy & backup slots
+      const recovered = recoverLegacyOrBackupStudents(currentUser?.uid, currentUser?.email);
+      if (recovered && recovered.length > 0) {
+        setStudents(recovered);
+        saveStudents(recovered, currentUser?.uid);
+        if (currentUser) {
+          await saveUserDataToCloud(currentUser.uid, recovered, countersData, selectedStudentIds, currentUser.email);
+        }
+        setActivityToast('Kayıtlı öğrenci listeniz cihaz yedeğinden başarıyla geri getirildi ve buluta eşitlendi! 🎉');
+        setTimeout(() => setActivityToast(null), 4000);
+        return;
+      }
+
+      setActivityToast('Kurtarılacak farklı bir öğrenci kaydı bulunamadı.');
+      setTimeout(() => setActivityToast(null), 3000);
+    } catch (err) {
+      console.error('Manual recovery error:', err);
+      setActivityToast('Kurtarma sırasında bir hata oluştu.');
       setTimeout(() => setActivityToast(null), 3000);
     } finally {
       setIsCloudSyncing(false);
@@ -3418,7 +3497,11 @@ export default function App() {
       if (playerCountMode === 1) {
         kaydetSingleIstatistik(currentTopic, false);
         if (selectedStudentIds[0]) {
-          setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, false));
+          setStudents(prev => {
+            const updated = recordStudentAnswer(selectedStudentIds[0]!, currentTopic, false, prev, currentUser?.uid);
+            triggerImmediateCloudSync(updated);
+            return updated;
+          });
         }
       }
       setStreak(0);
@@ -3780,7 +3863,12 @@ export default function App() {
       return;
     }
     setPlayerCountMode(newMode);
-    setSelectedStudentIds([null, null, null]);
+    // 1. Oyuncu seçilmişse koru
+    setSelectedStudentIds(prev => [
+      prev[0] || null,
+      newMode >= 2 ? (prev[1] || null) : null,
+      newMode === 3 ? (prev[2] || null) : null
+    ]);
     playMp3('/coin.mp3');
 
     // If currently in playing mode, dynamically adjust active players
@@ -4024,8 +4112,12 @@ export default function App() {
       setShuffledOptions(initialPlayers[0].shuffledOptions);
     }
 
-    // Oyun başında kimse seçili olmasın
-    setSelectedStudentIds([null, null, null]);
+    // Seçili öğrenci varsa koru, listede yoksa temizle (isim seçildikten sonra oyuna başlandığında sıfırlanmasın)
+    setSelectedStudentIds(prev => [
+      prev[0] && students.some(s => s.id === prev[0]) ? prev[0] : null,
+      prev[1] && students.some(s => s.id === prev[1]) ? prev[1] : null,
+      prev[2] && students.some(s => s.id === prev[2]) ? prev[2] : null
+    ]);
     setGameState('playing');
   };
 
@@ -4922,7 +5014,13 @@ export default function App() {
     // 4. Student individual stats
     const studentId = selectedStudentIds[playerIndex] || (playerCountMode === 1 ? selectedStudentIds[0] : null);
     if (studentId) {
-      setStudents(recordStudentAnswer(studentId, topicKey, isCorrect));
+      setStudents(prev => {
+        const updated = recordStudentAnswer(studentId, topicKey, isCorrect, prev, currentUser?.uid);
+        triggerImmediateCloudSync(updated, updatedCounters);
+        return updated;
+      });
+    } else {
+      triggerImmediateCloudSync(students, updatedCounters);
     }
   };
 
@@ -4935,17 +5033,20 @@ export default function App() {
     // Record group win
     kaydetGrupGalibiyet(winnerPlayerIndex);
 
-    // Record winner student game results
+    // Record winner and participants
     const winnerStudentId = selectedStudentIds[winnerPlayerIndex];
-    if (winnerStudentId) {
-      setStudents(recordStudentGameResult(winnerStudentId, true));
-    }
-
-    // Loser participating students
-    selectedStudentIds.forEach((sId, idx) => {
-      if (sId && idx !== winnerPlayerIndex && idx < totalPlayers) {
-        setStudents(recordStudentGameResult(sId, false));
+    setStudents(prev => {
+      let current = [...prev];
+      if (winnerStudentId) {
+        current = recordStudentGameResult(winnerStudentId, true, current, currentUser?.uid);
       }
+      selectedStudentIds.forEach((sId, idx) => {
+        if (sId && idx !== winnerPlayerIndex && idx < totalPlayers) {
+          current = recordStudentGameResult(sId, false, current, currentUser?.uid);
+        }
+      });
+      triggerImmediateCloudSync(current);
+      return current;
     });
   };
 
@@ -4959,7 +5060,11 @@ export default function App() {
       kaydetSingleIstatistik(currentTopic, isCorrect);
     }
     if (selectedStudentIds[0]) {
-      setStudents(recordStudentAnswer(selectedStudentIds[0], currentTopic, isCorrect));
+      setStudents(prev => {
+        const updated = recordStudentAnswer(selectedStudentIds[0]!, currentTopic, isCorrect, prev, currentUser?.uid);
+        triggerImmediateCloudSync(updated);
+        return updated;
+      });
     }
 
     if (isCorrect) {
@@ -5014,7 +5119,11 @@ export default function App() {
         }
 
         if (selectedStudentIds[0]) {
-          setStudents(recordStudentGameResult(selectedStudentIds[0], true));
+          setStudents(prev => {
+            const updated = recordStudentGameResult(selectedStudentIds[0]!, true, prev, currentUser?.uid);
+            triggerImmediateCloudSync(updated);
+            return updated;
+          });
         }
 
         // Increment topic win count (repeat success counter)
@@ -5085,7 +5194,11 @@ export default function App() {
     kaydetIstatistik(currentTopic, isCorrect);
     kaydetGrupIstatistik(pIndex, currentTopic, isCorrect);
     if (selectedStudentIds[pIndex]) {
-      setStudents(recordStudentAnswer(selectedStudentIds[pIndex], currentTopic, isCorrect));
+      setStudents(prev => {
+        const updated = recordStudentAnswer(selectedStudentIds[pIndex]!, currentTopic, isCorrect, prev, currentUser?.uid);
+        triggerImmediateCloudSync(updated);
+        return updated;
+      });
     }
 
     if (isCorrect) {
@@ -5114,13 +5227,17 @@ export default function App() {
         setDuelWinnerIndex(pIndex);
         kaydetGrupGalibiyet(pIndex);
         if (selectedStudentIds[pIndex]) {
-          setStudents(recordStudentGameResult(selectedStudentIds[pIndex], true));
+          setStudents(prev => {
+            let updated = recordStudentGameResult(selectedStudentIds[pIndex]!, true, prev, currentUser?.uid);
+            selectedStudentIds.forEach((sId, sIdx) => {
+              if (sId && sIdx !== pIndex && sIdx < playerCountMode) {
+                updated = recordStudentGameResult(sId, false, updated, currentUser?.uid);
+              }
+            });
+            triggerImmediateCloudSync(updated);
+            return updated;
+          });
         }
-        selectedStudentIds.forEach((sId, sIdx) => {
-          if (sId && sIdx !== pIndex && sIdx < playerCountMode) {
-            setStudents(recordStudentGameResult(sId, false));
-          }
-        });
 
         if (playerCountMode >= 2) {
           // 2'li veya 3'lü oyunda kazanan grup için parkur üzerinde şampiyonluk videosu oynat:
@@ -5202,13 +5319,17 @@ export default function App() {
             setDuelWinnerIndex(winnerIdx);
             kaydetGrupGalibiyet(winnerIdx);
             if (selectedStudentIds[winnerIdx]) {
-              setStudents(recordStudentGameResult(selectedStudentIds[winnerIdx], true));
+              setStudents(prev => {
+                let updated = recordStudentGameResult(selectedStudentIds[winnerIdx]!, true, prev, currentUser?.uid);
+                selectedStudentIds.forEach((sId, sIdx) => {
+                  if (sId && sIdx !== winnerIdx && sIdx < playerCountMode) {
+                    updated = recordStudentGameResult(sId, false, updated, currentUser?.uid);
+                  }
+                });
+                triggerImmediateCloudSync(updated);
+                return updated;
+              });
             }
-            selectedStudentIds.forEach((sId, sIdx) => {
-              if (sId && sIdx !== winnerIdx && sIdx < playerCountMode) {
-                setStudents(recordStudentGameResult(sId, false));
-              }
-            });
             if (playerCountMode >= 2) {
               setPendingGameResult({
                 reason: 'can',
@@ -9107,6 +9228,7 @@ export default function App() {
         playMp3={playMp3}
         currentUser={currentUser}
         onOpenCloudSync={() => setShowGoogleAuthModal(true)}
+        onRecoverStudents={handleManualRecovery}
       />
 
       {/* SINIF & ZİYARETÇİ SAYAÇLARI MODAL (YÖNETİCİ & ÖĞRETMEN) */}
@@ -9152,6 +9274,7 @@ export default function App() {
         isSyncing={isCloudSyncing}
         onManualSyncUp={handleManualSyncUp}
         onManualSyncDown={handleManualSyncDown}
+        onRecoverStudents={handleManualRecovery}
         playMp3={playMp3}
       />
 

@@ -417,12 +417,32 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       triggerSound('/coin.mp3');
       setScore(s => s + 10 + streak * 2);
       setStreak(st => st + 1);
-      setCorrectCount(c => c + 1);
+      const nextCorrect = correctCount + 1;
+      setCorrectCount(nextCorrect);
       confetti({
         particleCount: 35,
         spread: 60,
         origin: { y: 0.7 }
       });
+
+      // Onuncu doğru yapıldığında etkinliği tamamla
+      if (nextCorrect >= 10) {
+        if (singleAutoNextTimerRef.current) {
+          clearTimeout(singleAutoNextTimerRef.current);
+          singleAutoNextTimerRef.current = null;
+        }
+        singleAutoNextTimerRef.current = setTimeout(() => {
+          setRoundCompleted(true);
+          triggerSound('/alkis.mp3');
+          onGameCompleted?.(0, 1);
+          confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.5 }
+          });
+        }, 800);
+        return;
+      }
     } else {
       triggerSound('/hata.mp3');
       setStreak(0);

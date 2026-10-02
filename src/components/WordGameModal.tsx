@@ -422,8 +422,22 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
     if (isCorrect) {
       playSound('correct');
       setQuizFeedback('correct');
-      setQuizScore(s => s + 1);
+      const nextScore = quizScore + 1;
+      setQuizScore(nextScore);
       setQuizStreak(st => st + 1);
+
+      // Onuncu doğru yapıldığında oyunu zafer ile bitir
+      if (nextScore >= 10) {
+        setTimeout(() => {
+          setIsQuizGameOver(true);
+          playSound('win');
+          onGameCompleted?.(0, 1);
+          try {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+          } catch {}
+        }, 600);
+        return;
+      }
 
       setTimeout(() => {
         setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
@@ -1087,11 +1101,11 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                 <>
                   <div className="w-full px-4 py-2 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400 text-center mb-2">
                     <h2 className="text-base sm:text-xl font-black text-amber-300 uppercase tracking-wide">
-                      Oyun Sona Erdi!
+                      {quizScore >= 10 ? '🎉 Tebrikler! 10 Doğru ile Tamamladın!' : 'Oyun Sona Erdi!'}
                     </h2>
                   </div>
                   <p className="text-white/80 text-xs sm:text-sm font-bold mb-4">
-                    Toplam Skorun: <span className="text-amber-400 font-black text-base">{quizScore}</span>
+                    Toplam Doğru Sayısı: <span className="text-amber-400 font-black text-base">{quizScore} / 10</span>
                   </p>
                 </>
               )}

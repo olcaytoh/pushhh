@@ -3,9 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Worldwide Global Site Statistics & Visitor Counters
-    // Accessible across all PCs worldwide so everyone sees the true synchronized global visits
     match /global_stats/{statId} {
       allow read, write: if true;
+    }
+
+    // Health check / connection test
+    match /test/{docId} {
+      allow read: if true;
     }
 
     // Common Helper Functions
@@ -14,52 +18,22 @@ service cloud.firestore {
     }
 
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return isSignedIn() && (
+        request.auth.uid == userId || 
+        (request.auth.token.email != null && request.auth.token.email == userId)
+      );
     }
 
-    function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    // User Profile Validation
-    function isValidUserProfile(data) {
-      return data.keys().hasAll(['id', 'email', 'displayName', 'updatedAt']) &&
-        data.id is string && data.id == request.auth.uid &&
-        data.email is string && data.email.size() <= 200 &&
-        data.displayName is string && data.displayName.size() <= 200 &&
-        data.updatedAt is string && data.updatedAt.size() <= 50;
-    }
-
-    // Teacher Classroom Data Validation
-    function isValidTeacherClassData(data) {
-      return data.keys().hasAll(['userId', 'studentsJson', 'countersJson', 'lastSyncedAt']) &&
-        data.userId is string && data.userId == request.auth.uid &&
-        data.studentsJson is string && data.studentsJson.size() <= 800000 &&
-        data.countersJson is string && data.countersJson.size() <= 200000 &&
-        data.lastSyncedAt is string && data.lastSyncedAt.size() <= 50;
-    }
-
-    // User Profile Document
+    // User Profile Document and all user-owned subcollections (including /data/classroom)
     match /users/{userId} {
-      allow get: if isOwner(userId) && isValidId(userId);
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
-      allow delete: if isOwner(userId) && isValidId(userId);
+      allow read, write: if isOwner(userId);
 
-      // Teacher Class Data sub-document
-      match /data/classroom {
-        allow get: if isOwner(userId) && isValidId(userId);
-        allow create: if isOwner(userId) && isValidId(userId) && isValidTeacherClassData(incoming());
-        allow update: if isOwner(userId) && isValidId(userId) && isValidTeacherClassData(incoming());
-        allow delete: if isOwner(userId) && isValidId(userId);
+      match /data/{dataDoc} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /{allSubcollections=**} {
+        allow read, write: if isOwner(userId);
       }
     }
   }

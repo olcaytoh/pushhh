@@ -79,6 +79,100 @@ export function getStudentsInitKey(userId?: string | null): string {
 }
 
 /**
+ * Checks whether a student list is just the default 12-item sample roster with 0 stats.
+ */
+export function isDefaultSampleList(list: Student[]): boolean {
+  if (!Array.isArray(list) || list.length === 0) return true;
+  if (list.length !== DEFAULT_STUDENTS.length) return false;
+  const defaultIds = new Set(DEFAULT_STUDENTS.map(s => s.id));
+  const allIdsMatch = list.every(s => defaultIds.has(s.id));
+  if (!allIdsMatch) return false;
+  const totalStats = list.reduce(
+    (acc, s) => acc + (s.totalCorrect || 0) + (s.totalWrong || 0) + (s.gamesPlayed || 0),
+    0
+  );
+  return totalStats === 0;
+}
+
+/**
+ * Searches localStorage slots (legacy, guest, backup, email, and user slots) for real
+ * custom student lists created by the teacher, and recovers them.
+ */
+export function recoverLegacyOrBackupStudents(
+  userId?: string | null,
+  userEmail?: string | null
+): Student[] | null {
+  try {
+    const keysToCheck: string[] = [];
+
+    // 1. User-specific backup and user keys first
+    if (userId) {
+      keysToCheck.push(`classroom_students_backup_${userId}`);
+      keysToCheck.push(`classroom_students_user_${userId}`);
+    }
+
+    if (userEmail) {
+      const cleanEmail = userEmail.trim().toLowerCase();
+      keysToCheck.push(`classroom_students_backup_${cleanEmail}`);
+      keysToCheck.push(`classroom_students_user_${cleanEmail}`);
+      keysToCheck.push(`classroom_students_${cleanEmail}`);
+    }
+
+    // 2. Legacy keys where original teacher data was stored
+    keysToCheck.push(
+      STORAGE_KEY, // 'classroom_students_v1'
+      'classroom_students_backup_v1',
+      'classroom_students_guest_v1'
+    );
+
+    // 3. Scan all keys for matches
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && !keysToCheck.includes(k)) {
+        const lowerK = k.toLowerCase();
+        if (
+          lowerK.includes('olcayto') ||
+          (userEmail && lowerK.includes(userEmail.toLowerCase())) ||
+          lowerK.startsWith('classroom_students_') ||
+          lowerK.includes('students')
+        ) {
+          keysToCheck.push(k);
+        }
+      }
+    }
+
+    for (const key of keysToCheck) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const mapped = parsed.map((s: any) => ({
+            ...s,
+            grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
+          }));
+          if (!isDefaultSampleList(mapped)) {
+            // Found real teacher students! Save to active user and backup
+            const uid = userId !== undefined ? userId : currentStoreUserId;
+            if (uid) {
+              const storageKey = getStudentsStorageKey(uid);
+              const initKey = getStudentsInitKey(uid);
+              localStorage.setItem(initKey, 'true');
+              localStorage.setItem(storageKey, JSON.stringify(mapped));
+              localStorage.setItem(`classroom_students_backup_${uid}`, JSON.stringify(mapped));
+            }
+            return mapped;
+          }
+        }
+      } catch {}
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Loads students from localStorage scoped to active user or specified userId.
  * Ensures every student is assigned to their proper grade (1, 2, 3, 4).
  * If previously created without grade, defaults to 2 (since 2. Sınıf was default).
@@ -92,22 +186,47 @@ export function loadStudents(userId?: string | null): Student[] {
     let raw = localStorage.getItem(storageKey);
     let isInitialized = localStorage.getItem(initKey);
 
+    let parsed: any = null;
+    if (raw !== null) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch {}
+    }
+
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((s: any) => ({
+        ...s,
+        grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
+      }));
+    }
+
+    // Check user's own backup slot first
+    if (uid) {
+      const backupRaw = localStorage.getItem(`classroom_students_backup_${uid}`);
+      if (backupRaw) {
+        try {
+          const backupParsed = JSON.parse(backupRaw);
+          if (Array.isArray(backupParsed) && backupParsed.length > 0) {
+            saveStudents(backupParsed, uid);
+            return backupParsed;
+          }
+        } catch {}
+      }
+    }
+
     // If guest and not yet initialized in guest_v1, check legacy 'classroom_students_v1'
     if (!uid && raw === null) {
       const legacyRaw = localStorage.getItem(STORAGE_KEY);
       if (legacyRaw !== null) {
         raw = legacyRaw;
         isInitialized = localStorage.getItem(INITIALIZED_KEY);
-      }
-    }
-
-    if (raw !== null) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return parsed.map((s: any) => ({
-          ...s,
-          grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
-        }));
+        try {
+          parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            saveStudents(parsed, null);
+            return parsed;
+          }
+        } catch {}
       }
     }
 
@@ -140,6 +259,14 @@ export function saveStudents(students: Student[], userId?: string | null): void 
     if (!uid) {
       localStorage.setItem(INITIALIZED_KEY, 'true');
       localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    }
+
+    // Always maintain a safe persistent backup of real custom student data
+    if (Array.isArray(students) && students.length > 0 && !isDefaultSampleList(students)) {
+      localStorage.setItem('classroom_students_backup_v1', JSON.stringify(students));
+      if (uid) {
+        localStorage.setItem(`classroom_students_backup_${uid}`, JSON.stringify(students));
+      }
     }
   } catch (err) {
     console.error('Error saving students to localStorage:', err);
@@ -329,51 +456,63 @@ export function restoreDefaultStudents(): Student[] {
 export function recordStudentAnswer(
   studentId: string,
   topicKey: string,
-  isCorrect: boolean
+  isCorrect: boolean,
+  existingStudents?: Student[],
+  userId?: string | null
 ): Student[] {
-  const students = loadStudents();
+  const uid = userId !== undefined ? userId : currentStoreUserId;
+  const students = existingStudents && existingStudents.length > 0 
+    ? [...existingStudents] 
+    : loadStudents(uid);
+
   const idx = students.findIndex(s => s.id === studentId);
   if (idx === -1) return students;
 
   const student = students[idx];
   const now = new Date().toISOString();
-  const currentTopicStat = student.topicStats[topicKey] || { correct: 0, wrong: 0 };
+  const currentTopicStat = student.topicStats?.[topicKey] || { correct: 0, wrong: 0 };
 
   const updatedStudent: Student = {
     ...student,
-    totalCorrect: student.totalCorrect + (isCorrect ? 1 : 0),
-    totalWrong: student.totalWrong + (isCorrect ? 0 : 1),
+    totalCorrect: (student.totalCorrect || 0) + (isCorrect ? 1 : 0),
+    totalWrong: (student.totalWrong || 0) + (isCorrect ? 0 : 1),
     topicStats: {
-      ...student.topicStats,
+      ...(student.topicStats || {}),
       [topicKey]: {
-        correct: currentTopicStat.correct + (isCorrect ? 1 : 0),
-        wrong: currentTopicStat.wrong + (isCorrect ? 0 : 1),
+        correct: (currentTopicStat.correct || 0) + (isCorrect ? 1 : 0),
+        wrong: (currentTopicStat.wrong || 0) + (isCorrect ? 0 : 1),
         lastPlayed: now
       }
     }
   };
 
   students[idx] = updatedStudent;
-  saveStudents(students);
+  saveStudents(students, uid);
   return students;
 }
 
 export function recordStudentGameResult(
   studentId: string,
-  won: boolean
+  won: boolean,
+  existingStudents?: Student[],
+  userId?: string | null
 ): Student[] {
-  const students = loadStudents();
+  const uid = userId !== undefined ? userId : currentStoreUserId;
+  const students = existingStudents && existingStudents.length > 0 
+    ? [...existingStudents] 
+    : loadStudents(uid);
+
   const idx = students.findIndex(s => s.id === studentId);
   if (idx === -1) return students;
 
   const student = students[idx];
   students[idx] = {
     ...student,
-    gamesPlayed: student.gamesPlayed + 1,
-    gamesWon: student.gamesWon + (won ? 1 : 0)
+    gamesPlayed: (student.gamesPlayed || 0) + 1,
+    gamesWon: (student.gamesWon || 0) + (won ? 1 : 0)
   };
 
-  saveStudents(students);
+  saveStudents(students, uid);
   return students;
 }
 

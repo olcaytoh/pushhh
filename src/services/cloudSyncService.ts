@@ -7,7 +7,7 @@ import {
   db, 
   User 
 } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocFromServer, setDoc } from 'firebase/firestore';
 import { Student } from '../types/student';
 import { ClassCountersData } from '../utils/counterStorage';
 
@@ -104,40 +104,74 @@ export async function saveUserDataToCloud(
   userId: string,
   students: Student[],
   counters: ClassCountersData,
-  selectedStudentIds?: (string | null)[] | Record<string, any>
+  selectedStudentIds?: (string | null)[] | Record<string, any>,
+  userEmail?: string | null
 ): Promise<string> {
   const timestamp = new Date().toISOString();
   const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
 
   const payload = {
     userId,
+    userEmail: userEmail || '',
     studentsJson: JSON.stringify(students),
     countersJson: JSON.stringify(counters),
-    selectedStudentIdsJson: selectedStudentIds ? JSON.stringify(selectedStudentIds) : '{}',
+    selectedStudentIdsJson: selectedStudentIds ? JSON.stringify(selectedStudentIds) : '[]',
     lastSyncedAt: timestamp
   };
 
   await setDoc(classroomRef, payload, { merge: true });
   setLocalLastSyncedAt(timestamp, userId);
 
+  // Also mirror to email document if provided so data is accessible across devices by email
+  if (userEmail && userEmail.trim()) {
+    try {
+      const emailRef = doc(db, 'users', userEmail.trim().toLowerCase(), 'data', 'classroom');
+      await setDoc(emailRef, payload, { merge: true });
+    } catch {
+      // Non-critical mirror
+    }
+  }
+
   return timestamp;
 }
 
 /**
- * Loads classroom data from Firestore cloud
+ * Loads classroom data from Firestore cloud (checks both userId and optional userEmail)
  */
-export async function loadUserDataFromCloud(userId: string): Promise<CloudClassroomData | null> {
+export async function loadUserDataFromCloud(
+  userId: string, 
+  userEmail?: string | null
+): Promise<CloudClassroomData | null> {
   const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
-  const snap = await getDoc(classroomRef);
+  let snap: any = null;
+  try {
+    snap = await getDocFromServer(classroomRef);
+  } catch {
+    try {
+      snap = await getDoc(classroomRef);
+    } catch {}
+  }
 
-  if (!snap.exists()) {
+  // If not found in primary uid doc and userEmail is provided, check userEmail doc
+  if ((!snap || !snap.exists()) && userEmail && userEmail.trim()) {
+    try {
+      const emailRef = doc(db, 'users', userEmail.trim().toLowerCase(), 'data', 'classroom');
+      try {
+        snap = await getDocFromServer(emailRef);
+      } catch {
+        snap = await getDoc(emailRef);
+      }
+    } catch {}
+  }
+
+  if (!snap || !snap.exists()) {
     return null;
   }
 
   const data = snap.data();
   let students: Student[] = [];
   let counters: ClassCountersData | null = null;
-  let selectedStudentIds: Record<string, string[]> | undefined = undefined;
+  let selectedStudentIds: (string | null)[] | undefined = undefined;
 
   try {
     if (data.studentsJson) {
@@ -157,7 +191,10 @@ export async function loadUserDataFromCloud(userId: string): Promise<CloudClassr
 
   try {
     if (data.selectedStudentIdsJson) {
-      selectedStudentIds = JSON.parse(data.selectedStudentIdsJson);
+      const parsedIds = JSON.parse(data.selectedStudentIdsJson);
+      if (Array.isArray(parsedIds)) {
+        selectedStudentIds = parsedIds;
+      }
     }
   } catch (e) {
     console.warn('Could not parse cloud selectedStudentIds JSON', e);

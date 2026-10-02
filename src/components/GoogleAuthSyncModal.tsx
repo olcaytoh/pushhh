@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Copy,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  ArchiveRestore
 } from 'lucide-react';
 import { User } from '../firebase';
 import { 
@@ -40,6 +41,7 @@ export interface GoogleAuthSyncModalProps {
   onManualSyncDown: () => Promise<void>;
   onSignIn?: () => Promise<void>;
   onSignOut?: () => Promise<void>;
+  onRecoverStudents?: () => Promise<void>;
   isSyncing?: boolean;
   playMp3?: (src: string) => void;
 }
@@ -56,6 +58,7 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
   onManualSyncDown,
   onSignIn,
   onSignOut,
+  onRecoverStudents,
   isSyncing,
   playMp3
 }) => {
@@ -417,6 +420,37 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
                   Buluttan Verileri Çek
                 </button>
               </div>
+
+              {onRecoverStudents && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsLoading(true);
+                    setActionMessage(null);
+                    playMp3?.('/op.mp3');
+                    try {
+                      await onRecoverStudents();
+                      playMp3?.('/coin.mp3');
+                      setActionMessage({
+                        text: 'Öğrenci listeniz ve kayıtlarınız yedekten başarıyla geri getirildi!',
+                        type: 'success'
+                      });
+                    } catch (err: any) {
+                      setActionMessage({
+                        text: 'Kurtarma sırasında bir hata oluştu: ' + (err?.message || 'Bilinmeyen hata'),
+                        type: 'error'
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                >
+                  <ArchiveRestore className="w-4 h-4 text-amber-400" />
+                  <span>Kayıtlı Öğrencileri Kurtar / Geri Getir</span>
+                </button>
+              )}
 
               {confirmSignOut ? (
                 <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-200">
