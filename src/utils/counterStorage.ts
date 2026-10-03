@@ -36,8 +36,8 @@ const SESSION_FLAG_KEY = 'olcico_session_visit_counted';
 export const INITIAL_COUNTERS: ClassCountersData = {
   version: 1,
   visits: {
-    total: 1420,
-    today: 28,
+    total: 1955,
+    today: 0,
     lastVisitDate: '',
     lastVisitTime: '',
     firstVisitDate: '',
@@ -83,11 +83,19 @@ export function loadCounters(): ClassCountersData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...INITIAL_COUNTERS };
     const parsed = JSON.parse(raw);
+    const today = getTodayString();
+
+    // Check date rollover: if last visit was not today, today's visit count should reset to 0
+    let todayVisits = typeof parsed.visits?.today === 'number' ? parsed.visits.today : 0;
+    if (parsed.visits?.lastVisitDate && parsed.visits.lastVisitDate !== today) {
+      todayVisits = 0;
+    }
+
     return {
       version: 1,
       visits: {
-        total: Math.max(parsed.visits?.total || 0, 1420),
-        today: Math.max(parsed.visits?.today || 0, 28),
+        total: Math.max(parsed.visits?.total || 0, 0),
+        today: Math.max(todayVisits, 0),
         lastVisitDate: parsed.visits?.lastVisitDate || '',
         lastVisitTime: parsed.visits?.lastVisitTime || '',
         firstVisitDate: parsed.visits?.firstVisitDate || '',

@@ -78,7 +78,7 @@ export async function syncAndRecordGlobalVisit(onUpdate?: (data: ClassCountersDa
     // 1. Fetch current worldwide cloud stats
     const cloudStats = await fetchGlobalVisitorStats();
 
-    let newTotal = cloudStats?.totalVisits ?? Math.max(localData.visits.total, 1420);
+    let newTotal = cloudStats?.totalVisits ?? Math.max(localData.visits.total, 1955);
     let newToday = cloudStats?.todayVisits ?? localData.visits.today;
     const lastDate = cloudStats?.lastVisitDate ?? localData.visits.lastVisitDate;
 
@@ -141,9 +141,15 @@ export async function refreshWorldwideVisitorCount(): Promise<number | null> {
   const stats = await fetchGlobalVisitorStats();
   if (stats && typeof stats.totalVisits === 'number') {
     const local = loadCounters();
+    const today = getTodayString();
     local.visits.total = stats.totalVisits;
-    if (stats.todayVisits) local.visits.today = stats.todayVisits;
+    if (stats.lastVisitDate && stats.lastVisitDate !== today) {
+      local.visits.today = 0;
+    } else if (typeof stats.todayVisits === 'number') {
+      local.visits.today = stats.todayVisits;
+    }
     if (stats.lastVisitTime) local.visits.lastVisitTime = stats.lastVisitTime;
+    local.visits.lastVisitDate = today;
     saveCounters(local);
     return stats.totalVisits;
   }

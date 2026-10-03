@@ -71,6 +71,7 @@ import { SchoolSettingsModal } from './components/SchoolSettingsModal';
 import { 
   ClassCountersData, 
   loadCounters, 
+  saveCounters,
   recordSiteVisit, 
   recordClassClick, 
   recordClassQuestionSolved,
@@ -3106,6 +3107,7 @@ export default function App() {
 
             if (cloudData.counters) {
               setCountersData(cloudData.counters);
+              saveCounters(cloudData.counters);
               try {
                 localStorage.setItem(`olcico_class_counters_user_${user.uid}`, JSON.stringify(cloudData.counters));
               } catch {}
@@ -3241,6 +3243,7 @@ export default function App() {
         }
         if (cloudData.counters) {
           setCountersData(cloudData.counters);
+          saveCounters(cloudData.counters);
           try {
             localStorage.setItem(`olcico_class_counters_user_${currentUser.uid}`, JSON.stringify(cloudData.counters));
           } catch {}
