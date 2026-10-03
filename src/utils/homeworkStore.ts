@@ -17,7 +17,20 @@ export function loadHomeworkData(): Record<string, StudentHomeworkData> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw) as Record<string, StudentHomeworkData>;
+    let hasDemoKeys = false;
+    Object.keys(parsed).forEach(k => {
+      if (k.includes('_demo_')) {
+        delete parsed[k];
+        hasDemoKeys = true;
+      }
+    });
+    if (hasDemoKeys) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      } catch {}
+    }
+    return parsed;
   } catch (e) {
     console.error('Ödev akvaryumu verileri okunurken hata:', e);
     return {};
@@ -35,12 +48,19 @@ export function saveHomeworkData(data: Record<string, StudentHomeworkData>): voi
 
 // Sınıf listesindeki öğrencilerle senkronize et
 export function syncHomeworkWithStudents(
-  grade4Students: Student[],
+  gradeStudents: Student[],
   existingData: Record<string, StudentHomeworkData>
 ): Record<string, StudentHomeworkData> {
   const updated: Record<string, StudentHomeworkData> = { ...existingData };
 
-  grade4Students.forEach((st, idx) => {
+  // Eski demo öğrenci kayıtlarını temizle
+  Object.keys(updated).forEach(k => {
+    if (k.includes('_demo_')) {
+      delete updated[k];
+    }
+  });
+
+  gradeStudents.forEach((st, idx) => {
     if (!updated[st.id]) {
       updated[st.id] = {
         studentId: st.id,

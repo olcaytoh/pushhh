@@ -117,7 +117,7 @@ interface OdevAkvaryumuModalProps {
   onClose: () => void;
   students: Student[];
   initialGrade?: number;
-  onOpenRosterModal?: () => void;
+  onOpenRosterModal?: (grade?: number) => void;
   playMp3?: (src: string) => void;
 }
 
@@ -158,20 +158,9 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     }
   }, [isOpen, initialGrade]);
 
-  // Seçili sınıftaki öğrenciler
+  // Seçili sınıftaki öğrenciler (Yalnızca öğretmenin listesindeki gerçek öğrenciler)
   const currentGradeStudents = useMemo(() => {
-    const list = students.filter(s => s.grade === selectedGrade);
-    if (list.length > 0) return list;
-    
-    // Eğer seçili sınıfta henüz öğrenci eklenmemişse sevimli bir varsayılan kadro
-    return [
-      { id: `g${selectedGrade}_demo_1`, name: 'Ali Yıldız', grade: selectedGrade, avatar: '🦁', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' },
-      { id: `g${selectedGrade}_demo_2`, name: 'Ayşe Kaya', grade: selectedGrade, avatar: '🐬', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' },
-      { id: `g${selectedGrade}_demo_3`, name: 'Mehmet Demir', grade: selectedGrade, avatar: '🚀', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' },
-      { id: `g${selectedGrade}_demo_4`, name: 'Zeynep Çelik', grade: selectedGrade, avatar: '🦊', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' },
-      { id: `g${selectedGrade}_demo_5`, name: 'Can Özkan', grade: selectedGrade, avatar: '🐯', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' },
-      { id: `g${selectedGrade}_demo_6`, name: 'Elif Şahin', grade: selectedGrade, avatar: '🌸', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: '' }
-    ] as Student[];
+    return students.filter(s => s.grade === selectedGrade);
   }, [students, selectedGrade]);
 
   const [homeworkMap, setHomeworkMap] = useState<Record<string, StudentHomeworkData>>({});
@@ -616,7 +605,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               <button
                 onClick={() => {
                   onClose();
-                  onOpenRosterModal();
+                  onOpenRosterModal(selectedGrade);
                 }}
                 className="flex items-center gap-1 text-[10px] sm:text-[11px] text-cyan-300 hover:text-cyan-200 underline cursor-pointer font-bold"
               >
