@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -759,6 +759,12 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     categoryLabel: 'Diğer Oyunlar'
   },
   {
+    id: 'other_onu_bul',
+    type: 'onu_bul',
+    title: "10'u Bul (2 Kişilik)",
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
     id: 'other_yirmiyi_bul',
     type: 'yirmiyi_bul',
     title: "20'yi Bul (2 Kişilik)",
@@ -881,6 +887,20 @@ export const getGradeOtherGamesList = (grade: 1 | 2 | 3 | 4): ActivityRegistryIt
       type: 'aynisini_bul',
       grade,
       title: 'Aynısını Bul (2 Kişilik)',
+      categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
+    },
+    {
+      id: `g${grade}_onu_bul`,
+      type: 'onu_bul',
+      grade,
+      title: "10'u Bul (2 Kişilik)",
+      categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
+    },
+    {
+      id: `g${grade}_yirmiyi_bul`,
+      type: 'yirmiyi_bul',
+      grade,
+      title: "20'yi Bul (2 Kişilik)",
       categoryLabel: `${grade}. Sınıf Diğer Oyunlar`
     },
     {

@@ -528,33 +528,33 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       const borderColors = ['border-sky-400/80', 'border-amber-400/80', 'border-emerald-400/80', 'border-rose-400/80'];
 
       const cardsHTML = kartlar.map((kart, idx) => `
-        <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-2 sm:p-3 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
-          <div class="w-16 h-16 xs:w-[76px] xs:h-[76px] sm:w-24 sm:h-24 flex items-center justify-center p-1 my-auto">
-            <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow" />
+        <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/90 border-2 ${borderColors[idx]} p-2 sm:p-2.5 md:p-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)] aspect-square min-w-0">
+          <div class="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center p-1 my-auto">
+            <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow scale-105" />
           </div>
-          <span class="text-[11px] xs:text-xs sm:text-sm font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
+          <span class="text-xs xs:text-sm sm:text-base font-black text-slate-100 text-center truncate max-w-full px-1 py-0.5 leading-tight">${kart.ad}</span>
         </div>
       `).join('');
 
       const questionHTML = `
-        <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
-          <!-- Üstte 4 Görsel -->
-          <div class="grid grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3.5 w-full max-w-[440px] xs:max-w-[480px] sm:max-w-[560px] md:max-w-[620px] mx-auto shrink-0 my-auto">
+        <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-1">
+          <!-- Üstte 4 Görsel: Ferah, normal ve belirgin -->
+          <div class="grid grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-5 w-full max-w-[560px] xs:max-w-[640px] sm:max-w-[740px] md:max-w-[840px] mx-auto shrink-0 my-auto items-center justify-center px-1">
             ${cardsHTML}
           </div>
 
-          <!-- Soru Metni -->
-          <div class="w-full text-center font-black text-white text-xs xs:text-sm sm:text-base leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] shrink-0 z-10 py-1 px-1">
+          <!-- Soru Metni: Okunaklı, net ve belirgin -->
+          <div class="w-full text-center font-black text-white text-sm xs:text-base sm:text-lg md:text-xl leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] shrink-0 z-10 pt-1.5 pb-1 px-2">
             ${soruMetni}
           </div>
         </div>
       `;
 
-      // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin ("Şıktaki görsel yok" şikayeti çözüldü)
-      const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`;
+      // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin (Normal derecede büyütüldü)
+      const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`;
       const wrong = kartlar
         .filter((_, idx) => idx !== dogruIndex)
-        .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`);
+        .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`);
 
       return {
         question: soruMetni.replace(/<[^>]*>/g, ''),
@@ -784,9 +784,9 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       const secilenIndex = Math.floor(Math.random() * secilenDizi.length);
       const secilenNesne = secilenDizi[secilenIndex];
 
-      // Soru 1 için şık: Sadece nesnenin görseli (yazı olmadan, temiz ve net)
+      // Soru 1 için şık: Sadece nesnenin görseli (yazı olmadan, temiz, net ve belirgin)
       const nesneSecenegiHTML = (nesne: { ad: string; img: string }) => `
-        <img src="${nesne.img}" alt="${nesne.ad}" class="h-9 sm:h-11 md:h-12 w-auto max-w-[85%] object-contain drop-shadow pointer-events-none" />
+        <img src="${nesne.img}" alt="${nesne.ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />
       `;
 
       // 5 okul eşyasının 1.den 5.ye kadar sıra görünümü (100% genişlik, ekrandan asla taşmaz)
@@ -794,11 +794,11 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         const itemsHTML = secilenDizi.map((nesne, i) => {
           const isTarget = i === secilenIndex;
           return `
-            <div class="flex flex-col items-center justify-between p-1 rounded-xl ${isTarget ? 'bg-amber-400/30 border-2 border-amber-300 ring-2 ring-amber-300/60 shadow-lg' : 'bg-white/10 border border-white/20 shadow-sm'} min-w-0 transition-all">
-              <div class="w-full aspect-square max-h-12 sm:max-h-14 flex items-center justify-center p-0.5">
-                <img src="${nesne.img}" alt="${nesne.ad}" class="w-full h-full object-contain filter drop-shadow pointer-events-none" />
+            <div class="flex flex-col items-center justify-between p-1 sm:p-1.5 rounded-xl ${isTarget ? 'bg-amber-400/30 border-2 border-amber-300 ring-2 ring-amber-300/60 shadow-lg' : 'bg-white/10 border border-white/20 shadow-sm'} min-w-0 transition-all">
+              <div class="w-full aspect-square max-h-16 sm:max-h-20 flex items-center justify-center p-1">
+                <img src="${nesne.img}" alt="${nesne.ad}" class="w-full h-full object-contain filter drop-shadow pointer-events-none scale-105" />
               </div>
-              <span class="mt-1 px-1 sm:px-1.5 py-0.5 rounded-md ${isTarget ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-800/90 text-amber-300 font-extrabold'} text-[10px] sm:text-xs leading-none shadow-sm">
+              <span class="mt-1 px-1.5 sm:px-2 py-0.5 rounded-md ${isTarget ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-800/90 text-amber-300 font-extrabold'} text-[11px] sm:text-xs leading-none shadow-sm">
                 ${isType2 && isTarget ? '❓' : (i + 1) + '.'}
               </span>
             </div>

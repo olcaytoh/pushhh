@@ -172,13 +172,39 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
   }, []);
 
   const [players, setPlayers] = useState<PlayerState[]>(() => createInitialPlayers(playerMode));
+  const [singleTimeLeft, setSingleTimeLeft] = useState<number>(100);
 
   useEffect(() => {
     setPlayers(createInitialPlayers(playerMode));
     setQuestions(getRandomYazimQuestions(10));
     setGameOver(false);
     setRoundWinner(null);
+    setSingleTimeLeft(100);
   }, [playerMode, createInitialPlayers]);
+
+  // 100-Saniye Tek Kişilik Geri Sayım Sayacı
+  useEffect(() => {
+    if (playerMode !== 1 || gameOver) return;
+    const p = players[0];
+    if (!p || p.step === 'solved') return;
+
+    if (singleTimeLeft <= 0) {
+      triggerSound('/buzzer.mp3');
+      setSingleTimeLeft(100);
+      handleSkipQuestion(0);
+      return;
+    }
+
+    if (singleTimeLeft <= 3 && singleTimeLeft >= 1 && playMp3) {
+      playMp3('/tek.mp3');
+    }
+
+    const timer = setInterval(() => {
+      setSingleTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [playerMode, gameOver, players, singleTimeLeft, playMp3, triggerSound]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -289,6 +315,9 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
             onGameCompleted?.(bestIdx, playerMode);
           }
 
+          if (playerMode === 1) {
+            setSingleTimeLeft(100);
+          }
           return nextPlayers;
         });
         setRoundWinner(null);
@@ -323,6 +352,9 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
   const handleSkipQuestion = (playerIdx: number) => {
     triggerSound('/op.mp3');
+    if (playerMode === 1) {
+      setSingleTimeLeft(100);
+    }
     setPlayers(prev => prev.map((p, idx) => {
       if (idx !== playerIdx) return p;
       return {
@@ -343,6 +375,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
+    setSingleTimeLeft(100);
   };
 
   const getPlayerTheme = (color: 'blue' | 'rose' | 'emerald') => {
@@ -385,116 +418,6 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
     >
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
       <TurkishActivityBackground darkness="normal" />
-
-      {/* 1. TOP HEADER */}
-      <header className="relative z-30 shrink-0 w-full bg-gradient-to-b from-[#0a1020] via-[#090e1c] to-[#060a14] border-b border-amber-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-2 sm:px-4 py-1.5 flex items-center justify-between gap-2">
-        {/* Left Side */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              onClose();
-            }}
-            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow transition cursor-pointer active:scale-95"
-            title="Etkinlik Menüsüne Dön"
-          >
-            <ChevronLeft size={16} />
-            <span className="hidden xs:inline">Menü</span>
-          </button>
-
-          {onGoHome && (
-            <button
-              onClick={() => {
-                triggerSound('/op.mp3');
-                onGoHome();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-              title="Ana Sayfaya Dön"
-            >
-              <Home size={15} />
-            </button>
-          )}
-
-          <div className="hidden sm:flex items-center gap-1 bg-slate-900/80 p-0.5 rounded-xl border border-slate-700/60">
-            {onPrevActivity && (
-              <button
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  onPrevActivity();
-                }}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Önceki Etkinlik"
-              >
-                <ArrowLeft size={14} />
-              </button>
-            )}
-            {onNextActivity && (
-              <button
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  onNextActivity();
-                }}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Sonraki Etkinlik"
-              >
-                <ArrowRight size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Center: Mode Selector */}
-        <div className="flex items-center bg-slate-900/90 rounded-xl p-0.5 border border-amber-500/40 shadow-inner">
-          {([1, 2, 3] as PlayerMode[]).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => {
-                triggerSound('/op.mp3');
-                setPlayerMode(mode);
-                onSwitchPlayerCountMode?.(mode);
-              }}
-              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                playerMode === mode
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black shadow-md scale-105'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              {mode} Kişi
-            </button>
-          ))}
-        </div>
-
-        {/* Right Side */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <button
-            onClick={handleResetGame}
-            className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-            title="Yeniden Başlat"
-          >
-            <RotateCcw size={15} />
-          </button>
-
-          <button
-            onClick={() => setSoundEnabled(prev => !prev)}
-            className={`p-1.5 sm:p-2 rounded-xl border transition cursor-pointer active:scale-95 ${
-              soundEnabled
-                ? 'bg-slate-800/90 text-amber-300 border-amber-500/40'
-                : 'bg-slate-800/90 text-slate-500 border-slate-700'
-            }`}
-            title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
-          >
-            {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-          </button>
-
-          <button
-            onClick={toggleFullscreen}
-            className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-            title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}
-          >
-            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          </button>
-        </div>
-      </header>
 
       {/* 2. MAIN BATTLE ARENA */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -547,6 +470,16 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
                     {/* RIGHT: SCORE & LIVES / QUESTION PROGRESS & SKIP */}
                     <div className="flex items-center gap-1.5 shrink-0 h-full">
+                      {/* 100-Second Countdown Timer Capsule */}
+                      <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                        singleTimeLeft <= 3 
+                          ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
+                          : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                      }`}>
+                        <span className="text-xs">⏱️</span>
+                        <span>{singleTimeLeft}s</span>
+                      </div>
+
                       <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
                         <span className="text-[10px] sm:text-xs font-bold text-slate-300">
                           {sPlayer.questionIndex + 1} / 10

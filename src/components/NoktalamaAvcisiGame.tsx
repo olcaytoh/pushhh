@@ -286,12 +286,55 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
   }, []);
 
   const [players, setPlayers] = useState<PlayerState[]>(() => createInitialPlayers(playerMode));
+  const [singleTimeLeft, setSingleTimeLeft] = useState<number>(100);
 
   useEffect(() => {
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
+    setSingleTimeLeft(100);
   }, [playerMode, createInitialPlayers]);
+
+  // 100-Saniye Tek Kişilik Geri Sayım Sayacı
+  useEffect(() => {
+    if (playerMode !== 1 || gameOver) return;
+    const p = players[0];
+    if (!p || p.showFeedback) return;
+
+    if (singleTimeLeft <= 0) {
+      triggerSound('/hata.mp3');
+      setSingleTimeLeft(100);
+      setPlayers(prev => {
+        const next = [...prev];
+        if (!next[0]) return prev;
+        const target = { ...next[0] };
+        const nextIdx = target.questionIndex + 1;
+        if (nextIdx >= 5) {
+          setGameOver(true);
+          setRoundWinner(0);
+          triggerSound('/para.mp3');
+        } else {
+          target.questionIndex = nextIdx;
+          target.selectedMark = null;
+          target.isCorrect = false;
+          target.showFeedback = false;
+        }
+        next[0] = target;
+        return next;
+      });
+      return;
+    }
+
+    if (singleTimeLeft <= 3 && singleTimeLeft >= 1 && playMp3) {
+      playMp3('/tek.mp3');
+    }
+
+    const timer = setInterval(() => {
+      setSingleTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [playerMode, gameOver, players, singleTimeLeft, playMp3, triggerSound]);
 
   const handleSwitchMode = (mode: PlayerMode) => {
     setPlayerMode(mode);
@@ -350,6 +393,9 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
           target.selectedMark = null;
           target.isCorrect = null;
           target.showFeedback = false;
+          if (playerMode === 1) {
+            setSingleTimeLeft(100);
+          }
         }
         next[playerIndex] = target;
         return next;
@@ -362,6 +408,7 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setRoundWinner(null);
+    setSingleTimeLeft(100);
     triggerSound('/op.mp3');
   };
 
@@ -372,74 +419,6 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
     >
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
       <TurkishActivityBackground darkness="normal" />
-
-      {/* Header */}
-      <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
-            title="Geri Dön"
-          >
-            <ChevronLeft size={18} />
-          </button>
-
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Önceki Etkinlik"
-            >
-              <ChevronLeft size={16} />
-            </button>
-          )}
-
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-[#1c1d38] via-[#26284f] to-[#1c1d38] border border-cyan-400/80 shadow-md">
-            <span className="text-sm">🎯</span>
-            <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-              Noktalama İşareti Avcısı
-            </span>
-          </div>
-
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Sonraki Etkinlik"
-            >
-              <ChevronRight size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Soru Görevi */}
-        <div className="hidden md:flex items-center">
-          <span className="px-3 py-1 rounded-full bg-cyan-900/60 border border-cyan-400/50 text-cyan-200 font-bold text-xs">
-            🎯 Renkli kutucuğa uygun noktalama işaretini seç
-          </span>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-1.5">
-          {onGoHome && (
-            <button
-              onClick={onGoHome}
-              className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-              title="Ana Sayfaya Dön"
-            >
-              <Home size={13} />
-              <span className="hidden xs:inline">Ana Sayfa</span>
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-            title="Kapat"
-          >
-            ✕ <span className="hidden xs:inline">Kapat</span>
-          </button>
-        </div>
-      </header>
 
       {/* Main Game Area */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -453,8 +432,8 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
           return (
 
           <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
-            <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
-              <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+            <div className="flex-1 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl flex flex-col justify-center min-h-0 z-10 shrink">
+              <div className="flex-1 flex flex-col p-2.5 sm:p-4 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
 
               {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
               <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
@@ -484,6 +463,16 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 h-full">
+                  {/* 100-Second Countdown Timer Capsule */}
+                  <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                    singleTimeLeft <= 3 
+                      ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
+                      : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                  }`}>
+                    <span className="text-xs">⏱️</span>
+                    <span>{singleTimeLeft}s</span>
+                  </div>
+
                   <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
                     <span className="text-[10px] sm:text-xs font-bold text-slate-300">
                       {sPlayer.questionIndex + 1}/5
@@ -496,45 +485,45 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
               </div>
 
                 {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
-                <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                  <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2 sm:p-3 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
+                <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
+                  <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
                     <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
 
-                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-1.5">
-                      <span className="px-3 py-0.5 rounded-full bg-cyan-900/70 border border-cyan-400/60 text-cyan-200 font-black text-[10.5px] sm:text-xs uppercase shadow-sm shrink-0">
+                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-3 sm:gap-4 px-2 sm:px-4">
+                      <span className="px-4 py-1 rounded-full bg-cyan-950/80 border-2 border-cyan-400/70 text-cyan-200 font-black text-xs sm:text-sm md:text-base uppercase shadow-md shrink-0">
                         🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
                       </span>
-                      <div className="text-base sm:text-lg md:text-xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                        <span>{currentQ.before}</span>
-                        <span className={`inline-flex items-center justify-center min-w-[38px] sm:min-w-[46px] h-8 sm:h-10 px-2 rounded-xl font-black text-lg sm:text-2xl border-2 shadow-lg transition-all ${
+                      <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
+                        <span className="drop-shadow-md">{currentQ.before}</span>
+                        <span className={`inline-flex items-center justify-center min-w-[50px] sm:min-w-[62px] md:min-w-[74px] h-12 sm:h-14 md:h-16 px-3 rounded-2xl font-black text-2xl sm:text-3xl md:text-4xl border-3 shadow-xl transition-all ${
                           sPlayer.showFeedback
                             ? sPlayer.isCorrect
-                              ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
-                              : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400'
+                              ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400 scale-110'
+                              : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400 scale-110'
                             : 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse'
                         }`}>
                           {sPlayer.selectedMark || '\u00A0'}
                         </span>
-                        <span>{currentQ.after}</span>
+                        <span className="drop-shadow-md">{currentQ.after}</span>
                       </div>
                     </div>
                     {sPlayer.showFeedback && (
-                      <div className="absolute bottom-1 inset-x-2 z-20 px-2 py-0.5 rounded-lg bg-black/80 border border-white/10 text-[10px] sm:text-xs text-amber-200 text-center animate-fade-in">
-                        <span className="font-bold text-cyan-300 mr-1">{currentQ.markName}:</span>
-                        <span className="line-clamp-2">{currentQ.explanation}</span>
+                      <div className="absolute bottom-2 inset-x-3 z-20 px-3 py-1 rounded-xl bg-black/85 border border-white/20 text-xs sm:text-sm text-amber-200 text-center animate-fade-in shadow-lg">
+                        <span className="font-black text-cyan-300 mr-1.5">{currentQ.markName}:</span>
+                        <span className="font-semibold">{currentQ.explanation}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* BOTTOM: NOKTALAMA TUŞLARI (ÇERÇEVENİN İÇİNDE, TAKVİM ŞIK STİLİ) */}
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 w-full shrink-0 mt-1">
+                <div className="grid grid-cols-5 gap-2 sm:gap-3 w-full shrink-0 mt-1 sm:mt-2">
                   {availableMarks.map((m) => {
                     const isChosen = sPlayer.selectedMark === m.symbol;
                     const isRight = m.symbol === currentQ.correctMark;
                     let btnClass = "border-2 border-blue-500/35 bg-gradient-to-b from-[#18263e] via-[#131f33] to-[#0d1626] hover:from-[#1e304f] hover:via-[#17273f] hover:to-[#101c2f] hover:border-blue-400/70 active:from-[#0e1726] active:to-[#090f1a] text-blue-50 shadow-md active:shadow-xs";
                     if (sPlayer.showFeedback) {
-                      if (isRight) btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white";
+                      if (isRight) btnClass = "ring-4 ring-inset ring-emerald-500/80 border-emerald-400/80 bg-emerald-800 shadow-md text-white scale-102";
                       else if (isChosen) btnClass = "ring-4 ring-inset ring-rose-600/80 border-rose-400/80 bg-rose-900 shadow-md text-white";
                       else btnClass = "opacity-35 border-slate-700/60 bg-slate-900/60 text-slate-400";
                     }
@@ -543,11 +532,11 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                         key={m.symbol}
                         disabled={sPlayer.showFeedback}
                         onClick={() => handleMarkClick(0, m.symbol)}
-                        className={`fast-quiz-btn relative w-full py-1 sm:py-1.5 px-1 min-h-[44px] sm:min-h-[50px] md:min-h-[56px] rounded-2xl border-2 transition-colors duration-75 flex flex-col items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${btnClass}`}
+                        className={`fast-quiz-btn relative w-full py-2 sm:py-3 px-1 min-h-[58px] sm:min-h-[68px] md:min-h-[76px] rounded-2xl border-2 transition-colors duration-75 flex flex-col items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-95 shadow-lg ${btnClass}`}
                       >
                         <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />
-                        <span className="relative text-2xl sm:text-3xl leading-none font-black">{m.symbol}</span>
-                        <span className="relative text-[9px] sm:text-[10px] font-black mt-0.5 truncate max-w-full">{m.label}</span>
+                        <span className="relative text-3xl sm:text-4xl md:text-5xl leading-none font-black drop-shadow-md">{m.symbol}</span>
+                        <span className="relative text-[10px] sm:text-xs md:text-sm font-black mt-1 truncate max-w-full text-blue-200">{m.label}</span>
                       </button>
                     );
                   })}

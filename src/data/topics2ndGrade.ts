@@ -1201,9 +1201,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const dogruAd = CISIM_OZELLIK[secilenKey].ad;
         const tumAdlar = Object.values(CISIM_OZELLIK).map(o => o.ad);
         const wrong = rastgeleSec(tumAdlar.filter(a => a !== dogruAd), 3);
-        const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto max-h-full py-1"><div class="w-48 h-48 xs:w-56 xs:h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div></div>`;
+        const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto max-h-full py-1 gap-2"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1">Yukarıdaki geometrik cismin adı nedir?</div></div>`;
         return {
-          question: "",
+          question: "Yukarıdaki geometrik cismin adı nedir?",
           questionHTML: soruHTML,
           correct: dogruAd,
           wrong,
@@ -1348,33 +1348,33 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         ];
 
         const cardsHTML = kartlar.map((kart, idx) => `
-          <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/85 border-2 ${borderColors[idx]} p-2 sm:p-3 shadow-[0_3px_10px_rgba(0,0,0,0.5)] aspect-[4/5] sm:aspect-square">
-            <div class="w-16 h-16 xs:w-[76px] xs:h-[76px] sm:w-24 sm:h-24 flex items-center justify-center p-1 my-auto">
-              <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow" />
+          <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/90 border-2 ${borderColors[idx]} p-2 sm:p-2.5 md:p-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)] aspect-square min-w-0">
+            <div class="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center p-1 my-auto">
+              <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow scale-105" />
             </div>
-            <span class="text-[11px] xs:text-xs sm:text-sm font-black text-slate-200 text-center truncate max-w-full px-0.5">${kart.ad}</span>
+            <span class="text-xs xs:text-sm sm:text-base font-black text-slate-100 text-center truncate max-w-full px-1 py-0.5 leading-tight">${kart.ad}</span>
           </div>
         `).join('');
 
         const questionHTML = `
-          <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-0.5">
-            <!-- Üstte 4 Görsel -->
-            <div class="grid grid-cols-4 gap-2 xs:gap-2.5 sm:gap-3.5 w-full max-w-[440px] xs:max-w-[480px] sm:max-w-[560px] md:max-w-[620px] mx-auto shrink-0 my-auto">
+          <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-1">
+            <!-- Üstte 4 Görsel: Ferah, normal ve belirgin -->
+            <div class="grid grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-5 w-full max-w-[560px] xs:max-w-[640px] sm:max-w-[740px] md:max-w-[840px] mx-auto shrink-0 my-auto items-center justify-center px-1">
               ${cardsHTML}
             </div>
 
-            <!-- Soru Metni -->
-            <div class="w-full text-center font-black text-white text-xs xs:text-sm sm:text-base leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] shrink-0 z-10 py-1 px-1">
+            <!-- Soru Metni: Okunaklı, net ve belirgin -->
+            <div class="w-full text-center font-black text-white text-sm xs:text-base sm:text-lg md:text-xl leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] shrink-0 z-10 pt-1.5 pb-1 px-2">
               ${soruMetni}
             </div>
           </div>
         `;
 
-        // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin ("Şıktaki görsel yok" şikayeti çözüldü)
-        const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`;
+        // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin (Normal derecede büyütüldü)
+        const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`;
         const wrong = kartlar
           .filter((_, idx) => idx !== dogruIndex)
-          .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-8 xs:h-9 sm:h-10 md:h-11 w-auto max-w-full object-contain mx-auto filter drop-shadow pointer-events-none" />`);
+          .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`);
 
         return {
           question: soruMetni.replace(/<[^>]*>/g, ''),

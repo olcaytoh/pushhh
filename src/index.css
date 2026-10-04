@@ -777,6 +777,11 @@ html.smartboard-4k-active #tug-of-war-arena {
   -webkit-backface-visibility: hidden;
   will-change: transform;
   touch-action: manipulation;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-width: 2px;
+  border-radius: 16px;
 }
 
 @keyframes shake {

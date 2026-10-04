@@ -380,62 +380,152 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
       <TurkishActivityBackground darkness="normal" />
 
-      {/* Header */}
-      <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white flex items-center justify-center transition cursor-pointer"
-            title="Geri Dön"
-          >
-            <ChevronLeft size={18} />
-          </button>
-
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Önceki Etkinlik"
-            >
-              <ChevronLeft size={16} />
-            </button>
-          )}
-
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Sonraki Etkinlik"
-            >
-              <ChevronRight size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-1.5">
-          {onGoHome && (
-            <button
-              onClick={onGoHome}
-              className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-              title="Ana Sayfaya Dön"
-            >
-              <Home size={13} />
-              <span className="hidden xs:inline">Ana Sayfa</span>
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-            title="Kapat"
-          >
-            ✕ <span className="hidden xs:inline">Kapat</span>
-          </button>
-        </div>
-      </header>
-
       {/* Main Game Area */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        {playerMode === 1 && players[0] ? (() => {
+          const sPlayer = players[0];
+          const currentW = words[sPlayer.wordIndex % words.length];
+          const sStudent = effectiveSelectedStudentIds[0]
+            ? students?.find(s => s.id === effectiveSelectedStudentIds[0])
+            : null;
+
+          return (
+            <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
+              <div className="flex-1 w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl flex flex-col justify-center min-h-0 z-10 shrink">
+                <div className="flex-1 flex flex-col p-2.5 sm:p-4 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+
+                  {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                    <div className="flex items-center gap-1.5 min-w-0 h-full">
+                      {sStudent ? (
+                        <div
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${sStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                          title={`Aktif Öğrenci: ${sStudent.name}`}
+                        >
+                          {sStudent.avatar}
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                          1
+                        </div>
+                      )}
+                      <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                        <div className="flex items-center min-w-0">
+                          <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                            {sStudent ? sStudent.name : '1. GRUP'}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                            • Harf Çorbası
+                          </span>
+                        </div>
+                        <img src="/MENUIKON/grid_icon_26.png" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 h-full">
+                      <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-300">
+                          {sPlayer.wordIndex + 1}/4
+                        </span>
+                        <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                          {sPlayer.score} P
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
+                    <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 ${
+                      sPlayer.showError ? 'border-rose-500 animate-shake' : sPlayer.isSuccess ? 'border-emerald-400' : 'border-slate-700/70'
+                    } shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full`}>
+                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                      {/* İpucu Rozeti */}
+                      <div className="relative z-10 flex items-center gap-2.5 px-4 py-1.5 sm:px-6 sm:py-2 rounded-2xl bg-orange-950/80 border-2 border-orange-500/50 shadow-md shrink-0">
+                        <span className="text-2xl sm:text-3xl shrink-0">{currentW.emoji}</span>
+                        <span className="text-sm sm:text-base md:text-lg font-black text-orange-200">{currentW.hint}</span>
+                      </div>
+
+                      {/* Oluşturulan Kelime Yuvaları */}
+                      <div className="relative z-10 flex flex-col items-center justify-center my-auto gap-2 sm:gap-3 py-1">
+                        <div className="text-xs sm:text-sm md:text-base font-extrabold text-amber-200 tracking-wide">
+                          🍲 Harfleri tıkla, doğru kelimeyi tabağa diz:
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                          {Array.from({ length: currentW.word.length }).map((_, idx) => {
+                            const placed = sPlayer.placedLetters[idx];
+                            return (
+                              <button
+                                key={idx}
+                                onClick={() => placed && handleRemoveLetter(0, idx)}
+                                className={`w-11 sm:w-14 md:w-16 h-13 sm:h-16 md:h-18 rounded-2xl font-black text-2xl sm:text-3xl md:text-4xl border-2 sm:border-3 flex items-center justify-center transition-all cursor-pointer ${
+                                  sPlayer.isSuccess
+                                    ? 'bg-emerald-500 text-white border-emerald-300 shadow-xl scale-105'
+                                    : placed
+                                    ? 'bg-amber-400 text-slate-950 border-amber-200 shadow-lg hover:scale-105 active:scale-95'
+                                    : 'bg-white/10 border-dashed border-white/40 text-transparent hover:bg-white/15'
+                                }`}
+                              >
+                                {placed ? placed.char : ''}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Çorbadaki Harfler */}
+                      <div className="relative z-10 w-full shrink-0 flex flex-col items-center gap-1.5 sm:gap-2">
+                        <div className="text-xs sm:text-sm font-black text-center text-amber-300 uppercase tracking-widest">
+                          ÇORBADAKİ HARFLER
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                          {currentW.scrambled.map((char, poolIdx) => {
+                            const isUsed = sPlayer.usedPoolIndices.includes(poolIdx);
+                            return (
+                              <button
+                                key={poolIdx}
+                                disabled={isUsed || sPlayer.isSuccess !== null}
+                                onClick={() => handlePickLetter(0, char, poolIdx)}
+                                className={`w-11 sm:w-13 md:w-15 h-13 sm:h-15 md:h-17 rounded-2xl font-black text-xl sm:text-2xl md:text-3xl transition-all shadow-md cursor-pointer active:scale-95 ${
+                                  isUsed
+                                    ? 'opacity-20 bg-slate-800 border border-slate-700 pointer-events-none'
+                                    : 'bg-gradient-to-b from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 border-2 border-amber-200 hover:scale-105'
+                                }`}
+                              >
+                                {char}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BOTTOM: ACTIONS (TEMİZLE & KONTROL ET) */}
+                  <div className="flex items-center gap-2 sm:gap-3 pt-1 shrink-0 w-full mt-1">
+                    <button
+                      onClick={() => handleClearLetters(0)}
+                      disabled={sPlayer.placedLetters.length === 0 || sPlayer.isSuccess !== null}
+                      className="px-4 py-2.5 sm:py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 border border-slate-700 shadow-md active:scale-95"
+                      title="Harfleri Temizle"
+                    >
+                      <RotateCcw size={16} />
+                      <span>Temizle</span>
+                    </button>
+                    <button
+                      onClick={() => handleCheckWord(0)}
+                      disabled={sPlayer.placedLetters.length !== currentW.word.length || sPlayer.isSuccess !== null}
+                      className="flex-1 py-2.5 sm:py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm sm:text-base md:text-lg shadow-lg transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 uppercase tracking-wider active:scale-95"
+                    >
+                      <Check size={20} /> KONTROL ET
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          );
+        })() : (
         <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
           playerMode === 1 ? 'grid-cols-1 max-w-2xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
         } min-h-0 items-stretch`}>
@@ -570,6 +660,7 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
             );
           })}
         </div>
+        )}
       </main>
 
       {/* Student Avatar Dock (Single Row) */}

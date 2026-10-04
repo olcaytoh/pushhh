@@ -45,27 +45,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
         <div className="absolute inset-0 bg-slate-950/30 pointer-events-none" />
       </div>
 
-      {/* 2. SUB-HEADER BAR */}
-      <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-2">
-          {/* Nav/status spacer */}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              onClose();
-            }}
-            className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
-            title="Kapat"
-          >
-            ✕ Kapat
-          </button>
-        </div>
-      </header>
-
-      {/* 3. GAMES CONTAINER */}
+      {/* 2. GAMES CONTAINER */}
       <main className="relative z-10 flex-1 p-2 sm:p-4 max-w-4xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-2 sm:gap-2.5 pt-3 sm:pt-4 md:pt-5">
         {/* GLOWING HEADER BADGE - 6. İNGİLİZCE OYUNLAR */}
         <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
@@ -81,15 +61,6 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
               </span>
             </div>
             <span className="text-amber-400 text-sm sm:text-base animate-pulse">✨</span>
-          </div>
-        </div>
-
-        <div className="w-full flex justify-center py-0.5 mb-1.5 sm:mb-2 shrink-0">
-          <div className="inline-flex items-center gap-2 px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0c243f]/95 via-[#143359]/95 to-[#0c243f]/95 backdrop-blur-md border border-slate-700/90 shadow-[0_4px_16px_rgba(0,0,0,0.6)] border-b-2 border-b-sky-400/70">
-            <span className="text-base sm:text-lg shrink-0">🎮</span>
-            <p className="text-xs sm:text-sm font-bold text-slate-100 tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-              Oynamak istediğin İngilizce oyununu seç ve başla!
-            </p>
           </div>
         </div>
 

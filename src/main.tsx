@@ -77,6 +77,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <p className="text-xs text-slate-300">
               Oyun yüklenirken beklenmeyen bir durum meydana geldi. Yeniden başlatarak devam edebilirsiniz.
             </p>
+            {this.state.error && (
+              <div className="p-3 bg-slate-950/80 rounded-xl border border-rose-500/50 text-left text-xs font-mono text-rose-300 max-h-40 overflow-y-auto whitespace-pre-wrap select-text">
+                <div className="font-bold text-rose-400 mb-1">{this.state.error.name}: {this.state.error.message}</div>
+                <div className="text-[10px] text-slate-400 opacity-80">{this.state.error.stack}</div>
+              </div>
+            )}
             <button
               onClick={this.handleReload}
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm shadow-lg cursor-pointer transition-transform active:scale-95"

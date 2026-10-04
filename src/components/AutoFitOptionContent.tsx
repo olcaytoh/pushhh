@@ -115,7 +115,7 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     const naturalH = content.offsetHeight || content.scrollHeight;
     if (naturalW <= 0 || naturalH <= 0) return;
 
-    // Target available dimensions with generous 6px horizontal padding so text never touches borders
+    // Target available dimensions with generous horizontal padding so content never touches borders
     const targetW = Math.max(10, availW - 6);
     const targetH = Math.max(10, availH - 4);
 
@@ -123,16 +123,16 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     const scaleH = targetH / naturalH;
     let s = Math.min(scaleW, scaleH);
 
-    // If s > 1, short numbers/text expand nicely up to 1.15x
+    // If s > 1, short numbers/visuals expand nicely up to 1.5x for visuals or 1.2x for text
     // If s < 1, long text scales down smoothly without arbitrary minimum clipping to prevent any overflow!
     if (s > 1.0) {
-      s = Math.min(s, 1.15);
+      s = Math.min(s, isHTML ? 1.5 : 1.2);
     } else {
       s = Math.max(s, 0.20);
     }
 
     setScale(s);
-  }, []);
+  }, [isHTML]);
 
   useLayoutEffect(() => {
     updateScale();
@@ -147,8 +147,19 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     });
     ro.observe(container);
 
+    // Watch for image loads inside visual options to ensure accurate sizing
+    if (contentRef.current) {
+      const imgs = contentRef.current.querySelectorAll('img');
+      imgs.forEach((img) => {
+        if (!img.complete) {
+          img.addEventListener('load', updateScale);
+          img.addEventListener('error', updateScale);
+        }
+      });
+    }
+
     return () => ro.disconnect();
-  }, [updateScale]);
+  }, [updateScale, displayOpt, formattedDisplayOpt]);
 
   return (
     <div

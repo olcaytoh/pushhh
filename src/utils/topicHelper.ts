@@ -34,6 +34,7 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   istek_ihtiyac: { title: 'İstek mi, İhtiyaç mı?', desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme', icon: '💡' },
   mevsim_gardirobu: { title: 'Mevsim Gardırobu', desc: 'Hava durumuna ve mevsime uygun giysileri seçme', icon: '🧥' },
   aynisini_bul: { title: 'Aynısını Bul Dikkat Düellosu', desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır', icon: '👀' },
+  onu_bul: { title: '10\'u Bul Matematik Düellosu', desc: 'Toplamı 10 yapan sayı çiftlerini hızlıca keşfet', icon: '🔟' },
   yirmiyi_bul: { title: '20\'yi Bul Matematik Düellosu', desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet', icon: '🔢' },
   es_sesli: { title: 'Eş Sesli (Sesteş) Sözcükler', desc: 'Yazılışları aynı anlamları farklı sözcükler', icon: '📝' },
   ingilizce: { title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları & quiz', icon: '🌍' },
@@ -142,6 +143,7 @@ export function getCurriculumTopicsForGrade(grade: number): TopicInfo[] {
     { key: 'istek_ihtiyac', title: 'İstek mi, İhtiyaç mı?', desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme', grade },
     { key: 'mevsim_gardirobu', title: 'Mevsim Gardırobu', desc: 'Hava durumuna ve mevsime uygun giysileri seçme', grade },
     { key: 'aynisini_bul', title: 'Aynısını Bul Dikkat Düellosu', desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır', grade },
+    { key: 'onu_bul', title: '10\'u Bul Matematik Düellosu', desc: 'Toplamı 10 yapan sayı çiftlerini hızlıca keşfet', grade },
     { key: 'yirmiyi_bul', title: '20\'yi Bul Matematik Düellosu', desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet', grade },
     { key: 'ingilizce', title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları & quiz', grade },
   ];

@@ -555,171 +555,6 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN (SIFIR KASMA, SIFIR DÖNEN ŞEKİL) */}
       <TurkishActivityBackground darkness="normal" showFloatingAlphabet={false} />
 
-      {/* 1. TOP HEADER NAVIGATION BAR */}
-      <header className="relative z-30 bg-[#070e1c] border-b border-slate-800 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-md shrink-0 gap-1.5">
-        {/* Left: Nav, Back & Round Counter */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Önceki Etkinlik"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
-
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              onClose();
-            }}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 hover:text-white rounded-xl font-bold text-xs sm:text-sm border border-slate-700 shadow transition-all cursor-pointer"
-            title="Çıkış"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden xs:inline">Çıkış</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              if (onGoHome) onGoHome();
-              else onClose();
-            }}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-900/80 hover:bg-emerald-800 active:bg-emerald-950 text-emerald-200 hover:text-white rounded-xl font-bold text-xs sm:text-sm border border-emerald-500/80 shadow transition-all cursor-pointer"
-            title="Ana Sayfaya Dön"
-          >
-            <Home className="w-4 h-4" />
-            <span className="hidden xs:inline">Ana Sayfa</span>
-          </button>
-
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Sonraki Etkinlik"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Eşleşme Counter badge (Matching photo: "Eşleşme 7 / 10") */}
-          <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center gap-2 shadow-inner">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Eşleşme</span>
-            <span className="text-xs sm:text-sm font-black text-amber-400">{currentRound} / {totalRounds}</span>
-          </div>
-        </div>
-
-        {/* Center: Grade & Player Selectors */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Grade selection toggle */}
-          <div className="flex items-center p-0.5 bg-slate-900 rounded-xl border border-slate-700 shadow-inner">
-            <button
-              onClick={() => handleGradeChange('1-2')}
-              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                gradeGroup === '1-2'
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              1-2. Sınıf (4 Harf)
-            </button>
-            <button
-              onClick={() => handleGradeChange('3-4')}
-              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                gradeGroup === '3-4'
-                  ? 'bg-amber-400 text-slate-950 shadow-md scale-105'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              3-4. Sınıf (5 Harf)
-            </button>
-          </div>
-
-          {/* Player Mode toggle (1, 2, 3 Kişilik) */}
-          <div className="hidden md:flex items-center p-0.5 bg-slate-900 rounded-xl border border-slate-700 shadow-inner">
-            <button
-              onClick={() => handlePlayerModeChange(1)}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                playerMode === 1
-                  ? 'bg-amber-400 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              1 Kişilik
-            </button>
-            <button
-              onClick={() => handlePlayerModeChange(2)}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                playerMode === 2
-                  ? 'bg-cyan-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              2 Kişilik
-            </button>
-            <button
-              onClick={() => handlePlayerModeChange(3)}
-              className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                playerMode === 3
-                  ? 'bg-orange-500 text-slate-950 shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              3 Kişilik
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Scores, Alphabet Reference & Fullscreen */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Alphabet Guide Quick Toggle */}
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              setShowAlphabetGuide(prev => !prev);
-            }}
-            title="Alfabe Rehberi"
-            className={`p-1.5 sm:px-2.5 sm:py-1 rounded-xl font-bold text-xs flex items-center gap-1 border transition-all cursor-pointer ${
-              showAlphabetGuide
-                ? 'bg-amber-400 text-slate-950 border-amber-300'
-                : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span className="hidden lg:inline">Alfabe Rehberi</span>
-          </button>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={() => setSoundEnabled(prev => !prev)}
-            title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
-            className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700 transition-all cursor-pointer"
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-rose-400" />}
-          </button>
-
-          {/* Reset */}
-          <button
-            onClick={handleResetGame}
-            title="Yeni Oyun Başlat"
-            className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700 transition-all cursor-pointer"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-
-          {/* Fullscreen */}
-          <button
-            onClick={toggleFullscreen}
-            title="Tam Ekran"
-            className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700 transition-all cursor-pointer"
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-        </div>
-      </header>
-
       {/* 2. ALPHABET QUICK GUIDE POPUP STRIP (A-Z) */}
       {showAlphabetGuide && (
         <div className="relative z-20 bg-slate-900/95 border-b border-amber-400/40 px-2 py-1.5 flex items-center justify-center gap-1 sm:gap-1.5 flex-wrap text-center shadow-lg animate-in slide-in-from-top duration-200">
@@ -738,9 +573,169 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       )}
 
       {/* 3. MAIN WORKSPACE WITH BATTLE ARENA */}
-      <div className="relative z-10 flex-1 flex flex-row items-center justify-center gap-1 sm:gap-2 max-w-[1850px] mx-auto w-full min-h-0 overflow-hidden px-1 sm:px-2 py-0.5 sm:py-1">
-        {/* CENTER BATTLE ARENA */}
-        <div className="flex-1 flex flex-row relative min-h-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800 shadow-2xl">
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        {playerMode === 1 && players[0] ? (() => {
+          const player = players[0];
+          const isWinnerThisRound = roundWinner === 0;
+          const assignedPlayerStudent = effectiveSelectedStudentIds[0]
+            ? students?.find(s => s.id === effectiveSelectedStudentIds[0])
+            : null;
+
+          return (
+            <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
+              {/* MERKEZ: TEK KİŞİLİK STANDART KART ÇERÇEVESİ */}
+              <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
+                <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+
+                  {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                    {/* LEFT: GROUP BADGE & TOPIC */}
+                    <div className="flex items-center gap-1.5 min-w-0 h-full">
+                      {assignedPlayerStudent ? (
+                        <div
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${assignedPlayerStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                          title={`Aktif Öğrenci: ${assignedPlayerStudent.name}`}
+                        >
+                          {assignedPlayerStudent.avatar}
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                          1
+                        </div>
+                      )}
+                      <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                        <div className="flex items-center min-w-0">
+                          <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                            {assignedPlayerStudent ? assignedPlayerStudent.name : '1. GRUP'}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                            • Sözlük Sıralama
+                          </span>
+                        </div>
+                        <img
+                          src="/MENUIKON/grid_icon_24.png"
+                          alt="Sözlük Sıralama"
+                          className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
+                        />
+                      </div>
+                    </div>
+
+                    {/* RIGHT: SCORE & ROUND */}
+                    <div className="flex items-center gap-1.5 shrink-0 h-full">
+                      <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-300">
+                          {currentRound} / {totalRounds}
+                        </span>
+                        <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                          {player.score} P
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2.5 sm:p-3.5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full">
+                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                      {/* Header Notification Badge */}
+                      <div className="relative z-10 h-6 sm:h-7 flex items-center justify-center shrink-0">
+                        {isWinnerThisRound ? (
+                          <div className="px-3 py-0.5 rounded-full bg-emerald-500/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-bounce">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                            <span>HARİKA! DOĞRU SIRALAMA</span>
+                          </div>
+                        ) : player.status === 'wrong' ? (
+                          <div className="px-3 py-0.5 rounded-full bg-rose-600/90 text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center gap-1.5 animate-shake">
+                            <XCircle className="w-3.5 h-3.5 text-white" />
+                            <span>SIRALAMA YANLIŞ, TEKRAR DENE!</span>
+                          </div>
+                        ) : (
+                          <div className="px-3 py-0.5 rounded-full bg-indigo-950/70 border border-indigo-500/40 text-indigo-200 font-bold text-xs uppercase tracking-wider">
+                            🔤 HARFLERİ ALFABETİK SIRAYA DİZ
+                          </div>
+                        )}
+                      </div>
+
+                      {/* UPPER TARGET ROW: SLOTS */}
+                      <div className="relative z-10 w-full my-auto flex flex-col items-center gap-2 sm:gap-3">
+                        <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                          {player.upperSlots.map((letter, slotIdx) => (
+                            <div
+                              key={`single_upper_${slotIdx}`}
+                              onClick={() => handleTapUpperSlot(0, slotIdx)}
+                              className={`flex-1 max-w-[75px] sm:max-w-[90px] min-h-[75px] sm:min-h-[90px] rounded-2xl border-2 sm:border-3 aspect-square flex items-center justify-center transition-all cursor-pointer font-black text-3xl sm:text-4xl select-none ${
+                                letter
+                                  ? 'bg-gradient-to-b from-emerald-500 to-teal-600 text-white border-emerald-300 shadow-xl scale-105'
+                                  : 'bg-white/5 border-dashed border-white/30 text-white/30 hover:border-white/60'
+                              }`}
+                            >
+                              {letter ? (
+                                <span className="drop-shadow-sm">{letter}</span>
+                              ) : (
+                                <span className="text-white/40 text-base font-black">
+                                  {slotIdx + 1}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Helper Hint */}
+                        <div className="w-full flex items-center justify-between px-2 text-xs font-semibold text-slate-400">
+                          <span>Harflere dokunarak boş kutulara yerleştir:</span>
+                          {player.upperSlots.some(s => s !== null) && (
+                            <button
+                              onClick={() => handleResetPlayerSlots(0)}
+                              className="text-amber-400 hover:text-amber-300 underline font-bold transition-colors cursor-pointer"
+                            >
+                              Sıfırla
+                            </button>
+                          )}
+                        </div>
+
+                        {/* LOWER SOURCE ROW: AVAILABLE LETTERS */}
+                        <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                          {Array.from({ length: letterCount }).map((_, letterIdx) => {
+                            const letter = player.availableLetters[letterIdx];
+                            return (
+                              <div
+                                key={`single_source_${letterIdx}`}
+                                className="flex-1 max-w-[75px] sm:max-w-[90px] aspect-square flex items-center justify-center"
+                              >
+                                {letter ? (
+                                  <div
+                                    onClick={() => handleTapSourceLetter(0, letter, letterIdx)}
+                                    className="w-full h-full rounded-2xl bg-white text-slate-900 border-2 sm:border-3 border-slate-100 shadow-[0_6px_14px_rgba(0,0,0,0.35)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center font-black text-3xl sm:text-4xl cursor-pointer select-none"
+                                  >
+                                    {letter}
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full rounded-2xl bg-black/25 border border-white/10" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* BOTTOM: CONTROLS */}
+                      <div className="relative z-10 w-full shrink-0 flex items-center justify-center gap-2 pt-1">
+                        <button
+                          onClick={() => handleResetPlayerSlots(0)}
+                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
+                        >
+                          Temizle
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })() : (
+          <div className="flex-1 flex flex-row relative min-h-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800 shadow-2xl">
           {players.map((player, pIdx) => {
             const theme = getPlayerTheme(player.colorName);
             const isWinnerThisRound = roundWinner === pIdx;
@@ -923,7 +918,8 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
             );
           })}
         </div>
-      </div>
+        )}
+      </main>
 
       {/* ÖĞRENCİ LİSTESİ DOCK'U - EN ALTTA TEK SIRA (1, 2 VE 3 KİŞİLİK MODLAR İÇİN) */}
       {students && onOpenRosterModal && (

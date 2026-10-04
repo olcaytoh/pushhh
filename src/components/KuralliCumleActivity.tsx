@@ -117,10 +117,332 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "'uçtu' eylemi cümlenin yüklemidir ve kurallı cümlelerde en sonda yer alır!",
       funFact: "Kuşların kemikleri hafif ve içi boş olduğu için gökyüzünde rahatça uçarlar!"
+    },
+    {
+      id: "g1-6",
+      grade: 1,
+      themeTitle: "Temiz Çevre",
+      themeEmoji: "🗑️",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çöpleri", "çöpe", "atarım"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'atarım' cümlenin sonunda yer alır!",
+      funFact: "Çevremizi temiz tutmak hepimizin en önemli görevidir!"
+    },
+    {
+      id: "g1-7",
+      grade: 1,
+      themeTitle: "Hayvan Sevgisi",
+      themeEmoji: "🐾",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Hayvanları", "çok", "severim"],
+      punctuation: ".",
+      didacticHint: "'severim' eylemi cümlenin yüklemidir ve en sonda yer alır!",
+      funFact: "Hayvanlara sevgi ve şefkat göstermek dünyayı güzelleştirir!"
+    },
+    {
+      id: "g1-8",
+      grade: 1,
+      themeTitle: "Doğruluk",
+      themeEmoji: "⭐",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Herkese", "dürüst", "olurum"],
+      punctuation: ".",
+      didacticHint: "'dürüst olurum' ifadesi cümlenin sonunda olmalıdır!",
+      funFact: "Dürüstlük en güzel erdemdir ve bize saygınlık kazandırır!"
+    },
+    {
+      id: "g1-user-1",
+      grade: 1,
+      themeTitle: "Paylaşma Erdemi",
+      themeEmoji: "🧸",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Arkadaşımla", "oyuncaklarımı", "güzelce", "paylaşırım"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'paylaşırım' yüklemi kurallı cümlede en sonda yer alır!",
+      funFact: "Paylaşmak dostlukları pekiştirir ve insanı çok mutlu eder!"
+    },
+    {
+      id: "g1-user-2",
+      grade: 1,
+      themeTitle: "Düzenli Oda",
+      themeEmoji: "🛏️",
+      categoryTheme: 'school',
+      themeGradient: "from-[#111936] via-[#1b2654] to-[#111936]",
+      borderColor: "border-indigo-400",
+      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
+      correctWords: ["Odamı", "akşamları", "düzenli", "topluyorum"],
+      punctuation: ".",
+      didacticHint: "İş bildiren 'topluyorum' kelimesi cümlenin en sonunda yer alır!",
+      funFact: "Düzenli bir oda zihnimizin dinlenmesini ve mutlu hissetmemizi sağlar!"
+    },
+    {
+      id: "g1-user-3",
+      grade: 1,
+      themeTitle: "Sınıf Kuralları",
+      themeEmoji: "👩‍🏫",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Öğretmenimi", "sınıfta", "sessizce", "dinlerim"],
+      punctuation: ".",
+      didacticHint: "Cümlede yapılan iş olan 'dinlerim' kelimesi yüklemdir ve en sonda yer alır!",
+      funFact: "Dersi dikkatle dinlemek bilgileri kalıcı ve kolay öğrenmemizi sağlar!"
+    },
+    {
+      id: "g1-user-4",
+      grade: 1,
+      themeTitle: "Yardımlaşma",
+      themeEmoji: "🤗",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f2208] via-[#48330c] to-[#2f2208]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Arkadaşıma", "yardım", "etmeyi", "severim"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'severim' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Yardımlaşmak ve dayanışma içinde olmak hem bizi hem çevremizi mutlu eder!"
+    },
+    {
+      id: "g1-user-5",
+      grade: 1,
+      themeTitle: "Güleryüzlü Selam",
+      themeEmoji: "🌅",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-orange-400",
+      glowColor: "shadow-[0_0_20px_rgba(249,115,22,0.35)]",
+      correctWords: ["Sabahları", "günaydın", "demeyi", "unutmam"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'unutmam' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Sabahları güler yüzle günaydın demek etrafımıza neşe yayar!"
+    },
+    {
+      id: "g1-user-6",
+      grade: 1,
+      themeTitle: "Nazik Davranış",
+      themeEmoji: "💖",
+      categoryTheme: 'school',
+      themeGradient: "from-[#331122] via-[#4d1933] to-[#331122]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Arkadaşımın", "kalbini", "asla", "kırmam"],
+      punctuation: ".",
+      didacticHint: "Cümlenin yüklemi olan 'kırmam' eylemi en sonda yer almalıdır!",
+      funFact: "Tatlı dilli olmak ve kalp kırmamak en güzel insanlık erdemidir!"
+    },
+    {
+      id: "g1-user-7",
+      grade: 1,
+      themeTitle: "Özür Dilemek",
+      themeEmoji: "🙏",
+      categoryTheme: 'school',
+      themeGradient: "from-[#111936] via-[#1b2654] to-[#111936]",
+      borderColor: "border-indigo-400",
+      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
+      correctWords: ["Hata", "yapınca", "özür", "dilerim"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'özür dilerim' yüklemi cümlenin sonunda yer alır!",
+      funFact: "Hata yaptığımızda samimiyetle özür dilemek büyük bir olgunluktur!"
+    },
+    {
+      id: "g1-user-8",
+      grade: 1,
+      themeTitle: "Görgü Kuralları",
+      themeEmoji: "🚪",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2b1807] via-[#3f240b] to-[#2b1807]",
+      borderColor: "border-amber-500",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Kapıyı", "çalarak", "içeri", "girerim"],
+      punctuation: ".",
+      didacticHint: "Hareket bildiren 'girerim' yüklemi cümlenin en sonunda bulunmalıdır!",
+      funFact: "Kapıyı çalmak başkalarının haklarına ve mahremiyetine saygıdır!"
+    },
+    {
+      id: "g1-user-9",
+      grade: 1,
+      themeTitle: "Sağlık ve Temizlik",
+      themeEmoji: "🧼",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Yemekten", "önce", "ellerimi", "yıkarım"],
+      punctuation: ".",
+      didacticHint: "İş bildiren 'yıkarım' eylemi cümlenin en sonunda olmalıdır!",
+      funFact: "Elleri sabunla yıkamak mikroplardan korunmanın en etkili yoludur!"
+    },
+    {
+      id: "g1-user-10",
+      grade: 1,
+      themeTitle: "Sorumluluk Bilinci",
+      themeEmoji: "⏰",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2a1708] via-[#3d220c] to-[#2a1708]",
+      borderColor: "border-orange-400",
+      glowColor: "shadow-[0_0_20px_rgba(249,115,22,0.35)]",
+      correctWords: ["Görevlerimi", "zamanında", "yerine", "getiririm"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'yerine getiririm' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Sorumluluklarını zamanında yerine getirenler her zaman başarılı olurlar!"
+    },
+    {
+      id: "g1-user-11",
+      grade: 1,
+      themeTitle: "Hayvan Sevgisi",
+      themeEmoji: "🐾",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Hayvanları", "çok", "şefkatle", "severim"],
+      punctuation: ".",
+      didacticHint: "Duygu ve eylem bildiren 'severim' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Can dostlarımıza sevgi ve şefkat göstermek kalbimizi zenginleştirir!"
+    },
+    {
+      id: "g1-user-12",
+      grade: 1,
+      themeTitle: "Oyun Kuralları",
+      themeEmoji: "🎲",
+      categoryTheme: 'school',
+      themeGradient: "from-[#171138] via-[#241a52] to-[#171138]",
+      borderColor: "border-violet-400",
+      glowColor: "shadow-[0_0_20px_rgba(167,139,250,0.35)]",
+      correctWords: ["Arkadaşımın", "oyununa", "saygı", "duyarım"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'saygı duyarım' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Oyun oynarken kurallara uymak oyunu herkes için çok daha eğlenceli kılar!"
+    },
+    {
+      id: "g1-user-13",
+      grade: 1,
+      themeTitle: "Dürüstlük ve İzin",
+      themeEmoji: "🎒",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Başkalarının", "eşyalarını", "izinsiz", "almam"],
+      punctuation: ".",
+      didacticHint: "Cümlenin eylemi olan 'almam' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Bir eşyayı kullanmadan önce izin istemek büyük bir nezaket kuralıdır!"
+    },
+    {
+      id: "g1-user-14",
+      grade: 1,
+      themeTitle: "Doğa Dostu",
+      themeEmoji: "🌳",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çevreyi", "her", "zaman", "korurum"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'korurum' yüklemi cümlenin en sonunda yer alır!",
+      funFact: "Temiz ve yeşil bir çevre tüm canlıların yaşam kaynağıdır!"
+    },
+    {
+      id: "g1-user-15",
+      grade: 1,
+      themeTitle: "Tatlı Dil",
+      themeEmoji: "💬",
+      categoryTheme: 'school',
+      themeGradient: "from-[#331122] via-[#4d1933] to-[#331122]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Güzel", "sözler", "söylemeyi", "severim"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'severim' cümlenin en sonunda bulunmalıdır!",
+      funFact: "Tatlı dil yılanı deliğinden çıkarır, insanları birbirine sevdirir!"
+    },
+    {
+      id: "g1-user-16",
+      grade: 1,
+      themeTitle: "Sabır ve Sıra",
+      themeEmoji: "🧍",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f2208] via-[#48330c] to-[#2f2208]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Sıramı", "sabırla", "sessizce", "beklerim"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'beklerim' yüklemi cümlenin en sonunda yer alır!",
+      funFact: "Sıraya girmek ve sıramızı sabırla beklemek adaletin temelidir!"
+    },
+    {
+      id: "g1-user-17",
+      grade: 1,
+      themeTitle: "Birlikte Oyun",
+      themeEmoji: "⚽",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Arkadaşımla", "güzel", "oyunlar", "kurarım"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'kurarım' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Birlikte hayal kurup oyun oynamak arkadaşlıkları ömür boyu unutulmaz kılar!"
+    },
+    {
+      id: "g1-user-18",
+      grade: 1,
+      themeTitle: "Doğruluk ve Dürüstlük",
+      themeEmoji: "⭐",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Herkese", "karşı", "dürüst", "olurum"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'dürüst olurum' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Dürüst olmak insanların bize güvenmesini ve bizi çok sevmesini sağlar!"
+    },
+    {
+      id: "g1-user-19",
+      grade: 1,
+      themeTitle: "Temiz Çevre Bilinci",
+      themeEmoji: "🗑️",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çöpleri", "her", "zaman", "çöpe", "atarım"],
+      punctuation: ".",
+      didacticHint: "Yapılan işi belirten 'atarım' yüklemi cümlenin en sonunda olmalıdır!",
+      funFact: "Çöpleri doğru yerlere atmak doğamızı ve canlıları korur!"
+    },
+    {
+      id: "g1-user-20",
+      grade: 1,
+      themeTitle: "Büyüklere Saygı",
+      themeEmoji: "🤝",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Büyüklere", "her", "zaman", "saygı", "duyarım"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'saygı duyarım' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Büyüklere saygı ve küçüklere sevgi toplumumuzu güzelleştirir!"
     }
   ],
 
-  // 2. SINIF: 4 KELİMEYE SAHİP CÜMLELER
+  // 2. SINIF: 4 KELİMEYE SAHİP CÜMLELER (20 ÖZEL ERDEM & ALIŞKANLIK CÜMLESİ DAHİL)
   2: [
     {
       id: "g2-1",
@@ -167,20 +489,6 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
     {
       id: "g2-4",
       grade: 2,
-      themeTitle: "Gece Masalı",
-      themeEmoji: "🌙",
-      categoryTheme: 'school',
-      themeGradient: "from-[#111936] via-[#1b2654] to-[#111936]",
-      borderColor: "border-indigo-400",
-      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
-      correctWords: ["Dedem", "bize", "güzel", "masal", "anlattı"],
-      punctuation: ".",
-      didacticHint: "'anlattı' eylemi cümlenin yüklemi olduğu için cümlenin sonunda olmalıdır!",
-      funFact: "Masallar yüzyıllar boyunca dilden dile aktarılarak günümüze kadar ulaşmış kültürel mirasımızdır!"
-    },
-    {
-      id: "g2-5",
-      grade: 2,
       themeTitle: "Resim Atölyesi",
       themeEmoji: "🎨",
       categoryTheme: 'school',
@@ -191,11 +499,319 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "Resmi yapan 'Can' başta, yapılan işi bildiren 'çizdi' yüklemi ise en sonda olmalıdır!",
       funFact: "Resim yapmak el-göz koordinasyonunu ve yaratıcı düşünme becerilerini geliştirir!"
+    },
+    {
+      id: "g2-user-1",
+      grade: 2,
+      themeTitle: "Paylaşma Erdemi",
+      themeEmoji: "🧸",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Arkadaşımla", "oyuncaklarımı", "güzelce", "paylaşırım"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'paylaşırım' yüklemi kurallı cümlede en sonda yer alır!",
+      funFact: "Paylaşmak dostlukları pekiştirir ve insanı çok mutlu eder!"
+    },
+    {
+      id: "g2-user-2",
+      grade: 2,
+      themeTitle: "Düzenli Oda",
+      themeEmoji: "🛏️",
+      categoryTheme: 'school',
+      themeGradient: "from-[#111936] via-[#1b2654] to-[#111936]",
+      borderColor: "border-indigo-400",
+      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
+      correctWords: ["Odamı", "akşamları", "düzenli", "topluyorum"],
+      punctuation: ".",
+      didacticHint: "İş bildiren 'topluyorum' kelimesi cümlenin en sonunda yer alır!",
+      funFact: "Düzenli bir oda zihnimizin dinlenmesini ve mutlu hissetmemizi sağlar!"
+    },
+    {
+      id: "g2-user-3",
+      grade: 2,
+      themeTitle: "Sınıf Kuralları",
+      themeEmoji: "👩‍🏫",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Öğretmenimi", "sınıfta", "sessizce", "dinlerim"],
+      punctuation: ".",
+      didacticHint: "Cümlede yapılan iş olan 'dinlerim' kelimesi yüklemdir ve en sonda yer alır!",
+      funFact: "Dersi dikkatle dinlemek bilgileri kalıcı ve kolay öğrenmemizi sağlar!"
+    },
+    {
+      id: "g2-user-4",
+      grade: 2,
+      themeTitle: "Yardımlaşma",
+      themeEmoji: "🤗",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f2208] via-[#48330c] to-[#2f2208]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Arkadaşıma", "yardım", "etmeyi", "severim"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'severim' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Yardımlaşmak ve dayanışma içinde olmak hem bizi hem çevremizi mutlu eder!"
+    },
+    {
+      id: "g2-user-5",
+      grade: 2,
+      themeTitle: "Güleryüzlü Selam",
+      themeEmoji: "🌅",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-orange-400",
+      glowColor: "shadow-[0_0_20px_rgba(249,115,22,0.35)]",
+      correctWords: ["Sabahları", "günaydın", "demeyi", "unutmam"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'unutmam' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Sabahları güler yüzle günaydın demek etrafımıza neşe yayar!"
+    },
+    {
+      id: "g2-user-6",
+      grade: 2,
+      themeTitle: "Nazik Davranış",
+      themeEmoji: "💖",
+      categoryTheme: 'school',
+      themeGradient: "from-[#331122] via-[#4d1933] to-[#331122]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Arkadaşımın", "kalbini", "asla", "kırmam"],
+      punctuation: ".",
+      didacticHint: "Cümlenin yüklemi olan 'kırmam' eylemi en sonda yer almalıdır!",
+      funFact: "Tatlı dilli olmak ve kalp kırmamak en güzel insanlık erdemidir!"
+    },
+    {
+      id: "g2-user-7",
+      grade: 2,
+      themeTitle: "Özür Dilemek",
+      themeEmoji: "🙏",
+      categoryTheme: 'school',
+      themeGradient: "from-[#111936] via-[#1b2654] to-[#111936]",
+      borderColor: "border-indigo-400",
+      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
+      correctWords: ["Hata", "yapınca", "özür", "dilerim"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'özür dilerim' yüklemi cümlenin sonunda yer alır!",
+      funFact: "Hata yaptığımızda samimiyetle özür dilemek büyük bir olgunluktur!"
+    },
+    {
+      id: "g2-user-8",
+      grade: 2,
+      themeTitle: "Görgü Kuralları",
+      themeEmoji: "🚪",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2b1807] via-[#3f240b] to-[#2b1807]",
+      borderColor: "border-amber-500",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Kapıyı", "çalarak", "içeri", "girerim"],
+      punctuation: ".",
+      didacticHint: "Hareket bildiren 'girerim' yüklemi cümlenin en sonunda bulunmalıdır!",
+      funFact: "Kapıyı çalmak başkalarının haklarına ve mahremiyetine saygıdır!"
+    },
+    {
+      id: "g2-user-9",
+      grade: 2,
+      themeTitle: "Sağlık ve Temizlik",
+      themeEmoji: "🧼",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Yemekten", "önce", "ellerimi", "yıkarım"],
+      punctuation: ".",
+      didacticHint: "İş bildiren 'yıkarım' eylemi cümlenin en sonunda olmalıdır!",
+      funFact: "Elleri sabunla yıkamak mikroplardan korunmanın en etkili yoludur!"
+    },
+    {
+      id: "g2-user-10",
+      grade: 2,
+      themeTitle: "Sorumluluk Bilinci",
+      themeEmoji: "⏰",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2a1708] via-[#3d220c] to-[#2a1708]",
+      borderColor: "border-orange-400",
+      glowColor: "shadow-[0_0_20px_rgba(249,115,22,0.35)]",
+      correctWords: ["Görevlerimi", "zamanında", "yerine", "getiririm"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'yerine getiririm' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Sorumluluklarını zamanında yerine getirenler her zaman başarılı olurlar!"
+    },
+    {
+      id: "g2-user-11",
+      grade: 2,
+      themeTitle: "Hayvan Sevgisi",
+      themeEmoji: "🐾",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Hayvanları", "çok", "şefkatle", "severim"],
+      punctuation: ".",
+      didacticHint: "Duygu ve eylem bildiren 'severim' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Can dostlarımıza sevgi ve şefkat göstermek kalbimizi zenginleştirir!"
+    },
+    {
+      id: "g2-user-12",
+      grade: 2,
+      themeTitle: "Oyun Kuralları",
+      themeEmoji: "🎲",
+      categoryTheme: 'school',
+      themeGradient: "from-[#171138] via-[#241a52] to-[#171138]",
+      borderColor: "border-violet-400",
+      glowColor: "shadow-[0_0_20px_rgba(167,139,250,0.35)]",
+      correctWords: ["Arkadaşımın", "oyununa", "saygı", "duyarım"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'saygı duyarım' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Oyun oynarken kurallara uymak oyunu herkes için çok daha eğlenceli kılar!"
+    },
+    {
+      id: "g2-user-13",
+      grade: 2,
+      themeTitle: "Dürüstlük ve İzin",
+      themeEmoji: "🎒",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Başkalarının", "eşyalarını", "izinsiz", "almam"],
+      punctuation: ".",
+      didacticHint: "Cümlenin eylemi olan 'almam' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Bir eşyayı kullanmadan önce izin istemek büyük bir nezaket kuralıdır!"
+    },
+    {
+      id: "g2-user-14",
+      grade: 2,
+      themeTitle: "Doğa Dostu",
+      themeEmoji: "🌳",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çevreyi", "her", "zaman", "korurum"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'korurum' yüklemi cümlenin en sonunda yer alır!",
+      funFact: "Temiz ve yeşil bir çevre tüm canlıların yaşam kaynağıdır!"
+    },
+    {
+      id: "g2-user-15",
+      grade: 2,
+      themeTitle: "Tatlı Dil",
+      themeEmoji: "💬",
+      categoryTheme: 'school',
+      themeGradient: "from-[#331122] via-[#4d1933] to-[#331122]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Güzel", "sözler", "söylemeyi", "severim"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'severim' cümlenin en sonunda bulunmalıdır!",
+      funFact: "Tatlı dil yılanı deliğinden çıkarır, insanları birbirine sevdirir!"
+    },
+    {
+      id: "g2-user-16",
+      grade: 2,
+      themeTitle: "Sabır ve Sıra",
+      themeEmoji: "🧍",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f2208] via-[#48330c] to-[#2f2208]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Sıramı", "sabırla", "sessizce", "beklerim"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'beklerim' yüklemi cümlenin en sonunda yer alır!",
+      funFact: "Sıraya girmek ve sıramızı sabırla beklemek adaletin temelidir!"
+    },
+    {
+      id: "g2-user-17",
+      grade: 2,
+      themeTitle: "Birlikte Oyun",
+      themeEmoji: "⚽",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Arkadaşımla", "güzel", "oyunlar", "kurarım"],
+      punctuation: ".",
+      didacticHint: "Eylem olan 'kurarım' kelimesi cümlenin sonunda olmalıdır!",
+      funFact: "Birlikte hayal kurup oyun oynamak arkadaşlıkları ömür boyu unutulmaz kılar!"
+    },
+    {
+      id: "g2-user-18",
+      grade: 2,
+      themeTitle: "Doğruluk ve Dürüstlük",
+      themeEmoji: "⭐",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Herkese", "karşı", "dürüst", "olurum"],
+      punctuation: ".",
+      didacticHint: "Yüklem olan 'dürüst olurum' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Dürüst olmak insanların bize güvenmesini ve bizi çok sevmesini sağlar!"
+    },
+    {
+      id: "g2-user-19",
+      grade: 2,
+      themeTitle: "Temiz Çevre Bilinci",
+      themeEmoji: "🗑️",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çöpleri", "her", "zaman", "çöpe", "atarım"],
+      punctuation: ".",
+      didacticHint: "Yapılan işi belirten 'atarım' yüklemi cümlenin en sonunda olmalıdır!",
+      funFact: "Çöpleri doğru yerlere atmak doğamızı ve canlıları korur!"
+    },
+    {
+      id: "g2-user-20",
+      grade: 2,
+      themeTitle: "Büyüklere Saygı",
+      themeEmoji: "🤝",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Büyüklere", "her", "zaman", "saygı", "duyarım"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'saygı duyarım' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Büyüklere saygı ve küçüklere sevgi toplumumuzu güzelleştirir!"
     }
   ],
 
   // 3. SINIF: 5 KELİMEYE SAHİP CÜMLELER
   3: [
+    {
+      id: "g3-user-1",
+      grade: 3,
+      themeTitle: "Temiz Çevre Bilinci",
+      themeEmoji: "🗑️",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0d2822] via-[#143a31] to-[#0d2822]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Çöpleri", "her", "zaman", "çöpe", "atarım"],
+      punctuation: ".",
+      didacticHint: "Yapılan işi belirten 'atarım' yüklemi cümlenin en sonunda olmalıdır!",
+      funFact: "Çöpleri doğru yerlere atmak doğamızı ve canlıları korur!"
+    },
+    {
+      id: "g3-user-2",
+      grade: 3,
+      themeTitle: "Büyüklere Saygı",
+      themeEmoji: "🤝",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Büyüklere", "her", "zaman", "saygı", "duyarım"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'saygı duyarım' yüklemi cümlenin en sonunda bulunur!",
+      funFact: "Büyüklere saygı ve küçüklere sevgi toplumumuzu güzelleştirir!"
+    },
     {
       id: "g3-1",
       grade: 3,
@@ -265,6 +881,20 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "Hareket bildiren 'taşıdı' eylemi kurallı cümle gereği en sona yerleştirilmelidir!",
       funFact: "Karıncalar kendi vücut ağırlıklarının 20 katına kadar yük taşıyabilirler!"
+    },
+    {
+      id: "g3-6",
+      grade: 3,
+      themeTitle: "Sorumluluk Sevgisi",
+      themeEmoji: "📖",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Görevlerimi", "her", "gün", "zamanında", "yaparım"],
+      punctuation: ".",
+      didacticHint: "'yaparım' eylemi yüklem olarak cümlenin en sonunda yer alır!",
+      funFact: "Düzenli çalışan öğrenciler derslerinde her zaman başarılı olurlar!"
     }
   ],
 
@@ -339,6 +969,20 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "'yaptı' eylemi cümlenin yüklemidir ve kurallı cümle yapısında en sonda yer alır!",
       funFact: "Tarihteki en büyük buluşların çoğu, bilim insanlarının bitmek bilmeyen merak duygusuyla ortaya çıkmıştır!"
+    },
+    {
+      id: "g4-6",
+      grade: 4,
+      themeTitle: "Paylaşma Erdemi",
+      themeEmoji: "🤝",
+      categoryTheme: 'school',
+      themeGradient: "from-[#0c243f] via-[#12365e] to-[#0c243f]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Arkadaşımla", "oyuncaklarımı", "her", "zaman", "güzelce", "paylaşırım"],
+      punctuation: ".",
+      didacticHint: "'paylaşırım' yüklemi kurallı cümlenin en sonunda bulunur!",
+      funFact: "Paylaşmak ve dostluk dünyayı güzelleştiren en değerli değerdir!"
     }
   ]
 };
@@ -609,6 +1253,16 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     }
   }, [playerCountMode]);
 
+  // Fisher-Yates array shuffle helper
+  const shuffleArray = useCallback(<T,>(array: T[]): T[] => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, []);
+
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(() => {
     if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
       return initialGrade as GradeLevel;
@@ -616,9 +1270,31 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     return 1;
   });
 
+  // Her seferinde cümlelerin rastgele değişmesi için karıştırılmış cümle havuzu
+  const [shuffledGradeSentences, setShuffledGradeSentences] = useState<SentenceData[]>(() => {
+    const initGrade = initialGrade && initialGrade >= 1 && initialGrade <= 4 ? (initialGrade as GradeLevel) : 1;
+    const list = GRADE_SENTENCES[initGrade] || GRADE_SENTENCES[1];
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  });
+
+  // Etkinlik açıldığında veya sınıf değiştiğinde her seferinde cümleleri baştan rastgele karıştır
+  useEffect(() => {
+    const targetGrade = initialGrade && initialGrade >= 1 && initialGrade <= 4 ? (initialGrade as GradeLevel) : selectedGrade;
+    setSelectedGrade(targetGrade);
+    setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[targetGrade] || GRADE_SENTENCES[1]));
+    setCurrentSentenceIndex(0);
+    setSingleTimeLeft(100);
+  }, [initialGrade, shuffleArray]);
+
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
-  const currentGradeSentences = GRADE_SENTENCES[selectedGrade];
-  const currentSentence = currentGradeSentences[currentSentenceIndex] || currentGradeSentences[0];
+  const currentGradeSentences = shuffledGradeSentences;
+  const currentSentence = currentGradeSentences[currentSentenceIndex % currentGradeSentences.length] || currentGradeSentences[0];
+  const [singleTimeLeft, setSingleTimeLeft] = useState<number>(100);
 
   // -------------------------------------------------------------------------
   // 1 OYUNCU MODU DURUMLARI
@@ -704,13 +1380,46 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     }
   }, [selectedGrade, currentSentenceIndex, initRoundWords]);
 
-  // Sınıf değiştir
+  // Sınıf değiştir (Yeni sınıftaki cümleleri de her seferinde karıştır)
   const handleGradeChange = (grade: GradeLevel) => {
     if (grade === selectedGrade) return;
     triggerSound('/op.mp3');
     setSelectedGrade(grade);
+    setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[grade]));
     setCurrentSentenceIndex(0);
+    setSingleTimeLeft(100);
   };
+
+  // 100-Saniye Tek Kişilik Geri Sayım Sayacı (Her soru için 100 saniye)
+  useEffect(() => {
+    if (activePlayerMode !== 1 || isCorrect || showVictoryModal) {
+      return;
+    }
+
+    if (singleTimeLeft <= 0) {
+      triggerSound('/hata.mp3');
+      setShowErrorShake(true);
+      setTimeout(() => setShowErrorShake(false), 800);
+      setSingleTimeLeft(100);
+      if (currentSentenceIndex < currentGradeSentences.length - 1) {
+        setCurrentSentenceIndex(prev => prev + 1);
+      } else {
+        setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[selectedGrade]));
+        setCurrentSentenceIndex(0);
+      }
+      return;
+    }
+
+    if (singleTimeLeft <= 3 && singleTimeLeft >= 1 && playMp3) {
+      playMp3('/tek.mp3');
+    }
+
+    const timer = setInterval(() => {
+      setSingleTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activePlayerMode, isCorrect, showVictoryModal, singleTimeLeft, currentSentenceIndex, currentGradeSentences.length, selectedGrade, shuffleArray, playMp3, triggerSound]);
 
   // Sesli Oku
   const speakSentence = (text: string) => {
@@ -885,9 +1594,12 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const handleNextSentence = () => {
     triggerSound('/op.mp3');
+    setSingleTimeLeft(100);
     if (currentSentenceIndex < currentGradeSentences.length - 1) {
       setCurrentSentenceIndex(prev => prev + 1);
     } else {
+      setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[selectedGrade]));
+      setCurrentSentenceIndex(0);
       setShowVictoryModal(true);
     }
   };
@@ -995,11 +1707,13 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
         }
       }
 
-      // 1.5 saniye sonra sonraki cümleye geç
+      // 1.5 saniye sonra sonraki cümleye geç (Tüm cümleler bittiğinde yeniden karıştır)
       setTimeout(() => {
+        setSingleTimeLeft(100);
         if (currentSentenceIndex < currentGradeSentences.length - 1) {
           setCurrentSentenceIndex(prev => prev + 1);
         } else {
+          setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[selectedGrade]));
           setCurrentSentenceIndex(0);
         }
       }, 1500);
@@ -1043,6 +1757,9 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const handleRestartMatch = () => {
     triggerSound('/op.mp3');
+    setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[selectedGrade] || GRADE_SENTENCES[1]));
+    setCurrentSentenceIndex(0);
+    setSingleTimeLeft(100);
     setPlayer1Score(0);
     setPlayer2Score(0);
     setPlayer3Score(0);
@@ -1051,9 +1768,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     setPlayer3Mistakes(0);
     setMatchWinner(null);
     setRoundWinner(null);
-    if (currentSentence) {
-      initRoundWords(currentSentence);
-    }
+    setIsCorrect(false);
+    setCompletedSentences([]);
   };
 
   const p1Student = selectedStudentIds[0] ? students?.find(s => s.id === selectedStudentIds[0]) : null;
@@ -1088,75 +1804,6 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     >
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
       <TurkishActivityBackground darkness="normal" />
-
-      {/* 2. SUB-HEADER BAR */}
-      <header className="relative z-30 bg-[#0b1328]/95 backdrop-blur-md border-b border-slate-700/80 px-2 sm:px-4 py-1.5 flex items-center justify-between shadow-lg shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Önceki Etkinlik"
-            >
-              <ChevronLeft size={16} />
-            </button>
-          )}
-
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer"
-              title="Sonraki Etkinlik"
-            >
-              <ChevronRight size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Çok Oyunculu / Tek Oyunculu Skor Göstergeleri */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {activePlayerMode !== 1 ? (
-            <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-xl border border-white/15">
-              <span className="text-rose-400 font-bold text-xs">🔴 1.P: {player1Score}</span>
-              <span className="text-slate-500 font-bold">•</span>
-              <span className="text-sky-400 font-bold text-xs">🔵 2.P: {player2Score}</span>
-              {activePlayerMode === 3 && (
-                <>
-                  <span className="text-slate-500 font-bold">•</span>
-                  <span className="text-emerald-400 font-bold text-xs">🟢 3.P: {player3Score}</span>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-slate-800/90 border border-slate-700 rounded-xl shadow-xs">
-              <Star size={14} className="text-amber-400 fill-amber-400" />
-              <span className="text-[10px] sm:text-xs font-black text-amber-300">
-                {gradeCompletedCount} / {currentGradeSentences.length}
-              </span>
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              if (onGoHome) onGoHome();
-              else onClose();
-            }}
-            className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 hover:text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-            title="Ana Sayfaya Dön"
-          >
-            <Home size={13} />
-            <span className="hidden xs:inline">Ana Sayfa</span>
-          </button>
-
-          <button
-            onClick={onClose}
-            className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/80 text-slate-200 hover:text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-            title="Kapat"
-          >
-            ✕ <span className="hidden xs:inline">Kapat</span>
-          </button>
-        </div>
-      </header>
 
       {/* 3. OYUN ALANI (ORTA ALAN) */}
       <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-between w-full overflow-y-auto no-scrollbar p-1.5 sm:p-2.5">
@@ -1294,7 +1941,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
             <div className="w-full flex-1 flex flex-col items-center justify-between max-w-5xl mx-auto min-h-0 overflow-hidden px-1 sm:px-2 py-0.5">
               <main className="flex-1 w-full flex flex-col items-center justify-between gap-1 sm:gap-1.5 min-h-0 overflow-hidden py-0.5">
               
-                {/* Cümle Kartı Başlığı */}
+                {/* Cümle Kartı Başlığı & Geri Sayım Sayacı */}
                 <div className="flex items-center gap-2 sm:gap-3 bg-black/60 px-3 sm:px-4 py-0.5 rounded-xl border border-white/15 shadow-sm shrink-0">
                   <span className="text-base sm:text-lg">{currentSentence.themeEmoji}</span>
                   <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-wide">
@@ -1303,6 +1950,15 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                   <span className="text-[11px] text-slate-400">
                     ({currentSentenceIndex + 1} / {currentGradeSentences.length})
                   </span>
+                  {/* 100s Geri Sayım Sayacı */}
+                  <div className={`border rounded-lg px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                    singleTimeLeft <= 3 
+                      ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
+                      : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                  }`}>
+                    <span className="text-xs">⏱️</span>
+                    <span>{singleTimeLeft}s</span>
+                  </div>
                 </div>
 
                 {/* Kelimeler & Tren Alanı */}

@@ -537,174 +537,233 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
       {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
       <TurkishActivityBackground darkness="normal" />
 
-      {/* 1. TOP HEADER / APP BAR */}
-      <header className="relative z-30 shrink-0 w-full bg-gradient-to-b from-[#0a1020] via-[#090e1c] to-[#060a14] border-b border-cyan-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.6)] px-2 sm:px-4 py-1.5 flex items-center justify-between gap-2">
-        {/* Left Side: Navigation & Brand */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Menu / Close Button */}
-          <button
-            onClick={() => {
-              triggerSound('/op.mp3');
-              onClose();
-            }}
-            className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow transition cursor-pointer active:scale-95"
-            title="Etkinlik Menüsüne Dön"
-          >
-            <ChevronLeft size={16} />
-            <span className="hidden xs:inline">Menü</span>
-          </button>
-
-          {/* Home Button */}
-          {onGoHome && (
-            <button
-              onClick={() => {
-                triggerSound('/op.mp3');
-                onGoHome();
-              }}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-              title="Ana Sayfaya Dön"
-            >
-              <Home size={15} />
-            </button>
-          )}
-
-          {/* Prev / Next Activity Nav */}
-          <div className="hidden sm:flex items-center gap-1 bg-slate-900/80 p-0.5 rounded-xl border border-slate-700/60">
-            {onPrevActivity && (
-              <button
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  onPrevActivity();
-                }}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Önceki Etkinlik"
-              >
-                <ArrowLeft size={14} />
-              </button>
-            )}
-            {onNextActivity && (
-              <button
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  onNextActivity();
-                }}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer"
-                title="Sonraki Etkinlik"
-              >
-                <ArrowRight size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Title Badge */}
-          <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg border border-cyan-300/40">
-              <Scissors size={16} className="text-white transform -rotate-45" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-xs sm:text-sm md:text-base text-white tracking-wide uppercase">
-                  Hece Makası
-                </span>
-                <span className="hidden md:inline px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 uppercase">
-                  2. Sınıf Türkçe
-                </span>
-              </div>
-              <p className="hidden sm:block text-[10px] text-cyan-200/70 font-medium leading-none">
-                Sözcükleri Doğru Yerden Keserek Hecelerine Ayır
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Center: Mode Selector (1, 2, 3 Oyuncu) & Syllable Filter */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Player Count Mode Buttons */}
-          <div className="flex items-center bg-slate-900/90 rounded-xl p-0.5 border border-cyan-500/40 shadow-inner">
-            {([1, 2, 3] as PlayerMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  setPlayerMode(mode);
-                  onSwitchPlayerCountMode?.(mode);
-                }}
-                className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  playerMode === mode
-                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md scale-105'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                {mode} Kişi
-              </button>
-            ))}
-          </div>
-
-          {/* Syllable Filter */}
-          <div className="hidden lg:flex items-center bg-slate-900/90 rounded-xl p-0.5 border border-slate-700">
-            <button
-              onClick={() => {
-                triggerSound('/op.mp3');
-                setFilterSyllables(null);
-              }}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                filterSyllables === null ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Tümü
-            </button>
-            {[2, 3, 4].map(s => (
-              <button
-                key={s}
-                onClick={() => {
-                  triggerSound('/op.mp3');
-                  setFilterSyllables(s);
-                }}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                  filterSyllables === s ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {s} Heceli
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Side: Tools (Reset, Sound, Fullscreen) */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <button
-            onClick={handleResetGame}
-            className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-            title="Yeniden Başlat"
-          >
-            <RotateCcw size={15} />
-          </button>
-
-          <button
-            onClick={() => setSoundEnabled(prev => !prev)}
-            className={`p-1.5 sm:p-2 rounded-xl border transition cursor-pointer active:scale-95 ${
-              soundEnabled
-                ? 'bg-slate-800/90 text-cyan-300 border-cyan-500/40'
-                : 'bg-slate-800/90 text-slate-500 border-slate-700'
-            }`}
-            title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
-          >
-            {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-          </button>
-
-          <button
-            onClick={toggleFullscreen}
-            className="p-1.5 sm:p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 transition cursor-pointer active:scale-95"
-            title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran Yap'}
-          >
-            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-          </button>
-        </div>
-      </header>
-
       {/* 2. MAIN BATTLE ARENA / WORKSPACE */}
-      <main className="relative z-10 flex-1 flex flex-row items-center justify-center gap-1 sm:gap-2 max-w-[1850px] mx-auto w-full min-h-0 min-w-0 overflow-hidden px-1 sm:px-2 py-1">
-        <div className="flex-1 flex flex-row relative min-h-0 min-w-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800/80 shadow-2xl bg-[#080d1a]">
+      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
+        {playerMode === 1 && players[0] ? (() => {
+          const player = players[0];
+          const currentWord = wordList[player.currentWordIndex % wordList.length];
+          const sStudent = effectiveSelectedStudentIds[0]
+            ? students?.find(s => s.id === effectiveSelectedStudentIds[0])
+            : null;
+
+          if (!currentWord) return null;
+          const letters = currentWord.word.split('');
+          const neededCutsCount = currentWord.cutIndices.length;
+          const madeCutsCount = player.selectedCuts.length;
+
+          // Compute separated parts
+          const cuts = [...player.selectedCuts].sort((a, b) => a - b);
+          const parts: string[] = [];
+          let lastIdx = 0;
+          for (const cut of cuts) {
+            parts.push(currentWord.word.substring(lastIdx, cut + 1));
+            lastIdx = cut + 1;
+          }
+          parts.push(currentWord.word.substring(lastIdx));
+
+          return (
+            <div className="flex-1 flex flex-col items-center justify-between w-full h-full max-h-full overflow-hidden min-h-0 py-0.5 sm:py-1 px-1 sm:px-2 md:px-4 max-w-[1850px] mx-auto">
+              {/* MERKEZ: TEK KİŞİLİK STANDART KART ÇERÇEVESİ */}
+              <div className="flex-1 w-full max-w-xl lg:max-w-2xl flex flex-col justify-center min-h-0 z-10 shrink">
+                <div className="flex-1 flex flex-col p-2 sm:p-3 bg-[#0b1328] border-2 border-blue-500/50 shadow-[0_12px_36px_rgba(0,0,0,0.85),0_0_16px_rgba(59,130,246,0.15)] rounded-2xl sm:rounded-3xl w-full justify-between overflow-hidden min-h-0 relative h-full">
+
+                  {/* TOP BAR: STANDARDIZED UNIFORM CAPSULES */}
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5 shrink-0 w-full h-8 sm:h-9">
+                    {/* LEFT: GROUP BADGE & TOPIC */}
+                    <div className="flex items-center gap-1.5 min-w-0 h-full">
+                      {sStudent ? (
+                        <div
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br ${sStudent.avatarBg || 'from-amber-500 to-yellow-600'} border-2 border-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0`}
+                          title={`Aktif Öğrenci: ${sStudent.name}`}
+                        >
+                          {sStudent.avatar}
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#080e1d] border-2 border-blue-400 text-blue-300 font-black text-xs sm:text-sm flex items-center justify-center shadow-xs shrink-0">
+                          1
+                        </div>
+                      )}
+                      <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                        <div className="flex items-center min-w-0">
+                          <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                            {sStudent ? sStudent.name : '1. GRUP'}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                            • Hece Makası
+                          </span>
+                        </div>
+                        <img
+                          src="/MENUIKON/grid_icon_20.png"
+                          alt="Hece Makası"
+                          className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
+                        />
+                      </div>
+                    </div>
+
+                    {/* RIGHT: SCORE & PROGRESS */}
+                    <div className="flex items-center gap-1.5 shrink-0 h-full">
+                      <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-300">
+                          {Math.min(TARGET_QUESTIONS, player.currentWordIndex + 1)} / {TARGET_QUESTIONS}
+                        </span>
+                        <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
+                          {player.score} P
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleNextWordManually(0)}
+                        className="h-full px-2 sm:px-2.5 rounded-xl bg-[#0e172a] hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white flex items-center gap-1 text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                        title="Kelimeyi Geç"
+                      >
+                        <span className="hidden sm:inline">Geç</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
+                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2.5 sm:p-3.5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full">
+                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+
+                      {/* Word Hint & Category Badge */}
+                      <div className="relative z-10 flex items-center justify-between gap-1 w-full px-1 shrink-0">
+                        <span className="rounded-lg bg-black/40 border border-white/10 font-semibold text-slate-300 px-2.5 py-0.5 text-xs shrink-0">
+                          🏷️ {currentWord.category}
+                        </span>
+                        <span className="font-semibold text-amber-200 italic truncate text-center px-1 text-xs sm:text-sm">
+                          {currentWord.hint}
+                        </span>
+                        <span className="rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-bold px-2.5 py-0.5 text-xs shrink-0">
+                          {currentWord.syllableCount} Hece
+                        </span>
+                      </div>
+
+                      {/* Instructions */}
+                      <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 border border-cyan-400/30 my-1 shadow shrink-0">
+                        <Scissors size={13} className="text-cyan-400 animate-pulse" />
+                        <span className="text-xs font-bold text-cyan-200">
+                          Hecelerin ayrıldığı harf aralarına makasla tıkla!
+                        </span>
+                      </div>
+
+                      {/* Word Ribbon */}
+                      <div className="relative z-10 my-auto flex items-center justify-center p-3 rounded-2xl bg-slate-900/90 border-2 border-cyan-500/40 shadow-xl max-w-full overflow-x-auto shrink-0">
+                        {letters.map((letter, letterIdx) => {
+                          const isCutSlot = letterIdx < letters.length - 1;
+                          const isCutDone = isCutSlot && player.selectedCuts.includes(letterIdx);
+                          const isCutShaking = isCutSlot && player.shakeSlot === letterIdx;
+
+                          return (
+                            <React.Fragment key={letterIdx}>
+                              <div className="w-10 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg bg-gradient-to-b from-cyan-400 to-blue-600 text-white">
+                                {letter}
+                              </div>
+
+                              {isCutSlot && (
+                                <div
+                                  onClick={() => handleCutSlot(0, letterIdx)}
+                                  className={`relative group mx-0.5 sm:mx-1 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                                    isCutShaking ? 'animate-shake' : ''
+                                  }`}
+                                  title={isCutDone ? 'Hece buradan kesildi ✂️' : 'Makasla kes'}
+                                >
+                                  {isCutDone ? (
+                                    <div className="w-6 sm:w-8 h-12 sm:h-14 flex flex-col items-center justify-center">
+                                      <div className="w-0.5 h-10 sm:h-12 bg-cyan-400/80 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                                      <div className="absolute w-6 h-6 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-lg text-white text-xs">
+                                        ✂️
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="w-6 sm:w-8 h-12 sm:h-14 flex flex-col items-center justify-center rounded-md border border-dashed border-white/30 hover:border-cyan-400/80 bg-black/20 hover:bg-cyan-500/20 transition-all">
+                                      <div className="w-px h-10 sm:h-12 border-r border-dashed border-white/40 group-hover:border-cyan-300" />
+                                      <div className="absolute w-6 h-6 rounded-full bg-slate-900 group-hover:bg-cyan-500 border border-white/40 group-hover:border-white flex items-center justify-center shadow transition-transform group-hover:scale-125">
+                                        <Scissors size={13} className="text-slate-300 group-hover:text-white transform -rotate-45" />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {isCutShaking && (
+                                    <div className="absolute -top-7 px-1.5 py-0.5 rounded bg-rose-600 text-white text-[8px] sm:text-[9px] font-black whitespace-nowrap shadow-lg border border-white/50 animate-bounce z-40">
+                                      Buradan kesilmez! 🚫
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+
+                      {/* Oluşan Heceler Strip */}
+                      <div className="relative z-10 w-full shrink-0 flex flex-col items-center gap-1">
+                        <span className="uppercase tracking-wider text-slate-400 font-bold text-[10px]">
+                          Oluşan Heceler
+                        </span>
+                        {player.isCompleted ? (
+                          <div className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-teal-500/30 to-emerald-500/20 border-2 border-emerald-400 text-emerald-200 p-2 shadow-[0_0_25px_rgba(16,185,129,0.3)] animate-in zoom-in duration-300">
+                            <Sparkles size={16} className="text-amber-300 animate-spin" />
+                            <div className="flex items-center gap-1 sm:gap-1.5">
+                              {currentWord.syllables.map((syl, sIdx) => (
+                                <React.Fragment key={sIdx}>
+                                  <span className="rounded-lg bg-emerald-500 text-slate-950 font-black shadow px-3 py-1 text-sm sm:text-base">
+                                    {syl}
+                                  </span>
+                                  {sIdx < currentWord.syllables.length - 1 && (
+                                    <span className="font-black text-emerald-300 text-sm sm:text-base">-</span>
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </div>
+                            <span className="rounded-md bg-emerald-400/30 text-emerald-200 font-black px-2 py-0.5 text-xs">
+                              TEBRİKLER! 🎉
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-1.5 flex-wrap min-h-[38px]">
+                            {parts.map((part, pPartIdx) => (
+                              <React.Fragment key={pPartIdx}>
+                                <div className="rounded-lg bg-slate-900/90 border border-cyan-400/40 text-cyan-200 font-black shadow tracking-wider px-3 py-1 text-sm sm:text-base">
+                                  {part}
+                                </div>
+                                {pPartIdx < parts.length - 1 && (
+                                  <span className="text-cyan-400 font-black text-base">-</span>
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Progress: cuts made */}
+                      <div className="relative z-10 flex items-center gap-1.5 shrink-0 mt-1">
+                        <span className="text-slate-300 font-bold text-xs">
+                          Kesim: {madeCutsCount} / {neededCutsCount}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: neededCutsCount }).map((_, cIdx) => (
+                            <div
+                              key={cIdx}
+                              className={`rounded-full border flex items-center justify-center transition-all w-3.5 h-3.5 text-[8px] ${
+                                cIdx < madeCutsCount
+                                  ? 'bg-cyan-500 border-cyan-300 text-white shadow-[0_0_8px_rgba(6,182,212,0.8)]'
+                                  : 'bg-slate-800 border-slate-600 text-transparent'
+                              }`}
+                            >
+                              ✓
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })() : (
+          <div className="flex-1 flex flex-row relative min-h-0 min-w-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800/80 shadow-2xl bg-[#080d1a]">
           {players.map((player, pIdx) => {
             const theme = getPlayerTheme(player.colorName);
             const currentWord = wordList[player.currentWordIndex % wordList.length];
@@ -1028,6 +1087,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
             );
           })}
         </div>
+        )}
       </main>
 
       {/* 3. STUDENT AVATAR DOCK - EN ALTTA TEK SIRA (TÜM MODLARDA) */}

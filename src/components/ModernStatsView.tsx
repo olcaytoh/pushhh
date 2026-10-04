@@ -29,6 +29,11 @@ import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
 import { resetSingleStudentStat, resetSingleStudentTopicStat } from '../utils/studentStore';
 import { loadHomeworkData, getTodayDateString } from '../utils/homeworkStore';
+import { topics1stGrade } from '../data/topics1stGrade';
+import { topics2ndGrade } from '../data/topics2ndGrade';
+import { topics3rdGrade } from '../data/topics3rdGrade';
+import { topics4thGrade } from '../data/topics4thGrade';
+import { halatCekmeTopics } from '../data/halatCekmeTopics';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
@@ -172,6 +177,11 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır',
     icon: '/MENUIKON/grid_icon_26.png',
   },
+  onu_bul: {
+    title: '10\'u Bul Matematik Düellosu',
+    desc: 'Toplamı 10 yapan sayı çiftlerini hızlıca keşfet',
+    icon: '/MENUIKON/grid_icon_18.png',
+  },
   yirmiyi_bul: {
     title: '20\'yi Bul Matematik Düellosu',
     desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet',
@@ -298,12 +308,32 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   // Grade-specific topics
   const baseGradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = 
-    (topicsByGrade && topicsByGrade[currentGrade as 1 | 2 | 3 | 4]) || topics;
+    (topicsByGrade && topicsByGrade[currentGrade as 1 | 2 | 3 | 4]) || (
+      currentGrade === 1 ? topics1stGrade :
+      currentGrade === 3 ? topics3rdGrade :
+      currentGrade === 4 ? topics4thGrade :
+      topics2ndGrade
+    );
 
   const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = {
     ...baseGradeTopics,
-    ...ALL_INTERACTIVE_TOPICS
+    ...(currentGrade === 2 ? ALL_INTERACTIVE_TOPICS : {})
   };
+
+  // Attach grade-specific Halat Çekme activities
+  if (currentGrade === 4) {
+    if (halatCekmeTopics['halat_toplama_g4']) gradeTopics['halat_toplama_g4'] = halatCekmeTopics['halat_toplama_g4'];
+    if (halatCekmeTopics['halat_carpma_g4']) gradeTopics['halat_carpma_g4'] = halatCekmeTopics['halat_carpma_g4'];
+    if (halatCekmeTopics['halat_bolme_g4']) gradeTopics['halat_bolme_g4'] = halatCekmeTopics['halat_bolme_g4'];
+  } else if (currentGrade === 1) {
+    if (halatCekmeTopics['halat_toplama']) gradeTopics['halat_toplama'] = halatCekmeTopics['halat_toplama'];
+    if (halatCekmeTopics['halat_cikarma']) gradeTopics['halat_cikarma'] = halatCekmeTopics['halat_cikarma'];
+  } else if (currentGrade === 2) {
+    if (halatCekmeTopics['halat_toplama_g2']) gradeTopics['halat_toplama_g2'] = halatCekmeTopics['halat_toplama_g2'];
+    if (halatCekmeTopics['halat_cikarma_g2']) gradeTopics['halat_cikarma_g2'] = halatCekmeTopics['halat_cikarma_g2'];
+  } else if (currentGrade === 3) {
+    if (halatCekmeTopics['halat_toplama_g3']) gradeTopics['halat_toplama_g3'] = halatCekmeTopics['halat_toplama_g3'];
+  }
 
   const topicKeys = Object.keys(gradeTopics);
 
@@ -313,21 +343,32 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     activeGradeGroups.grup1 || defaultGroups.grup1,
     activeGradeGroups.grup2 || defaultGroups.grup2,
     activeGradeGroups.grup3 || defaultGroups.grup3,
-  ].map(g => {
+  ].map((g, gIdx) => {
     let gradeDogru = 0;
     let gradeYanlis = 0;
-    let hasGradeTopicStats = false;
+    let gradeWins = 0;
+
+    const otherG1 = activeGradeGroups[`grup${gIdx === 0 ? 2 : 1}` as 'grup1'|'grup2'|'grup3'] || defaultGroups.grup2;
+    const otherG2 = activeGradeGroups[`grup${gIdx === 2 ? 2 : 3}` as 'grup1'|'grup2'|'grup3'] || defaultGroups.grup3;
+
     topicKeys.forEach(k => {
-      if (g.topicStats && g.topicStats[k]) {
-        gradeDogru += g.topicStats[k].dogru || 0;
-        gradeYanlis += g.topicStats[k].yanlis || 0;
-        hasGradeTopicStats = true;
+      const myDogru = g.topicStats?.[k]?.dogru || 0;
+      const myYanlis = g.topicStats?.[k]?.yanlis || 0;
+      gradeDogru += myDogru;
+      gradeYanlis += myYanlis;
+
+      const o1Dogru = otherG1.topicStats?.[k]?.dogru || 0;
+      const o2Dogru = otherG2.topicStats?.[k]?.dogru || 0;
+      if (myDogru > 0 && myDogru > o1Dogru && myDogru > o2Dogru) {
+        gradeWins += 1;
       }
     });
+
     return {
       ...g,
-      dogru: hasGradeTopicStats ? gradeDogru : g.dogru,
-      yanlis: hasGradeTopicStats ? gradeYanlis : g.yanlis,
+      dogru: gradeDogru,
+      yanlis: gradeYanlis,
+      wins: gradeWins,
     };
   });
 
@@ -363,6 +404,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
     if (
       key === 'aynisini_bul' ||
+      key === 'onu_bul' ||
       key === 'yirmiyi_bul' ||
       key === 'xox' ||
       key === 'xox_matematik' ||
@@ -1392,6 +1434,32 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                           delete updatedStats[k];
                         });
                         setLocalStatsData(updatedStats);
+
+                        setLocalGroupStats(prev => {
+                          const updated: GroupStatsRecord = { ...prev };
+                          (['grup1', 'grup2', 'grup3'] as const).forEach(gKey => {
+                            if (updated[gKey]) {
+                              const updatedTopicStats = { ...(updated[gKey].topicStats || {}) };
+                              topicKeys.forEach(tk => {
+                                delete updatedTopicStats[tk];
+                              });
+                              let remainingDogru = 0;
+                              let remainingYanlis = 0;
+                              Object.values(updatedTopicStats).forEach(st => {
+                                remainingDogru += st.dogru || 0;
+                                remainingYanlis += st.yanlis || 0;
+                              });
+                              updated[gKey] = {
+                                ...updated[gKey],
+                                dogru: remainingDogru,
+                                yanlis: remainingYanlis,
+                                topicStats: updatedTopicStats
+                              };
+                            }
+                          });
+                          return updated;
+                        });
+
                         setLocalStudents(prev => prev.map(s => s.grade === currentGrade ? {
                           ...s,
                           totalCorrect: 0,

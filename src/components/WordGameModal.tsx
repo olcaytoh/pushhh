@@ -240,10 +240,12 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
 
   // Synchronize activeMode when global playerCountMode changes
   useEffect(() => {
-    if (activeMode !== 'matching') {
+    if (isZit && activeMode === 'matching') {
+      setActiveMode(playerCountMode === 1 ? 'quiz1' : playerCountMode === 3 ? 'duel3' : 'duel2');
+    } else if (activeMode !== 'matching') {
       setActiveMode(playerCountMode === 1 ? 'quiz1' : playerCountMode === 3 ? 'duel3' : 'duel2');
     }
-  }, [playerCountMode]);
+  }, [playerCountMode, isZit]);
 
   const handleSwitchPlayerMode = (mode: 1 | 2 | 3) => {
     if (onSwitchPlayerCountMode) {
@@ -395,6 +397,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
   const [quizSelectedOption, setQuizSelectedOption] = useState<string | null>(null);
   const [quizFeedback, setQuizFeedback] = useState<'none' | 'correct' | 'wrong'>('none');
   const [isQuizGameOver, setIsQuizGameOver] = useState(false);
+  const [quizTimeLeft, setQuizTimeLeft] = useState<number>(100);
 
   const initQuiz1 = useCallback(() => {
     setQuizScore(0);
@@ -403,6 +406,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
     setQuizSelectedOption(null);
     setQuizFeedback('none');
     setIsQuizGameOver(false);
+    setQuizTimeLeft(100);
     setQuizQuestion(generateWordQuestion(rawData));
   }, [rawData]);
 
@@ -411,6 +415,46 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       initQuiz1();
     }
   }, [activeMode, initQuiz1]);
+
+  // 100-Second Countdown Timer for Single Player Quiz
+  useEffect(() => {
+    if (activeMode !== 'quiz1' || isQuizGameOver || !quizQuestion || quizFeedback !== 'none') {
+      return;
+    }
+
+    if (quizTimeLeft <= 0) {
+      playSound('wrong');
+      setQuizFeedback('wrong');
+      setQuizStreak(0);
+      const nextLives = quizLives - 1;
+      setQuizLives(nextLives);
+
+      if (nextLives <= 0) {
+        setTimeout(() => {
+          setIsQuizGameOver(true);
+          playSound('win');
+        }, 800);
+      } else {
+        setTimeout(() => {
+          setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
+          setQuizSelectedOption(null);
+          setQuizFeedback('none');
+          setQuizTimeLeft(100);
+        }, 1000);
+      }
+      return;
+    }
+
+    if (quizTimeLeft <= 3 && quizTimeLeft >= 1 && playMp3) {
+      playMp3('/tek.mp3');
+    }
+
+    const timer = setInterval(() => {
+      setQuizTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeMode, isQuizGameOver, quizQuestion, quizFeedback, quizTimeLeft, quizLives, rawData, playMp3]);
 
   const handleQuizAnswer = (option: string) => {
     if (quizFeedback !== 'none' || !quizQuestion || isQuizGameOver) return;
@@ -443,6 +487,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
         setQuizSelectedOption(null);
         setQuizFeedback('none');
+        setQuizTimeLeft(100);
       }, 700);
     } else {
       playSound('wrong');
@@ -461,6 +506,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
           setQuizSelectedOption(null);
           setQuizFeedback('none');
+          setQuizTimeLeft(100);
         }, 1000);
       }
     }
@@ -953,8 +999,8 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         </div>
       )}
 
-      {/* 2. SUB-HEADER: GRADE SELECTION & CONTROLS (CENTERED ON SCREEN) */}
-      {!showCompletionScreen && (
+      {/* 2. SUB-HEADER: GRADE SELECTION & CONTROLS (CENTERED ON SCREEN) - REMOVED FOR ZIT ANLAM */}
+      {!showCompletionScreen && !isZit && (
         <div className="relative z-20 px-3 sm:px-12 py-2 sm:py-2.5 bg-slate-950/85 border-b-2 border-amber-400/50 flex items-center justify-center shrink-0 shadow-lg">
           {isIng ? (
             <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap text-center">
@@ -1047,6 +1093,23 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* RESTART BUTTON FOR ZIT ANLAM (Since sub-header bar is removed) */}
+      {isZit && !showCompletionScreen && (
+        <div className="absolute right-2 sm:right-4 top-2 sm:top-3 z-30 flex items-center">
+          <button
+            onClick={restartCurrentGame}
+            title="Yeniden Başlat"
+            className="group relative w-8 h-8 sm:w-9 sm:h-9 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
+          >
+            <img 
+              src="/tekrar.png" 
+              alt="Yeniden Başlat" 
+              className="w-full h-full object-contain pointer-events-none" 
+            />
+          </button>
         </div>
       )}
 
@@ -1297,8 +1360,18 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                         </div>
                       </div>
 
-                      {/* RIGHT: SCORE & LIVES */}
+                      {/* RIGHT: SCORE, TIMER & LIVES */}
                       <div className="flex items-center gap-1.5 shrink-0 h-full">
+                        {/* 100-Second Countdown Timer Capsule */}
+                        <div className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
+                          quizTimeLeft <= 3 
+                            ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
+                            : 'bg-[#080e1d] border-slate-700 text-slate-200'
+                        }`}>
+                          <span className="text-xs">⏱️</span>
+                          <span>{quizTimeLeft}s</span>
+                        </div>
+
                         <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
                           <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
                             {quizScore} / 10
