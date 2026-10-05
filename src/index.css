@@ -89,7 +89,7 @@
  
 /* Görsel: width: 100% + height: auto + object-fit: contain → görsel her zaman kutunun tam genişliğine yayılır, hiçbir kenar kırpılmaz, yüksekliği kendi oranına göre otomatik ayarlanır */
 .question-visual-box img,
-.question-visual-box svg,
+.question-visual-box svg.full-width-svg,
 .question-visual-box .geo-cisim-img {
   width: 100% !important;
   height: auto !important;
@@ -98,6 +98,48 @@
   object-fit: contain !important;
   display: block !important;
   margin: 0 auto !important;
+}
+
+/* SVG elemanları (saatler, geometrik şekiller, diyagramlar vb.): Sabit 100% genişlik yerine kendi oranlarını korur, ekrandan ve çerçeveden taşmaz */
+.question-visual-box svg:not(.full-width-svg) {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Saatler Etkinliği Özel Boyutlandırması (Tek ve çok oyunculu modlarda çerçeveye tam oturan, üst tarafı kesilmeyen ve taşmayan analog saat) */
+.question-visual-box svg.analog-clock-svg,
+.question-visual-box .clock-svg-container svg {
+  max-height: 110px !important;
+  max-width: 110px !important;
+  width: 110px !important;
+  height: 110px !important;
+  aspect-ratio: 1 / 1 !important;
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+@media (min-width: 640px) {
+  .question-visual-box svg.analog-clock-svg,
+  .question-visual-box .clock-svg-container svg {
+    max-height: 135px !important;
+    max-width: 135px !important;
+    width: 135px !important;
+    height: 135px !important;
+  }
+}
+@media (min-width: 1024px) {
+  .question-visual-box.multi-player-1 svg.analog-clock-svg,
+  .question-visual-box:not(.multi-player-2):not(.multi-player-3) svg.analog-clock-svg,
+  .question-visual-box.multi-player-1 .clock-svg-container svg,
+  .question-visual-box:not(.multi-player-2):not(.multi-player-3) .clock-svg-container svg {
+    max-height: 150px !important;
+    max-width: 150px !important;
+    width: 150px !important;
+    height: 150px !important;
+  }
 }
  
 /* ==========================================================================
@@ -310,12 +352,12 @@
   gap: 0.25rem !important;
   max-width: 98% !important;
 }
-.question-visual-box.multi-player-3 .flex-nowrap {
+.question-visual-box.multi-player-3 .flex-nowrap:not(.ritmik-sequence-container) {
   gap: 0.12rem 0.18rem !important;
   max-width: 98% !important;
 }
-.question-visual-box.multi-player-3 .flex-nowrap > span,
-.question-visual-box.multi-player-3 .flex-nowrap > div {
+.question-visual-box.multi-player-3 .flex-nowrap:not(.ritmik-sequence-container) > span:not(.ritmik-step-card),
+.question-visual-box.multi-player-3 .flex-nowrap:not(.ritmik-sequence-container) > div:not(.ritmik-step-card) {
   padding-left: 0.35rem !important;
   padding-right: 0.35rem !important;
   padding-top: 0.15rem !important;
@@ -323,17 +365,112 @@
   font-size: 0.78rem !important;
   line-height: 1.1 !important;
 }
-.question-visual-box.multi-player-2 .flex-nowrap {
+.question-visual-box.multi-player-2 .flex-nowrap:not(.ritmik-sequence-container) {
   gap: 0.2rem 0.28rem !important;
   max-width: 98% !important;
 }
-.question-visual-box.multi-player-2 .flex-nowrap > span,
-.question-visual-box.multi-player-2 .flex-nowrap > div {
+.question-visual-box.multi-player-2 .flex-nowrap:not(.ritmik-sequence-container) > span:not(.ritmik-step-card),
+.question-visual-box.multi-player-2 .flex-nowrap:not(.ritmik-sequence-container) > div:not(.ritmik-step-card) {
   padding-left: 0.45rem !important;
   padding-right: 0.45rem !important;
   padding-top: 0.2rem !important;
   padding-bottom: 0.2rem !important;
   font-size: 0.88rem !important;
+}
+
+/* ==========================================================================
+   RİTMİK SAYMA ZİNCİRİ - ÇERÇEVEYE GÖRE BÜYÜTÜLMÜŞ, İRİ VE OKUNAKLI KARTLAR
+   ========================================================================== */
+.ritmik-sequence-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  gap: 0.5rem !important;
+  margin: 0.5rem 0 !important;
+}
+
+.ritmik-step-card {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 1rem !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6) !important;
+  transition: transform 0.15s ease !important;
+  user-select: none !important;
+}
+
+/* 1 Kişilik Mod: Geniş çerçeveyi dolduran iri kartlar */
+.question-visual-box.multi-player-1 .ritmik-sequence-container,
+.question-visual-box:not(.multi-player-2):not(.multi-player-3) .ritmik-sequence-container {
+  gap: 0.75rem !important;
+  margin: 0.75rem 0 !important;
+}
+
+.question-visual-box.multi-player-1 .ritmik-step-card,
+.question-visual-box:not(.multi-player-2):not(.multi-player-3) .ritmik-step-card {
+  min-width: 4.5rem !important;
+  height: 4rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 1.85rem !important;
+  line-height: 1 !important;
+  border-width: 3px !important;
+}
+
+.question-visual-box.multi-player-1 .ritmik-step-card.mystery-box,
+.question-visual-box:not(.multi-player-2):not(.multi-player-3) .ritmik-step-card.mystery-box {
+  min-width: 4rem !important;
+  width: 4rem !important;
+  height: 4rem !important;
+  font-size: 2.25rem !important;
+}
+
+/* 2 Kişilik Mod: İdeal genişlikte belirgin kartlar */
+.question-visual-box.multi-player-2 .ritmik-sequence-container {
+  gap: 0.4rem !important;
+}
+
+.question-visual-box.multi-player-2 .ritmik-step-card {
+  min-width: 3.5rem !important;
+  height: 3.5rem !important;
+  padding: 0.4rem 0.75rem !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  border-width: 2.5px !important;
+}
+
+.question-visual-box.multi-player-2 .ritmik-step-card.mystery-box {
+  min-width: 3.5rem !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  font-size: 1.75rem !important;
+}
+
+/* 3 Kişilik Mod: Dar sütunlarda çerçeveye tam oturan, net ve büyük kartlar */
+.question-visual-box.multi-player-3 .ritmik-sequence-container {
+  gap: 0.3rem !important;
+}
+
+.question-visual-box.multi-player-3 .ritmik-step-card {
+  min-width: 2.85rem !important;
+  height: 3rem !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  border-width: 2px !important;
+}
+
+.question-visual-box.multi-player-3 .ritmik-step-card.mystery-box {
+  min-width: 3rem !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  font-size: 1.5rem !important;
 }
  
 /* 4. SINIF SAYI VE ŞEKİL ÖRÜNTÜLERİ */

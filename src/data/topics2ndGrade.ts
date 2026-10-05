@@ -5,7 +5,7 @@ const SINIF_OGRENCILERI = [
   "AYBÜKE", "BETÜL SARE", "BUĞLEM", "ÇINAR EYMEN", "DERİN DEFNE", "EFEKAN",
   "ELİF SU", "ESLEM", "EYMEN", "GÜNEŞ", "HARUN", "MİRAÇ", "MUHAMMED EYMEN",
   "OSMAN EMİR", "ÖMER ASAF", "ÖMER FARUK", "RAVZA", "SUDEM", "UMUT", "ZEYNEP",
-  "ZİLAN", "ÖYKÜ LİYA", "HARUN ALİ"
+  "ZİLAN", "HATİCE KÜBRA", "HARUN ALİ"
 ];
 
 function toTitleCaseTR(str: string): string {
@@ -410,7 +410,7 @@ function generateClockSVG(hour: number, minute: number): string {
   }
 
   return `
-    <svg viewBox="0 0 100 100" class="w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 drop-shadow-md mx-auto">
+    <svg viewBox="0 0 100 100" width="120" height="120" class="analog-clock-svg w-24 h-24 xs:w-28 xs:h-28 sm:w-32 sm:h-32 drop-shadow-md mx-auto aspect-square shrink-0">
       <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#2563EB" stroke-width="3" />
       <circle cx="50" cy="50" r="44" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1" />
       ${ticksHTML}
@@ -1100,16 +1100,16 @@ function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
 
   const sequenceHTML = dizi.map((val, idx) => {
     if (idx === boslukIndex) {
-      return `<div class="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border-2 border-white text-white font-black flex items-center justify-center shadow-md text-base xs:text-lg sm:text-2xl ring-2 ring-white/30 shrink-0 select-none">?</div>`;
+      return `<div class="ritmik-step-card mystery-box w-12 h-12 xs:w-14 xs:h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 rounded-2xl sm:rounded-3xl bg-gradient-to-tr ${secilenKare.bgClass} border-2 sm:border-3 border-white text-white font-black flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.7)] text-xl xs:text-2xl sm:text-4xl md:text-5xl ring-2 sm:ring-4 ring-white/40 shrink-0 select-none animate-pulse">?</div>`;
     }
-    return `<div class="px-2 py-1 xs:px-2.5 xs:py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 text-white font-black text-sm xs:text-base sm:text-xl shadow-sm shrink-0 min-w-[32px] xs:min-w-[38px] sm:min-w-[46px] text-center">${val}</div>`;
+    return `<div class="ritmik-step-card flex items-center justify-center px-3 py-1.5 xs:px-4 xs:py-2 sm:px-6 sm:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1b2b48] via-[#142036] to-[#0c1424] border-2 sm:border-3 border-blue-400/80 text-white font-black text-lg xs:text-xl sm:text-3xl md:text-4xl shadow-[0_6px_16px_rgba(0,0,0,0.6)] shrink-0 min-w-[48px] xs:min-w-[58px] sm:min-w-[74px] md:min-w-[88px] text-center select-none tracking-tight">${val}</div>`;
   }).join('');
 
-  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1">
     <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
       Aşağıdaki ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
     </div>
-    <div class="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 flex-nowrap max-w-full px-0.5">
+    <div class="ritmik-sequence-container flex items-center justify-center gap-2 xs:gap-3 sm:gap-4 md:gap-5 flex-nowrap max-w-full my-2 sm:my-3 px-1">
       ${sequenceHTML}
     </div>
   </div>`;
@@ -1137,16 +1137,16 @@ function ritmikGeriUret(adim: number): QuestionData {
 
   const sequenceHTML = dizi.map((val, idx) => {
     if (idx === boslukIndex) {
-      return `<div class="w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-tr ${secilenKare.bgClass} border-2 border-white text-white font-black flex items-center justify-center shadow-md text-base xs:text-lg sm:text-2xl ring-2 ring-white/30 shrink-0 select-none">?</div>`;
+      return `<div class="ritmik-step-card mystery-box w-12 h-12 xs:w-14 xs:h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 rounded-2xl sm:rounded-3xl bg-gradient-to-tr ${secilenKare.bgClass} border-2 sm:border-3 border-white text-white font-black flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.7)] text-xl xs:text-2xl sm:text-4xl md:text-5xl ring-2 sm:ring-4 ring-white/40 shrink-0 select-none animate-pulse">?</div>`;
     }
-    return `<div class="px-2 py-1 xs:px-2.5 xs:py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 text-white font-black text-sm xs:text-base sm:text-xl shadow-sm shrink-0 min-w-[32px] xs:min-w-[38px] sm:min-w-[46px] text-center">${val}</div>`;
+    return `<div class="ritmik-step-card flex items-center justify-center px-3 py-1.5 xs:px-4 xs:py-2 sm:px-6 sm:py-3 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-[#1b2b48] via-[#142036] to-[#0c1424] border-2 sm:border-3 border-blue-400/80 text-white font-black text-lg xs:text-xl sm:text-3xl md:text-4xl shadow-[0_6px_16px_rgba(0,0,0,0.6)] shrink-0 min-w-[48px] xs:min-w-[58px] sm:min-w-[74px] md:min-w-[88px] text-center select-none tracking-tight">${val}</div>`;
   }).join('');
 
-  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-1.5 sm:gap-2.5 py-0.5">
+  const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1">
     <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
       Aşağıdaki geriye ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
     </div>
-    <div class="flex items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 flex-nowrap max-w-full px-0.5">
+    <div class="ritmik-sequence-container flex items-center justify-center gap-2 xs:gap-3 sm:gap-4 md:gap-5 flex-nowrap max-w-full my-2 sm:my-3 px-1">
       ${sequenceHTML}
     </div>
   </div>`;
@@ -2215,7 +2215,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const svg = generateClockSVG(h, minute);
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-              ${svg}
+              <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+                ${svg}
+              </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
                 <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
                 <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2247,7 +2249,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const svg = generateClockSVG(h, minute);
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-              ${svg}
+              <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+                ${svg}
+              </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
                 <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
                 <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2279,7 +2283,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const svg = generateClockSVG(h, minute);
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-              ${svg}
+              <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+                ${svg}
+              </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
                 <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
                 <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2311,7 +2317,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const svg = generateClockSVG(h, minute);
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-              ${svg}
+              <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+                ${svg}
+              </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
                 <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
                 <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2344,7 +2352,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const svg = generateClockSVG(h, minute);
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-              ${svg}
+              <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+                ${svg}
+              </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
                 <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
                 <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2378,7 +2388,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const svg = generateClockSVG(h, 0);
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-            ${svg}
+            <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+              ${svg}
+            </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
               <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
               <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2401,7 +2413,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const svg = generateClockSVG(h, 30);
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-            ${svg}
+            <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+              ${svg}
+            </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
               <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
               <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2424,7 +2438,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const svg = generateClockSVG(h, 15);
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-            ${svg}
+            <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+              ${svg}
+            </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
               <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
               <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
@@ -2447,7 +2463,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const svg = generateClockSVG(h, 45);
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
-            ${svg}
+            <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
+              ${svg}
+            </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
               <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
               <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>

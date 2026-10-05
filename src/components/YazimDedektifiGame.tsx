@@ -190,8 +190,9 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
     if (singleTimeLeft <= 0) {
       triggerSound('/buzzer.mp3');
-      setSingleTimeLeft(100);
-      handleSkipQuestion(0);
+      setGameOver(true);
+      setRoundWinner(0);
+      triggerSound('/para.mp3');
       return;
     }
 
@@ -315,9 +316,6 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
             onGameCompleted?.(bestIdx, playerMode);
           }
 
-          if (playerMode === 1) {
-            setSingleTimeLeft(100);
-          }
           return nextPlayers;
         });
         setRoundWinner(null);
@@ -352,9 +350,6 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
   const handleSkipQuestion = (playerIdx: number) => {
     triggerSound('/op.mp3');
-    if (playerMode === 1) {
-      setSingleTimeLeft(100);
-    }
     setPlayers(prev => prev.map((p, idx) => {
       if (idx !== playerIdx) return p;
       return {

@@ -40,10 +40,11 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     // Detect if content has full-width image container (such as uzamsal iliskiler)
     const hasFullWidthImage = !!measureEl.querySelector('[data-full-width="true"], .uzamsal-soru-container');
     const hasHalatBox = !!measureEl.querySelector('.halat-islem-box');
+    const isClockQuestion = !!measureEl.querySelector('.analog-clock-svg, .clock-svg-container');
 
     // Margins
     const marginX = hasFullWidthImage ? 0 : hasHalatBox ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 6);
-    const marginY = hasFullWidthImage ? 0 : hasHalatBox ? 2 : (mode === 3 ? 2 : mode === 2 ? 4 : 6);
+    const marginY = hasFullWidthImage ? 0 : hasHalatBox ? 2 : isClockQuestion ? 10 : (mode === 3 ? 2 : mode === 2 ? 4 : 6);
 
     const targetAvailW = Math.max(10, availWidth - marginX);
     const targetAvailH = Math.max(10, availHeight - marginY);
@@ -62,7 +63,8 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     let computedScale = Math.min(scaleX, scaleY);
 
     // Allow content with surplus room to scale up proportionally so it fills the frame beautifully
-    const maxEnlargeScale = mode === 1 ? 1.8 : mode === 2 ? 1.5 : 1.3;
+    // For clock questions, constrain enlargement so the clock never blows out of bounds
+    const maxEnlargeScale = isClockQuestion ? 1.05 : (mode === 1 ? 1.8 : mode === 2 ? 1.5 : 1.3);
     const minShrinkScale = mode === 3 ? 0.35 : mode === 2 ? 0.40 : 0.45;
 
     if (computedScale > 1.02) {

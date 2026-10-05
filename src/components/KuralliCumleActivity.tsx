@@ -1400,13 +1400,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
       triggerSound('/hata.mp3');
       setShowErrorShake(true);
       setTimeout(() => setShowErrorShake(false), 800);
-      setSingleTimeLeft(100);
-      if (currentSentenceIndex < currentGradeSentences.length - 1) {
-        setCurrentSentenceIndex(prev => prev + 1);
-      } else {
-        setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[selectedGrade]));
-        setCurrentSentenceIndex(0);
-      }
+      setMatchWinner('p1');
+      setShowVictoryModal(true);
       return;
     }
 
@@ -1594,7 +1589,6 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const handleNextSentence = () => {
     triggerSound('/op.mp3');
-    setSingleTimeLeft(100);
     if (currentSentenceIndex < currentGradeSentences.length - 1) {
       setCurrentSentenceIndex(prev => prev + 1);
     } else {
@@ -1709,7 +1703,6 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
       // 1.5 saniye sonra sonraki cümleye geç (Tüm cümleler bittiğinde yeniden karıştır)
       setTimeout(() => {
-        setSingleTimeLeft(100);
         if (currentSentenceIndex < currentGradeSentences.length - 1) {
           setCurrentSentenceIndex(prev => prev + 1);
         } else {

@@ -303,25 +303,9 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
 
     if (singleTimeLeft <= 0) {
       triggerSound('/hata.mp3');
-      setSingleTimeLeft(100);
-      setPlayers(prev => {
-        const next = [...prev];
-        if (!next[0]) return prev;
-        const target = { ...next[0] };
-        const nextIdx = target.questionIndex + 1;
-        if (nextIdx >= 5) {
-          setGameOver(true);
-          setRoundWinner(0);
-          triggerSound('/para.mp3');
-        } else {
-          target.questionIndex = nextIdx;
-          target.selectedMark = null;
-          target.isCorrect = false;
-          target.showFeedback = false;
-        }
-        next[0] = target;
-        return next;
-      });
+      setGameOver(true);
+      setRoundWinner(0);
+      triggerSound('/para.mp3');
       return;
     }
 
@@ -393,9 +377,6 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
           target.selectedMark = null;
           target.isCorrect = null;
           target.showFeedback = false;
-          if (playerMode === 1) {
-            setSingleTimeLeft(100);
-          }
         }
         next[playerIndex] = target;
         return next;

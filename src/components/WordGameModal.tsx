@@ -425,23 +425,10 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
     if (quizTimeLeft <= 0) {
       playSound('wrong');
       setQuizFeedback('wrong');
-      setQuizStreak(0);
-      const nextLives = quizLives - 1;
-      setQuizLives(nextLives);
-
-      if (nextLives <= 0) {
-        setTimeout(() => {
-          setIsQuizGameOver(true);
-          playSound('win');
-        }, 800);
-      } else {
-        setTimeout(() => {
-          setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
-          setQuizSelectedOption(null);
-          setQuizFeedback('none');
-          setQuizTimeLeft(100);
-        }, 1000);
-      }
+      setTimeout(() => {
+        setIsQuizGameOver(true);
+        playSound('win');
+      }, 600);
       return;
     }
 
@@ -487,7 +474,6 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
         setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
         setQuizSelectedOption(null);
         setQuizFeedback('none');
-        setQuizTimeLeft(100);
       }, 700);
     } else {
       playSound('wrong');
@@ -506,7 +492,6 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           setQuizQuestion(generateWordQuestion(rawData, quizQuestion.word));
           setQuizSelectedOption(null);
           setQuizFeedback('none');
-          setQuizTimeLeft(100);
         }, 1000);
       }
     }

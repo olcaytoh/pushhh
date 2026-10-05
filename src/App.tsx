@@ -4914,6 +4914,10 @@ export default function App() {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_abluka');
       if (idx !== -1) return idx;
     }
+    if (showSudokuGame) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_sudoku');
+      if (idx !== -1) return idx;
+    }
     if (showXOXGame) {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_xox');
       if (idx !== -1) return idx;
@@ -5021,6 +5025,7 @@ export default function App() {
     if (showIstekIhtiyac) return 20;
     if (showMevsimGardirobu) return 21;
     if (showAblukaGame) return 22;
+    if (showSudokuGame) return 23;
     return -1;
   };
 
@@ -5055,6 +5060,7 @@ export default function App() {
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
+    setShowSudokuGame(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -5092,6 +5098,7 @@ export default function App() {
     else if (entry.id === 'other_istek_ihtiyac') setShowIstekIhtiyac(true);
     else if (entry.id === 'other_mevsim_gardirobu') setShowMevsimGardirobu(true);
     else if (entry.id === 'other_abluka') setShowAblukaGame(true);
+    else if (entry.id === 'other_sudoku') setShowSudokuGame(true);
 
     setActivityToast(`[${idx + 1}/${list.length}] Diğer Oyunlar ➜ ${entry.title}`);
     setTimeout(() => {
@@ -5132,6 +5139,7 @@ export default function App() {
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
+    setShowSudokuGame(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -9710,7 +9718,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -9740,6 +9748,7 @@ export default function App() {
           onOpenIstekIhtiyac={() => switchToOtherGameByIndex(20)}
           onOpenMevsimGardirobu={() => switchToOtherGameByIndex(21)}
           onOpenAbluka={() => switchToOtherGameByIndex(22)}
+          onOpenSudoku={() => switchToOtherGameByIndex(23)}
           playMp3={playMp3}
         />
       )}
@@ -10444,6 +10453,42 @@ export default function App() {
           onOpenRosterModal={(grade) => {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* SUDOKU ZEKA OYUNU (4x4 & 6x6 / 1 VE 2 KİŞİLİK YARIŞMA / 100S GERİ SAYIM) */}
+      {showSudokuGame && (
+        <SudokuGame
+          onClose={() => {
+            setShowSudokuGame(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('sudoku', isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);
