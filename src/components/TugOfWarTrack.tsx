@@ -66,7 +66,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
   const winnerVideoSrc = isP1Won ? '/kap.mp4' : isP2Won ? '/ejd.mp4' : null;
   const winnerTitle = isP1Won ? '1. GRUP (KAPLUMBAĞA) KAZANDI! 🏆' : isP2Won ? '2. GRUP (EJDERHA) KAZANDI! 🏆' : '';
   const winnerBadgeBg = isP1Won ? 'from-blue-600 via-cyan-500 to-indigo-600' : 'from-rose-600 via-pink-500 to-red-600';
-  const winnerImg = isP1Won ? '/kap1.png' : '/ejd1.png';
+  const winnerImg = isP1Won ? '/kap1.webp' : '/ejd1.webp';
 
   // Reset dismissal if game resets or winner changes
   useEffect(() => {
@@ -166,7 +166,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
         {/* P1 SCORE BADGE (KAPLUMBAĞA) */}
         <div className={`flex items-center justify-between px-2 py-1 rounded-xl border-2 transition-all ${isP1Leading ? 'border-cyan-400 bg-blue-900/80 shadow-[0_0_15px_rgba(6,182,212,0.6)] scale-102' : 'border-blue-600/40 bg-blue-950/50'}`}>
           <div className="flex items-center gap-1.5 min-w-0">
-            <img src="/kap.png" alt="Kaplumbağa" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter drop-shadow-sm" />
+            <img src="/kap.webp" alt="Kaplumbağa" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter drop-shadow-sm" />
             <div className="flex flex-col min-w-0">
               <span className="text-[9px] sm:text-[10px] font-black text-cyan-300 uppercase leading-none truncate">1. GRUP</span>
               <span className="text-[7.5px] sm:text-[8.5px] font-extrabold text-blue-200 uppercase leading-none mt-0.5">KAPLUMBAĞA</span>
@@ -180,7 +180,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
         {/* P2 SCORE BADGE (EJDERHA) */}
         <div className={`flex items-center justify-between px-2 py-1 rounded-xl border-2 transition-all ${isP2Leading ? 'border-rose-400 bg-rose-900/80 shadow-[0_0_15px_rgba(244,63,94,0.6)] scale-102' : 'border-pink-600/40 bg-pink-950/50'}`}>
           <div className="flex items-center gap-1.5 min-w-0">
-            <img src="/ejd.png" alt="Ejderha" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter drop-shadow-sm" />
+            <img src="/ejd.webp" alt="Ejderha" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 filter drop-shadow-sm" />
             <div className="flex flex-col min-w-0">
               <span className="text-[9px] sm:text-[10px] font-black text-pink-300 uppercase leading-none truncate">2. GRUP</span>
               <span className="text-[7.5px] sm:text-[8.5px] font-extrabold text-rose-200 uppercase leading-none mt-0.5">EJDERHA</span>
@@ -304,7 +304,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             <div className="relative w-[54px] h-[96px] sm:w-[68px] sm:h-[121px] md:w-[82px] md:h-[146px] lg:w-[98px] lg:h-[174px] flex items-center justify-center">
               <TransparentVideo
                 src="/hakap.mp4"
-                fallbackImg="/kap1.png"
+                fallbackImg="/kap1.webp"
                 alt="1. Grup Kaplumbağa"
                 isPaused={isGameOver}
                 className="w-full h-full object-contain"
@@ -349,7 +349,7 @@ export const TugOfWarTrack: React.FC<TugOfWarTrackProps> = ({
             <div className="relative w-[54px] h-[96px] sm:w-[68px] sm:h-[121px] md:w-[82px] md:h-[146px] lg:w-[98px] lg:h-[174px] flex items-center justify-center">
               <TransparentVideo
                 src="/haej.mp4"
-                fallbackImg="/ejd1.png"
+                fallbackImg="/ejd1.webp"
                 alt="2. Grup Ejderha"
                 isPaused={isGameOver}
                 className="w-full h-full object-contain"

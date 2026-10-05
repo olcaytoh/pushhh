@@ -24,7 +24,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
       id: 'kelime_oyunlari',
       title: 'Kelime Oyunları',
       subtitle: '1, 2 ve 3 Kişilik Türkçe - İngilizce Eşleştirme & Kelime Kapışması',
-      icon: '/MENUIKON/grid_icon_14.png',
+      icon: '/MENUIKON/grid_icon_14.webp',
       sound: '/coin.mp3',
       action: onOpenWordGame,
       badge: 'ÇOKLU OYUNCU',
@@ -37,7 +37,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
       {/* 1. CINEMATIC BACKGROUND IMAGE */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img
-          src="/dere3.jpg"
+          src="/dere3.webp"
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
@@ -51,7 +51,7 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
         <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
           <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
             <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/icon_6.png" alt="6. İngilizce Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
+              <img src="/icon_6.webp" alt="6. İngilizce Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
               <span className="text-xs sm:text-sm md:text-base font-black text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 6. İNGİLİZCE OYUNLAR
               </span>

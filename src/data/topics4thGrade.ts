@@ -1664,12 +1664,12 @@ export const topics4thGrade: Record<string, { title: string; desc: string; gener
     desc: "Küp, kare prizma, dikdörtgenler prizması, silindir, koni ve kürenin özellikleri.",
     generate: () => {
       const cisimler = [
-        { ad: "Küp", yuz: 6, ayrit: 12, kose: 8, ekstra: "Bütün yüzleri karedir.", img: "/geos/kups.png" },
-        { ad: "Kare Prizma", yuz: 6, ayrit: 12, kose: 8, ekstra: "Tabanları kare, yan yüzleri dikdörtgendir.", img: "/geos/kareprz.png" },
-        { ad: "Dikdörtgenler Prizması", yuz: 6, ayrit: 12, kose: 8, ekstra: "Tüm yüzleri dikdörtgendir.", img: "/geos/dikdprz.png" },
-        { ad: "Üçgen Prizma", yuz: 5, ayrit: 9, kose: 6, ekstra: "2 üçgen ve 3 dikdörtgen yüzden oluşur.", img: "/geos/ucgenprz.png" },
-        { ad: "Silindir", yuz: 3, ayrit: 0, kose: 0, ekstra: "Köşesi ve ayrıtı yoktur, 2 daire tabanı vardır.", img: "/geos/slndrs.png" },
-        { ad: "Küre", yuz: 1, ayrit: 0, kose: 0, ekstra: "Köşesi ve ayrıtı yoktur, eğri bir yüzeye sahiptir.", img: "/geos/kures.png" }
+        { ad: "Küp", yuz: 6, ayrit: 12, kose: 8, ekstra: "Bütün yüzleri karedir.", img: "/geos/kups.webp" },
+        { ad: "Kare Prizma", yuz: 6, ayrit: 12, kose: 8, ekstra: "Tabanları kare, yan yüzleri dikdörtgendir.", img: "/geos/kareprz.webp" },
+        { ad: "Dikdörtgenler Prizması", yuz: 6, ayrit: 12, kose: 8, ekstra: "Tüm yüzleri dikdörtgendir.", img: "/geos/dikdprz.webp" },
+        { ad: "Üçgen Prizma", yuz: 5, ayrit: 9, kose: 6, ekstra: "2 üçgen ve 3 dikdörtgen yüzden oluşur.", img: "/geos/ucgenprz.webp" },
+        { ad: "Silindir", yuz: 3, ayrit: 0, kose: 0, ekstra: "Köşesi ve ayrıtı yoktur, 2 daire tabanı vardır.", img: "/geos/slndrs.webp" },
+        { ad: "Küre", yuz: 1, ayrit: 0, kose: 0, ekstra: "Köşesi ve ayrıtı yoktur, eğri bir yüzeye sahiptir.", img: "/geos/kures.webp" }
       ];
 
       const secilen = cisimler[Math.floor(Math.random() * cisimler.length)];

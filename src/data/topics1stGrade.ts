@@ -279,56 +279,56 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
 
       const UZAMSAL_HAVUZ: UzamsalNesne[] = [
         // İkonlar (/icoo/)
-        { id: 'gunes', ad: 'Güneş', emoji: '☀️', img: '/icoo/gunes.png' },
-        { id: 'kedi', ad: 'Kedi', emoji: '🐱', img: '/icoo/kedi_yavrusu.png' },
-        { id: 'kalp', ad: 'Kalp', emoji: '❤️', img: '/icoo/kalp.png' },
-        { id: 'saat', ad: 'Saat', emoji: '⏰', img: '/icoo/saat.png' },
-        { id: 'semsiye', ad: 'Şemsiye', emoji: '☂️', img: '/icoo/semsiye.png' },
-        { id: 'balik', ad: 'Balık', emoji: '🐟', img: '/icoo/balik.png' },
-        { id: 'kaplumbaga', ad: 'Kaplumbağa', emoji: '🐢', img: '/icoo/kaplumbaga.png' },
-        { id: 'kopek', ad: 'Köpek', emoji: '🐶', img: '/icoo/kopek.png' },
-        { id: 'futbol_topu', ad: 'Futbol Topu', emoji: '⚽', img: '/icoo/futbol_topu.png' },
-        { id: 'panda', ad: 'Panda', emoji: '🐼', img: '/icoo/panda.png' },
-        { id: 'agac', ad: 'Ağaç', emoji: '🌳', img: '/icoo/agac.png' },
-        { id: 'tac', ad: 'Altın Taç', emoji: '👑', img: '/icoo/tac.png' },
-        { id: 'mavi_araba', ad: 'Mavi Araba', emoji: '🚗', img: '/icoo/mavi_araba.png' },
-        { id: 'tren', ad: 'Tren', emoji: '🚂', img: '/icoo/tren.png' },
-        { id: 'roket', ad: 'Uzay Roketi', emoji: '🚀', img: '/icoo/roket.png' },
-        { id: 'gul', ad: 'Gül', emoji: '🌹', img: '/icoo/gul.png' },
-        { id: 'ugur_bocegi', ad: 'Uğur Böceği', emoji: '🐞', img: '/icoo/ugur_bocegi_1.png' },
-        { id: 'penguen', ad: 'Penguen', emoji: '🐧', img: '/icoo/penguen.png' },
-        { id: 'ucak', ad: 'Uçak', emoji: '✈️', img: '/icoo/ucak.png' },
-        { id: 'kiraz', ad: 'Kiraz', emoji: '🍒', img: '/icoo/kiraz.png' },
-        { id: 'kurbaga', ad: 'Kurbağa', emoji: '🐸', img: '/icoo/kurbaga.png' },
-        { id: 'kupa', ad: 'Kupa', emoji: '🏆', img: '/icoo/kirmizi_kupa.png' },
-        { id: 'karpuz', ad: 'Karpuz', emoji: '🍉', img: '/icoo/karpuz.png' },
-        { id: 'helikopter', ad: 'Helikopter', emoji: '🚁', img: '/icoo/helikopter.png' },
-        { id: 'cilek', ad: 'Çilek', emoji: '🍓', img: '/icoo/cilek.png' },
+        { id: 'gunes', ad: 'Güneş', emoji: '☀️', img: '/icoo/gunes.webp' },
+        { id: 'kedi', ad: 'Kedi', emoji: '🐱', img: '/icoo/kedi_yavrusu.webp' },
+        { id: 'kalp', ad: 'Kalp', emoji: '❤️', img: '/icoo/kalp.webp' },
+        { id: 'saat', ad: 'Saat', emoji: '⏰', img: '/icoo/saat.webp' },
+        { id: 'semsiye', ad: 'Şemsiye', emoji: '☂️', img: '/icoo/semsiye.webp' },
+        { id: 'balik', ad: 'Balık', emoji: '🐟', img: '/icoo/balik.webp' },
+        { id: 'kaplumbaga', ad: 'Kaplumbağa', emoji: '🐢', img: '/icoo/kaplumbaga.webp' },
+        { id: 'kopek', ad: 'Köpek', emoji: '🐶', img: '/icoo/kopek.webp' },
+        { id: 'futbol_topu', ad: 'Futbol Topu', emoji: '⚽', img: '/icoo/futbol_topu.webp' },
+        { id: 'panda', ad: 'Panda', emoji: '🐼', img: '/icoo/panda.webp' },
+        { id: 'agac', ad: 'Ağaç', emoji: '🌳', img: '/icoo/agac.webp' },
+        { id: 'tac', ad: 'Altın Taç', emoji: '👑', img: '/icoo/tac.webp' },
+        { id: 'mavi_araba', ad: 'Mavi Araba', emoji: '🚗', img: '/icoo/mavi_araba.webp' },
+        { id: 'tren', ad: 'Tren', emoji: '🚂', img: '/icoo/tren.webp' },
+        { id: 'roket', ad: 'Uzay Roketi', emoji: '🚀', img: '/icoo/roket.webp' },
+        { id: 'gul', ad: 'Gül', emoji: '🌹', img: '/icoo/gul.webp' },
+        { id: 'ugur_bocegi', ad: 'Uğur Böceği', emoji: '🐞', img: '/icoo/ugur_bocegi_1.webp' },
+        { id: 'penguen', ad: 'Penguen', emoji: '🐧', img: '/icoo/penguen.webp' },
+        { id: 'ucak', ad: 'Uçak', emoji: '✈️', img: '/icoo/ucak.webp' },
+        { id: 'kiraz', ad: 'Kiraz', emoji: '🍒', img: '/icoo/kiraz.webp' },
+        { id: 'kurbaga', ad: 'Kurbağa', emoji: '🐸', img: '/icoo/kurbaga.webp' },
+        { id: 'kupa', ad: 'Kupa', emoji: '🏆', img: '/icoo/kirmizi_kupa.webp' },
+        { id: 'karpuz', ad: 'Karpuz', emoji: '🍉', img: '/icoo/karpuz.webp' },
+        { id: 'helikopter', ad: 'Helikopter', emoji: '🚁', img: '/icoo/helikopter.webp' },
+        { id: 'cilek', ad: 'Çilek', emoji: '🍓', img: '/icoo/cilek.webp' },
 
         // Okul Görselleri
-        { id: 'okul_otobusu', ad: 'Otobüs', emoji: '🚌', img: '/okul_gorseller/okul_otobusu.png' },
-        { id: 'makas', ad: 'Makas', emoji: '✂️', img: '/okul_gorseller/makas.png' },
-        { id: 'kursun_kalem', ad: 'Kalem', emoji: '✏️', img: '/okul_gorseller/kursun_kalem.png' },
-        { id: 'cetvel', ad: 'Cetvel', emoji: '📏', img: '/okul_gorseller/cetvel.png' },
-        { id: 'silgi', ad: 'Silgi', emoji: '🧼', img: '/okul_gorseller/silgi.png' },
-        { id: 'kitap', ad: 'Kitap', emoji: '📖', img: '/okul_gorseller/acik_kitap.png' },
-        { id: 'boya_paleti', ad: 'Palet', emoji: '🎨', img: '/okul_gorseller/boya_paleti.png' },
-        { id: 'buyutec', ad: 'Büyüteç', emoji: '🔍', img: '/okul_gorseller/buyutec.png' },
+        { id: 'okul_otobusu', ad: 'Otobüs', emoji: '🚌', img: '/okul_gorseller/okul_otobusu.webp' },
+        { id: 'makas', ad: 'Makas', emoji: '✂️', img: '/okul_gorseller/makas.webp' },
+        { id: 'kursun_kalem', ad: 'Kalem', emoji: '✏️', img: '/okul_gorseller/kursun_kalem.webp' },
+        { id: 'cetvel', ad: 'Cetvel', emoji: '📏', img: '/okul_gorseller/cetvel.webp' },
+        { id: 'silgi', ad: 'Silgi', emoji: '🧼', img: '/okul_gorseller/silgi.webp' },
+        { id: 'kitap', ad: 'Kitap', emoji: '📖', img: '/okul_gorseller/acik_kitap.webp' },
+        { id: 'boya_paleti', ad: 'Palet', emoji: '🎨', img: '/okul_gorseller/boya_paleti.webp' },
+        { id: 'buyutec', ad: 'Büyüteç', emoji: '🔍', img: '/okul_gorseller/buyutec.webp' },
 
         // Meyveler
-        { id: 'meyve_elma', ad: 'Elma', emoji: '🍎', img: '/meyveler/M1.png' },
-        { id: 'meyve_muz', ad: 'Muz', emoji: '🍌', img: '/meyveler/M3.png' },
-        { id: 'meyve_portakal', ad: 'Portakal', emoji: '🍊', img: '/meyveler/M5.png' },
+        { id: 'meyve_elma', ad: 'Elma', emoji: '🍎', img: '/meyveler/M1.webp' },
+        { id: 'meyve_muz', ad: 'Muz', emoji: '🍌', img: '/meyveler/M3.webp' },
+        { id: 'meyve_portakal', ad: 'Portakal', emoji: '🍊', img: '/meyveler/M5.webp' },
 
         // Diğer Net İkonlar (/icoo/)
-        { id: 'yildiz', ad: 'Yıldız', emoji: '⭐', img: '/icoo/yildiz_sari.png' },
-        { id: 'hediye', ad: 'Hediye', emoji: '🎁', img: '/icoo/hediye_kutusu_mavi.png' },
-        { id: 'dondurma', ad: 'Dondurma', emoji: '🍦', img: '/icoo/dondurma_pembe.png' },
-        { id: 'ucurtma', ad: 'Uçurtma', emoji: '🪁', img: '/icoo/ucurtma.png' },
-        { id: 'itfaiye', ad: 'İtfaiye', emoji: '🚒', img: '/icoo/itfaiye_araci.png' },
-        { id: 'traktor', ad: 'Traktör', emoji: '🚜', img: '/icoo/traktor.png' },
-        { id: 'ayicik', ad: 'Ayıcık', emoji: '🧸', img: '/icoo/ayicik.png' },
-        { id: 'kelebek', ad: 'Kelebek', emoji: '🦋', img: '/icoo/kelebek_mavi.png' },
+        { id: 'yildiz', ad: 'Yıldız', emoji: '⭐', img: '/icoo/yildiz_sari.webp' },
+        { id: 'hediye', ad: 'Hediye', emoji: '🎁', img: '/icoo/hediye_kutusu_mavi.webp' },
+        { id: 'dondurma', ad: 'Dondurma', emoji: '🍦', img: '/icoo/dondurma_pembe.webp' },
+        { id: 'ucurtma', ad: 'Uçurtma', emoji: '🪁', img: '/icoo/ucurtma.webp' },
+        { id: 'itfaiye', ad: 'İtfaiye', emoji: '🚒', img: '/icoo/itfaiye_araci.webp' },
+        { id: 'traktor', ad: 'Traktör', emoji: '🚜', img: '/icoo/traktor.webp' },
+        { id: 'ayicik', ad: 'Ayıcık', emoji: '🧸', img: '/icoo/ayicik.webp' },
+        { id: 'kelebek', ad: 'Kelebek', emoji: '🦋', img: '/icoo/kelebek_mavi.webp' },
       ];
 
       // Havuzdan rastgele 4 farklı nesne seç
@@ -454,36 +454,36 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       }
 
       const SIMETRIK_NESNELER: SimetriNesnesi[] = [
-        { id: 'kelebek', ad: 'Kelebek', img: '/simetri/kelebek.png', isSymmetric: true },
-        { id: 'kalp', ad: 'Kırmızı Kalp', img: '/simetri/kalp.png', isSymmetric: true },
-        { id: 'yildiz', ad: 'Sarı Yıldız', img: '/simetri/yildiz.png', isSymmetric: true },
-        { id: 'tac', ad: 'Altın Taç', img: '/simetri/tac.png', isSymmetric: true },
-        { id: 'gunes', ad: 'Güneş', img: '/simetri/gunes.png', isSymmetric: true },
-        { id: 'cam_agaci', ad: 'Çam Ağacı', img: '/simetri/cam_agaci.png', isSymmetric: true },
-        { id: 'cicek', ad: 'Çiçek', img: '/simetri/cicek.png', isSymmetric: true },
-        { id: 'ugur_bocegi', ad: 'Uğur Böceği', img: '/simetri/ugur_bocegi.png', isSymmetric: true },
-        { id: 'ayicik', ad: 'Ayıcık', img: '/simetri/ayicik.png', isSymmetric: true },
-        { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.png', isSymmetric: true },
+        { id: 'kelebek', ad: 'Kelebek', img: '/simetri/kelebek.webp', isSymmetric: true },
+        { id: 'kalp', ad: 'Kırmızı Kalp', img: '/simetri/kalp.webp', isSymmetric: true },
+        { id: 'yildiz', ad: 'Sarı Yıldız', img: '/simetri/yildiz.webp', isSymmetric: true },
+        { id: 'tac', ad: 'Altın Taç', img: '/simetri/tac.webp', isSymmetric: true },
+        { id: 'gunes', ad: 'Güneş', img: '/simetri/gunes.webp', isSymmetric: true },
+        { id: 'cam_agaci', ad: 'Çam Ağacı', img: '/simetri/cam_agaci.webp', isSymmetric: true },
+        { id: 'cicek', ad: 'Çiçek', img: '/simetri/cicek.webp', isSymmetric: true },
+        { id: 'ugur_bocegi', ad: 'Uğur Böceği', img: '/simetri/ugur_bocegi.webp', isSymmetric: true },
+        { id: 'ayicik', ad: 'Ayıcık', img: '/simetri/ayicik.webp', isSymmetric: true },
+        { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.webp', isSymmetric: true },
       ];
 
       // Net ve tartışmasız asimetrik nesneler havuzu (çelişkili/yapraklı elma ve tek kulplu kupa gibi kafa karıştırıcı nesneler kaldırıldı)
       const ASIMETRIK_NESNELER: SimetriNesnesi[] = [
-        { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
-        { id: 'keman', ad: 'Keman', img: '/simetri/keman.png', isSymmetric: false },
-        { id: 'tren', ad: 'Tren', img: '/simetri/tren.png', isSymmetric: false },
-        { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.png', isSymmetric: false },
-        { id: 'damperli_kamyon', ad: 'Kamyon', img: '/simetri/damperli_kamyon.png', isSymmetric: false },
-        { id: 'itfaiye_araci', ad: 'İtfaiye', img: '/simetri/itfaiye_araci.png', isSymmetric: false },
-        { id: 'helikopter', ad: 'Helikopter', img: '/simetri/helikopter.png', isSymmetric: false },
-        { id: 'mavi_araba', ad: 'Mavi Araba', img: '/simetri/mavi_araba.png', isSymmetric: false },
-        { id: 'yelkenli', ad: 'Yelkenli', img: '/simetri/yelkenli.png', isSymmetric: false },
-        { id: 'balik', ad: 'Balık', img: '/simetri/balik.png', isSymmetric: false },
-        { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.png', isSymmetric: false },
-        { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.png', isSymmetric: false },
-        { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.png', isSymmetric: false },
-        { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.png', isSymmetric: false },
-        { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.png', isSymmetric: false },
-        { id: 'ucak', ad: 'Uçak', img: '/simetri/ucak.png', isSymmetric: false },
+        { id: 'makas', ad: 'Makas', img: '/simetri/makas.webp', isSymmetric: false },
+        { id: 'keman', ad: 'Keman', img: '/simetri/keman.webp', isSymmetric: false },
+        { id: 'tren', ad: 'Tren', img: '/simetri/tren.webp', isSymmetric: false },
+        { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.webp', isSymmetric: false },
+        { id: 'damperli_kamyon', ad: 'Kamyon', img: '/simetri/damperli_kamyon.webp', isSymmetric: false },
+        { id: 'itfaiye_araci', ad: 'İtfaiye', img: '/simetri/itfaiye_araci.webp', isSymmetric: false },
+        { id: 'helikopter', ad: 'Helikopter', img: '/simetri/helikopter.webp', isSymmetric: false },
+        { id: 'mavi_araba', ad: 'Mavi Araba', img: '/simetri/mavi_araba.webp', isSymmetric: false },
+        { id: 'yelkenli', ad: 'Yelkenli', img: '/simetri/yelkenli.webp', isSymmetric: false },
+        { id: 'balik', ad: 'Balık', img: '/simetri/balik.webp', isSymmetric: false },
+        { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.webp', isSymmetric: false },
+        { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.webp', isSymmetric: false },
+        { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.webp', isSymmetric: false },
+        { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.webp', isSymmetric: false },
+        { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.webp', isSymmetric: false },
+        { id: 'ucak', ad: 'Uçak', img: '/simetri/ucak.webp', isSymmetric: false },
       ];
 
       const soruTipi = Math.floor(Math.random() * 4);
@@ -609,7 +609,7 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
     generate: () => {
       const modeller = [
         // ÇEMBER
-        { nesne: "1 TL Madeni Para", sekil: "Çember", img: "/paralar/1_tl_madeni_para.png", yanlis: ["Üçgen", "Kare", "Dikdörtgen"] },
+        { nesne: "1 TL Madeni Para", sekil: "Çember", img: "/paralar/1_tl_madeni_para.webp", yanlis: ["Üçgen", "Kare", "Dikdörtgen"] },
         { nesne: "Simit", sekil: "Çember", emoji: "🥯", yanlis: ["Üçgen", "Kare", "Dikdörtgen"] },
         { nesne: "Hulahop", sekil: "Çember", emoji: "⭕", yanlis: ["Üçgen", "Kare", "Dikdörtgen"] },
         { nesne: "Duvar Saati", sekil: "Çember", emoji: "⏰", yanlis: ["Üçgen", "Kare", "Dikdörtgen"] },
@@ -631,7 +631,7 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         { nesne: "Oda Kapısı", sekil: "Dikdörtgen", emoji: "🚪", yanlis: ["Üçgen", "Kare", "Çember"] },
         { nesne: "Hikaye Kitabı", sekil: "Dikdörtgen", emoji: "📖", yanlis: ["Üçgen", "Kare", "Çember"] },
         { nesne: "Akıllı Telefon", sekil: "Dikdörtgen", emoji: "📱", yanlis: ["Üçgen", "Kare", "Çember"] },
-        { nesne: "5 TL Kağıt Para", sekil: "Dikdörtgen", img: "/paralar/5_tl_kagit_para.png", yanlis: ["Üçgen", "Kare", "Çember"] },
+        { nesne: "5 TL Kağıt Para", sekil: "Dikdörtgen", img: "/paralar/5_tl_kagit_para.webp", yanlis: ["Üçgen", "Kare", "Çember"] },
         { nesne: "Televizyon Ekranı", sekil: "Dikdörtgen", emoji: "📺", yanlis: ["Üçgen", "Kare", "Çember"] }
       ];
       const m = modeller[Math.floor(Math.random() * modeller.length)];
@@ -753,26 +753,26 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
     generate: () => {
       // 1. sınıf seviyesine uygun, çocukların çok iyi bildiği temel okul eşyaları
       const okulNesneleri = [
-        { ad: "Kalem", img: "/okul_gorseller/kursun_kalem.png" },
-        { ad: "Silgi", img: "/okul_gorseller/silgi.png" },
-        { ad: "Kalemtıraş", img: "/okul_gorseller/kalemtiras.png" },
-        { ad: "Cetvel", img: "/okul_gorseller/cetvel.png" },
-        { ad: "Makas", img: "/okul_gorseller/makas.png" },
-        { ad: "Kitap", img: "/okul_gorseller/acik_kitap.png" },
-        { ad: "Defter", img: "/okul_gorseller/yildizli_kahverengi_defter.png" },
-        { ad: "Boya Kalemi", img: "/okul_gorseller/renkli_pastel_boya_kalemleri.png" },
-        { ad: "Boya Paleti", img: "/okul_gorseller/boya_paleti.png" },
-        { ad: "Yazı Tahtası", img: "/okul_gorseller/kara_tahta.png" },
-        { ad: "Okul Servisi", img: "/okul_gorseller/okul_otobusu.png" },
-        { ad: "Büyüteç", img: "/okul_gorseller/buyutec.png" },
-        { ad: "Dünya Küresi", img: "/okul_gorseller/kuresel_harita.png" },
-        { ad: "Hesap Makinesi", img: "/okul_gorseller/hesap_makinesi.png" },
-        { ad: "Yapıştırıcı", img: "/okul_gorseller/sivi_yapistirici.png" },
-        { ad: "Bant", img: "/okul_gorseller/bantli_seloteyp_makinesi.png" },
-        { ad: "Lego", img: "/okul_gorseller/lego_bloklari.png" },
-        { ad: "Harf Küpü", img: "/okul_gorseller/harf_kupleri.png" },
-        { ad: "Pastel Boya", img: "/okul_gorseller/pastel_boya_kutusu.png" },
-        { ad: "Mikroskop", img: "/okul_gorseller/mikroskop.png" }
+        { ad: "Kalem", img: "/okul_gorseller/kursun_kalem.webp" },
+        { ad: "Silgi", img: "/okul_gorseller/silgi.webp" },
+        { ad: "Kalemtıraş", img: "/okul_gorseller/kalemtiras.webp" },
+        { ad: "Cetvel", img: "/okul_gorseller/cetvel.webp" },
+        { ad: "Makas", img: "/okul_gorseller/makas.webp" },
+        { ad: "Kitap", img: "/okul_gorseller/acik_kitap.webp" },
+        { ad: "Defter", img: "/okul_gorseller/yildizli_kahverengi_defter.webp" },
+        { ad: "Boya Kalemi", img: "/okul_gorseller/renkli_pastel_boya_kalemleri.webp" },
+        { ad: "Boya Paleti", img: "/okul_gorseller/boya_paleti.webp" },
+        { ad: "Yazı Tahtası", img: "/okul_gorseller/kara_tahta.webp" },
+        { ad: "Okul Servisi", img: "/okul_gorseller/okul_otobusu.webp" },
+        { ad: "Büyüteç", img: "/okul_gorseller/buyutec.webp" },
+        { ad: "Dünya Küresi", img: "/okul_gorseller/kuresel_harita.webp" },
+        { ad: "Hesap Makinesi", img: "/okul_gorseller/hesap_makinesi.webp" },
+        { ad: "Yapıştırıcı", img: "/okul_gorseller/sivi_yapistirici.webp" },
+        { ad: "Bant", img: "/okul_gorseller/bantli_seloteyp_makinesi.webp" },
+        { ad: "Lego", img: "/okul_gorseller/lego_bloklari.webp" },
+        { ad: "Harf Küpü", img: "/okul_gorseller/harf_kupleri.webp" },
+        { ad: "Pastel Boya", img: "/okul_gorseller/pastel_boya_kutusu.webp" },
+        { ad: "Mikroskop", img: "/okul_gorseller/mikroskop.webp" }
       ];
 
       // Her soruda rastgele 5 farklı okul görseli seç
@@ -1131,18 +1131,18 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
       if (mode === 0) {
         // Tek bir parayı tanıma
         const paralar = [
-          { name: "1 Kuruş", img: "/paralar/1_kurus_madeni_para.png", wrong: ["5 Kuruş", "10 Kuruş", "1 TL"] },
-          { name: "5 Kuruş", img: "/paralar/5_kurus_madeni_para.png", wrong: ["1 Kuruş", "10 Kuruş", "25 Kuruş"] },
-          { name: "10 Kuruş", img: "/paralar/10_kurus_madeni_para.png", wrong: ["5 Kuruş", "25 Kuruş", "50 Kuruş"] },
-          { name: "25 Kuruş", img: "/paralar/25_kurus_madeni_para.png", wrong: ["10 Kuruş", "50 Kuruş", "1 TL"] },
-          { name: "50 Kuruş", img: "/paralar/50_kurus_madeni_para.png", wrong: ["25 Kuruş", "1 TL", "5 TL"] },
-          { name: "1 TL", img: "/paralar/1_tl_madeni_para.png", wrong: ["50 Kuruş", "5 TL", "10 TL"] },
-          { name: "5 TL", img: "/paralar/5_tl_kagit_para.png", wrong: ["10 TL", "20 TL", "50 TL"] },
-          { name: "10 TL", img: "/paralar/10_tl_kagit_para.png", wrong: ["5 TL", "20 TL", "50 TL"] },
-          { name: "20 TL", img: "/paralar/20_tl_kagit_para.png", wrong: ["10 TL", "50 TL", "100 TL"] },
-          { name: "50 TL", img: "/paralar/50_tl_kagit_para.png", wrong: ["20 TL", "100 TL", "200 TL"] },
-          { name: "100 TL", img: "/paralar/100_tl_kagit_para.png", wrong: ["50 TL", "20 TL", "200 TL"] },
-          { name: "200 TL", img: "/paralar/200_tl_kagit_para.png", wrong: ["100 TL", "50 TL", "20 TL"] },
+          { name: "1 Kuruş", img: "/paralar/1_kurus_madeni_para.webp", wrong: ["5 Kuruş", "10 Kuruş", "1 TL"] },
+          { name: "5 Kuruş", img: "/paralar/5_kurus_madeni_para.webp", wrong: ["1 Kuruş", "10 Kuruş", "25 Kuruş"] },
+          { name: "10 Kuruş", img: "/paralar/10_kurus_madeni_para.webp", wrong: ["5 Kuruş", "25 Kuruş", "50 Kuruş"] },
+          { name: "25 Kuruş", img: "/paralar/25_kurus_madeni_para.webp", wrong: ["10 Kuruş", "50 Kuruş", "1 TL"] },
+          { name: "50 Kuruş", img: "/paralar/50_kurus_madeni_para.webp", wrong: ["25 Kuruş", "1 TL", "5 TL"] },
+          { name: "1 TL", img: "/paralar/1_tl_madeni_para.webp", wrong: ["50 Kuruş", "5 TL", "10 TL"] },
+          { name: "5 TL", img: "/paralar/5_tl_kagit_para.webp", wrong: ["10 TL", "20 TL", "50 TL"] },
+          { name: "10 TL", img: "/paralar/10_tl_kagit_para.webp", wrong: ["5 TL", "20 TL", "50 TL"] },
+          { name: "20 TL", img: "/paralar/20_tl_kagit_para.webp", wrong: ["10 TL", "50 TL", "100 TL"] },
+          { name: "50 TL", img: "/paralar/50_tl_kagit_para.webp", wrong: ["20 TL", "100 TL", "200 TL"] },
+          { name: "100 TL", img: "/paralar/100_tl_kagit_para.webp", wrong: ["50 TL", "20 TL", "200 TL"] },
+          { name: "200 TL", img: "/paralar/200_tl_kagit_para.webp", wrong: ["100 TL", "50 TL", "20 TL"] },
         ];
         const p = paralar[Math.floor(Math.random() * paralar.length)];
         const isCoin = p.img.includes('madeni');
@@ -1168,42 +1168,42 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         // Paraları toplama (Aynı madeni veya kağıt paralar)
         const toplamSorulari = [
           {
-            images: ["/paralar/50_kurus_madeni_para.png", "/paralar/50_kurus_madeni_para.png"],
+            images: ["/paralar/50_kurus_madeni_para.webp", "/paralar/50_kurus_madeni_para.webp"],
             text: "Görseldeki 2 tane 50 Kuruşun toplam değeri nedir?",
             correct: "1 TL",
             wrong: ["2 TL", "50 Kuruş", "5 TL"],
             isCoin: true
           },
           {
-            images: ["/paralar/25_kurus_madeni_para.png", "/paralar/25_kurus_madeni_para.png", "/paralar/25_kurus_madeni_para.png", "/paralar/25_kurus_madeni_para.png"],
+            images: ["/paralar/25_kurus_madeni_para.webp", "/paralar/25_kurus_madeni_para.webp", "/paralar/25_kurus_madeni_para.webp", "/paralar/25_kurus_madeni_para.webp"],
             text: "Görseldeki 4 tane 25 Kuruş toplam kaç lira yapar?",
             correct: "1 TL",
             wrong: ["2 TL", "50 Kuruş", "100 TL"],
             isCoin: true
           },
           {
-            images: ["/paralar/10_tl_kagit_para.png", "/paralar/10_tl_kagit_para.png"],
+            images: ["/paralar/10_tl_kagit_para.webp", "/paralar/10_tl_kagit_para.webp"],
             text: "Görseldeki 2 tane 10 TL kağıt paranın toplamı kaç TL'dir?",
             correct: "20 TL",
             wrong: ["10 TL", "15 TL", "30 TL"],
             isCoin: false
           },
           {
-            images: ["/paralar/5_tl_kagit_para.png", "/paralar/5_tl_kagit_para.png"],
+            images: ["/paralar/5_tl_kagit_para.webp", "/paralar/5_tl_kagit_para.webp"],
             text: "Görseldeki 2 tane 5 TL kağıt paranın toplamı kaç TL'dir?",
             correct: "10 TL",
             wrong: ["15 TL", "20 TL", "5 TL"],
             isCoin: false
           },
           {
-            images: ["/paralar/20_tl_kagit_para.png", "/paralar/20_tl_kagit_para.png"],
+            images: ["/paralar/20_tl_kagit_para.webp", "/paralar/20_tl_kagit_para.webp"],
             text: "Görseldeki 2 tane 20 TL kağıt paranın toplamı kaç TL'dir?",
             correct: "40 TL",
             wrong: ["30 TL", "50 TL", "20 TL"],
             isCoin: false
           },
           {
-            images: ["/paralar/1_tl_madeni_para.png", "/paralar/1_tl_madeni_para.png", "/paralar/1_tl_madeni_para.png"],
+            images: ["/paralar/1_tl_madeni_para.webp", "/paralar/1_tl_madeni_para.webp", "/paralar/1_tl_madeni_para.webp"],
             text: "Görseldeki 3 tane 1 TL madeni paranın toplamı kaç TL'dir?",
             correct: "3 TL",
             wrong: ["2 TL", "4 TL", "5 TL"],
@@ -1234,31 +1234,31 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         // Karışık Paraları Toplama
         const karisikSorular = [
           {
-            images: ["/paralar/10_tl_kagit_para.png", "/paralar/5_tl_kagit_para.png"],
+            images: ["/paralar/10_tl_kagit_para.webp", "/paralar/5_tl_kagit_para.webp"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?",
             correct: "15 TL",
             wrong: ["12 TL", "20 TL", "25 TL"]
           },
           {
-            images: ["/paralar/20_tl_kagit_para.png", "/paralar/10_tl_kagit_para.png"],
+            images: ["/paralar/20_tl_kagit_para.webp", "/paralar/10_tl_kagit_para.webp"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?",
             correct: "30 TL",
             wrong: ["25 TL", "35 TL", "40 TL"]
           },
           {
-            images: ["/paralar/50_tl_kagit_para.png", "/paralar/20_tl_kagit_para.png"],
+            images: ["/paralar/50_tl_kagit_para.webp", "/paralar/20_tl_kagit_para.webp"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?",
             correct: "70 TL",
             wrong: ["60 TL", "80 TL", "75 TL"]
           },
           {
-            images: ["/paralar/5_tl_kagit_para.png", "/paralar/1_tl_madeni_para.png"],
+            images: ["/paralar/5_tl_kagit_para.webp", "/paralar/1_tl_madeni_para.webp"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?",
             correct: "6 TL",
             wrong: ["5 TL", "7 TL", "10 TL"]
           },
           {
-            images: ["/paralar/10_tl_kagit_para.png", "/paralar/1_tl_madeni_para.png", "/paralar/1_tl_madeni_para.png"],
+            images: ["/paralar/10_tl_kagit_para.webp", "/paralar/1_tl_madeni_para.webp", "/paralar/1_tl_madeni_para.webp"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?",
             correct: "12 TL",
             wrong: ["11 TL", "13 TL", "15 TL"]
@@ -1288,25 +1288,25 @@ export const topics1stGrade: Record<string, { title: string; desc: string; gener
         // En büyük / En küçük Madeni veya Kağıt para özellikleri
         const genelSorular = [
           {
-            img: "/paralar/1_kurus_madeni_para.png",
+            img: "/paralar/1_kurus_madeni_para.webp",
             text: "En küçük değere sahip madeni paramız hangisidir?",
             correct: "1 Kuruş",
             wrong: ["5 Kuruş", "10 Kuruş", "1 TL"]
           },
           {
-            img: "/paralar/1_tl_madeni_para.png",
+            img: "/paralar/1_tl_madeni_para.webp",
             text: "En büyük değere sahip madeni paramız hangisidir?",
             correct: "1 TL",
             wrong: ["50 Kuruş", "5 TL", "25 Kuruş"]
           },
           {
-            img: "/paralar/5_tl_kagit_para.png",
+            img: "/paralar/5_tl_kagit_para.webp",
             text: "En küçük değere sahip kağıt paramız hangisidir?",
             correct: "5 TL",
             wrong: ["1 TL", "10 TL", "20 TL"]
           },
           {
-            img: "/paralar/200_tl_kagit_para.png",
+            img: "/paralar/200_tl_kagit_para.webp",
             text: "En büyük değere sahip kağıt paramız hangisidir?",
             correct: "200 TL",
             wrong: ["100 TL", "50 TL", "500 TL"]

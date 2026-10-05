@@ -335,7 +335,7 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
         loop
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-contain opacity-0 pointer-events-none"
       />
 

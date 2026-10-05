@@ -461,7 +461,7 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                           </span>
                         </div>
                         <img
-                          src="/MENUIKON/grid_icon_21.png"
+                          src="/MENUIKON/grid_icon_21.webp"
                           alt="Oyun İkonu"
                           className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                         />

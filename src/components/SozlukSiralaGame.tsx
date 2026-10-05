@@ -613,7 +613,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                           </span>
                         </div>
                         <img
-                          src="/MENUIKON/grid_icon_24.png"
+                          src="/MENUIKON/grid_icon_24.webp"
                           alt="Sözlük Sıralama"
                           className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                         />

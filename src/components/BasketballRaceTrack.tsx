@@ -44,7 +44,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
   showVictoryVideo = false,
   victoryVideoSrc = '/kap.mp4',
   winnerTitle = '1. GRUP ŞAMPİYON! 🏆',
-  winnerImg = '/kap.png',
+  winnerImg = '/kap.webp',
   winnerBadgeBg = 'from-blue-600 via-cyan-500 to-indigo-600',
   winnerBorderColor = 'border-cyan-400',
   winnerGlowColor = 'shadow-[0_0_35px_rgba(6,182,212,0.95)]',
@@ -90,7 +90,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
           playerIndex: 0, // 1. GRUP (Left Lane - Blue/Kaplumbağa)
           groupName: '1. GRUP',
           character: 'KAPLUMBAĞA',
-          img: '/kap1.png',
+          img: '/kap1.webp',
           badgeBg: 'from-blue-500 to-indigo-600',
           borderColor: 'border-cyan-300',
           glowColor: 'shadow-[0_0_10px_rgba(6,182,212,0.8)]',
@@ -100,7 +100,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
           playerIndex: 1, // 2. GRUP (Right Lane - Red/Ejderha)
           groupName: '2. GRUP',
           character: 'EJDERHA',
-          img: '/ejd1.png',
+          img: '/ejd1.webp',
           badgeBg: 'from-rose-500 to-pink-600',
           borderColor: 'border-pink-300',
           glowColor: 'shadow-[0_0_10px_rgba(244,63,94,0.8)]',
@@ -112,7 +112,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
           playerIndex: 0, // 1. GRUP (Left Lane - Blue/Kaplumbağa)
           groupName: '1. GRUP',
           character: 'KAPLUMBAĞA',
-          img: '/kap1.png',
+          img: '/kap1.webp',
           badgeBg: 'from-blue-500 to-indigo-600',
           borderColor: 'border-cyan-300',
           glowColor: 'shadow-[0_0_10px_rgba(6,182,212,0.8)]',
@@ -122,7 +122,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
           playerIndex: 1, // 2. GRUP (Middle Lane - Red/Ejderha)
           groupName: '2. GRUP',
           character: 'EJDERHA',
-          img: '/ejd1.png',
+          img: '/ejd1.webp',
           badgeBg: 'from-rose-500 to-pink-600',
           borderColor: 'border-pink-300',
           glowColor: 'shadow-[0_0_10px_rgba(244,63,94,0.8)]',
@@ -132,7 +132,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
           playerIndex: 2, // 3. GRUP (Right Lane - Green/Savaşçı)
           groupName: '3. GRUP',
           character: 'SAVAŞÇI',
-          img: '/balta1.png',
+          img: '/balta1.webp',
           badgeBg: 'from-emerald-500 to-teal-600',
           borderColor: 'border-emerald-300',
           glowColor: 'shadow-[0_0_10px_rgba(16,185,129,0.8)]',
@@ -141,7 +141,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
       ];
 
   if (orientation === 'vertical') {
-    const verticalTrackSrc = activeCount === 2 ? '/park2.png' : '/park3.png';
+    const verticalTrackSrc = '/park2.webp';
     // 3 kişilik modda parkur görselinin genişliği %20 daraltıldı (883 * 0.8 = 706.4)
     const trackAspectRatio = activeCount === 2 ? '567 / 1208' : `${883 * 0.8} / 1415`;
 
@@ -269,7 +269,7 @@ export const BasketballRaceTrack: React.FC<BasketballRaceTrackProps> = ({
   }
 
   // Fallback Horizontal Track
-  const trackSrc = activeCount === 2 ? '/park2.png' : '/park3.png';
+  const trackSrc = '/park2.webp';
   return (
     <div className={`w-full flex justify-center mb-1 shrink-0 select-none px-1 ${className}`}>
       <div 
@@ -332,28 +332,28 @@ export interface SingleBasketballTrackProps {
 
 const SINGLE_TRACK_CONFIGS = [
   {
-    trackSrc: '/p1.png',
+    trackSrc: '/p1.webp',
     groupName: '1. GRUP',
     character: 'KAPLUMBAĞA',
-    img: '/kap1.png',
+    img: '/kap1.webp',
     badgeBg: 'from-blue-500 to-indigo-600',
     borderColor: 'border-cyan-300',
     glowColor: 'shadow-[0_0_12px_rgba(6,182,212,0.6)]',
   },
   {
-    trackSrc: '/p2.png',
+    trackSrc: '/p2.webp',
     groupName: '2. GRUP',
     character: 'EJDERHA',
-    img: '/ejd1.png',
+    img: '/ejd1.webp',
     badgeBg: 'from-rose-500 to-pink-600',
     borderColor: 'border-pink-300',
     glowColor: 'shadow-[0_0_12px_rgba(244,63,94,0.6)]',
   },
   {
-    trackSrc: '/p3.png',
+    trackSrc: '/p3.webp',
     groupName: '3. GRUP',
     character: 'SAVAŞÇI',
-    img: '/balta1.png',
+    img: '/balta1.webp',
     badgeBg: 'from-emerald-500 to-teal-600',
     borderColor: 'border-emerald-300',
     glowColor: 'shadow-[0_0_12px_rgba(16,185,129,0.6)]',

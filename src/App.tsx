@@ -41,6 +41,7 @@ import { SaglikliTabakGame } from './components/SaglikliTabakGame';
 import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
 import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
 import { AblukaGame } from './components/AblukaGame';
+import { SudokuGame } from './components/SudokuGame';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -61,7 +62,8 @@ import {
   recordStudentAnswer, 
   recordStudentGameResult,
   resetAllStudentStats,
-  resetGradeStudentStats
+  resetGradeStudentStats,
+  resetTopicStatsForAllStudents
 } from './utils/studentStore';
 import { getCurriculumTopicsForGrade } from './utils/topicHelper';
 import { StudentAvatarDock } from './components/StudentAvatarDock';
@@ -98,7 +100,7 @@ const topicsWordGames: Record<string, { title: string; desc: string; icon?: stri
   other_zit_anlam: {
     title: "Zıt Anlamlı Kelimeler",
     desc: "Verilen kelimenin zıt (karşıt) anlamlısını bulma.",
-    icon: "/MENUIKON/grid_icon_27.png",
+    icon: "/MENUIKON/grid_icon_27.webp",
     generate: () => {
       const secilen = ZIT_ANLAM_DATA[Math.floor(Math.random() * ZIT_ANLAM_DATA.length)];
       const yanlislar = ZIT_ANLAM_DATA
@@ -129,7 +131,7 @@ const topicsWordGames: Record<string, { title: string; desc: string; icon?: stri
   other_es_anlam: {
     title: "Eş Anlamlı Kelimeler",
     desc: "Verilen kelimenin eş (anlamdaş) anlamlısını bulma.",
-    icon: "/MENUIKON/grid_icon_21.png",
+    icon: "/MENUIKON/grid_icon_21.webp",
     generate: () => {
       const secilen = ES_ANLAM_DATA[Math.floor(Math.random() * ES_ANLAM_DATA.length)];
       const yanlislar = ES_ANLAM_DATA
@@ -160,7 +162,7 @@ const topicsWordGames: Record<string, { title: string; desc: string; icon?: stri
   other_ingilizce: {
     title: "İngilizce Kelime Oyunu",
     desc: "İngilizce kelimelerin Türkçe karşılıklarını bulma.",
-    icon: "/MENUIKON/grid_icon_14.png",
+    icon: "/MENUIKON/grid_icon_14.webp",
     generate: () => {
       const secilen = INGILIZCE_DATA[Math.floor(Math.random() * INGILIZCE_DATA.length)];
       const yanlislar = INGILIZCE_DATA
@@ -443,12 +445,12 @@ export function cleanOptionForDisplay(opt: string | number, isGrade4: boolean = 
 }
 
 const CISIM_SVG: Record<string, string> = {
-  kup: '<img src="/geos/kups.png" alt="Küp" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
-  kure: '<img src="/geos/kures.png" alt="Küre" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
-  silindir: '<img src="/geos/slndrs.png" alt="Silindir" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
-  dikdortgen_prizma: '<img src="/geos/dikdprz.png" alt="Dikdörtgenler Prizması" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
-  kare_prizma: '<img src="/geos/kareprz.png" alt="Kare Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
-  ucgen_prizma: '<img src="/geos/ucgenprz.png" alt="Üçgen Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />'
+  kup: '<img src="/geos/kups.webp" alt="Küp" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  kure: '<img src="/geos/kures.webp" alt="Küre" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  silindir: '<img src="/geos/slndrs.webp" alt="Silindir" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  dikdortgen_prizma: '<img src="/geos/dikdprz.webp" alt="Dikdörtgenler Prizması" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  kare_prizma: '<img src="/geos/kareprz.webp" alt="Kare Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />',
+  ucgen_prizma: '<img src="/geos/ucgenprz.webp" alt="Üçgen Prizma" class="geo-cisim-img max-h-24 sm:max-h-28 md:max-h-32 w-auto object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto inline-block hover:scale-105 transition-transform" />'
 };
 
 const CISIM_OZELLIK: Record<string, { ad: string; yüz: number; ayrıt: number; köşe: number }> = {
@@ -1681,14 +1683,14 @@ const CATEGORY_MAP = [
     id: 'geometri',
     name: "1. Nesnelerin Geometrisi",
     shortName: "Geometri",
-    icon: "/MENUIKON/grid_icon_39.png",
+    icon: "/MENUIKON/grid_icon_39.webp",
     keys: ["uzamsal_iliskiler", "es_nesneler", "geometrik_sekil_cisim", "geometri_tahtasi", "yuz_ayrit_kose", "geometrik_oruntu", "uzamsal_iliskiler_simetri", "sivi_olcme", "tartma_olcme"]
   },
   {
     id: 'sayilar',
     name: "2. Sayılar ve Nicelikler",
     shortName: "Sayılar",
-    icon: "/MENUIKON/grid_icon_09.png",
+    icon: "/MENUIKON/grid_icon_09.webp",
     keys: [
       "nesne_sayisi", "sira_sayilari", "cok_az_esit", "sayi_basamak_degeri", "deste_duzine", "kesirler",
       "ritmik_ileri_1", "ritmik_ileri_2", "ritmik_ileri_3", "ritmik_ileri_4", "ritmik_ileri_5", "ritmik_ileri_10",
@@ -1701,7 +1703,7 @@ const CATEGORY_MAP = [
     id: 'islemler',
     name: "3. İşlemlerden Cebirsel Düşünmeye",
     shortName: "İşlemler ve Cebir",
-    icon: "/MENUIKON/grid_icon_22.png",
+    icon: "/MENUIKON/grid_icon_22.webp",
     keys: [
       "tek_islem_toplama_problemleri", "iki_islem_toplama_problemleri",
       "toplama_eldesiz_50", "toplama_eldeli_50", "verilmeyen_toplanani_bul",
@@ -1715,14 +1717,14 @@ const CATEGORY_MAP = [
     id: 'olcme',
     name: "4. Veri İşleme & Ölçme",
     shortName: "Veri ve Ölçme",
-    icon: "/MENUIKON/grid_icon_14.png",
+    icon: "/MENUIKON/grid_icon_14.webp",
     keys: ["veri_grafik", "takvim_olcme"]
   },
   {
     id: 'diger_oyunlar',
     name: "5. Diğer Oyunlar",
     shortName: "Diğer Oyunlar",
-    icon: "/MENUIKON/grid_icon_17.png",
+    icon: "/MENUIKON/grid_icon_17.webp",
     keys: [
       "halat_toplama_1", "halat_cikarma_1",
       "halat_toplama_2", "halat_cikarma_2", "halat_carpma_2", "halat_bolme_2",
@@ -1744,7 +1746,7 @@ const CATEGORY_MAP = [
     id: 'g3_tema1',
     name: "1. Sayılar ve Nicelikler (1)",
     shortName: "Sayılar (1)",
-    icon: "/MENUIKON/grid_icon_21.png",
+    icon: "/MENUIKON/grid_icon_21.webp",
     keys: [
       "g3_uc_basamakli_okuma_yazma",
       "g3_sayi_cozumleme",
@@ -1768,7 +1770,7 @@ const CATEGORY_MAP = [
     id: 'g3_tema2',
     name: "2. Sayılar ve Nicelikler (2)",
     shortName: "Sayılar (2)",
-    icon: "/MENUIKON/grid_icon_11.png",
+    icon: "/MENUIKON/grid_icon_11.webp",
     keys: [
       "g3_birim_kesirler",
       "g3_pay_payda_modelleme",
@@ -1782,7 +1784,7 @@ const CATEGORY_MAP = [
     id: 'g3_tema3',
     name: "3. İşlemlerden Cebirsel Düşünmeye",
     shortName: "İşlemler ve Cebir",
-    icon: "/MENUIKON/grid_icon_04.png",
+    icon: "/MENUIKON/grid_icon_04.webp",
     keys: [
       "g3_zihinden_toplama_cikarma_tahmin",
       "g3_toplama_cikarma_problemleri",
@@ -1794,7 +1796,7 @@ const CATEGORY_MAP = [
     id: 'g3_tema4',
     name: "4. Nesnelerin Geometrisi ve Ölçme",
     shortName: "Geometri ve Ölçme",
-    icon: "/MENUIKON/grid_icon_39.png",
+    icon: "/MENUIKON/grid_icon_39.webp",
     keys: [
       "g3_geometrik_cisimler_ozellikleri",
       "g3_temel_geometri_kavramlari",
@@ -1807,7 +1809,7 @@ const CATEGORY_MAP = [
     id: 'g4_tema1',
     name: "1. Sayılar ve Nicelikler (1)",
     shortName: "Sayılar (1)",
-    icon: "/MENUIKON/grid_icon_21.png",
+    icon: "/MENUIKON/grid_icon_21.webp",
     keys: [
       "g4_sayi_okuma_yazma",
       "g4_basamak_ve_cozumleme",
@@ -1821,7 +1823,7 @@ const CATEGORY_MAP = [
     id: 'g4_tema2',
     name: "2. Sayılar ve Nicelikler (2)",
     shortName: "Sayılar (2)",
-    icon: "/MENUIKON/grid_icon_11.png",
+    icon: "/MENUIKON/grid_icon_11.webp",
     keys: [
       "g4_kesir_cesitleri_modelleme",
       "g4_birim_kesirler_karsilastirma",
@@ -1834,7 +1836,7 @@ const CATEGORY_MAP = [
     id: 'g4_tema3',
     name: "3. İşlemlerden Cebirsel Düşünmeye",
     shortName: "İşlemler ve Cebir",
-    icon: "/MENUIKON/grid_icon_04.png",
+    icon: "/MENUIKON/grid_icon_04.webp",
     keys: [
       "g4_dort_islem_toplama_cikarma",
       "g4_carpma_islemi_3basamakli",
@@ -1850,7 +1852,7 @@ const CATEGORY_MAP = [
     id: 'g4_tema4',
     name: "4. Geometri, Veri ve Olasılık",
     shortName: "Geometri ve Veri",
-    icon: "/MENUIKON/grid_icon_39.png",
+    icon: "/MENUIKON/grid_icon_39.webp",
     keys: [
       "g4_geometrik_cisimler",
       "g4_cevre_uzunlugu",
@@ -1927,7 +1929,7 @@ const getCategoryIdForTopic = (topicKey: string): string => {
 };
 
 const getGradeIconForTopic = (topicKey: string, currentGrade: number | null): string => {
-  if (topicKey.startsWith('ing_') || topicKey === 'other_ingilizce') return '/icon_6.png';
+  if (topicKey.startsWith('ing_') || topicKey === 'other_ingilizce') return '/icon_6.webp';
   if (
     topicKey.startsWith('other_') ||
     topicKey === 'balon_patlatma_mat' ||
@@ -1937,217 +1939,217 @@ const getGradeIconForTopic = (topicKey: string, currentGrade: number | null): st
     topicKey === 'ritim_labirent' ||
     topicKey === 'geometri_eslestirme'
   ) {
-    return '/icon_5.png';
+    return '/icon_5.webp';
   }
-  if (topicKey.startsWith('g4_') || topicKey.endsWith('_4')) return '/icon_4.png';
-  if (topicKey.startsWith('g3_') || topicKey.endsWith('_3')) return '/icon_3.png';
-  if (topicKey.endsWith('_1')) return '/icon_1.png';
-  if (topicKey.endsWith('_2')) return '/icon_2.png';
-  if (currentGrade === 1) return '/icon_1.png';
-  if (currentGrade === 3) return '/icon_3.png';
-  if (currentGrade === 4) return '/icon_4.png';
-  return '/icon_2.png';
+  if (topicKey.startsWith('g4_') || topicKey.endsWith('_4')) return '/icon_4.webp';
+  if (topicKey.startsWith('g3_') || topicKey.endsWith('_3')) return '/icon_3.webp';
+  if (topicKey.endsWith('_1')) return '/icon_1.webp';
+  if (topicKey.endsWith('_2')) return '/icon_2.webp';
+  if (currentGrade === 1) return '/icon_1.webp';
+  if (currentGrade === 3) return '/icon_3.webp';
+  if (currentGrade === 4) return '/icon_4.webp';
+  return '/icon_2.webp';
 };
 
 export const TOPIC_3D_ICONS: Record<string, string> = {
   // 1. NESNELERİN GEOMETRİSİ (1. ve 2. Sınıf)
-  uzamsal_iliskiler: '/MENUIKON/grid_icon_29.png',
-  es_nesneler: '/MENUIKON/grid_icon_27.png',
-  geometrik_sekil_cisim: '/MENUIKON/grid_icon_39.png',
-  geometri_tahtasi: '/MENUIKON/grid_icon_10.png',
-  cisimler_acilimi: '/MENUIKON/grid_icon_10.png',
-  yuz_ayrit_kose: '/MENUIKON/grid_icon_16.png',
-  geometrik_oruntu: '/MENUIKON/grid_icon_19.png',
-  uzamsal_iliskiler_simetri: '/MENUIKON/grid_icon_07.png',
-  sivi_olcme: '/MENUIKON/grid_icon_37.png',
-  tartma_olcme: '/MENUIKON/grid_icon_40.png',
+  uzamsal_iliskiler: '/MENUIKON/grid_icon_29.webp',
+  es_nesneler: '/MENUIKON/grid_icon_27.webp',
+  geometrik_sekil_cisim: '/MENUIKON/grid_icon_39.webp',
+  geometri_tahtasi: '/MENUIKON/grid_icon_10.webp',
+  cisimler_acilimi: '/MENUIKON/grid_icon_10.webp',
+  yuz_ayrit_kose: '/MENUIKON/grid_icon_16.webp',
+  geometrik_oruntu: '/MENUIKON/grid_icon_19.webp',
+  uzamsal_iliskiler_simetri: '/MENUIKON/grid_icon_07.webp',
+  sivi_olcme: '/MENUIKON/grid_icon_37.webp',
+  tartma_olcme: '/MENUIKON/grid_icon_40.webp',
 
   // 2. SAYILAR VE NİCELİKLER (1. ve 2. Sınıf)
-  nesne_sayisi: '/MENUIKON/grid_icon_18.png',
-  sira_sayilari: '/MENUIKON/grid_icon_24.png',
-  cok_az_esit: '/MENUIKON/grid_icon_07.png',
-  sayi_basamak_degeri: '/MENUIKON/grid_icon_21.png',
-  deste_duzine: '/MENUIKON/grid_icon_27.png',
-  kesirler: '/MENUIKON/grid_icon_11.png',
-  sayi_karsilastirma: '/MENUIKON/grid_icon_07.png',
-  paralarimiz: '/MENUIKON/grid_icon_13.png',
-  zaman_olcme: '/MENUIKON/grid_icon_12.png',
-  uzunluk_olcme: '/MENUIKON/grid_icon_34.png',
-  tartma: '/MENUIKON/grid_icon_40.png',
-  takvim_olcme: '/MENUIKON/grid_icon_32.png',
-  sayi_sekil_oruntusu: '/MENUIKON/grid_icon_19.png',
-  en_yakin_onluk: '/MENUIKON/grid_icon_09.png',
+  nesne_sayisi: '/MENUIKON/grid_icon_18.webp',
+  sira_sayilari: '/MENUIKON/grid_icon_24.webp',
+  cok_az_esit: '/MENUIKON/grid_icon_07.webp',
+  sayi_basamak_degeri: '/MENUIKON/grid_icon_21.webp',
+  deste_duzine: '/MENUIKON/grid_icon_27.webp',
+  kesirler: '/MENUIKON/grid_icon_11.webp',
+  sayi_karsilastirma: '/MENUIKON/grid_icon_07.webp',
+  paralarimiz: '/MENUIKON/grid_icon_13.webp',
+  zaman_olcme: '/MENUIKON/grid_icon_12.webp',
+  uzunluk_olcme: '/MENUIKON/grid_icon_34.webp',
+  tartma: '/MENUIKON/grid_icon_40.webp',
+  takvim_olcme: '/MENUIKON/grid_icon_32.webp',
+  sayi_sekil_oruntusu: '/MENUIKON/grid_icon_19.webp',
+  en_yakin_onluk: '/MENUIKON/grid_icon_09.webp',
 
   // Ritmik Saymalar (1. ve 2. Sınıf)
-  ritmik_ileri_1: '/MENUIKON/grid_icon_09.png',
-  ritmik_ileri_2: '/MENUIKON/grid_icon_23.png',
-  ritmik_ileri_3: '/MENUIKON/grid_icon_03.png',
-  ritmik_ileri_4: '/MENUIKON/grid_icon_14.png',
-  ritmik_ileri_5: '/MENUIKON/grid_icon_05.png',
-  ritmik_ileri_10: '/MENUIKON/grid_icon_25.png',
-  ritmik_geri_1: '/MENUIKON/grid_icon_28.png',
-  ritmik_geri_2: '/MENUIKON/grid_icon_17.png',
-  ritmik_geri_10: '/MENUIKON/grid_icon_20.png',
+  ritmik_ileri_1: '/MENUIKON/grid_icon_09.webp',
+  ritmik_ileri_2: '/MENUIKON/grid_icon_23.webp',
+  ritmik_ileri_3: '/MENUIKON/grid_icon_03.webp',
+  ritmik_ileri_4: '/MENUIKON/grid_icon_14.webp',
+  ritmik_ileri_5: '/MENUIKON/grid_icon_05.webp',
+  ritmik_ileri_10: '/MENUIKON/grid_icon_25.webp',
+  ritmik_geri_1: '/MENUIKON/grid_icon_28.webp',
+  ritmik_geri_2: '/MENUIKON/grid_icon_17.webp',
+  ritmik_geri_10: '/MENUIKON/grid_icon_20.webp',
 
   // Saati Okuma (2. Sınıf)
-  saat_tam: '/MENUIKON/grid_icon_16.png',
-  saat_yarim: '/MENUIKON/grid_icon_29.png',
-  saat_ceyrek_gece: '/MENUIKON/grid_icon_38.png',
-  saat_ceyrek_kala: '/MENUIKON/grid_icon_35.png',
+  saat_tam: '/MENUIKON/grid_icon_16.webp',
+  saat_yarim: '/MENUIKON/grid_icon_29.webp',
+  saat_ceyrek_gece: '/MENUIKON/grid_icon_38.webp',
+  saat_ceyrek_kala: '/MENUIKON/grid_icon_35.webp',
 
   // 3. İŞLEMLER VE CEBİR - TOPLAMA (1. ve 2. Sınıf)
-  toplama_20_ici: '/MENUIKON/grid_icon_08.png',
-  toplama_onluk: '/MENUIKON/grid_icon_24.png',
-  verilmeyen_toplanan: '/MENUIKON/grid_icon_26.png',
-  toplama_eldesiz_50: '/MENUIKON/grid_icon_08.png',
-  toplama_eldeli_50: '/MENUIKON/grid_icon_24.png',
-  verilmeyen_toplanani_bul: '/MENUIKON/grid_icon_26.png',
-  zihinden_toplama: '/MENUIKON/grid_icon_05.png',
-  tek_islem_toplama_problemleri: '/MENUIKON/grid_icon_14.png',
-  iki_islem_toplama_problemleri: '/MENUIKON/grid_icon_33.png',
+  toplama_20_ici: '/MENUIKON/grid_icon_08.webp',
+  toplama_onluk: '/MENUIKON/grid_icon_24.webp',
+  verilmeyen_toplanan: '/MENUIKON/grid_icon_26.webp',
+  toplama_eldesiz_50: '/MENUIKON/grid_icon_08.webp',
+  toplama_eldeli_50: '/MENUIKON/grid_icon_24.webp',
+  verilmeyen_toplanani_bul: '/MENUIKON/grid_icon_26.webp',
+  zihinden_toplama: '/MENUIKON/grid_icon_05.webp',
+  tek_islem_toplama_problemleri: '/MENUIKON/grid_icon_14.webp',
+  iki_islem_toplama_problemleri: '/MENUIKON/grid_icon_33.webp',
 
   // ÇIKARMA (1. ve 2. Sınıf) - HER BUTON FARKLI!
-  cikarma_20_ici: '/MENUIKON/grid_icon_30.png',
-  cikarma_onluk: '/MENUIKON/grid_icon_06.png',
-  cikarma_onluksuz_50: '/MENUIKON/grid_icon_31.png',
-  cikarma_onluklu_50: '/MENUIKON/grid_icon_06.png',
-  zihinden_cikarma: '/MENUIKON/grid_icon_35.png',
-  tek_islem_cikarma_problemleri: '/MENUIKON/grid_icon_16.png',
-  iki_islem_cikarma_problemleri: '/MENUIKON/grid_icon_36.png',
+  cikarma_20_ici: '/MENUIKON/grid_icon_30.webp',
+  cikarma_onluk: '/MENUIKON/grid_icon_06.webp',
+  cikarma_onluksuz_50: '/MENUIKON/grid_icon_31.webp',
+  cikarma_onluklu_50: '/MENUIKON/grid_icon_06.webp',
+  zihinden_cikarma: '/MENUIKON/grid_icon_35.webp',
+  tek_islem_cikarma_problemleri: '/MENUIKON/grid_icon_16.webp',
+  iki_islem_cikarma_problemleri: '/MENUIKON/grid_icon_36.webp',
 
   // KARMA / ÇARPMA / BÖLME (2. Sınıf)
-  toplama_cikarma_problemleri: '/MENUIKON/grid_icon_04.png',
-  ardisik_toplama: '/MENUIKON/grid_icon_28.png',
-  ritmik_carpim: '/MENUIKON/grid_icon_15.png',
-  esit_paylastirma: '/MENUIKON/grid_icon_27.png',
-  ardisik_cikarma: '/MENUIKON/grid_icon_30.png',
-  kalansiz_bolme: '/MENUIKON/grid_icon_03.png',
+  toplama_cikarma_problemleri: '/MENUIKON/grid_icon_04.webp',
+  ardisik_toplama: '/MENUIKON/grid_icon_28.webp',
+  ritmik_carpim: '/MENUIKON/grid_icon_15.webp',
+  esit_paylastirma: '/MENUIKON/grid_icon_27.webp',
+  ardisik_cikarma: '/MENUIKON/grid_icon_30.webp',
+  kalansiz_bolme: '/MENUIKON/grid_icon_03.webp',
 
   // 4. VERİ İŞLEME & ÖLÇME
-  veri_grafik: '/MENUIKON/grid_icon_14.png',
+  veri_grafik: '/MENUIKON/grid_icon_14.webp',
 
   // 5. DİĞER OYUNLAR (TÜM SINIFLAR)
-  xox: '/MENUIKON/grid_icon_32.png',
-  other_xox: '/MENUIKON/grid_icon_32.png',
-  zit_anlam: '/MENUIKON/grid_icon_27.png',
-  other_zit_anlam: '/MENUIKON/grid_icon_27.png',
-  es_anlam: '/MENUIKON/grid_icon_21.png',
-  other_es_anlam: '/MENUIKON/grid_icon_21.png',
-  ingilizce: '/MENUIKON/grid_icon_14.png',
-  other_ingilizce: '/MENUIKON/grid_icon_14.png',
-  lab3d: '/MENUIKON/grid_icon_38.png',
-  geoboard: '/MENUIKON/grid_icon_29.png',
-  sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.png',
-  sureli_on_tamamlama: '/MENUIKON/grid_icon_09.png',
-  sureli_carpma: '/MENUIKON/grid_icon_04.png',
-  sureli_bolme: '/MENUIKON/grid_icon_05.png',
-  sureli_carpma_bolme: '/MENUIKON/grid_icon_28.png',
-  sureli_carpma_3: '/MENUIKON/grid_icon_04.png',
-  sureli_bolme_3: '/MENUIKON/grid_icon_05.png',
-  sureli_carpma_4: '/MENUIKON/grid_icon_04.png',
-  sureli_bolme_4: '/MENUIKON/grid_icon_05.png',
-  halat_toplama_1: '/MENUIKON/grid_icon_08.png',
-  halat_cikarma_1: '/MENUIKON/grid_icon_30.png',
-  halat_toplama_2: '/MENUIKON/grid_icon_08.png',
-  halat_cikarma_2: '/MENUIKON/grid_icon_30.png',
-  halat_carpma_2: '/MENUIKON/grid_icon_32.png',
-  halat_bolme_2: '/MENUIKON/grid_icon_03.png',
-  halat_toplama_3: '/MENUIKON/grid_icon_08.png',
-  halat_cikarma_3: '/MENUIKON/grid_icon_30.png',
-  halat_carpma_3: '/MENUIKON/grid_icon_32.png',
-  halat_bolme_3: '/MENUIKON/grid_icon_03.png',
-  halat_toplama_4: '/MENUIKON/grid_icon_08.png',
-  halat_cikarma_4: '/MENUIKON/grid_icon_30.png',
-  halat_carpma_4: '/MENUIKON/grid_icon_32.png',
-  halat_bolme_4: '/MENUIKON/grid_icon_03.png',
-  balon_patlatma_mat: '/MENUIKON/grid_icon_35.png',
-  matematik_hafiza: '/MENUIKON/grid_icon_06.png',
-  hizli_islem_carki: '/MENUIKON/grid_icon_10.png',
-  sayi_dedektifi: '/MENUIKON/grid_icon_36.png',
-  ritim_labirent: '/MENUIKON/grid_icon_17.png',
-  geometri_eslestirme: '/MENUIKON/grid_icon_39.png',
-  geometrik_sekilleri_bul: '/MENUIKON/grid_icon_39.png',
-  aynisini_bul: '/MENUIKON/grid_icon_20.png',
+  xox: '/MENUIKON/grid_icon_32.webp',
+  other_xox: '/MENUIKON/grid_icon_32.webp',
+  zit_anlam: '/MENUIKON/grid_icon_27.webp',
+  other_zit_anlam: '/MENUIKON/grid_icon_27.webp',
+  es_anlam: '/MENUIKON/grid_icon_21.webp',
+  other_es_anlam: '/MENUIKON/grid_icon_21.webp',
+  ingilizce: '/MENUIKON/grid_icon_14.webp',
+  other_ingilizce: '/MENUIKON/grid_icon_14.webp',
+  lab3d: '/MENUIKON/grid_icon_38.webp',
+  geoboard: '/MENUIKON/grid_icon_29.webp',
+  sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.webp',
+  sureli_on_tamamlama: '/MENUIKON/grid_icon_09.webp',
+  sureli_carpma: '/MENUIKON/grid_icon_04.webp',
+  sureli_bolme: '/MENUIKON/grid_icon_05.webp',
+  sureli_carpma_bolme: '/MENUIKON/grid_icon_28.webp',
+  sureli_carpma_3: '/MENUIKON/grid_icon_04.webp',
+  sureli_bolme_3: '/MENUIKON/grid_icon_05.webp',
+  sureli_carpma_4: '/MENUIKON/grid_icon_04.webp',
+  sureli_bolme_4: '/MENUIKON/grid_icon_05.webp',
+  halat_toplama_1: '/MENUIKON/grid_icon_08.webp',
+  halat_cikarma_1: '/MENUIKON/grid_icon_30.webp',
+  halat_toplama_2: '/MENUIKON/grid_icon_08.webp',
+  halat_cikarma_2: '/MENUIKON/grid_icon_30.webp',
+  halat_carpma_2: '/MENUIKON/grid_icon_32.webp',
+  halat_bolme_2: '/MENUIKON/grid_icon_03.webp',
+  halat_toplama_3: '/MENUIKON/grid_icon_08.webp',
+  halat_cikarma_3: '/MENUIKON/grid_icon_30.webp',
+  halat_carpma_3: '/MENUIKON/grid_icon_32.webp',
+  halat_bolme_3: '/MENUIKON/grid_icon_03.webp',
+  halat_toplama_4: '/MENUIKON/grid_icon_08.webp',
+  halat_cikarma_4: '/MENUIKON/grid_icon_30.webp',
+  halat_carpma_4: '/MENUIKON/grid_icon_32.webp',
+  halat_bolme_4: '/MENUIKON/grid_icon_03.webp',
+  balon_patlatma_mat: '/MENUIKON/grid_icon_35.webp',
+  matematik_hafiza: '/MENUIKON/grid_icon_06.webp',
+  hizli_islem_carki: '/MENUIKON/grid_icon_10.webp',
+  sayi_dedektifi: '/MENUIKON/grid_icon_36.webp',
+  ritim_labirent: '/MENUIKON/grid_icon_17.webp',
+  geometri_eslestirme: '/MENUIKON/grid_icon_39.webp',
+  geometrik_sekilleri_bul: '/MENUIKON/grid_icon_39.webp',
+  aynisini_bul: '/MENUIKON/grid_icon_20.webp',
 
   // 3. SINIF TEMA 1 (Sayılar ve Nicelikler 1) - HER BUTON FARKLI!
-  g3_uc_basamakli_okuma_yazma: '/MENUIKON/grid_icon_21.png',
-  g3_sayi_cozumleme: '/MENUIKON/grid_icon_33.png',
-  g3_sayi_siralama_karsilastirma: '/MENUIKON/grid_icon_07.png',
-  g3_en_yakin_onluga_yuvarlama_100: '/MENUIKON/grid_icon_09.png',
-  g3_en_yakin_onluga_yuvarlama: '/MENUIKON/grid_icon_20.png',
-  g3_en_yakin_yuzluge_yuvarlama: '/MENUIKON/grid_icon_28.png',
+  g3_uc_basamakli_okuma_yazma: '/MENUIKON/grid_icon_21.webp',
+  g3_sayi_cozumleme: '/MENUIKON/grid_icon_33.webp',
+  g3_sayi_siralama_karsilastirma: '/MENUIKON/grid_icon_07.webp',
+  g3_en_yakin_onluga_yuvarlama_100: '/MENUIKON/grid_icon_09.webp',
+  g3_en_yakin_onluga_yuvarlama: '/MENUIKON/grid_icon_20.webp',
+  g3_en_yakin_yuzluge_yuvarlama: '/MENUIKON/grid_icon_28.webp',
 
   // 3. Sınıf Ritmik Saymalar (HER BUTON FARKLI!)
-  g3_ritmik_6: '/MENUIKON/grid_icon_03.png',
-  g3_ritmik_7: '/MENUIKON/grid_icon_05.png',
-  g3_ritmik_8: '/MENUIKON/grid_icon_16.png',
-  g3_ritmik_9: '/MENUIKON/grid_icon_38.png',
-  g3_ritmik_10: '/MENUIKON/grid_icon_14.png',
-  g3_ritmik_100: '/MENUIKON/grid_icon_25.png',
-  g3_ritmik_6_7: '/MENUIKON/grid_icon_03.png',
-  g3_ritmik_8_9: '/MENUIKON/grid_icon_16.png',
-  g3_ritmik_saymalar: '/MENUIKON/grid_icon_23.png',
+  g3_ritmik_6: '/MENUIKON/grid_icon_03.webp',
+  g3_ritmik_7: '/MENUIKON/grid_icon_05.webp',
+  g3_ritmik_8: '/MENUIKON/grid_icon_16.webp',
+  g3_ritmik_9: '/MENUIKON/grid_icon_38.webp',
+  g3_ritmik_10: '/MENUIKON/grid_icon_14.webp',
+  g3_ritmik_100: '/MENUIKON/grid_icon_25.webp',
+  g3_ritmik_6_7: '/MENUIKON/grid_icon_03.webp',
+  g3_ritmik_8_9: '/MENUIKON/grid_icon_16.webp',
+  g3_ritmik_saymalar: '/MENUIKON/grid_icon_23.webp',
 
   // 3. Sınıf Tek-Çift ve Örüntü
-  g3_tek_cift_nesne_toplami: '/MENUIKON/grid_icon_27.png',
-  g3_tek_cift_20ye_kadar_islemler: '/MENUIKON/grid_icon_26.png',
-  g3_tek_cift_sayilar: '/MENUIKON/grid_icon_10.png',
-  g3_tek_cift_islemler: '/MENUIKON/grid_icon_24.png',
-  g3_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.png',
-  g3_nesne_tahmin_karsilastirma: '/MENUIKON/grid_icon_18.png',
+  g3_tek_cift_nesne_toplami: '/MENUIKON/grid_icon_27.webp',
+  g3_tek_cift_20ye_kadar_islemler: '/MENUIKON/grid_icon_26.webp',
+  g3_tek_cift_sayilar: '/MENUIKON/grid_icon_10.webp',
+  g3_tek_cift_islemler: '/MENUIKON/grid_icon_24.webp',
+  g3_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.webp',
+  g3_nesne_tahmin_karsilastirma: '/MENUIKON/grid_icon_18.webp',
 
   // 3. SINIF TEMA 2 (Sayılar ve Nicelikler 2)
-  g3_birim_kesirler: '/MENUIKON/grid_icon_11.png',
-  g3_pay_payda_modelleme: '/MENUIKON/grid_icon_31.png',
-  g3_payda_10_100_kesir: '/MENUIKON/grid_icon_15.png',
-  g3_zaman_olcme: '/MENUIKON/grid_icon_12.png',
-  g3_uzunluk_kutle_sivi: '/MENUIKON/grid_icon_37.png',
-  g3_paralarimiz_lira_kurus: '/MENUIKON/grid_icon_13.png',
+  g3_birim_kesirler: '/MENUIKON/grid_icon_11.webp',
+  g3_pay_payda_modelleme: '/MENUIKON/grid_icon_31.webp',
+  g3_payda_10_100_kesir: '/MENUIKON/grid_icon_15.webp',
+  g3_zaman_olcme: '/MENUIKON/grid_icon_12.webp',
+  g3_uzunluk_kutle_sivi: '/MENUIKON/grid_icon_37.webp',
+  g3_paralarimiz_lira_kurus: '/MENUIKON/grid_icon_13.webp',
 
   // 3. SINIF TEMA 3 (İşlemlerden Cebirsel Düşünmeye)
-  g3_zihinden_toplama_cikarma_tahmin: '/MENUIKON/grid_icon_08.png',
-  g3_toplama_cikarma_problemleri: '/MENUIKON/grid_icon_22.png',
-  g3_carpma_bolme_pratik: '/MENUIKON/grid_icon_04.png',
-  g3_verilmeyen_ogeyi_bulma: '/MENUIKON/grid_icon_26.png',
+  g3_zihinden_toplama_cikarma_tahmin: '/MENUIKON/grid_icon_08.webp',
+  g3_toplama_cikarma_problemleri: '/MENUIKON/grid_icon_22.webp',
+  g3_carpma_bolme_pratik: '/MENUIKON/grid_icon_04.webp',
+  g3_verilmeyen_ogeyi_bulma: '/MENUIKON/grid_icon_26.webp',
 
   // 3. SINIF TEMA 4 (Nesnelerin Geometrisi ve Ölçme)
-  g3_geometrik_cisimler_ozellikleri: '/MENUIKON/grid_icon_39.png',
-  g3_temel_geometri_kavramlari: '/MENUIKON/grid_icon_29.png',
-  g3_cevre_ve_olculebilir_nitelikler: '/MENUIKON/grid_icon_40.png',
+  g3_geometrik_cisimler_ozellikleri: '/MENUIKON/grid_icon_39.webp',
+  g3_temel_geometri_kavramlari: '/MENUIKON/grid_icon_29.webp',
+  g3_cevre_ve_olculebilir_nitelikler: '/MENUIKON/grid_icon_40.webp',
 
   // 4. SINIF TEMA 1 (Sayılar ve Nicelikler 1)
-  g4_sayi_okuma_yazma: '/MENUIKON/grid_icon_21.png',
-  g4_basamak_ve_cozumleme: '/MENUIKON/grid_icon_33.png',
-  g4_sayi_siralama: '/MENUIKON/grid_icon_07.png',
-  g4_en_yakin_onluk_yuzluk: '/MENUIKON/grid_icon_09.png',
-  g4_ritmik_yuzer_biner: '/MENUIKON/grid_icon_25.png',
-  g4_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.png',
+  g4_sayi_okuma_yazma: '/MENUIKON/grid_icon_21.webp',
+  g4_basamak_ve_cozumleme: '/MENUIKON/grid_icon_33.webp',
+  g4_sayi_siralama: '/MENUIKON/grid_icon_07.webp',
+  g4_en_yakin_onluk_yuzluk: '/MENUIKON/grid_icon_09.webp',
+  g4_ritmik_yuzer_biner: '/MENUIKON/grid_icon_25.webp',
+  g4_sayi_sekil_oruntuleri: '/MENUIKON/grid_icon_19.webp',
 
   // 4. SINIF TEMA 2 (Sayılar ve Nicelikler 2)
-  g4_kesir_cesitleri_modelleme: '/MENUIKON/grid_icon_11.png',
-  g4_birim_kesirler_karsilastirma: '/MENUIKON/grid_icon_31.png',
-  g4_paydalari_esit_kesir_islemleri: '/MENUIKON/grid_icon_15.png',
-  g4_uzunluk_olculeri_donusum: '/MENUIKON/grid_icon_34.png',
-  g4_kutle_olculeri_ton_kg_g: '/MENUIKON/grid_icon_40.png',
+  g4_kesir_cesitleri_modelleme: '/MENUIKON/grid_icon_11.webp',
+  g4_birim_kesirler_karsilastirma: '/MENUIKON/grid_icon_31.webp',
+  g4_paydalari_esit_kesir_islemleri: '/MENUIKON/grid_icon_15.webp',
+  g4_uzunluk_olculeri_donusum: '/MENUIKON/grid_icon_34.webp',
+  g4_kutle_olculeri_ton_kg_g: '/MENUIKON/grid_icon_40.webp',
 
   // 4. SINIF TEMA 3 (İşlemlerden Cebirsel Düşünmeye)
-  g4_dort_islem_toplama_cikarma: '/MENUIKON/grid_icon_22.png',
-  g4_carpma_islemi_3basamakli: '/MENUIKON/grid_icon_04.png',
-  g4_kisa_yoldan_carpma_5: '/MENUIKON/grid_icon_05.png',
-  g4_kisa_yoldan_carpma_50: '/MENUIKON/grid_icon_06.png',
-  g4_kisa_yoldan_carpma_25: '/MENUIKON/grid_icon_08.png',
-  g4_bolme_islemi_4basamakli: '/MENUIKON/grid_icon_03.png',
-  g4_zihinden_carpma_bolme_10_100_1000: '/MENUIKON/grid_icon_28.png',
-  g4_esitlik_ve_verilmeyen_deger: '/MENUIKON/grid_icon_26.png',
+  g4_dort_islem_toplama_cikarma: '/MENUIKON/grid_icon_22.webp',
+  g4_carpma_islemi_3basamakli: '/MENUIKON/grid_icon_04.webp',
+  g4_kisa_yoldan_carpma_5: '/MENUIKON/grid_icon_05.webp',
+  g4_kisa_yoldan_carpma_50: '/MENUIKON/grid_icon_06.webp',
+  g4_kisa_yoldan_carpma_25: '/MENUIKON/grid_icon_08.webp',
+  g4_bolme_islemi_4basamakli: '/MENUIKON/grid_icon_03.webp',
+  g4_zihinden_carpma_bolme_10_100_1000: '/MENUIKON/grid_icon_28.webp',
+  g4_esitlik_ve_verilmeyen_deger: '/MENUIKON/grid_icon_26.webp',
 
   // 4. SINIF TEMA 4 (Geometri, Veri ve Olasılık)
-  g4_geometrik_cisimler: '/MENUIKON/grid_icon_39.png',
-  g4_cevre_uzunlugu: '/MENUIKON/grid_icon_10.png',
-  g4_alan_tahmini_ve_birim_kare: '/MENUIKON/grid_icon_40.png',
-  g4_dogru_isin_dogru_parcasi_acilar: '/MENUIKON/grid_icon_29.png',
-  g4_simetri_dogrulari: '/MENUIKON/grid_icon_16.png',
-  g4_sutun_grafigi_ve_tablolar: '/MENUIKON/grid_icon_36.png',
-  g4_olaylarin_olasiligi: '/MENUIKON/grid_icon_35.png',
+  g4_geometrik_cisimler: '/MENUIKON/grid_icon_39.webp',
+  g4_cevre_uzunlugu: '/MENUIKON/grid_icon_10.webp',
+  g4_alan_tahmini_ve_birim_kare: '/MENUIKON/grid_icon_40.webp',
+  g4_dogru_isin_dogru_parcasi_acilar: '/MENUIKON/grid_icon_29.webp',
+  g4_simetri_dogrulari: '/MENUIKON/grid_icon_16.webp',
+  g4_sutun_grafigi_ve_tablolar: '/MENUIKON/grid_icon_36.webp',
+  g4_olaylarin_olasiligi: '/MENUIKON/grid_icon_35.webp',
 };
 
 // Reference 3D Cartoon Game UI Style (Pill Buttons)
@@ -2239,7 +2241,7 @@ export const GRID_ICON_COLORS: Record<string, { border: string; hover: string; d
 };
 
 export const getIconAccentColor = (iconUrl: string): { border: string; hover: string; dot: string; text: string } => {
-  const filename = iconUrl.split('/').pop() || '';
+  const filename = (iconUrl.split('/').pop() || '').replace(/\.webp$/i, '.png');
   if (GRID_ICON_COLORS[filename]) {
     const item = GRID_ICON_COLORS[filename];
     const textColor = item.border.replace('border-l-', 'text-').replace('-400', '-300');
@@ -2262,7 +2264,7 @@ const TopicButtonReferenceStyle: React.FC<{
   categoryTheme?: string;
   badgeText?: string;
 }> = ({ topicKey, title, onClick, compact, categoryTheme, badgeText }) => {
-  const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.png';
+  const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.webp';
   const accent = getIconAccentColor(iconUrl);
 
   const themeMap: Record<string, {
@@ -2430,7 +2432,7 @@ const TopicButtonReferenceStyle: React.FC<{
         } group-hover:scale-105 transition-transform filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center`}>
           <div 
             className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
-            style={{ backgroundImage: `url('/ply.png')` }}
+            style={{ backgroundImage: `url('/ply.webp')` }}
           />
         </div>
       )}
@@ -2449,20 +2451,20 @@ const getPlayerLevelInfo = (statsData: Record<string, StatRecord>, badgeCounts: 
   });
 
   const LEVEL_THRESHOLDS = [
-    { level: 1, title: 'Matematik Çırağı', icon: '/rozets/d5.png', target: 20 },
-    { level: 2, title: 'Sayı Ustası', icon: '/rozets/d9.png', target: 50 },
-    { level: 3, title: 'Geometri Mimarı', icon: '/rozets/d10.png', target: 100 },
-    { level: 4, title: 'Matematik Dâhisi', icon: '/rozets/d11.png', target: 180 },
-    { level: 5, title: 'Şampiyon Kaptan', icon: '/rozets/d12.png', target: 280 },
-    { level: 6, title: 'Galaksi Efsanesi', icon: '/rozets/d13.png', target: 400 },
-    { level: 7, title: 'Galaksi Üstadı', icon: '/rozets/d14.png', target: 550 },
-    { level: 8, title: 'Kozmik Profesör', icon: '/rozets/d15.png', target: 750 },
-    { level: 9, title: 'Kuantum Mantıkçısı', icon: '/rozets/d16.png', target: 1000 },
+    { level: 1, title: 'Matematik Çırağı', icon: '/rozets/d5.webp', target: 20 },
+    { level: 2, title: 'Sayı Ustası', icon: '/rozets/d9.webp', target: 50 },
+    { level: 3, title: 'Geometri Mimarı', icon: '/rozets/d10.webp', target: 100 },
+    { level: 4, title: 'Matematik Dâhisi', icon: '/rozets/d11.webp', target: 180 },
+    { level: 5, title: 'Şampiyon Kaptan', icon: '/rozets/d12.webp', target: 280 },
+    { level: 6, title: 'Galaksi Efsanesi', icon: '/rozets/d13.webp', target: 400 },
+    { level: 7, title: 'Galaksi Üstadı', icon: '/rozets/d14.webp', target: 550 },
+    { level: 8, title: 'Kozmik Profesör', icon: '/rozets/d15.webp', target: 750 },
+    { level: 9, title: 'Kuantum Mantıkçısı', icon: '/rozets/d16.webp', target: 1000 },
   ];
 
   let currentLevel = 1;
   let levelTitle = 'Matematik Çırağı';
-  let levelIcon = '/rozets/d5.png';
+  let levelIcon = '/rozets/d5.webp';
   let prevTarget = 0;
   let currentTarget = 20;
 
@@ -2538,9 +2540,9 @@ export default function App() {
 
   const [bgImage, setBgImage] = useState<string>(() => {
     try {
-      return localStorage.getItem('userCustomBg') || '/bg-children.jpg';
+      return localStorage.getItem('userCustomBg') || '';
     } catch {
-      return '/bg-children.jpg';
+      return '';
     }
   });
 
@@ -2748,7 +2750,7 @@ export default function App() {
       return {
         videoSrc: '/kap.mp4',
         title: '1. GRUP (KAPLUMBAĞA) ŞAMPİYON! 🏆',
-        img: '/kap.png',
+        img: '/kap.webp',
         badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
         borderColor: 'border-cyan-400',
         glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
@@ -2758,7 +2760,7 @@ export default function App() {
       return {
         videoSrc: '/ejd.mp4',
         title: '2. GRUP (EJDERHA) ŞAMPİYON! 🏆',
-        img: '/ejd.png',
+        img: '/ejd.webp',
         badgeBg: 'from-rose-600 via-pink-500 to-red-600',
         borderColor: 'border-pink-400',
         glowColor: 'shadow-[0_0_35px_rgba(244,63,94,0.95)]'
@@ -2768,7 +2770,7 @@ export default function App() {
       return {
         videoSrc: '/sog.mp4',
         title: '3. GRUP (SAVAŞÇI) ŞAMPİYON! 🏆',
-        img: '/balta.png',
+        img: '/balta.webp',
         badgeBg: 'from-emerald-600 via-teal-500 to-green-600',
         borderColor: 'border-emerald-400',
         glowColor: 'shadow-[0_0_35px_rgba(16,185,129,0.95)]'
@@ -2777,7 +2779,7 @@ export default function App() {
     return {
       videoSrc: '/kap.mp4',
       title: 'ŞAMPİYON! 🏆',
-      img: '/kap.png',
+      img: '/kap.webp',
       badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
       borderColor: 'border-cyan-400',
       glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
@@ -2847,6 +2849,8 @@ export default function App() {
   };
 
   // Cache audio instances for instant playback across browsers
+  const audioCacheRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+
   const playMp3 = (src: string, onEnded?: () => void) => {
     if (!soundEnabled) return;
     if (src.includes('nextlvl')) {
@@ -2856,7 +2860,11 @@ export default function App() {
     try {
       // Standardize clean path
       const cleanSrc = src.startsWith('/') ? src : `/${src.replace(/^\.\//, '')}`;
-      const audio = new Audio(cleanSrc);
+      let audio = audioCacheRef.current.get(cleanSrc);
+      if (!audio) {
+        audio = new Audio(cleanSrc);
+        audioCacheRef.current.set(cleanSrc, audio);
+      }
       audio.currentTime = 0;
       audio.volume = 1.0;
 
@@ -3014,6 +3022,7 @@ export default function App() {
   const [showIstekIhtiyac, setShowIstekIhtiyac] = useState(false);
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
   const [showAblukaGame, setShowAblukaGame] = useState(false);
+  const [showSudokuGame, setShowSudokuGame] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
 
@@ -3043,6 +3052,7 @@ export default function App() {
     showIstekIhtiyac || 
     showMevsimGardirobu || 
     showAblukaGame ||
+    showSudokuGame ||
     wordGameType !== null
   );
 
@@ -3504,6 +3514,83 @@ export default function App() {
     if (currentUser) {
       saveUserDataToCloud(currentUser.uid, updatedStudents, countersData, selectedStudentIds, currentUser.email).catch(e => {
         console.error('Cloud sync after grade reset failed:', e);
+      });
+    }
+  };
+
+  const handleResetTopicStats = (topicKey: string, grade?: number) => {
+    // 1. Single player stats for this specific topic
+    try {
+      const rawSingle = localStorage.getItem('mathGameSingleStats_v1');
+      const currentSingle: SinglePlayerStatsRecord = rawSingle
+        ? JSON.parse(rawSingle)
+        : { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+      if (currentSingle.topicStats && currentSingle.topicStats[topicKey]) {
+        delete currentSingle.topicStats[topicKey];
+        let remainingDogru = 0;
+        let remainingYanlis = 0;
+        Object.values(currentSingle.topicStats).forEach(st => {
+          remainingDogru += st.dogru || 0;
+          remainingYanlis += st.yanlis || 0;
+        });
+        currentSingle.dogru = remainingDogru;
+        currentSingle.yanlis = remainingYanlis;
+        localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(currentSingle));
+        setSingleStatsData({ ...currentSingle });
+      }
+    } catch (e) {
+      console.error('Error resetting topic single stats:', e);
+    }
+
+    // 2. statsData for this specific topic
+    try {
+      const rawStats = localStorage.getItem('mathGameStats_v1');
+      const currentStats: Record<string, StatRecord> = rawStats ? JSON.parse(rawStats) : {};
+      if (currentStats[topicKey]) {
+        delete currentStats[topicKey];
+        localStorage.setItem('mathGameStats_v1', JSON.stringify(currentStats));
+        setStatsData({ ...currentStats });
+      }
+    } catch (e) {
+      console.error('Error resetting topic statsData:', e);
+    }
+
+    // 3. groupStatsData for this specific topic
+    try {
+      const rawGroup = localStorage.getItem('mathGameGroupStats_v1');
+      const currentGroup: GroupStatsRecord = rawGroup ? JSON.parse(rawGroup) : { ...DEFAULT_GROUP_STATS };
+      let changed = false;
+      Object.keys(currentGroup).forEach(grpKey => {
+        const grp = currentGroup[grpKey];
+        if (grp && grp.topicStats && grp.topicStats[topicKey]) {
+          delete grp.topicStats[topicKey];
+          let remainingDogru = 0;
+          let remainingYanlis = 0;
+          Object.values(grp.topicStats).forEach(st => {
+            remainingDogru += st.dogru || 0;
+            remainingYanlis += st.yanlis || 0;
+          });
+          grp.dogru = remainingDogru;
+          grp.yanlis = remainingYanlis;
+          changed = true;
+        }
+      });
+      if (changed) {
+        localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(currentGroup));
+        setGroupStatsData({ ...currentGroup });
+      }
+    } catch (e) {
+      console.error('Error resetting topic groupStats:', e);
+    }
+
+    // 4. Students stats for this specific topic
+    const updatedStudents = resetTopicStatsForAllStudents(topicKey, grade);
+    setStudents(updatedStudents);
+
+    // 5. Cloud sync if authenticated
+    if (currentUser) {
+      saveUserDataToCloud(currentUser.uid, updatedStudents, countersData, selectedStudentIds, currentUser.email).catch(e => {
+        console.error('Cloud sync after topic reset failed:', e);
       });
     }
   };
@@ -4217,6 +4304,7 @@ export default function App() {
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
+    setShowSudokuGame(false);
     setWordGameType(null);
 
     if (topicKey === 'geometri_tahtasi') {
@@ -5726,7 +5814,7 @@ export default function App() {
       {/* ORIGINAL POSITIVE CRISP BACKGROUND IMAGE WITH REDUCED BLUR & CLEAR VISIBILITY */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[1px] transition-all duration-300"
@@ -5751,7 +5839,7 @@ export default function App() {
                 (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && wordGameType === null) ||
                 (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce'));
-              const iconSrc = `/icon_${g}.png`;
+              const iconSrc = `/icon_${g}.webp`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
               return (
                 <button
@@ -5875,7 +5963,7 @@ export default function App() {
           className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
-            src="/ana.png" 
+            src="/ana.webp" 
             alt="Ana Sayfa" 
             loading="eager"
             decoding="async"
@@ -6075,7 +6163,7 @@ export default function App() {
           className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
-            src="/geri.png" 
+            src="/geri.webp" 
             alt="Geri" 
             loading="eager"
             decoding="async"
@@ -6098,7 +6186,7 @@ export default function App() {
           className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
-            src="/ileri.png" 
+            src="/ileri.webp" 
             alt="İleri" 
             loading="eager"
             decoding="async"
@@ -6116,7 +6204,7 @@ export default function App() {
           title={soundEnabled ? "Sesi Kapat" : "Sesi Aç"}
         >
           <img 
-            src="/ses.png" 
+            src="/ses.webp" 
             alt="Ses" 
             loading="eager"
             decoding="async"
@@ -6147,7 +6235,7 @@ export default function App() {
           title="İlerleme ve İstatistikler"
         >
           <img 
-            src="/ist.png" 
+            src="/ist.webp" 
             alt="İstatistik" 
             loading="eager"
             decoding="async"
@@ -6176,7 +6264,7 @@ export default function App() {
           title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "1 Oyuncu Modu"}
         >
           <img 
-            src="/1oy.png" 
+            src="/1oy.webp" 
             alt="1 Oyuncu" 
             loading="eager"
             decoding="async"
@@ -6201,7 +6289,7 @@ export default function App() {
           title="2 Oyuncu Kapışma Modu"
         >
           <img 
-            src="/2oy.png" 
+            src="/2oy.webp" 
             alt="2 Oyuncu Kapışma" 
             loading="eager"
             decoding="async"
@@ -6230,7 +6318,7 @@ export default function App() {
           title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "3 Oyuncu Kapışma Modu"}
         >
           <img 
-            src="/3oy.png" 
+            src="/3oy.webp" 
             alt="3 Oyuncu Kapışma" 
             loading="eager"
             decoding="async"
@@ -6289,7 +6377,7 @@ export default function App() {
             }`}
           >
             <img 
-              src="/FH.png" 
+              src="/FH.webp" 
               alt="Tam Ekran" 
               className="w-full h-full object-contain p-0.5 pointer-events-none drop-shadow" 
             />
@@ -6447,7 +6535,7 @@ export default function App() {
                   className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-blue-400 hover:border-blue-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
                   <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_1.png" alt="1. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <img src="/icon_1.webp" alt="1. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -6467,7 +6555,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
                   </div>
                 </button>
 
@@ -6486,7 +6574,7 @@ export default function App() {
                   >
                     <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
                       <img 
-                        src="/icon_2.png" 
+                        src="/icon_2.webp" 
                         alt="Matematik" 
                         className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
                       />
@@ -6517,7 +6605,7 @@ export default function App() {
                   >
                     <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
                       <img 
-                        src="/icon_2.png" 
+                        src="/icon_2.webp" 
                         alt="Türkçe" 
                         className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(295deg)_saturate(1.3)]" 
                       />
@@ -6548,7 +6636,7 @@ export default function App() {
                   className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-emerald-400 hover:border-emerald-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
                   <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_3.png" alt="3. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <img src="/icon_3.webp" alt="3. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
@@ -6563,7 +6651,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
                   </div>
                 </button>
 
@@ -6578,7 +6666,7 @@ export default function App() {
                   className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-purple-400 hover:border-purple-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
                   <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_4.png" alt="4. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <img src="/icon_4.webp" alt="4. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
@@ -6593,7 +6681,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
                   </div>
                 </button>
 
@@ -6607,7 +6695,7 @@ export default function App() {
                   className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-fuchsia-400 hover:border-fuchsia-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
                   <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_5.png" alt="5. Diğer Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <img src="/icon_5.webp" alt="5. Diğer Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
@@ -6622,7 +6710,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
                   </div>
                 </button>
 
@@ -6636,7 +6724,7 @@ export default function App() {
                   className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-teal-400 hover:border-teal-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                 >
                   <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_6.png" alt="6. İngilizce Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <img src="/icon_6.webp" alt="6. İngilizce Oyunlar" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-0.5">
@@ -6651,7 +6739,7 @@ export default function App() {
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.png')` }} />
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
                   </div>
                 </button>
 
@@ -6771,7 +6859,7 @@ export default function App() {
                       title="4. Uygulama: Ekran Takibi (Yakında)"
                     >
                       <img 
-                        src="/ekranlogo.jpeg?v=3" 
+                        src="/ekranlogo.webp?v=3" 
                         alt="Ekran Takibi" 
                         className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-xl object-cover shadow-sm group-hover/b4:scale-105 transition-transform" 
                       />
@@ -6845,7 +6933,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -6874,7 +6962,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_11.webp" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -6903,7 +6991,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_22.webp" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -6932,7 +7020,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri, Veri ve Olasılık" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_39.webp" alt="Geometri, Veri ve Olasılık" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -6963,7 +7051,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -6996,7 +7084,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Sayılar ve Nicelikler 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7025,7 +7113,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_11.png" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_11.webp" alt="Sayılar ve Nicelikler 2" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7054,7 +7142,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_22.webp" alt="İşlemler ve Cebir" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7083,7 +7171,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri ve Ölçme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_39.webp" alt="Geometri ve Ölçme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7114,7 +7202,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7149,7 +7237,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_39.webp" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7178,7 +7266,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7207,7 +7295,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_22.webp" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7236,7 +7324,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_14.webp" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7268,7 +7356,7 @@ export default function App() {
                         className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                       >
                         <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                          <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                         </div>
 
                         <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7306,7 +7394,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1c0d28] via-[#2d1440] to-[#1c0d28] hover:from-[#251136] hover:via-[#3a1954] hover:to-[#251136] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-purple-400/90 border-l-4 border-l-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_25.png" alt="Sözlük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_25.webp" alt="Sözlük Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7335,7 +7423,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#181135] via-[#24174d] to-[#181135] hover:from-[#1f1543] hover:via-[#2e1d62] hover:to-[#1f1543] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.25)] hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_26.png" alt="Kelime Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_26.webp" alt="Kelime Sıralama" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 mb-0.5">
@@ -7367,7 +7455,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2c0f1f] via-[#45142f] to-[#2c0f1f] hover:from-[#3a1329] hover:via-[#57193b] hover:to-[#3a1329] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)] hover:shadow-[0_0_25px_rgba(244,63,94,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_27.png" alt="Zıt Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_27.webp" alt="Zıt Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7396,7 +7484,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2a1708] via-[#43230b] to-[#2a1708] hover:from-[#361d0a] hover:via-[#522b0e] hover:to-[#361d0a] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:shadow-[0_0_25px_rgba(251,191,36,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Eş Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Eş Anlam" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7425,7 +7513,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_28.png" alt="Kurallı Cümle" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_28.webp" alt="Kurallı Cümle" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7454,7 +7542,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_05.png" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_05.webp" alt="Hece Sayısı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7483,7 +7571,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#07242e] via-[#0d3b4b] to-[#07242e] hover:from-[#0b3341] hover:via-[#124d62] hover:to-[#0b3341] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_35.png" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_35.webp" alt="Hece Makası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7512,7 +7600,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2c1d07] via-[#452d0a] to-[#2c1d07] hover:from-[#3a2709] hover:via-[#59390c] hover:to-[#3a2709] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Yazım Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7541,7 +7629,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2a29] via-[#154240] to-[#0d2a29] hover:from-[#113735] hover:via-[#1c5553] hover:to-[#113735] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_33.png" alt="5N 1K Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_33.webp" alt="5N 1K Dedektifi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
@@ -7573,7 +7661,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_39.png" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_39.webp" alt="Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7602,7 +7690,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_21.png" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_21.webp" alt="Sayılar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7631,7 +7719,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2f1c0a] via-[#43270e] to-[#2f1c0a] hover:from-[#3b230d] hover:via-[#543112] hover:to-[#3b230d] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_22.png" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_22.webp" alt="İşlemler" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7660,7 +7748,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#1d163d] via-[#2a1f56] to-[#1d163d] hover:from-[#251c4f] hover:via-[#35276c] hover:to-[#251c4f] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-indigo-400/90 border-l-4 border-l-indigo-400 shadow-[0_0_20px_rgba(129,140,248,0.25)] hover:shadow-[0_0_25px_rgba(129,140,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_14.png" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_14.webp" alt="Veri İşleme" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7689,7 +7777,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_32.png" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -7720,7 +7808,7 @@ export default function App() {
                       className="group relative w-full bg-gradient-to-r from-[#141b36] via-[#1a254c] to-[#141b36] hover:from-[#1b2344] hover:via-[#222f60] hover:to-[#1b2344] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
                     >
                       <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                        <img src="/MENUIKON/grid_icon_10.png" alt="3D Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                        <img src="/MENUIKON/grid_icon_10.webp" alt="3D Geometri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
@@ -9131,7 +9219,7 @@ export default function App() {
       {gameState === 'gameover' && gameResult && (
         <div 
           className="fixed inset-0 h-[100dvh] w-full z-50 flex flex-col items-center justify-center text-white text-center overflow-hidden select-none px-2 sm:px-4 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/dere3.jpeg')` }}
+          style={{ backgroundImage: `url('/dere3.webp')` }}
         >
           {/* INNER CONTAINER - PERFECTLY POSITIONED INSIDE THE CREAM PARCHMENT AREA */}
           <div className="relative z-10 w-full max-w-3xl flex flex-col items-center justify-center my-auto">
@@ -9141,10 +9229,9 @@ export default function App() {
                 {/* 1. TOP HEADER SECTION: BANNER & WINNER ANNOUNCEMENT (INSIDE CREAM REGION) */}
                 <div className="relative z-10 flex flex-col items-center shrink-0 w-full mb-1 sm:mb-2">
                   <div className="relative w-full max-w-[360px] xs:max-w-[440px] sm:max-w-[520px] rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 flex items-center justify-center px-4 py-2">
-                    {/* bb3.png BANNER BACKGROUND */}
+                    {/* CHAMPION BANNER BACKGROUND SHIMMER */}
                     <div 
-                      className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none opacity-30 filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]"
-                      style={{ backgroundImage: `url('/bb3.png')` }}
+                      className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-yellow-400/20 to-amber-500/10 pointer-events-none rounded-2xl"
                     />
                     <div className="relative z-10 flex flex-col items-center justify-center">
                       <h2 className="text-[13px] xs:text-[15px] sm:text-lg md:text-xl font-black text-amber-200 uppercase tracking-wider drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] leading-tight">
@@ -9187,9 +9274,9 @@ export default function App() {
                       });
 
                       const groupDefs = [
-                        { pIdx: 0, name: "1. GRUP", img: "/kap.png", label: "KAPLUMBAĞA", headerColor: "bg-blue-600 border-blue-300" },
-                        { pIdx: 1, name: "2. GRUP", img: "/ejd.png", label: "EJDERHA", headerColor: "bg-rose-600 border-rose-300" },
-                        { pIdx: 2, name: "3. GRUP", img: "/balta.png", label: "SAVAŞÇI", headerColor: "bg-emerald-600 border-emerald-300" }
+                        { pIdx: 0, name: "1. GRUP", img: "/kap.webp", label: "KAPLUMBAĞA", headerColor: "bg-blue-600 border-blue-300" },
+                        { pIdx: 1, name: "2. GRUP", img: "/ejd.webp", label: "EJDERHA", headerColor: "bg-rose-600 border-rose-300" },
+                        { pIdx: 2, name: "3. GRUP", img: "/balta.webp", label: "SAVAŞÇI", headerColor: "bg-emerald-600 border-emerald-300" }
                       ].slice(0, groupCount);
 
                       return groupDefs.map((group) => {
@@ -9272,7 +9359,7 @@ export default function App() {
                     className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
                   >
                     <img 
-                      src="/tekrar.png" 
+                      src="/tekrar.webp" 
                       alt="Yeniden Oyna" 
                       className="w-full h-full object-contain pointer-events-none" 
                     />
@@ -9299,7 +9386,7 @@ export default function App() {
                     className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
                   >
                     <img 
-                      src="/menu.png" 
+                      src="/menu.webp" 
                       alt="Konu Menüsü" 
                       className="w-full h-full object-contain pointer-events-none" 
                     />
@@ -9385,7 +9472,7 @@ export default function App() {
                     className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
                   >
                     <img 
-                      src="/tekrar.png" 
+                      src="/tekrar.webp" 
                       alt="Yeniden Oyna" 
                       className="w-full h-full object-contain pointer-events-none" 
                     />
@@ -9401,7 +9488,7 @@ export default function App() {
                     className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
                   >
                     <img 
-                      src="/menu.png" 
+                      src="/menu.webp" 
                       alt="Konu Menüsü" 
                       className="w-full h-full object-contain pointer-events-none" 
                     />
@@ -9417,7 +9504,7 @@ export default function App() {
                     className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
                   >
                     <img 
-                      src="/ileri.png" 
+                      src="/ileri.webp" 
                       alt="Sonraki Etkinlik" 
                       className="w-full h-full object-contain pointer-events-none" 
                     />
@@ -9472,6 +9559,7 @@ export default function App() {
             onSelectTopic={(key) => selectTopicAndStart(key)}
             onResetStats={handleResetAllStats}
             onResetGradeStats={handleResetGradeStats}
+            onResetTopicStats={handleResetTopicStats}
             confirmReset={confirmReset}
             setConfirmReset={setConfirmReset}
             students={students}
@@ -10593,7 +10681,7 @@ export default function App() {
           <video
             ref={introVideoRef}
             src="/introh.mp4"
-            poster="/dere3.jpg"
+            poster="/dere3.webp"
             autoPlay
             loop
             muted
@@ -10621,7 +10709,7 @@ export default function App() {
               aria-label="Oyuna Başla"
             >
               <img
-                src="/grs.png"
+                src="/grs.webp"
                 alt="Giriş Yap"
                 className="h-16 sm:h-24 md:h-28 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] transition-transform group-hover:brightness-110"
               />

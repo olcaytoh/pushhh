@@ -670,10 +670,10 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[9999] isolate bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto"
     >
-      {/* Background Image /dere3.jpg */}
+      {/* Background Image /dere3.webp */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"

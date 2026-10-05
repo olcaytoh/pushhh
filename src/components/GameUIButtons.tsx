@@ -375,7 +375,7 @@ export const GlossyCompleteCard: React.FC<GlossyCompleteCardProps> = ({
               className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
             >
               <img 
-                src="/ana.png" 
+                src="/ana.webp" 
                 alt="Ana Sayfa" 
                 loading="eager"
                 decoding="async"
@@ -391,7 +391,7 @@ export const GlossyCompleteCard: React.FC<GlossyCompleteCardProps> = ({
               className="group relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.7)] shrink-0"
             >
               <img 
-                src="/ileri.png" 
+                src="/ileri.webp" 
                 alt="Sonraki / İleri" 
                 loading="eager"
                 decoding="async"
@@ -438,8 +438,7 @@ export const GoldCoinDisplayCard: React.FC<GoldCoinDisplayCardProps> = ({ sessio
       {/* Session Earned Coin Pill */}
       {sessionCoins > 0 && (
         <div
-          style={{ backgroundImage: `url('/butt.png')`, backgroundSize: '100% 100%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-          className="relative text-white font-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 shrink-0 min-w-[130px] sm:min-w-[160px] min-h-[40px] sm:min-h-[46px]"
+          className="relative text-white font-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-600/90 via-yellow-600/90 to-amber-600/90 border border-amber-300/40 shadow-lg flex items-center justify-center gap-2 shrink-0 min-w-[130px] sm:min-w-[160px] min-h-[40px] sm:min-h-[46px]"
         >
           {/* 3D Coin Icon */}
           <div className="text-lg sm:text-2xl filter drop-shadow-md shrink-0">
@@ -459,8 +458,7 @@ export const GoldCoinDisplayCard: React.FC<GoldCoinDisplayCardProps> = ({ sessio
 
       {/* Cumulative Total Coins Box */}
       <div
-        style={{ backgroundImage: `url('/butt.png')`, backgroundSize: '100% 100%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}
-        className="relative text-white font-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 shrink-0 min-w-[130px] sm:min-w-[160px] min-h-[40px] sm:min-h-[46px]"
+        className="relative text-white font-black px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-600/90 via-yellow-600/90 to-amber-600/90 border border-amber-300/40 shadow-lg flex items-center justify-center gap-2 shrink-0 min-w-[130px] sm:min-w-[160px] min-h-[40px] sm:min-h-[46px]"
       >
         {/* 3D Coin Icon */}
         <div className="text-lg sm:text-2xl filter drop-shadow-md animate-pulse shrink-0">

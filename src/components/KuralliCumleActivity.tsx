@@ -1845,7 +1845,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 <div className="relative flex flex-col items-center justify-end select-none pb-0.5">
                   <div className="relative">
                     <TrimmedImg
-                      src="/loko.png"
+                      src="/loko.webp"
                       alt="Lokomotif"
                       style={{ height: MULTI_CAR_H }}
                       className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
@@ -1911,7 +1911,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                     </div>
                     <div className="relative flex items-center justify-center">
                       <TrimmedImg
-                        src="/vago.png"
+                        src="/vago.webp"
                         alt={`Vagon ${idx + 1}`}
                         style={{ height: MULTI_CAR_H }}
                         className="w-auto object-contain select-none pointer-events-none block"
@@ -1967,7 +1967,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 }`}>
                   {/* Bilgilendirme */}
                   <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/40 border border-amber-400/40 text-[10px] sm:text-xs font-bold text-amber-200 text-center shrink-0">
-                    <img src="/loko.png" alt="Lokomotif" className="w-4 h-auto object-contain inline-block" />
+                    <img src="/loko.webp" alt="Lokomotif" className="w-4 h-auto object-contain inline-block" />
                     <span>Vagonları sürükleyerek veya tıklayarak doğru sıraya diz!</span>
                   </div>
 
@@ -2074,7 +2074,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                     key: `${p.key}-loko`,
                     node: (
                       <img
-                        src="/loko.png"
+                        src="/loko.webp"
                         alt="Lokomotif"
                         style={{ height: MULTI_CAR_H }}
                         className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
@@ -2126,7 +2126,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                           <div className={`text-[11px] font-black uppercase mb-0.5 ${t.labelText}`}>#{idx + 1}</div>
                           <div className="relative flex items-center justify-center">
                             <img
-                              src="/vago.png"
+                              src="/vago.webp"
                               alt={`Vagon ${idx + 1}`}
                               style={{ height: MULTI_CAR_H }}
                               className="w-auto object-contain select-none pointer-events-none block"

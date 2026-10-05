@@ -20,7 +20,8 @@ import {
   Search,
   UserPlus,
   GraduationCap,
-  Cloud
+  Cloud,
+  RotateCcw
 } from 'lucide-react';
 import { User } from '../firebase';
 import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types';
@@ -37,11 +38,28 @@ import { halatCekmeTopics } from '../data/halatCekmeTopics';
 
 export const Cute3DRobotMascotSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 90, className = '' }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`} style={{ width: sizePx, height: sizePx }}>
-    <img
-      src="/robot.png"
-      alt="Robot Maskot"
-      className="w-full h-full object-contain drop-shadow-2xl rounded-2xl hover:scale-105 transition-transform"
-    />
+    <svg
+      width={sizePx}
+      height={sizePx}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full drop-shadow-xl hover:scale-105 transition-transform"
+    >
+      <rect x="25" y="30" width="50" height="42" rx="10" fill="#3b82f6" stroke="#60a5fa" strokeWidth="2.5" />
+      <circle cx="50" cy="18" r="6" fill="#f59e0b" />
+      <line x1="50" y1="24" x2="50" y2="30" stroke="#94a3b8" strokeWidth="3" />
+      <rect x="33" y="40" width="34" height="18" rx="6" fill="#0f172a" />
+      <circle cx="42" cy="49" r="4.5" fill="#38bdf8" />
+      <circle cx="58" cy="49" r="4.5" fill="#38bdf8" />
+      <circle cx="43.5" cy="47.5" r="1.5" fill="#ffffff" />
+      <circle cx="59.5" cy="47.5" r="1.5" fill="#ffffff" />
+      <path d="M 44 64 Q 50 67 56 64" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+      <rect x="17" y="44" width="8" height="14" rx="3" fill="#64748b" />
+      <rect x="75" y="44" width="8" height="14" rx="3" fill="#64748b" />
+      <rect x="35" y="72" width="10" height="8" rx="2" fill="#475569" />
+      <rect x="55" y="72" width="10" height="8" rx="2" fill="#475569" />
+    </svg>
   </div>
 );
 
@@ -78,6 +96,7 @@ interface ModernStatsViewProps {
   onSelectTopic: (topicKey: string, grade?: number) => void;
   onResetStats?: () => void;
   onResetGradeStats?: (grade: number) => void;
+  onResetTopicStats?: (topicKey: string, grade?: number) => void;
   confirmReset?: boolean;
   setConfirmReset?: (val: boolean) => void;
   onClose: () => void;
@@ -90,102 +109,102 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
   turkce_sozluk_sirala: {
     title: 'Sözlük Sıralama (Harf Sıralaması)',
     desc: 'Alfabetik harf sıralama portalı (1, 2 & 3 Kişilik Yarış)',
-    icon: '/MENUIKON/grid_icon_25.png',
+    icon: '/MENUIKON/grid_icon_25.webp',
   },
   turkce_kelime_sirala: {
     title: 'Kelime Sıralama (Sözlük Sırası)',
     desc: 'Kelimeleri sözlük sırasına göre dizme portalı (1, 2 & 3 Kişilik Yarış)',
-    icon: '/MENUIKON/grid_icon_26.png',
+    icon: '/MENUIKON/grid_icon_26.webp',
   },
   turkce_sozcuk_sirala: {
     title: 'Sözlük Sıralama (Harf Sıralaması)',
     desc: 'Alfabetik harf ve kelime sıralama portalı (2 & 3 Kişilik Yarış)',
-    icon: '/MENUIKON/grid_icon_25.png',
+    icon: '/MENUIKON/grid_icon_25.webp',
   },
   turkce_zit_anlam: {
     title: 'Zıt Anlamlı Kelimeler',
     desc: 'Karşıt anlamlı sözcükleri eşleştirme & çok oyunculu düello',
-    icon: '/MENUIKON/grid_icon_27.png',
+    icon: '/MENUIKON/grid_icon_27.webp',
   },
   turkce_es_anlam: {
     title: 'Eş Anlamlı Kelimeler',
     desc: 'Anlamdaş kelimeleri bulma & yarışma modu',
-    icon: '/MENUIKON/grid_icon_21.png',
+    icon: '/MENUIKON/grid_icon_21.webp',
   },
   turkce_kuralli_cumle: {
     title: 'Kurallı Cümle Oluşturma',
     desc: 'Kelimeleri kurallı ve anlamlı şekilde doğru sıraya dizme treni',
-    icon: '/MENUIKON/grid_icon_28.png',
+    icon: '/MENUIKON/grid_icon_28.webp',
   },
   turkce_hece_sayisi: {
     title: 'Kelimelerin Hece Sayısını Belirleme',
     desc: 'Sözcükleri hecelerine ayırma & sesli harfe göre hece sayma',
-    icon: '/MENUIKON/grid_icon_05.png',
+    icon: '/MENUIKON/grid_icon_05.webp',
   },
   turkce_hece_makasi: {
     title: 'Hece Makası (Hecelere Ayırma)',
     desc: 'Sözcükleri heceleme çizgilerinden doğru kesme yarışı',
-    icon: '/MENUIKON/grid_icon_28.png',
+    icon: '/MENUIKON/grid_icon_28.webp',
   },
   turkce_yazim_dedektifi: {
     title: 'Yazım Yanlışı Dedektifi',
     desc: 'Cümledeki yazım ve imla hatalarını keşfetme dedektifi',
-    icon: '/MENUIKON/grid_icon_31.png',
+    icon: '/MENUIKON/grid_icon_31.webp',
   },
   dedektif_5n1k: {
     title: '5N1K Dedektifi',
     desc: 'Ne, Nerede, Ne Zaman, Nasıl, Neden, Kim sorularını çözme',
-    icon: '/MENUIKON/grid_icon_32.png',
+    icon: '/MENUIKON/grid_icon_32.webp',
   },
   noktalama_avcisi: {
     title: 'Noktalama İşaretleri Avcısı',
     desc: 'Nokta, virgül, soru ve ünlem işaretlerini tamamlama',
-    icon: '/MENUIKON/grid_icon_35.png',
+    icon: '/MENUIKON/grid_icon_35.webp',
   },
   harf_corbasi: {
     title: 'Harf Çorbası (Anagram Kelime)',
     desc: 'Karışık harflerden anlamlı kelime türetme yarışı',
-    icon: '/MENUIKON/grid_icon_04.png',
+    icon: '/MENUIKON/grid_icon_04.webp',
   },
   geometrik_sekilleri_bul: {
     title: 'Geometrik Cisimleri Bul',
     desc: 'Günlük hayat nesnelerini geometrik cisimlerle eşleştirme',
-    icon: '/MENUIKON/grid_icon_10.png',
+    icon: '/MENUIKON/grid_icon_10.webp',
   },
   saglikli_tabak: {
     title: 'Sağlıklı Tabak (Dengeli Beslenme)',
     desc: 'Yararlı ve zararlı besinleri ayırt etme',
-    icon: '/MENUIKON/grid_icon_15.png',
+    icon: '/MENUIKON/grid_icon_15.webp',
   },
   geri_donusum: {
     title: 'Geri Dönüşüm Kahramanı',
     desc: 'Atıkları cam, plastik, kağıt ve metal kutularına ayırma',
-    icon: '/MENUIKON/grid_icon_11.png',
+    icon: '/MENUIKON/grid_icon_11.webp',
   },
   istek_ihtiyac: {
     title: 'İstek mi, İhtiyaç mı?',
     desc: 'Zorunlu ihtiyaçlar ile keyifli istekleri ayırt etme',
-    icon: '/MENUIKON/grid_icon_07.png',
+    icon: '/MENUIKON/grid_icon_07.webp',
   },
   mevsim_gardirobu: {
     title: 'Mevsim Gardırobu',
     desc: 'Hava durumuna ve mevsime uygun giysileri seçme',
-    icon: '/MENUIKON/grid_icon_21.png',
+    icon: '/MENUIKON/grid_icon_21.webp',
   },
   aynisini_bul: {
     title: 'Aynısını Bul Dikkat Düellosu',
     desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır',
-    icon: '/MENUIKON/grid_icon_26.png',
+    icon: '/MENUIKON/grid_icon_26.webp',
   },
   onu_bul: {
     title: '10\'u Bul Matematik Düellosu',
     desc: 'Toplamı 10 yapan sayı çiftlerini hızlıca keşfet',
-    icon: '/MENUIKON/grid_icon_18.png',
+    icon: '/MENUIKON/grid_icon_18.webp',
   },
   yirmiyi_bul: {
     title: '20\'yi Bul Matematik Düellosu',
     desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet',
-    icon: '/MENUIKON/grid_icon_05.png',
+    icon: '/MENUIKON/grid_icon_05.webp',
   },
 };
 
@@ -204,6 +223,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   onSelectTopic,
   onResetStats,
   onResetGradeStats,
+  onResetTopicStats,
   confirmReset: propConfirmReset,
   setConfirmReset: propSetConfirmReset,
   onClose,
@@ -277,6 +297,84 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const handleResetSingleStudentTopic = (studentId: string, topicKey: string) => {
     const updated = resetSingleStudentTopicStat(studentId, topicKey);
     setLocalStudents(updated);
+  };
+
+  const [confirmTopicResetKey, setConfirmTopicResetKey] = useState<string | null>(null);
+
+  const handleResetTopic = (topicKey: string) => {
+    // 1. Notify parent handler to persist to localStorage & cloud
+    if (onResetTopicStats) {
+      onResetTopicStats(topicKey, currentGrade);
+    }
+
+    // 2. Immediately update local state in ModernStatsView for instant UI feedback
+    setLocalSingleStats(prev => {
+      if (!prev) return prev;
+      const nextTopicStats = { ...(prev.topicStats || {}) };
+      delete nextTopicStats[topicKey];
+      let dogru = 0;
+      let yanlis = 0;
+      Object.values(nextTopicStats).forEach(st => {
+        dogru += st.dogru || 0;
+        yanlis += st.yanlis || 0;
+      });
+      return {
+        ...prev,
+        dogru,
+        yanlis,
+        topicStats: nextTopicStats
+      };
+    });
+
+    setLocalStatsData(prev => {
+      const next = { ...prev };
+      delete next[topicKey];
+      return next;
+    });
+
+    setLocalGroupStats(prev => {
+      if (!prev) return prev;
+      const next = { ...prev };
+      Object.keys(next).forEach(grpKey => {
+        const grp = next[grpKey];
+        if (grp && grp.topicStats && grp.topicStats[topicKey]) {
+          const nextTopicStats = { ...grp.topicStats };
+          delete nextTopicStats[topicKey];
+          let dogru = 0;
+          let yanlis = 0;
+          Object.values(nextTopicStats).forEach(st => {
+            dogru += st.dogru || 0;
+            yanlis += st.yanlis || 0;
+          });
+          next[grpKey] = {
+            ...grp,
+            dogru,
+            yanlis,
+            topicStats: nextTopicStats
+          };
+        }
+      });
+      return next;
+    });
+
+    setLocalStudents(prev => {
+      return prev.map(s => {
+        if (!s.topicStats || !s.topicStats[topicKey]) return s;
+        const topicStat = s.topicStats[topicKey];
+        const topicCorrect = topicStat.correct || 0;
+        const topicWrong = topicStat.wrong || 0;
+        const nextTopicStats = { ...s.topicStats };
+        delete nextTopicStats[topicKey];
+        return {
+          ...s,
+          totalCorrect: Math.max(0, (s.totalCorrect || 0) - topicCorrect),
+          totalWrong: Math.max(0, (s.totalWrong || 0) - topicWrong),
+          topicStats: nextTopicStats
+        };
+      });
+    });
+
+    setConfirmTopicResetKey(null);
   };
 
   const [categoryFilter, setCategoryFilter] = useState<string>('hepsi');
@@ -449,52 +547,52 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   const getCategoriesForGrade = (grade: number) => {
     if (grade === 1) {
       return [
-        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
-        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
-        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.png' },
-        { id: 'geometri', label: 'Geometri & Uzamsal', icon: '/MENUIKON/grid_icon_10.png' },
-        { id: 'sayilar', label: 'Sayılar', icon: '/MENUIKON/grid_icon_05.png' },
-        { id: 'ritmik', label: 'Ritmik Sayma', icon: '/MENUIKON/grid_icon_07.png' },
-        { id: 'toplama', label: 'Toplama', icon: '/MENUIKON/grid_icon_04.png' },
-        { id: 'cikarma', label: 'Çıkarma', icon: '/MENUIKON/grid_icon_11.png' },
-        { id: 'olcme', label: 'Ölçme & Veri', icon: '/MENUIKON/grid_icon_21.png' },
-        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
+        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.webp' },
+        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.webp' },
+        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.webp' },
+        { id: 'geometri', label: 'Geometri & Uzamsal', icon: '/MENUIKON/grid_icon_10.webp' },
+        { id: 'sayilar', label: 'Sayılar', icon: '/MENUIKON/grid_icon_05.webp' },
+        { id: 'ritmik', label: 'Ritmik Sayma', icon: '/MENUIKON/grid_icon_07.webp' },
+        { id: 'toplama', label: 'Toplama', icon: '/MENUIKON/grid_icon_04.webp' },
+        { id: 'cikarma', label: 'Çıkarma', icon: '/MENUIKON/grid_icon_11.webp' },
+        { id: 'olcme', label: 'Ölçme & Veri', icon: '/MENUIKON/grid_icon_21.webp' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.webp' }
       ];
     }
     if (grade === 2) {
       return [
-        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
-        { id: 'turkce', label: '📖 2. Sınıf Türkçe', icon: '/MENUIKON/grid_icon_28.png' },
-        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.png' },
-        { id: 'sayilar', label: 'Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_05.png' },
-        { id: 'toplama', label: 'Toplama İşlemi', icon: '/MENUIKON/grid_icon_04.png' },
-        { id: 'cikarma', label: 'Çıkarma İşlemi', icon: '/MENUIKON/grid_icon_11.png' },
-        { id: 'carpma_bolme', label: 'Çarpma & Bölme', icon: '/MENUIKON/grid_icon_15.png' },
-        { id: 'geometri', label: 'Geometri & Şekiller', icon: '/MENUIKON/grid_icon_10.png' },
-        { id: 'zaman_olcme', label: 'Zaman & Ölçme', icon: '/MENUIKON/grid_icon_35.png' },
-        { id: 'problemler', label: 'Problemler', icon: '/MENUIKON/grid_icon_31.png' },
-        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
+        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.webp' },
+        { id: 'turkce', label: '📖 2. Sınıf Türkçe', icon: '/MENUIKON/grid_icon_28.webp' },
+        { id: 'hayat_bilgisi', label: '🌱 Hayat Bilgisi', icon: '/MENUIKON/grid_icon_15.webp' },
+        { id: 'sayilar', label: 'Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_05.webp' },
+        { id: 'toplama', label: 'Toplama İşlemi', icon: '/MENUIKON/grid_icon_04.webp' },
+        { id: 'cikarma', label: 'Çıkarma İşlemi', icon: '/MENUIKON/grid_icon_11.webp' },
+        { id: 'carpma_bolme', label: 'Çarpma & Bölme', icon: '/MENUIKON/grid_icon_15.webp' },
+        { id: 'geometri', label: 'Geometri & Şekiller', icon: '/MENUIKON/grid_icon_10.webp' },
+        { id: 'zaman_olcme', label: 'Zaman & Ölçme', icon: '/MENUIKON/grid_icon_35.webp' },
+        { id: 'problemler', label: 'Problemler', icon: '/MENUIKON/grid_icon_31.webp' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.webp' }
       ];
     }
     if (grade === 3) {
       return [
-        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
-        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
-        { id: 'g3_tema1', label: 'Tema 1: Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_21.png' },
-        { id: 'g3_tema2', label: 'Tema 2: Kesirler & Ölçme', icon: '/MENUIKON/grid_icon_11.png' },
-        { id: 'g3_tema3', label: 'Tema 3: İşlemler & Problemler', icon: '/MENUIKON/grid_icon_15.png' },
-        { id: 'g3_tema4', label: 'Tema 4: Geometri & Veri', icon: '/MENUIKON/grid_icon_26.png' },
-        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
+        { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.webp' },
+        { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.webp' },
+        { id: 'g3_tema1', label: 'Tema 1: Sayılar & Ritmik', icon: '/MENUIKON/grid_icon_21.webp' },
+        { id: 'g3_tema2', label: 'Tema 2: Kesirler & Ölçme', icon: '/MENUIKON/grid_icon_11.webp' },
+        { id: 'g3_tema3', label: 'Tema 3: İşlemler & Problemler', icon: '/MENUIKON/grid_icon_15.webp' },
+        { id: 'g3_tema4', label: 'Tema 4: Geometri & Veri', icon: '/MENUIKON/grid_icon_26.webp' },
+        { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.webp' }
       ];
     }
     return [
-      { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.png' },
-      { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.png' },
-      { id: 'g4_tema1', label: 'Tema 1: Sayılar ve Nicelikler (1)', icon: '/MENUIKON/grid_icon_21.png' },
-      { id: 'g4_tema2', label: 'Tema 2: Sayılar ve Nicelikler (2)', icon: '/MENUIKON/grid_icon_11.png' },
-      { id: 'g4_tema3', label: 'Tema 3: İşlemler ve Cebirsel', icon: '/MENUIKON/grid_icon_15.png' },
-      { id: 'g4_tema4', label: 'Tema 4: Geometri ve Ölçme', icon: '/MENUIKON/grid_icon_26.png' },
-      { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.png' }
+      { id: 'hepsi', label: 'Tüm Konular', icon: '/MENUIKON/grid_icon_32.webp' },
+      { id: 'turkce', label: '📖 Türkçe & Kelime', icon: '/MENUIKON/grid_icon_28.webp' },
+      { id: 'g4_tema1', label: 'Tema 1: Sayılar ve Nicelikler (1)', icon: '/MENUIKON/grid_icon_21.webp' },
+      { id: 'g4_tema2', label: 'Tema 2: Sayılar ve Nicelikler (2)', icon: '/MENUIKON/grid_icon_11.webp' },
+      { id: 'g4_tema3', label: 'Tema 3: İşlemler ve Cebirsel', icon: '/MENUIKON/grid_icon_15.webp' },
+      { id: 'g4_tema4', label: 'Tema 4: Geometri ve Ölçme', icon: '/MENUIKON/grid_icon_26.webp' },
+      { id: 'diger_oyunlar', label: '🎮 Zeka Oyunları & Düellolar', icon: '/MENUIKON/grid_icon_26.webp' }
     ];
   };
 
@@ -527,10 +625,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   // Grade Badges Definition
   const GRADE_OPTIONS = [
-    { grade: 1, label: '1. SINIF', icon: '/icon_1.png', theme: 'from-amber-500 to-orange-600', ring: 'ring-amber-400' },
-    { grade: 2, label: '2. SINIF', icon: '/icon_2.png', theme: 'from-blue-600 to-indigo-700', ring: 'ring-blue-400' },
-    { grade: 3, label: '3. SINIF', icon: '/icon_3.png', theme: 'from-emerald-500 to-teal-700', ring: 'ring-emerald-400' },
-    { grade: 4, label: '4. SINIF', icon: '/icon_4.png', theme: 'from-purple-600 to-fuchsia-700', ring: 'ring-purple-400' }
+    { grade: 1, label: '1. SINIF', icon: '/icon_1.webp', theme: 'from-amber-500 to-orange-600', ring: 'ring-amber-400' },
+    { grade: 2, label: '2. SINIF', icon: '/icon_2.webp', theme: 'from-blue-600 to-indigo-700', ring: 'ring-blue-400' },
+    { grade: 3, label: '3. SINIF', icon: '/icon_3.webp', theme: 'from-emerald-500 to-teal-700', ring: 'ring-emerald-400' },
+    { grade: 4, label: '4. SINIF', icon: '/icon_4.webp', theme: 'from-purple-600 to-fuchsia-700', ring: 'ring-purple-400' }
   ];
 
   return (
@@ -547,7 +645,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
             <div className="min-w-0">
               <h2 className="text-xs sm:text-sm font-black text-white tracking-tight flex items-center gap-1.5 truncate">
                 <span>{currentGrade}. Sınıf Matematik İstatistikleri</span>
-                <img src={`/icon_${currentGrade}.png`} alt="" className="h-4 sm:h-4.5 w-auto object-contain shrink-0" />
+                <img src={`/icon_${currentGrade}.webp`} alt="" className="h-4 sm:h-4.5 w-auto object-contain shrink-0" />
               </h2>
               <p className="text-[10px] text-purple-200/80 truncate">
                 {viewMode === 'tek_kisilik'
@@ -810,7 +908,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <div className="bg-gradient-to-b from-blue-950/90 via-indigo-950/90 to-slate-950/95 border border-blue-400/60 rounded-xl p-1.5 sm:p-2 shadow flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1 min-w-0">
-                    <img src="/icon_1.png" alt="1" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
+                    <img src="/icon_1.webp" alt="1" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
                     <span className="font-black text-[10px] sm:text-xs text-blue-200 truncate">1. GRUP</span>
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-extrabold text-amber-300 shrink-0">
@@ -832,7 +930,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <div className="bg-gradient-to-b from-rose-950/90 via-red-950/90 to-slate-950/95 border border-rose-400/60 rounded-xl p-1.5 sm:p-2 shadow flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1 min-w-0">
-                    <img src="/icon_2.png" alt="2" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
+                    <img src="/icon_2.webp" alt="2" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
                     <span className="font-black text-[10px] sm:text-xs text-rose-200 truncate">2. GRUP</span>
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-extrabold text-amber-300 shrink-0">
@@ -854,7 +952,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <div className="bg-gradient-to-b from-emerald-950/90 via-teal-950/90 to-slate-950/95 border border-emerald-400/60 rounded-xl p-1.5 sm:p-2 shadow flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1 min-w-0">
-                    <img src="/icon_3.png" alt="3" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
+                    <img src="/icon_3.webp" alt="3" className="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0 drop-shadow" />
                     <span className="font-black text-[10px] sm:text-xs text-emerald-200 truncate">3. GRUP</span>
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-extrabold text-amber-300 shrink-0">
@@ -1095,11 +1193,11 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               // Topic 3D Icon with guaranteed support for Zıt Anlam, Eş Anlam, and valid icon index
               const topicIconPath = (topic as any).icon
                 || topic3DIcons[key]
-                || (key.includes('zit_anlam') ? '/MENUIKON/grid_icon_27.png' : undefined)
-                || (key.includes('es_anlam') ? '/MENUIKON/grid_icon_21.png' : undefined)
-                || (key.includes('ingilizce') ? '/MENUIKON/grid_icon_14.png' : undefined)
-                || (key.includes('xox') ? '/MENUIKON/grid_icon_32.png' : undefined)
-                || `/MENUIKON/grid_icon_${(((idx % 38) + 3)).toString().padStart(2, '0')}.png`;
+                || (key.includes('zit_anlam') ? '/MENUIKON/grid_icon_27.webp' : undefined)
+                || (key.includes('es_anlam') ? '/MENUIKON/grid_icon_21.webp' : undefined)
+                || (key.includes('ingilizce') ? '/MENUIKON/grid_icon_14.webp' : undefined)
+                || (key.includes('xox') ? '/MENUIKON/grid_icon_32.webp' : undefined)
+                || `/MENUIKON/grid_icon_${(((idx % 38) + 3)).toString().padStart(2, '0')}.webp`;
 
               // Individual topic stats
               const tStat = activeGradeStats[key] || { dogru: 0, yanlis: 0 };
@@ -1177,7 +1275,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                         src={topicIconPath}
                         alt={topic.title}
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = '/MENUIKON/grid_icon_27.png';
+                          (e.currentTarget as HTMLImageElement).src = '/MENUIKON/grid_icon_27.webp';
                         }}
                         className="w-full h-full object-contain filter drop-shadow-sm scale-110"
                       />
@@ -1238,6 +1336,53 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                         </span>
                       </div>
                     )}
+
+                    {/* RESET SINGLE TOPIC ACTION */}
+                    <div className="shrink-0 flex items-center ml-auto pl-1">
+                      {confirmTopicResetKey === key ? (
+                        <div 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="flex items-center gap-1.5 bg-red-950/95 border-2 border-red-500 px-2 py-1 rounded-xl shadow-xl z-20 animate-in fade-in zoom-in-95 duration-150"
+                        >
+                          <span className="text-[10px] text-red-200 font-bold whitespace-nowrap">
+                            Bu konu sıfırlansın mı?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetTopic(key);
+                            }}
+                            className="px-2 py-0.5 rounded-md bg-red-600 hover:bg-red-500 text-white font-black text-[10px] shadow cursor-pointer transition active:scale-95"
+                          >
+                            Evet
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmTopicResetKey(null);
+                            }}
+                            className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[10px] border border-slate-600 cursor-pointer transition active:scale-95"
+                          >
+                            İptal
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmTopicResetKey(key);
+                          }}
+                          className="p-1 sm:px-2 sm:py-0.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 border border-rose-400/30 hover:border-rose-400/60 text-rose-300 hover:text-rose-100 text-[10px] font-black flex items-center gap-1 shadow-sm cursor-pointer transition active:scale-95 shrink-0"
+                          title="Bu konunun tüm grup ve tek kişilik istatistiklerini sıfırla"
+                        >
+                          <RotateCcw size={11} className="text-rose-400 shrink-0" />
+                          <span className="hidden md:inline">Konuyu Sıfırla</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* STAT BODY ACCORDING TO VIEW MODE */}
@@ -1321,7 +1466,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                       {/* 1. GRUP ROW */}
                       <div className="flex items-center gap-2">
                         <span className="w-22 text-[10px] sm:text-xs font-black text-blue-300 truncate shrink-0 flex items-center gap-1">
-                          <img src="/icon_1.png" alt="1" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
+                          <img src="/icon_1.webp" alt="1" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
                           <span>1. GRUP</span>
                         </span>
                         <div className="flex-1 bg-black/40 rounded-full h-3 overflow-hidden border border-blue-500/30 relative">
@@ -1338,7 +1483,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                       {/* 2. GRUP ROW */}
                       <div className="flex items-center gap-2">
                         <span className="w-22 text-[10px] sm:text-xs font-black text-rose-300 truncate shrink-0 flex items-center gap-1">
-                          <img src="/icon_2.png" alt="2" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
+                          <img src="/icon_2.webp" alt="2" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
                           <span>2. GRUP</span>
                         </span>
                         <div className="flex-1 bg-black/40 rounded-full h-3 overflow-hidden border border-rose-500/30 relative">
@@ -1355,7 +1500,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                       {/* 3. GRUP ROW */}
                       <div className="flex items-center gap-2">
                         <span className="w-22 text-[10px] sm:text-xs font-black text-emerald-300 truncate shrink-0 flex items-center gap-1">
-                          <img src="/icon_3.png" alt="3" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
+                          <img src="/icon_3.webp" alt="3" className="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain shrink-0" />
                           <span>3. GRUP</span>
                         </span>
                         <div className="flex-1 bg-black/40 rounded-full h-3 overflow-hidden border border-emerald-500/30 relative">

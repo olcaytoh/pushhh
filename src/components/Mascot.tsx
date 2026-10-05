@@ -12,14 +12,44 @@ interface MascotProps {
   className?: string;
 }
 
-// Mascot - Maskot (Renders /msk.png directly)
+// Mascot - Maskot (Inline SVG Lion Mascot - zero network requests)
 export const AslanSVG: React.FC<{ sizePx?: number; className?: string }> = ({ sizePx = 120, className = '' }) => (
-  <img
-    src="/msk.png"
-    alt="Maskot"
-    style={{ width: `${sizePx}px`, height: 'auto', maxHeight: `${Math.round(sizePx * 1.3)}px` }}
-    className={`object-contain transition-transform duration-300 hover:scale-105 inline-block shrink-0 ${className}`}
-  />
+  <svg
+    width={sizePx}
+    height={sizePx}
+    viewBox="0 0 200 200"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-lg transition-transform duration-300 hover:scale-105 inline-block shrink-0 ${className}`}
+  >
+    {/* Mane */}
+    <circle cx="100" cy="100" r="75" fill="#f59e0b" />
+    <circle cx="100" cy="100" r="72" fill="#d97706" />
+    {/* Face */}
+    <circle cx="100" cy="108" r="54" fill="#fbbf24" />
+    {/* Ears */}
+    <circle cx="60" cy="55" r="18" fill="#d97706" />
+    <circle cx="60" cy="55" r="11" fill="#fef08a" />
+    <circle cx="140" cy="55" r="18" fill="#d97706" />
+    <circle cx="140" cy="55" r="11" fill="#fef08a" />
+    {/* Cheeks */}
+    <ellipse cx="82" cy="120" rx="14" ry="10" fill="#fde047" />
+    <ellipse cx="118" cy="120" rx="14" ry="10" fill="#fde047" />
+    {/* Eyes */}
+    <circle cx="78" cy="95" r="7" fill="#1e293b" />
+    <circle cx="80" cy="93" r="2.5" fill="#ffffff" />
+    <circle cx="122" cy="95" r="7" fill="#1e293b" />
+    <circle cx="124" cy="93" r="2.5" fill="#ffffff" />
+    {/* Nose */}
+    <polygon points="100,108 92,118 108,118" fill="#78350f" />
+    {/* Mouth */}
+    <path d="M 94 122 Q 100 128 106 122" stroke="#78350f" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    {/* Whiskers */}
+    <line x1="55" y1="112" x2="72" y2="114" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+    <line x1="55" y1="122" x2="72" y2="120" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+    <line x1="145" y1="112" x2="128" y2="114" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+    <line x1="145" y1="122" x2="128" y2="120" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+  </svg>
 );
 
 // Detailed SVG Mascot - Kurdum (Smart Cyber Husky/Wolf with Hoodie & Glowing Circuits)

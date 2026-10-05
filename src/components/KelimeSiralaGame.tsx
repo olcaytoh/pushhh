@@ -650,7 +650,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                           </span>
                         </div>
                         <img
-                          src="/MENUIKON/grid_icon_25.png"
+                          src="/MENUIKON/grid_icon_25.webp"
                           alt="Kelime Sıralama"
                           className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                         />

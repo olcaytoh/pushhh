@@ -603,10 +603,10 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden touch-none bg-slate-950 text-white"
     >
       
-      {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
+      {/* 1. BACKGROUND IMAGE (/dere3.webp) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
@@ -764,7 +764,7 @@ export const GeometrikSekilleriBulActivity: React.FC<GeometrikSekilleriBulProps>
                           • Geometrik Cisimleri Bul
                         </span>
                       </div>
-                      <img src="/MENUIKON/grid_icon_24.png" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
+                      <img src="/MENUIKON/grid_icon_24.webp" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 h-full">

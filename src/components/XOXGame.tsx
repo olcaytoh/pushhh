@@ -308,7 +308,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
       {/* SAME POSITIVE BACKGROUND IMAGE AS OTHER CLASSROOM ACTIVITIES */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105"
@@ -330,14 +330,10 @@ export const XOXGame: React.FC<XOXGameProps> = ({
 
           <button
             onClick={onClose}
-            className="group relative w-[72px] h-[26px] sm:w-[86px] sm:h-[28px] transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.3)] shrink-0"
+            className="group relative px-2.5 sm:px-3 h-[26px] sm:h-[28px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-600 border border-amber-300/60 shadow-md transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.3)] shrink-0"
             title="Menüye Dön"
           >
-            <div 
-              className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
-              style={{ backgroundImage: `url('/butt.png')` }}
-            />
-            <span className="relative z-10 text-white font-black text-[9px] sm:text-xs tracking-wider [text-shadow:0_2px_0_#000,0_3px_6px_rgba(0,0,0,0.8)] uppercase select-none -translate-y-[1px]">
+            <span className="relative z-10 text-white font-black text-[9px] sm:text-xs tracking-wider [text-shadow:0_1px_2px_rgba(0,0,0,0.8)] uppercase select-none">
               MENÜ
             </span>
           </button>
@@ -373,7 +369,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
           className="group relative w-7 h-7 sm:w-8 sm:h-8 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.3)] shrink-0"
         >
           <img 
-            src="/tekrar.png" 
+            src="/tekrar.webp" 
             alt="Tüm Skorları Sıfırla" 
             className="w-full h-full object-contain pointer-events-none" 
           />

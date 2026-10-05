@@ -23,7 +23,7 @@ export const getWinnerVideoConfig = (winnerIdx: number | null) => {
       videoSrc: '/kap.mp4',
       title: '1. OYUNCU (KAPLUMBAĞA) KAZANDI! 🏆',
       mascotName: '1. Oyuncu (Kaplumbağa)',
-      img: '/kap1.png',
+      img: '/kap1.webp',
       badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
       borderColor: 'border-cyan-400',
       glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
@@ -34,7 +34,7 @@ export const getWinnerVideoConfig = (winnerIdx: number | null) => {
       videoSrc: '/ejd.mp4',
       title: '2. OYUNCU (EJDERHA) KAZANDI! 🏆',
       mascotName: '2. Oyuncu (Ejderha)',
-      img: '/ejd1.png',
+      img: '/ejd1.webp',
       badgeBg: 'from-rose-600 via-pink-500 to-red-600',
       borderColor: 'border-rose-400',
       glowColor: 'shadow-[0_0_35px_rgba(244,63,94,0.95)]'
@@ -45,7 +45,7 @@ export const getWinnerVideoConfig = (winnerIdx: number | null) => {
       videoSrc: '/sog.mp4',
       title: '3. OYUNCU (SAVAŞÇI) KAZANDI! 🏆',
       mascotName: '3. Oyuncu (Savaşçı)',
-      img: '/balta1.png',
+      img: '/balta1.webp',
       badgeBg: 'from-emerald-600 via-teal-500 to-green-600',
       borderColor: 'border-emerald-400',
       glowColor: 'shadow-[0_0_35px_rgba(16,185,129,0.95)]'
@@ -55,7 +55,7 @@ export const getWinnerVideoConfig = (winnerIdx: number | null) => {
     videoSrc: '/kap.mp4',
     title: 'ŞAMPİYON! 🏆',
     mascotName: 'Şampiyon',
-    img: '/kap1.png',
+    img: '/kap1.webp',
     badgeBg: 'from-amber-500 via-yellow-400 to-amber-600',
     borderColor: 'border-amber-400',
     glowColor: 'shadow-[0_0_35px_rgba(245,158,11,0.95)]'
@@ -593,7 +593,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                           </span>
                         </div>
                         <img
-                          src="/MENUIKON/grid_icon_20.png"
+                          src="/MENUIKON/grid_icon_20.webp"
                           alt="Hece Makası"
                           className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                         />

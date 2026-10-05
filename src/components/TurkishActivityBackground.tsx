@@ -37,7 +37,7 @@ export const TurkishActivityBackground: React.FC<TurkishActivityBackgroundProps>
     <div className={`absolute inset-0 pointer-events-none z-0 overflow-hidden select-none ${className}`}>
       {/* 1. TÜRKÇE TEMALI ANA GÖRSEL ARKA PLAN */}
       <img
-        src="/tryarka.png"
+        src="/tryarka.webp"
         alt="Türkçe Etkinlik Arka Planı"
         referrerPolicy="no-referrer"
         className={`w-full h-full object-cover object-center scale-105 transition-all duration-500 ${blurClass}`}

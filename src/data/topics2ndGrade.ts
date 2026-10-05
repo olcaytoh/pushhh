@@ -25,12 +25,12 @@ function getRastgeleOgrenci(): string {
 }
 
 const CISIM_SVG: Record<string, string> = {
-  kup: '<img src="/geos/kups.png" alt="Küp" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
-  kure: '<img src="/geos/kures.png" alt="Küre" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
-  silindir: '<img src="/geos/slndrs.png" alt="Silindir" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
-  dikdortgen_prizma: '<img src="/geos/dikdprz.png" alt="Dikdörtgenler Prizması" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
-  kare_prizma: '<img src="/geos/kareprz.png" alt="Kare Prizma" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
-  ucgen_prizma: '<img src="/geos/ucgenprz.png" alt="Üçgen Prizma" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />'
+  kup: '<img src="/geos/kups.webp" alt="Küp" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
+  kure: '<img src="/geos/kures.webp" alt="Küre" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
+  silindir: '<img src="/geos/slndrs.webp" alt="Silindir" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
+  dikdortgen_prizma: '<img src="/geos/dikdprz.webp" alt="Dikdörtgenler Prizması" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
+  kare_prizma: '<img src="/geos/kareprz.webp" alt="Kare Prizma" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
+  ucgen_prizma: '<img src="/geos/ucgenprz.webp" alt="Üçgen Prizma" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />'
 };
 
 const CISIM_OZELLIK: Record<string, { ad: string; yüz: number; ayrıt: number; köşe: number }> = {
@@ -1264,36 +1264,36 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         }
 
         const SIMETRIK_NESNELER: SimetriNesnesi[] = [
-          { id: 'kelebek', ad: 'Kelebek', img: '/simetri/kelebek.png', isSymmetric: true },
-          { id: 'kalp', ad: 'Kırmızı Kalp', img: '/simetri/kalp.png', isSymmetric: true },
-          { id: 'yildiz', ad: 'Sarı Yıldız', img: '/simetri/yildiz.png', isSymmetric: true },
-          { id: 'tac', ad: 'Altın Taç', img: '/simetri/tac.png', isSymmetric: true },
-          { id: 'gunes', ad: 'Güneş', img: '/simetri/gunes.png', isSymmetric: true },
-          { id: 'cam_agaci', ad: 'Çam Ağacı', img: '/simetri/cam_agaci.png', isSymmetric: true },
-          { id: 'cicek', ad: 'Çiçek', img: '/simetri/cicek.png', isSymmetric: true },
-          { id: 'ugur_bocegi', ad: 'Uğur Böceği', img: '/simetri/ugur_bocegi.png', isSymmetric: true },
-          { id: 'ayicik', ad: 'Ayıcık', img: '/simetri/ayicik.png', isSymmetric: true },
-          { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.png', isSymmetric: true },
+          { id: 'kelebek', ad: 'Kelebek', img: '/simetri/kelebek.webp', isSymmetric: true },
+          { id: 'kalp', ad: 'Kırmızı Kalp', img: '/simetri/kalp.webp', isSymmetric: true },
+          { id: 'yildiz', ad: 'Sarı Yıldız', img: '/simetri/yildiz.webp', isSymmetric: true },
+          { id: 'tac', ad: 'Altın Taç', img: '/simetri/tac.webp', isSymmetric: true },
+          { id: 'gunes', ad: 'Güneş', img: '/simetri/gunes.webp', isSymmetric: true },
+          { id: 'cam_agaci', ad: 'Çam Ağacı', img: '/simetri/cam_agaci.webp', isSymmetric: true },
+          { id: 'cicek', ad: 'Çiçek', img: '/simetri/cicek.webp', isSymmetric: true },
+          { id: 'ugur_bocegi', ad: 'Uğur Böceği', img: '/simetri/ugur_bocegi.webp', isSymmetric: true },
+          { id: 'ayicik', ad: 'Ayıcık', img: '/simetri/ayicik.webp', isSymmetric: true },
+          { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.webp', isSymmetric: true },
         ];
 
         // Net ve tartışmasız asimetrik nesneler havuzu (çelişkili/yapraklı elma ve tek kulplu kupa gibi kafa karıştırıcı nesneler kaldırıldı)
         const ASIMETRIK_NESNELER: SimetriNesnesi[] = [
-          { id: 'makas', ad: 'Makas', img: '/simetri/makas.png', isSymmetric: false },
-          { id: 'keman', ad: 'Keman', img: '/simetri/keman.png', isSymmetric: false },
-          { id: 'tren', ad: 'Tren', img: '/simetri/tren.png', isSymmetric: false },
-          { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.png', isSymmetric: false },
-          { id: 'damperli_kamyon', ad: 'Kamyon', img: '/simetri/damperli_kamyon.png', isSymmetric: false },
-          { id: 'itfaiye_araci', ad: 'İtfaiye', img: '/simetri/itfaiye_araci.png', isSymmetric: false },
-          { id: 'helikopter', ad: 'Helikopter', img: '/simetri/helikopter.png', isSymmetric: false },
-          { id: 'mavi_araba', ad: 'Mavi Araba', img: '/simetri/mavi_araba.png', isSymmetric: false },
-          { id: 'yelkenli', ad: 'Yelkenli', img: '/simetri/yelkenli.png', isSymmetric: false },
-          { id: 'balik', ad: 'Balık', img: '/simetri/balik.png', isSymmetric: false },
-          { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.png', isSymmetric: false },
-          { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.png', isSymmetric: false },
-          { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.png', isSymmetric: false },
-          { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.png', isSymmetric: false },
-          { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.png', isSymmetric: false },
-          { id: 'ucak', ad: 'Uçak', img: '/simetri/ucak.png', isSymmetric: false },
+          { id: 'makas', ad: 'Makas', img: '/simetri/makas.webp', isSymmetric: false },
+          { id: 'keman', ad: 'Keman', img: '/simetri/keman.webp', isSymmetric: false },
+          { id: 'tren', ad: 'Tren', img: '/simetri/tren.webp', isSymmetric: false },
+          { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.webp', isSymmetric: false },
+          { id: 'damperli_kamyon', ad: 'Kamyon', img: '/simetri/damperli_kamyon.webp', isSymmetric: false },
+          { id: 'itfaiye_araci', ad: 'İtfaiye', img: '/simetri/itfaiye_araci.webp', isSymmetric: false },
+          { id: 'helikopter', ad: 'Helikopter', img: '/simetri/helikopter.webp', isSymmetric: false },
+          { id: 'mavi_araba', ad: 'Mavi Araba', img: '/simetri/mavi_araba.webp', isSymmetric: false },
+          { id: 'yelkenli', ad: 'Yelkenli', img: '/simetri/yelkenli.webp', isSymmetric: false },
+          { id: 'balik', ad: 'Balık', img: '/simetri/balik.webp', isSymmetric: false },
+          { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.webp', isSymmetric: false },
+          { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.webp', isSymmetric: false },
+          { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.webp', isSymmetric: false },
+          { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.webp', isSymmetric: false },
+          { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.webp', isSymmetric: false },
+          { id: 'ucak', ad: 'Uçak', img: '/simetri/ucak.webp', isSymmetric: false },
         ];
 
         // Soru Tipleri:
@@ -2503,23 +2503,23 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       desc: "Lira ve Kuruş hesabı ile alışveriş problemleri.",
       generate: () => {
         const getParaGorselleriByTL = (tl: number): string[] => {
-          if (tl === 200) return ['/paralar/200_tl_kagit_para.png'];
-          if (tl === 100) return ['/paralar/100_tl_kagit_para.png'];
-          if (tl === 50) return ['/paralar/50_tl_kagit_para.png'];
-          if (tl === 20) return ['/paralar/20_tl_kagit_para.png'];
-          if (tl === 10) return ['/paralar/10_tl_kagit_para.png'];
-          if (tl === 5) return ['/paralar/5_tl_kagit_para.png'];
-          if (tl === 1) return ['/paralar/1_tl_madeni_para.png'];
+          if (tl === 200) return ['/paralar/200_tl_kagit_para.webp'];
+          if (tl === 100) return ['/paralar/100_tl_kagit_para.webp'];
+          if (tl === 50) return ['/paralar/50_tl_kagit_para.webp'];
+          if (tl === 20) return ['/paralar/20_tl_kagit_para.webp'];
+          if (tl === 10) return ['/paralar/10_tl_kagit_para.webp'];
+          if (tl === 5) return ['/paralar/5_tl_kagit_para.webp'];
+          if (tl === 1) return ['/paralar/1_tl_madeni_para.webp'];
           
           const result: string[] = [];
           let rem = tl;
           const banknotlar = [
-            { val: 100, img: '/paralar/100_tl_kagit_para.png' },
-            { val: 50, img: '/paralar/50_tl_kagit_para.png' },
-            { val: 20, img: '/paralar/20_tl_kagit_para.png' },
-            { val: 10, img: '/paralar/10_tl_kagit_para.png' },
-            { val: 5, img: '/paralar/5_tl_kagit_para.png' },
-            { val: 1, img: '/paralar/1_tl_madeni_para.png' }
+            { val: 100, img: '/paralar/100_tl_kagit_para.webp' },
+            { val: 50, img: '/paralar/50_tl_kagit_para.webp' },
+            { val: 20, img: '/paralar/20_tl_kagit_para.webp' },
+            { val: 10, img: '/paralar/10_tl_kagit_para.webp' },
+            { val: 5, img: '/paralar/5_tl_kagit_para.webp' },
+            { val: 1, img: '/paralar/1_tl_madeni_para.webp' }
           ];
           for (const b of banknotlar) {
             while (rem >= b.val && result.length < 4) {
@@ -2527,7 +2527,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               rem -= b.val;
             }
           }
-          return result.length > 0 ? result : ['/paralar/1_tl_madeni_para.png'];
+          return result.length > 0 ? result : ['/paralar/1_tl_madeni_para.webp'];
         };
 
         const renderMoneyQuestionHTML = (images: string[], questionText: string) => {
@@ -2662,32 +2662,32 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           // Doğrudan Görseldeki Paraları Toplama
           const kombinasyonlar = [
             {
-              images: ['/paralar/50_tl_kagit_para.png', '/paralar/20_tl_kagit_para.png', '/paralar/5_tl_kagit_para.png'],
+              images: ['/paralar/50_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp'],
               toplam: 75,
               text: "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
-              images: ['/paralar/100_tl_kagit_para.png', '/paralar/50_tl_kagit_para.png'],
+              images: ['/paralar/100_tl_kagit_para.webp', '/paralar/50_tl_kagit_para.webp'],
               toplam: 150,
               text: "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
-              images: ['/paralar/20_tl_kagit_para.png', '/paralar/20_tl_kagit_para.png', '/paralar/10_tl_kagit_para.png'],
+              images: ['/paralar/20_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp'],
               toplam: 50,
               text: "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
-              images: ['/paralar/50_tl_kagit_para.png', '/paralar/10_tl_kagit_para.png', '/paralar/10_tl_kagit_para.png'],
+              images: ['/paralar/50_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp'],
               toplam: 70,
               text: "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
-              images: ['/paralar/20_tl_kagit_para.png', '/paralar/10_tl_kagit_para.png', '/paralar/5_tl_kagit_para.png', '/paralar/1_tl_madeni_para.png'],
+              images: ['/paralar/20_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp', '/paralar/1_tl_madeni_para.webp'],
               toplam: 36,
               text: "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
-              images: ['/paralar/50_kurus_madeni_para.png', '/paralar/50_kurus_madeni_para.png', '/paralar/1_tl_madeni_para.png'],
+              images: ['/paralar/50_kurus_madeni_para.webp', '/paralar/50_kurus_madeni_para.webp', '/paralar/1_tl_madeni_para.webp'],
               toplam: 2,
               text: "Görseldeki madeni paraların toplam değeri kaç TL'dir?"
             }

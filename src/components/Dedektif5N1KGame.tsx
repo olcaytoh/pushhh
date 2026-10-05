@@ -465,7 +465,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                             • 5N1K Dedektifi
                           </span>
                         </div>
-                        <img src="/MENUIKON/grid_icon_31.png" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
+                        <img src="/MENUIKON/grid_icon_31.webp" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 h-full">

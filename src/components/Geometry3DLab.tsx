@@ -292,10 +292,10 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
     >
-      {/* Background Image /dere3.jpg */}
+      {/* Background Image /dere3.webp */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[1px]"
@@ -350,10 +350,10 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
         <div className="flex flex-col items-center justify-center mb-2 max-w-4xl w-full mx-auto shrink-0 py-0.5">
           <div className="z-10 flex items-center justify-center gap-2.5 sm:gap-3 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-blue-950 px-4 sm:px-7 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border-2 sm:border-2.5 border-white shadow-[0_3px_10px_rgba(0,0,0,0.5)] font-black text-xs sm:text-sm md:text-base uppercase tracking-wider max-w-full shrink-0">
             <div className="relative shrink-0 flex items-center justify-center">
-              <img src="/MENUIKON/grid_icon_10.png" alt="3D Geometri Labı" className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]" />
+              <img src="/MENUIKON/grid_icon_10.webp" alt="3D Geometri Labı" className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)]" />
             </div>
             <span className="drop-shadow-xs break-words">6. 3D Geometri Keşif Labı</span>
-            <img src="/icon_2.png" alt="2. Sınıf" className="h-6 sm:h-7 md:h-8 w-auto object-contain shrink-0 filter drop-shadow-xs ml-1" />
+            <img src="/icon_2.webp" alt="2. Sınıf" className="h-6 sm:h-7 md:h-8 w-auto object-contain shrink-0 filter drop-shadow-xs ml-1" />
           </div>
         </div>
 

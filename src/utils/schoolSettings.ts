@@ -11,7 +11,7 @@ export const DEFAULT_SCHOOL_SETTINGS: SchoolSettings = {
   teacherName: 'Mustafa HAYAT',
   className: '2-C',
   reportStartDate: '01.09.2026',
-  logoPath: '/cayirova-akcakoca-logo.png'
+  logoPath: '/cayirova-akcakoca-logo.webp'
 };
 
 export const SCHOOL_SETTINGS_STORAGE_KEY = 'schoolReportSettings_v1';

@@ -327,8 +327,8 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
 
                         {onResetTopicScore && (
                           confirmResetTopicKey === item.key ? (
-                            <div className="flex items-center gap-1 bg-rose-950/90 border border-rose-500/80 rounded-lg px-1.5 py-0.5 shadow-sm animate-fadeIn">
-                              <span className="text-[9px] font-bold text-rose-200">Sıfırla?</span>
+                            <div className="flex items-center gap-1.5 bg-red-950/95 border border-red-500/80 rounded-xl px-2 py-0.5 shadow-lg animate-in fade-in zoom-in-95 duration-150">
+                              <span className="text-[9px] font-bold text-red-200 whitespace-nowrap">Sıfırlansın mı?</span>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -337,7 +337,7 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
                                   onResetTopicScore(student.id, item.key);
                                   setConfirmResetTopicKey(null);
                                 }}
-                                className="px-1.5 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-black text-[9px] cursor-pointer shadow-xs transition"
+                                className="px-2 py-0.5 rounded bg-red-600 hover:bg-red-500 text-white font-black text-[9px] cursor-pointer shadow-xs transition active:scale-95"
                                 title="Evet, bu konuyu sıfırla"
                               >
                                 Evet
@@ -348,10 +348,10 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
                                   e.stopPropagation();
                                   setConfirmResetTopicKey(null);
                                 }}
-                                className="px-1 py-0.5 text-slate-400 hover:text-white text-[9px] cursor-pointer"
+                                className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[9px] border border-slate-600 cursor-pointer transition active:scale-95"
                                 title="İptal"
                               >
-                                ✕
+                                İptal
                               </button>
                             </div>
                           ) : (
@@ -361,10 +361,11 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
                                 e.stopPropagation();
                                 setConfirmResetTopicKey(item.key);
                               }}
-                              className="p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-950/50 border border-transparent hover:border-rose-700/40 transition cursor-pointer"
+                              className="px-1.5 py-0.5 rounded-lg text-rose-400 hover:text-rose-100 bg-rose-950/40 hover:bg-rose-900/70 border border-rose-800/40 hover:border-rose-600 transition cursor-pointer flex items-center gap-1 text-[10px] font-bold shadow-xs active:scale-95"
                               title="Bu konunun istatistiğini sıfırla"
                             >
-                              <RotateCcw size={11} />
+                              <RotateCcw size={11} className="text-rose-400 shrink-0" />
+                              <span className="hidden sm:inline">Konuyu Sıfırla</span>
                             </button>
                           )
                         )}

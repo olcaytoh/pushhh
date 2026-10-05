@@ -43,7 +43,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'grade1',
     name: '1. Sınıf',
     badge: '1. SINIF MATEMATİK',
-    icon: '/icon_1.png',
+    icon: '/icon_1.webp',
     colorTheme: {
       bg: 'from-amber-950/60 to-orange-950/60',
       border: 'border-amber-500/40',
@@ -56,7 +56,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'grade2',
     name: '2. Sınıf',
     badge: '2. SINIF MATEMATİK',
-    icon: '/icon_2.png',
+    icon: '/icon_2.webp',
     colorTheme: {
       bg: 'from-emerald-950/60 to-teal-950/60',
       border: 'border-emerald-500/40',
@@ -69,7 +69,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'grade3',
     name: '3. Sınıf',
     badge: '3. SINIF MATEMATİK',
-    icon: '/icon_3.png',
+    icon: '/icon_3.webp',
     colorTheme: {
       bg: 'from-purple-950/60 to-indigo-950/60',
       border: 'border-purple-500/40',
@@ -82,7 +82,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'grade4',
     name: '4. Sınıf',
     badge: '4. SINIF MATEMATİK',
-    icon: '/icon_4.png',
+    icon: '/icon_4.webp',
     colorTheme: {
       bg: 'from-blue-950/60 to-indigo-950/60',
       border: 'border-blue-500/40',
@@ -95,7 +95,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'otherGames',
     name: '5. Diğer Oyunlar',
     badge: 'DİĞER & ZEKA OYUNLARI',
-    icon: '/icon_5.png',
+    icon: '/icon_5.webp',
     colorTheme: {
       bg: 'from-fuchsia-950/60 to-pink-950/60',
       border: 'border-pink-500/40',
@@ -108,7 +108,7 @@ const GRADES_META: GradeMeta[] = [
     key: 'englishGames',
     name: '6. İngilizce',
     badge: 'İNGİLİZCE KELİME OYUNLARI',
-    icon: '/icon_6.png',
+    icon: '/icon_6.webp',
     colorTheme: {
       bg: 'from-sky-950/60 to-cyan-950/60',
       border: 'border-sky-500/40',

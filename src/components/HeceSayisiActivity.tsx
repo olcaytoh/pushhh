@@ -131,7 +131,7 @@ const PLAYER_THEMES = [
   {
     name: '1. GRUP',
     avatar: 'KAPLAN',
-    img: '/kap.png',
+    img: '/kap.webp',
     border: 'border-blue-500',
     headerTitleColor: 'text-blue-200',
     headerAccentBorder: 'border-l-4 border-l-blue-400',
@@ -144,7 +144,7 @@ const PLAYER_THEMES = [
   {
     name: '2. GRUP',
     avatar: 'EJDERHA',
-    img: '/ejd.png',
+    img: '/ejd.webp',
     border: 'border-rose-500',
     headerTitleColor: 'text-rose-200',
     headerAccentBorder: 'border-l-4 border-l-rose-400',
@@ -157,7 +157,7 @@ const PLAYER_THEMES = [
   {
     name: '3. GRUP',
     avatar: 'SAVAŞÇI',
-    img: '/balta.png',
+    img: '/balta.webp',
     border: 'border-emerald-500',
     headerTitleColor: 'text-emerald-200',
     headerAccentBorder: 'border-l-4 border-l-emerald-400',
@@ -596,7 +596,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       return {
         videoSrc: '/kap.mp4',
         title: '1. GRUP KAZANDI! 🏆',
-        img: '/p1.png',
+        img: '/p1.webp',
         badgeBg: 'bg-blue-600',
         borderColor: 'border-blue-400',
         glowColor: 'rgba(59, 130, 246, 0.6)'
@@ -605,7 +605,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       return {
         videoSrc: '/kap.mp4',
         title: '2. GRUP KAZANDI! 🏆',
-        img: '/p2.png',
+        img: '/p2.webp',
         badgeBg: 'bg-rose-600',
         borderColor: 'border-rose-400',
         glowColor: 'rgba(244, 63, 94, 0.6)'
@@ -614,7 +614,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       return {
         videoSrc: '/kap.mp4',
         title: '3. GRUP KAZANDI! 🏆',
-        img: '/p3.png',
+        img: '/p3.webp',
         badgeBg: 'bg-emerald-600',
         borderColor: 'border-emerald-400',
         glowColor: 'rgba(16, 185, 129, 0.6)'
@@ -623,7 +623,7 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     return {
       videoSrc: '/kap.mp4',
       title: 'ŞAMPİYON! 🏆',
-      img: '/p1.png',
+      img: '/p1.webp',
       badgeBg: 'bg-amber-600',
       borderColor: 'border-amber-400',
       glowColor: 'rgba(245, 158, 11, 0.6)'

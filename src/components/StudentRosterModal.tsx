@@ -29,6 +29,7 @@ import {
   resetAllStudentStats,
   resetGradeStudentStats,
   resetSingleStudentStat,
+  resetSingleStudentTopicStat,
   exportStudentsToCSV,
   clearAllStudents,
   clearStudentsForGrade,
@@ -278,6 +279,13 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   const handleResetSingle = (studentId: string) => {
     playMp3?.('/op.mp3');
     const updated = resetSingleStudentStat(studentId);
+    onStudentsUpdated(updated);
+  };
+
+  // Tek öğrencinin belirli bir konusunun istatistiğini sıfırlama
+  const handleResetSingleTopic = (studentId: string, topicKey: string) => {
+    playMp3?.('/op.mp3');
+    const updated = resetSingleStudentTopicStat(studentId, topicKey);
     onStudentsUpdated(updated);
   };
 
@@ -1175,6 +1183,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                       <StudentTopicStatsDetail
                         student={student}
                         onResetScore={handleResetSingle}
+                        onResetTopicScore={handleResetSingleTopic}
                         playMp3={playMp3}
                       />
                     </div>

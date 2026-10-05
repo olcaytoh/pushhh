@@ -1952,9 +1952,9 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
         // Alışveriş & Para Üstü Hesabı Görsel Banknotlu
         const ogrenci = getRastgeleOgrenci();
         const verilenSecenekler = [
-          { val: 50, img: '/paralar/50_tl_kagit_para.png' },
-          { val: 100, img: '/paralar/100_tl_kagit_para.png' },
-          { val: 200, img: '/paralar/200_tl_kagit_para.png' },
+          { val: 50, img: '/paralar/50_tl_kagit_para.webp' },
+          { val: 100, img: '/paralar/100_tl_kagit_para.webp' },
+          { val: 200, img: '/paralar/200_tl_kagit_para.webp' },
         ];
         const secilenVerilen = verilenSecenekler[Math.floor(Math.random() * verilenSecenekler.length)];
         const verilen = secilenVerilen.val;
@@ -1985,25 +1985,25 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
         // Görseldeki Lira ve Kuruşları Toplama
         const kombinasyonlar = [
           {
-            images: ['/paralar/20_tl_kagit_para.png', '/paralar/5_tl_kagit_para.png', '/paralar/1_tl_madeni_para.png', '/paralar/50_kurus_madeni_para.png'],
+            images: ['/paralar/20_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp', '/paralar/1_tl_madeni_para.webp', '/paralar/50_kurus_madeni_para.webp'],
             dogru: "26 TL 50 Kr",
             yanlis: ["25 TL 50 Kr", "27 TL", "26 TL"],
             text: "Görseldeki paraların toplam değeri nedir?"
           },
           {
-            images: ['/paralar/50_tl_kagit_para.png', '/paralar/10_tl_kagit_para.png', '/paralar/1_tl_madeni_para.png', '/paralar/1_tl_madeni_para.png'],
+            images: ['/paralar/50_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp', '/paralar/1_tl_madeni_para.webp', '/paralar/1_tl_madeni_para.webp'],
             dogru: "62 TL",
             yanlis: ["61 TL", "60 TL", "72 TL"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?"
           },
           {
-            images: ['/paralar/100_tl_kagit_para.png', '/paralar/20_tl_kagit_para.png', '/paralar/5_tl_kagit_para.png'],
+            images: ['/paralar/100_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp'],
             dogru: "125 TL",
             yanlis: ["120 TL", "130 TL", "115 TL"],
             text: "Görseldeki paraların toplam değeri kaç TL'dir?"
           },
           {
-            images: ['/paralar/50_kurus_madeni_para.png', '/paralar/50_kurus_madeni_para.png', '/paralar/25_kurus_madeni_para.png', '/paralar/25_kurus_madeni_para.png'],
+            images: ['/paralar/50_kurus_madeni_para.webp', '/paralar/50_kurus_madeni_para.webp', '/paralar/25_kurus_madeni_para.webp', '/paralar/25_kurus_madeni_para.webp'],
             dogru: "1 TL 50 Kr",
             yanlis: ["1 TL", "2 TL", "1 TL 25 Kr"],
             text: "Görseldeki madeni paraların toplam değeri nedir?"
@@ -2294,12 +2294,12 @@ export const topics3rdGrade: Record<string, { title: string; desc: string; gener
     desc: "Küp, kare prizma, dikdörtgenler prizması, silindir, koni ve kürenin yüz/köşe/ayrıt sayıları",
     generate: () => {
       const cisimler = [
-        { ad: "Küp", yuz: 6, ayrit: 12, kose: 8, img: "/geos/kups.png" },
-        { ad: "Kare Prizma", yuz: 6, ayrit: 12, kose: 8, img: "/geos/kareprz.png" },
-        { ad: "Dikdörtgenler Prizması", yuz: 6, ayrit: 12, kose: 8, img: "/geos/dikdprz.png" },
-        { ad: "Üçgen Prizma", yuz: 5, ayrit: 9, kose: 6, img: "/geos/ucgenprz.png" },
-        { ad: "Silindir", yuz: 3, ayrit: 0, kose: 0, img: "/geos/slndrs.png" },
-        { ad: "Küre", yuz: 1, ayrit: 0, kose: 0, img: "/geos/kures.png" }
+        { ad: "Küp", yuz: 6, ayrit: 12, kose: 8, img: "/geos/kups.webp" },
+        { ad: "Kare Prizma", yuz: 6, ayrit: 12, kose: 8, img: "/geos/kareprz.webp" },
+        { ad: "Dikdörtgenler Prizması", yuz: 6, ayrit: 12, kose: 8, img: "/geos/dikdprz.webp" },
+        { ad: "Üçgen Prizma", yuz: 5, ayrit: 9, kose: 6, img: "/geos/ucgenprz.webp" },
+        { ad: "Silindir", yuz: 3, ayrit: 0, kose: 0, img: "/geos/slndrs.webp" },
+        { ad: "Küre", yuz: 1, ayrit: 0, kose: 0, img: "/geos/kures.webp" }
       ];
 
       const secilen = cisimler[Math.floor(Math.random() * cisimler.length)];

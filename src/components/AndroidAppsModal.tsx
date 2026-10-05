@@ -75,7 +75,7 @@ const FEATURED_APPS: AndroidAppItem[] = [
     downloads: 'Yakında',
     iconBg: 'from-lime-500 via-teal-600 to-cyan-600',
     iconEmoji: '📱',
-    image: '/ekranlogo.jpeg?v=3',
+    image: '/ekranlogo.webp?v=3',
     badge: '4. Uygulama',
     playStoreUrl: ''
   }

@@ -483,6 +483,7 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
         loop={loop}
         muted={isMuted}
         playsInline
+        preload="metadata"
         // @ts-ignore
         webkit-playsinline="true"
         // @ts-ignore

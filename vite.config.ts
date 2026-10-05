@@ -1,11 +1,32 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import fs from 'fs';
+import {defineConfig, Plugin} from 'vite';
+
+const webpFallbackPlugin = (): Plugin => ({
+  name: 'webp-fallback',
+  configureServer(server) {
+    server.middlewares.use((req, _res, next) => {
+      if (req.url && /\.(png|jpe?g)$/i.test(req.url.split('?')[0])) {
+        const urlPath = req.url.split('?')[0];
+        const localPath = path.join(__dirname, 'public', urlPath);
+        if (!fs.existsSync(localPath)) {
+          const webpPath = urlPath.replace(/\.(png|jpe?g)$/i, '.webp');
+          const localWebp = path.join(__dirname, 'public', webpPath);
+          if (fs.existsSync(localWebp)) {
+            req.url = webpPath;
+          }
+        }
+      }
+      next();
+    });
+  }
+});
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), webpFallbackPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

@@ -594,6 +594,47 @@ export function resetSingleStudentTopicStat(studentId: string, topicKey: string)
   return students;
 }
 
+/**
+ * Resets stats for a single topic across all students (or students of a specific grade)
+ */
+export function resetTopicStatsForAllStudents(topicKey: string, grade?: number): Student[] {
+  const students = loadStudents();
+  let modified = false;
+
+  const updated = students.map(s => {
+    if (grade !== undefined && s.grade !== grade) return s;
+    if (!s.topicStats || !s.topicStats[topicKey]) return s;
+
+    const topicStat = s.topicStats[topicKey];
+    const topicCorrect = topicStat.correct || 0;
+    const topicWrong = topicStat.wrong || 0;
+
+    const newTopicStats = { ...s.topicStats };
+    delete newTopicStats[topicKey];
+    modified = true;
+
+    return {
+      ...s,
+      totalCorrect: Math.max(0, (studentCorrectFallback(s.totalCorrect) - topicCorrect)),
+      totalWrong: Math.max(0, (studentWrongFallback(s.totalWrong) - topicWrong)),
+      topicStats: newTopicStats
+    };
+  });
+
+  if (modified) {
+    saveStudents(updated);
+  }
+  return updated;
+}
+
+function studentCorrectFallback(val: number | undefined): number {
+  return typeof val === 'number' ? val : 0;
+}
+
+function studentWrongFallback(val: number | undefined): number {
+  return typeof val === 'number' ? val : 0;
+}
+
 export function exportStudentsToCSV(students: Student[]): string {
   const headers = ['Sınıf Seviyesi', 'Şube', 'Öğrenci Adı', 'Avatar', 'Toplam Doğru', 'Toplam Yanlış', 'Başarı Yüzdesi (%)', 'Oynanan Oyun', 'Galibiyet'];
   const rows = students.map(s => {

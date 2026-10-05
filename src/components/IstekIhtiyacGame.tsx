@@ -252,7 +252,7 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
         />
@@ -297,7 +297,7 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
                             • İstek mi, İhtiyaç mı?
                           </span>
                         </div>
-                        <img src="/MENUIKON/grid_icon_29.png" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
+                        <img src="/MENUIKON/grid_icon_29.webp" alt="Etkinlik" className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1" />
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 h-full">

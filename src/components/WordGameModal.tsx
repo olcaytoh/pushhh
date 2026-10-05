@@ -70,7 +70,7 @@ const PLAYER_THEMES = [
   {
     name: '1. GRUP',
     avatar: 'KAPLAN',
-    img: '/kap.png',
+    img: '/kap.webp',
     border: 'border-blue-500',
     bg: 'from-blue-950/80 via-slate-900/90 to-blue-950/90',
     headerBg: 'bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-800',
@@ -81,7 +81,7 @@ const PLAYER_THEMES = [
   {
     name: '2. GRUP',
     avatar: 'EJDERHA',
-    img: '/ejd.png',
+    img: '/ejd.webp',
     border: 'border-rose-500',
     bg: 'from-rose-950/80 via-slate-900/90 to-rose-950/90',
     headerBg: 'bg-gradient-to-r from-rose-700 via-red-600 to-rose-800',
@@ -92,7 +92,7 @@ const PLAYER_THEMES = [
   {
     name: '3. GRUP',
     avatar: 'SAVAŞÇI',
-    img: '/balta.png',
+    img: '/balta.webp',
     border: 'border-emerald-500',
     bg: 'from-emerald-950/80 via-slate-900/90 to-teal-950/90',
     headerBg: 'bg-gradient-to-r from-emerald-700 via-teal-600 to-green-800',
@@ -151,7 +151,7 @@ const getWinnerVideoConfig = (winnerIdx: number | null) => {
     return {
       videoSrc: '/kap.mp4',
       title: '1. GRUP ŞAMPİYON! 🏆',
-      img: '/kap1.png',
+      img: '/kap1.webp',
       badgeBg: 'from-blue-600 via-cyan-500 to-indigo-600',
       borderColor: 'border-cyan-400',
       glowColor: 'shadow-[0_0_35px_rgba(6,182,212,0.95)]'
@@ -161,7 +161,7 @@ const getWinnerVideoConfig = (winnerIdx: number | null) => {
     return {
       videoSrc: '/ejd.mp4',
       title: '2. GRUP ŞAMPİYON! 🏆',
-      img: '/ejd1.png',
+      img: '/ejd1.webp',
       badgeBg: 'from-rose-600 via-pink-500 to-red-700',
       borderColor: 'border-rose-400',
       glowColor: 'shadow-[0_0_35px_rgba(244,63,94,0.95)]'
@@ -170,7 +170,7 @@ const getWinnerVideoConfig = (winnerIdx: number | null) => {
   return {
     videoSrc: '/sog.mp4',
     title: '3. GRUP ŞAMPİYON! 🏆',
-    img: '/balta1.png',
+    img: '/balta1.webp',
     badgeBg: 'from-emerald-600 via-teal-500 to-green-700',
     borderColor: 'border-emerald-400',
     glowColor: 'shadow-[0_0_35px_rgba(16,185,129,0.95)]'
@@ -990,7 +990,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
       ) : (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           <img 
-            src="/dere3.jpg" 
+            src="/dere3.webp" 
             alt="Arka Plan Görseli"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center scale-105"
@@ -1087,7 +1087,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
               className="group relative w-8 h-8 sm:w-9 sm:h-9 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
             >
               <img 
-                src="/tekrar.png" 
+                src="/tekrar.webp" 
                 alt="Yeniden Başlat" 
                 className="w-full h-full object-contain pointer-events-none" 
               />
@@ -1105,7 +1105,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
             className="group relative w-8 h-8 sm:w-9 sm:h-9 aspect-square transition-all transform hover:scale-110 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.4)] shrink-0"
           >
             <img 
-              src="/tekrar.png" 
+              src="/tekrar.webp" 
               alt="Yeniden Başlat" 
               className="w-full h-full object-contain pointer-events-none" 
             />
@@ -1353,7 +1353,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                             </span>
                           </div>
                           <img
-                            src={isIng ? '/icon_6.png' : '/icon_5.png'}
+                            src={isIng ? '/icon_6.webp' : '/icon_5.webp'}
                             alt="Oyun İkonu"
                             className="h-5 w-5 sm:h-6 sm:w-6 object-contain shrink-0 filter drop-shadow-sm ml-1"
                           />

@@ -28,6 +28,7 @@ interface OtherGamesHubProps {
   onOpenIstekIhtiyac?: () => void;
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
+  onOpenSudoku?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -57,6 +58,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenIstekIhtiyac,
   onOpenMevsimGardirobu,
   onOpenAbluka,
+  onOpenSudoku,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -70,7 +72,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'sozluk_sirala',
       title: 'Sözlük Sıralama',
       subtitle: 'Harf Sıralama Yarışı',
-      icon: '/MENUIKON/grid_icon_25.png',
+      icon: '/MENUIKON/grid_icon_25.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenSozlukSirala) onOpenSozlukSirala();
@@ -80,7 +82,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'kelime_sirala',
       title: 'Kelime Sıralama',
       subtitle: 'Sözlük Sırasına Dizme',
-      icon: '/MENUIKON/grid_icon_26.png',
+      icon: '/MENUIKON/grid_icon_26.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenKelimeSirala) onOpenKelimeSirala();
@@ -90,7 +92,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'hece_makasi',
       title: 'Hece Makası',
       subtitle: 'Hecelere Ayırma Oyunu',
-      icon: '/MENUIKON/grid_icon_35.png',
+      icon: '/MENUIKON/grid_icon_35.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenHeceMakasi) onOpenHeceMakasi();
@@ -100,7 +102,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'yazim_dedektifi',
       title: 'Yazım Yanlışı Dedektifi',
       subtitle: 'Hatalı Sözcük Avı',
-      icon: '/MENUIKON/grid_icon_21.png',
+      icon: '/MENUIKON/grid_icon_21.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenYazimDedektifi) onOpenYazimDedektifi();
@@ -110,7 +112,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'aynisini_bul',
       title: 'Aynısını Bul',
       subtitle: '2 Kişilik Dikkat Yarışı',
-      icon: '/MENUIKON/grid_icon_20.png',
+      icon: '/MENUIKON/grid_icon_20.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenAynisiniBul) onOpenAynisiniBul();
@@ -120,7 +122,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'onu_bul',
       title: "10'u Bul",
       subtitle: 'Toplamı 10 Yapan Çiftler',
-      icon: '/MENUIKON/grid_icon_18.png',
+      icon: '/MENUIKON/grid_icon_18.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenOnuBul) onOpenOnuBul();
@@ -130,7 +132,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'yirmiyi_bul',
       title: "20'yi Bul",
       subtitle: 'Toplamı 20 Yapan Çiftler',
-      icon: '/MENUIKON/grid_icon_19.png',
+      icon: '/MENUIKON/grid_icon_19.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenYirmiyiBul) onOpenYirmiyiBul();
@@ -140,7 +142,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'xox',
       title: 'XOX & Zeka Düellosu',
       subtitle: 'Zeka & Strateji Düellosu',
-      icon: '/MENUIKON/grid_icon_32.png',
+      icon: '/MENUIKON/grid_icon_32.webp',
       sound: '/coin.mp3',
       action: onOpenXOX,
     },
@@ -148,7 +150,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'zit_anlam',
       title: 'Zıt Anlamlı Kelimeler',
       subtitle: 'Karşıt Kelime Kapışması',
-      icon: '/MENUIKON/grid_icon_27.png',
+      icon: '/MENUIKON/grid_icon_27.webp',
       sound: '/farklilvl.mp3',
       action: onOpenZitAnlam,
     },
@@ -156,7 +158,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'es_anlam',
       title: 'Eş Anlamlı Kelimeler',
       subtitle: 'Anlamdaş Kelime Kapışması',
-      icon: '/MENUIKON/grid_icon_21.png',
+      icon: '/MENUIKON/grid_icon_21.webp',
       sound: '/para.mp3',
       action: onOpenEsAnlam,
     },
@@ -164,7 +166,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'lab3d',
       title: '3D Geometri Laboratuvarı',
       subtitle: '3 Boyutlu Cisim Keşfi',
-      icon: '/MENUIKON/grid_icon_39.png',
+      icon: '/MENUIKON/grid_icon_39.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpen3DLab) onOpen3DLab();
@@ -174,7 +176,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'geoboard',
       title: 'Geometri Tahtası',
       subtitle: 'Noktalı Tahta Çizimi',
-      icon: '/MENUIKON/grid_icon_29.png',
+      icon: '/MENUIKON/grid_icon_29.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenGeoboard) onOpenGeoboard();
@@ -184,7 +186,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'cisimler_acilimi',
       title: 'Geometrik Cisimler Açılımı',
       subtitle: '3D Yüzey Açınımı',
-      icon: '/MENUIKON/grid_icon_10.png',
+      icon: '/MENUIKON/grid_icon_10.webp',
       sound: '/para.mp3',
       action: () => {
         if (onOpenGeometricNets) onOpenGeometricNets();
@@ -194,7 +196,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'kuralli_cumle',
       title: 'Kurallı Cümle Oluştur',
       subtitle: 'Kurallı Cümle Kurma',
-      icon: '/MENUIKON/grid_icon_28.png',
+      icon: '/MENUIKON/grid_icon_28.webp',
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenKuralliCumle) onOpenKuralliCumle();
@@ -204,7 +206,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'geometrik_sekilleri_bul',
       title: 'Geometrik Cisimleri Bul',
       subtitle: 'Hızlı Cisim & Eşya Avı',
-      icon: '/MENUIKON/grid_icon_39.png',
+      icon: '/MENUIKON/grid_icon_39.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenGeometrikSekilleriBul) onOpenGeometrikSekilleriBul();
@@ -214,7 +216,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'dedektif_5n1k',
       title: '5N 1K Dedektifi',
       subtitle: '5N 1K İpucu Çözme',
-      icon: '/MENUIKON/grid_icon_33.png',
+      icon: '/MENUIKON/grid_icon_33.webp',
       sound: '/para.mp3',
       action: () => {
         if (onOpenDedektif5N1K) onOpenDedektif5N1K();
@@ -224,7 +226,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'noktalama_avcisi',
       title: 'Noktalama İşareti Avcısı',
       subtitle: 'Cümle İçi İşaret Avı',
-      icon: '/MENUIKON/grid_icon_25.png',
+      icon: '/MENUIKON/grid_icon_25.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenNoktalamaAvcisi) onOpenNoktalamaAvcisi();
@@ -234,7 +236,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'harf_corbasi',
       title: 'Harf Çorbası / Anagram',
       subtitle: 'Gizli Kelimeyi Bul',
-      icon: '/MENUIKON/grid_icon_26.png',
+      icon: '/MENUIKON/grid_icon_26.webp',
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenHarfCorbasi) onOpenHarfCorbasi();
@@ -244,7 +246,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'geri_donusum',
       title: 'Geri Dönüşüm Kahramanı',
       subtitle: 'Geri Dönüşüm Bilinci',
-      icon: '/MENUIKON/grid_icon_05.png',
+      icon: '/MENUIKON/grid_icon_05.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenGeriDonusum) onOpenGeriDonusum();
@@ -254,7 +256,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'saglikli_tabak',
       title: 'Sağlıklı Tabak Şefi',
       subtitle: 'Dengeli Beslenme Şefi',
-      icon: '/MENUIKON/grid_icon_27.png',
+      icon: '/MENUIKON/grid_icon_27.webp',
       sound: '/para.mp3',
       action: () => {
         if (onOpenSaglikliTabak) onOpenSaglikliTabak();
@@ -264,7 +266,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'istek_ihtiyac',
       title: 'İstek mi, İhtiyaç mı?',
       subtitle: 'İstek ve İhtiyaç Ayrımı',
-      icon: '/MENUIKON/grid_icon_20.png',
+      icon: '/MENUIKON/grid_icon_20.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenIstekIhtiyac) onOpenIstekIhtiyac();
@@ -274,7 +276,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'mevsim_gardirobu',
       title: 'Mevsim Gardırobu',
       subtitle: 'Hava & Mevsim Kıyafeti',
-      icon: '/MENUIKON/grid_icon_28.png',
+      icon: '/MENUIKON/grid_icon_28.webp',
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenMevsimGardirobu) onOpenMevsimGardirobu();
@@ -284,20 +286,30 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       id: 'abluka',
       title: 'Abluka Zeka Oyunu',
       subtitle: '7x7 Taktik & Kıstırma',
-      icon: '/MENUIKON/grid_icon_30.png',
+      icon: '/MENUIKON/grid_icon_30.webp',
       sound: '/coin.mp3',
       action: () => {
         if (onOpenAbluka) onOpenAbluka();
+      },
+    },
+    {
+      id: 'sudoku',
+      title: 'Sudoku Zeka Oyunu',
+      subtitle: '4x4 & 6x6 Akıl Oyunu',
+      icon: '/MENUIKON/grid_icon_19.webp',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenSudoku) onOpenSudoku();
       },
     }
   ];
 
   return (
     <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
-      {/* 1. SAME BACKGROUND IMAGE AS OTHER CLASSROOM ACTIVITIES (/dere3.jpg) */}
+      {/* 1. SAME BACKGROUND IMAGE AS OTHER CLASSROOM ACTIVITIES (/dere3.webp) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
@@ -311,7 +323,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
         <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
           <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
             <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/icon_5.png" alt="5. Diğer Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
+              <img src="/icon_5.webp" alt="5. Diğer Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
               <span className="text-xs sm:text-sm md:text-base font-black text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 5. DİĞER OYUNLAR
               </span>

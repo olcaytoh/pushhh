@@ -273,22 +273,16 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     // Build the initial 3D net
     buildSolidNet(selectedSolid.id, modelGroup, unfoldRatio);
 
-    // Animation / Render loop (Throttled to 30 FPS for smartboard performance)
-    let lastRenderTime = 0;
-    const animate = (time: number) => {
-      if (isDisposed || !renderer) return;
-      animationFrameIdRef.current = requestAnimationFrame(animate);
-
-      if (time - lastRenderTime < 32) return;
-      lastRenderTime = time;
-
+    // Render on-demand helper (Sıfır boşa dönen döngü, fan çalıştırmaz)
+    const renderScene = () => {
+      if (isDisposed || !renderer || !scene || !camera) return;
       try {
         renderer.render(scene, camera);
-      } catch {
-        // ignore render frame errors
-      }
+      } catch {}
     };
-    animationFrameIdRef.current = requestAnimationFrame(animate);
+
+    // Initial render
+    renderScene();
 
     // Resize Handler
     const handleResize = () => {
@@ -299,6 +293,7 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         cameraRef.current.aspect = w / h;
         cameraRef.current.updateProjectionMatrix();
         rendererRef.current.setSize(w, h);
+        renderScene();
       }
     };
     window.addEventListener('resize', handleResize);
@@ -315,10 +310,13 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     };
   }, [selectedSolid]);
 
-  // Rebuild / Update the 3D net when unfoldRatio changes
+  // Rebuild / Update the 3D net when unfoldRatio changes & render on-demand
   useEffect(() => {
-    if (!modelGroupRef.current) return;
+    if (!modelGroupRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) return;
     buildSolidNet(selectedSolid.id, modelGroupRef.current, unfoldRatio);
+    try {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    } catch {}
   }, [selectedSolid, unfoldRatio]);
 
   // Auto-play Folding / Unfolding Animation (Throttled to ~30 FPS to prevent CPU lock)
@@ -349,7 +347,7 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current || !modelGroupRef.current) return;
+    if (!isDraggingRef.current || !modelGroupRef.current || !rendererRef.current || !sceneRef.current || !cameraRef.current) return;
     const deltaX = e.clientX - lastMousePosRef.current.x;
     const deltaY = e.clientY - lastMousePosRef.current.y;
 
@@ -357,6 +355,10 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     modelGroupRef.current.rotation.x += deltaY * 0.012;
 
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+
+    try {
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    } catch {}
   };
 
   const handlePointerUp = () => {
@@ -372,6 +374,11 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
     if (cameraRef.current) {
       cameraRef.current.position.set(0, 4.2, 7.2);
       cameraRef.current.lookAt(0, 0, 0);
+    }
+    if (rendererRef.current && sceneRef.current && cameraRef.current) {
+      try {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      } catch {}
     }
   };
 
@@ -829,10 +836,10 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[220] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white"
     >
-      {/* 1. BACKGROUND IMAGE (/dere3.jpg) */}
+      {/* 1. BACKGROUND IMAGE (/dere3.webp) */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         <img 
-          src="/dere3.jpg" 
+          src="/dere3.webp" 
           alt="Arka Plan Görseli"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 blur-[0.5px]"
