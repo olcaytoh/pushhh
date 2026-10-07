@@ -15,6 +15,7 @@ interface SudokuGameProps {
   onNextActivity?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   students?: Student[];
+  currentGrade?: number;
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
@@ -190,6 +191,7 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
   onNextActivity,
   playMp3,
   students = [],
+  currentGrade = 2,
   selectedStudentIds = [],
   onSelectStudentForPlayer,
   onOpenRosterModal,
@@ -198,6 +200,13 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
 }) => {
   // Mode: 1 = Tek Kişilik, 2 = 2 Kişilik Kapışma
   const [playerMode, setPlayerMode] = useState<1 | 2>(1);
+  const [selectedDockGrade, setSelectedDockGrade] = useState<number>(currentGrade || 2);
+
+  useEffect(() => {
+    if (currentGrade && [1, 2, 3, 4].includes(currentGrade)) {
+      setSelectedDockGrade(currentGrade);
+    }
+  }, [currentGrade]);
   const [size, setSize] = useState<SudokuSize>('4x4');
   const [difficulty, setDifficulty] = useState<SudokuDifficulty>('easy');
 
@@ -692,15 +701,34 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
         {playerMode === 1 ? (
           /* 1 OYUNCU (TEK KİŞİLİK) ARENA */
           <div className="flex flex-col items-center justify-center gap-2 max-w-lg w-full my-auto">
-            {/* Top Info pill */}
-            <div className="flex items-center justify-between w-full max-w-md px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 shadow-md text-xs font-bold">
-              <span className="text-amber-300 flex items-center gap-1.5">
-                <Sparkles size={14} />
-                <span>Kalan Hücre: <b>{totalEmptyCells - countFilledCorrect(board1)}</b></span>
-              </span>
-              <span className="text-blue-300 font-mono">
-                Skor: <b className="text-white text-sm">{score1}</b> Puan
-              </span>
+            {/* Top Info pill with student details */}
+            <div className="flex items-center justify-between w-full max-w-md px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 shadow-md text-xs font-bold gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                {p1Student ? (
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${p1Student.avatarBg || 'from-amber-500 to-yellow-600'} text-slate-950 font-black text-xs flex items-center justify-center border border-amber-400 shrink-0`}>
+                      {p1Student.avatar}
+                    </div>
+                    <span className="text-amber-300 font-black truncate max-w-[130px] sm:max-w-[160px]">
+                      {p1Student.name}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-400 text-[11px] font-semibold flex items-center gap-1">
+                    <User size={13} className="text-slate-400" />
+                    <span>Öğrenci Seçin</span>
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                <span className="text-emerald-300 flex items-center gap-1 text-[11px]">
+                  <span>Kalan:</span>
+                  <b className="text-white font-mono text-xs">{totalEmptyCells - countFilledCorrect(board1)}</b>
+                </span>
+                <span className="text-blue-300 font-mono text-xs">
+                  Skor: <b className="text-white">{score1}</b> P
+                </span>
+              </div>
             </div>
 
             {/* Sudoku Board */}
@@ -783,7 +811,68 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
         )}
       </main>
 
-      {/* 4. GAME OVER & VICTORY MODAL */}
+      {/* 4. ALT TARAFTA SINIF VE ÖĞRENCİ LİSTESİ DOCK */}
+      <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-1 pt-0.5 mt-auto bg-[#0a1120]/95 border-t border-slate-700/80 shadow-lg">
+        {/* Sınıf Seçim Çubuğu (1, 2, 3, 4. Sınıf) */}
+        <div className="flex items-center justify-between px-2 pt-0.5 pb-1 max-w-7xl mx-auto flex-wrap gap-1">
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider mr-1 hidden xs:inline">Sınıf Listesi:</span>
+            {[1, 2, 3, 4].map((g) => {
+              const count = students.filter(s => s.grade === g).length;
+              const isSelected = selectedDockGrade === g;
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => {
+                    triggerSound('/op.mp3');
+                    setSelectedDockGrade(g);
+                  }}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 border ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 border-amber-300 shadow-sm font-black scale-102'
+                      : 'bg-slate-900/90 text-slate-300 border-slate-700 hover:border-slate-500'
+                  }`}
+                  title={`${g}. Sınıf Öğrenci Listesini Göster`}
+                >
+                  <span>{g}. Sınıf</span>
+                  {count > 0 && (
+                    <span className={`text-[9px] px-1 py-0.1 rounded-full ${isSelected ? 'bg-slate-950/20 text-slate-950 font-black' : 'bg-slate-800 text-amber-300'}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {onOpenRosterModal && (
+            <button
+              type="button"
+              onClick={() => {
+                triggerSound('/op.mp3');
+                onOpenRosterModal(selectedDockGrade);
+              }}
+              className="text-[10px] text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 transition cursor-pointer"
+              title="Öğrenci Listesini Düzenle"
+            >
+              <span>⚙️ {selectedDockGrade}. Sınıf Listesini Düzenle</span>
+            </button>
+          )}
+        </div>
+
+        <StudentAvatarDock
+          students={students}
+          currentGrade={selectedDockGrade}
+          playerCount={playerMode}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={onSelectStudentForPlayer || ((_pIdx, _sId) => {})}
+          onOpenRosterModal={onOpenRosterModal}
+          playMp3={triggerSound}
+        />
+      </div>
+
+      {/* 5. GAME OVER & VICTORY MODAL */}
       {gameOver && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in zoom-in-95 duration-200">
           <div className="relative w-full max-w-md rounded-3xl bg-gradient-to-b from-[#131f38] to-[#0c1424] border-2 border-amber-400 shadow-[0_0_50px_rgba(245,158,11,0.4)] p-6 flex flex-col items-center text-center">
@@ -791,16 +880,33 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
               🏆
             </div>
 
+            {/* Winning student badge */}
+            {playerMode === 1 && p1Student && isCompleted1 && (
+              <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50">
+                <span className="text-base">{p1Student.avatar}</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300">{p1Student.name}</span>
+              </div>
+            )}
+
+            {playerMode === 2 && winner !== 'draw' && (
+              <div className="flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50">
+                <span className="text-base">{winner === 0 ? p1Student?.avatar || '🥇' : p2Student?.avatar || '🥈'}</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300">
+                  {winner === 0 ? (p1Student?.name || '1. GRUP (Mavi)') : (p2Student?.name || '2. GRUP (Kırmızı)')}
+                </span>
+              </div>
+            )}
+
             <h3 className="text-xl sm:text-2xl font-black text-amber-300 tracking-wide uppercase">
               {playerMode === 1
                 ? (isCompleted1 ? 'Tebrikler! Sudoku Tamamlandı!' : 'Süre Doldu!')
-                : (winner === 'draw' ? 'Berabere!' : `${winner === 0 ? '1. GRUP' : '2. GRUP'} Kazandı!`)}
+                : (winner === 'draw' ? 'Berabere!' : `${winner === 0 ? (p1Student ? p1Student.name : '1. GRUP') : (p2Student ? p2Student.name : '2. GRUP')} Kazandı!`)}
             </h3>
 
             <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-1 mb-4">
               {playerMode === 1
                 ? `Toplam Skor: ${score1} Puan • ${100 - timeLeft} saniyede çözüldü`
-                : `1. Grup: ${score1} Puan • 2. Grup: ${score2} Puan`}
+                : `${p1Student ? p1Student.name : '1. Grup'}: ${score1} Puan • ${p2Student ? p2Student.name : '2. Grup'}: ${score2} Puan`}
             </p>
 
             <div className="flex items-center gap-3 w-full">

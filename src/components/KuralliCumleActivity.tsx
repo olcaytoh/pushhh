@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export type GradeLevel = 1 | 2 | 3 | 4;
 
@@ -1793,10 +1792,18 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-950 text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* 3. OYUN ALANI (ORTA ALAN) */}
       <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-between w-full overflow-y-auto no-scrollbar p-1.5 sm:p-2.5">
@@ -1967,7 +1974,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                   {/* TREN ARENASI: FitTrain ile kutuya otomatik sığdırılır, asla ekrandan taşmaz */}
                   <FitTrain
                     items={singleCarItems}
-                    className="w-full flex-1 min-h-0 my-0.5 bg-black/40 border border-amber-400/30 rounded-xl"
+                    className="w-full flex-1 min-h-0 my-0.5 border-2 border-amber-300/80 rounded-xl shadow-md bg-notebook-paper relative"
                     gapX={0}
                     maxScale={1.5}
                   />
@@ -2172,7 +2179,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                     {/* TREN ARENASI: kutuya otomatik sığdırılır */}
                     <FitTrain
                       items={carItems}
-                      className={`my-1 bg-black/40 border ${t.divider} rounded-2xl`}
+                      className="my-1 border-2 border-amber-300/80 rounded-2xl shadow-sm bg-notebook-paper-dense relative"
                     />
 
                     {/* ÖNİZLEME VE KONTROL BUTONU */}

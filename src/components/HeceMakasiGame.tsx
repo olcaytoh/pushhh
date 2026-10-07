@@ -9,7 +9,6 @@ import { HeceWord, HECE_MAKASI_WORDS, getRandomHeceWords } from '../data/heceMak
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { playScissorCutSound } from '../utils/scissorSound';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export const TARGET_QUESTIONS = 5;
 
@@ -532,10 +531,18 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 text-white select-none overflow-hidden font-sans"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* 2. MAIN BATTLE ARENA / WORKSPACE */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -621,34 +628,66 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  {/* CENTER: ÇİZGİLİ DEFTER SAYFASI KART ÇERÇEVESİ */}
                   <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2.5 sm:p-3.5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full">
-                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                    <div 
+                      className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full"
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          /* Kırmızı dikey marjin çizgisi */
+                          linear-gradient(to right, transparent 56px, rgba(239, 68, 68, 0.75) 56px, rgba(239, 68, 68, 0.75) 58px, transparent 58px),
+                          /* Yatay açık mavi çizgili defter satırları (32px aralıklı Türkçe ilkokul defteri satırları) */
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                          /* Doğal yumuşak defter kağıdı dokusu */
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
+                      {/* Sol kenar spiralli defter delikleri */}
+                      <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                        {Array.from({ length: 9 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Defter üst başlık çizgisi */}
+                      <div className="relative z-10 flex items-center justify-between w-full pl-7 sm:pl-8 pr-1 shrink-0 pb-1 border-b border-sky-300/80">
+                        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider">
+                          <span>✏️ TÜRKÇE DEFTERİ</span>
+                          <span className="text-slate-500 font-bold hidden xs:inline">• Hece Makası</span>
+                        </div>
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 font-mono">
+                          Sayfa: {player.currentWordIndex + 1}/{TARGET_QUESTIONS}
+                        </span>
+                      </div>
 
                       {/* Word Hint & Category Badge */}
-                      <div className="relative z-10 flex items-center justify-between gap-1 w-full px-1 shrink-0">
-                        <span className="rounded-lg bg-black/40 border border-white/10 font-semibold text-slate-300 px-2.5 py-0.5 text-xs shrink-0">
+                      <div className="relative z-10 flex items-center justify-between gap-1 w-full pl-7 sm:pl-8 pr-1 shrink-0 mt-0.5">
+                        <span className="rounded-lg bg-slate-900 border border-slate-700 font-bold text-amber-300 px-2.5 py-0.5 text-xs shadow-xs shrink-0">
                           🏷️ {currentWord.category}
                         </span>
-                        <span className="font-semibold text-amber-200 italic truncate text-center px-1 text-xs sm:text-sm">
+                        <span className="font-extrabold text-slate-900 italic truncate text-center px-1 text-xs sm:text-sm md:text-base drop-shadow-xs">
                           {currentWord.hint}
                         </span>
-                        <span className="rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-bold px-2.5 py-0.5 text-xs shrink-0">
+                        <span className="rounded-lg bg-sky-600 text-white font-black px-2.5 py-0.5 text-xs shadow-xs shrink-0">
                           {currentWord.syllableCount} Hece
                         </span>
                       </div>
 
                       {/* Instructions */}
-                      <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 border border-cyan-400/30 my-1 shadow shrink-0">
-                        <Scissors size={13} className="text-cyan-400 animate-pulse" />
-                        <span className="text-xs font-bold text-cyan-200">
+                      <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 border-2 border-sky-400/80 text-sky-950 my-1 shadow-sm shrink-0">
+                        <Scissors size={14} className="text-sky-600 animate-pulse" />
+                        <span className="text-xs sm:text-sm font-black">
                           Hecelerin ayrıldığı harf aralarına makasla tıkla!
                         </span>
                       </div>
 
-                      {/* Word Ribbon */}
-                      <div className="relative z-10 my-auto flex items-center justify-center p-3 rounded-2xl bg-slate-900/90 border-2 border-cyan-500/40 shadow-xl max-w-full overflow-x-auto shrink-0">
+                      {/* Word Ribbon - Defter çizgileri üzerinde parlayan harf şeridi */}
+                      <div className="relative z-10 my-auto flex items-center justify-center p-3 rounded-2xl bg-white/90 border-2 border-sky-400/80 shadow-xl max-w-full overflow-x-auto shrink-0 backdrop-blur-xs">
                         {letters.map((letter, letterIdx) => {
                           const isCutSlot = letterIdx < letters.length - 1;
                           const isCutDone = isCutSlot && player.selectedCuts.includes(letterIdx);
@@ -656,7 +695,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
 
                           return (
                             <React.Fragment key={letterIdx}>
-                              <div className="w-10 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg bg-gradient-to-b from-cyan-400 to-blue-600 text-white">
+                              <div className="w-10 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg bg-gradient-to-b from-sky-500 to-blue-700 text-white border-2 border-white/60">
                                 {letter}
                               </div>
 
@@ -670,16 +709,16 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                                 >
                                   {isCutDone ? (
                                     <div className="w-6 sm:w-8 h-12 sm:h-14 flex flex-col items-center justify-center">
-                                      <div className="w-0.5 h-10 sm:h-12 bg-cyan-400/80 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-                                      <div className="absolute w-6 h-6 rounded-full bg-cyan-500 border border-white flex items-center justify-center shadow-lg text-white text-xs">
+                                      <div className="w-0.5 h-10 sm:h-12 bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
+                                      <div className="absolute w-6 h-6 rounded-full bg-sky-600 border border-white flex items-center justify-center shadow-lg text-white text-xs">
                                         ✂️
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="w-6 sm:w-8 h-12 sm:h-14 flex flex-col items-center justify-center rounded-md border border-dashed border-white/30 hover:border-cyan-400/80 bg-black/20 hover:bg-cyan-500/20 transition-all">
-                                      <div className="w-px h-10 sm:h-12 border-r border-dashed border-white/40 group-hover:border-cyan-300" />
-                                      <div className="absolute w-6 h-6 rounded-full bg-slate-900 group-hover:bg-cyan-500 border border-white/40 group-hover:border-white flex items-center justify-center shadow transition-transform group-hover:scale-125">
-                                        <Scissors size={13} className="text-slate-300 group-hover:text-white transform -rotate-45" />
+                                    <div className="w-6 sm:w-8 h-12 sm:h-14 flex flex-col items-center justify-center rounded-md border-2 border-dashed border-sky-400 hover:border-sky-600 bg-sky-50/80 hover:bg-sky-100 transition-all">
+                                      <div className="w-px h-10 sm:h-12 border-r border-dashed border-sky-400 group-hover:border-sky-600" />
+                                      <div className="absolute w-6 h-6 rounded-full bg-white group-hover:bg-sky-500 border border-sky-400 group-hover:border-white flex items-center justify-center shadow transition-transform group-hover:scale-125">
+                                        <Scissors size={13} className="text-sky-600 group-hover:text-white transform -rotate-45" />
                                       </div>
                                     </div>
                                   )}
@@ -698,25 +737,25 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
 
                       {/* Oluşan Heceler Strip */}
                       <div className="relative z-10 w-full shrink-0 flex flex-col items-center gap-1">
-                        <span className="uppercase tracking-wider text-slate-400 font-bold text-[10px]">
+                        <span className="uppercase tracking-wider text-slate-700 font-black text-[11px]">
                           Oluşan Heceler
                         </span>
                         {player.isCompleted ? (
-                          <div className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-teal-500/30 to-emerald-500/20 border-2 border-emerald-400 text-emerald-200 p-2 shadow-[0_0_25px_rgba(16,185,129,0.3)] animate-in zoom-in duration-300">
-                            <Sparkles size={16} className="text-amber-300 animate-spin" />
+                          <div className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-teal-500/30 to-emerald-500/20 border-2 border-emerald-500 text-emerald-950 p-2 shadow-lg animate-in zoom-in duration-300">
+                            <Sparkles size={16} className="text-amber-500 animate-spin" />
                             <div className="flex items-center gap-1 sm:gap-1.5">
                               {currentWord.syllables.map((syl, sIdx) => (
                                 <React.Fragment key={sIdx}>
-                                  <span className="rounded-lg bg-emerald-500 text-slate-950 font-black shadow px-3 py-1 text-sm sm:text-base">
+                                  <span className="rounded-lg bg-emerald-600 text-white font-black shadow px-3 py-1 text-sm sm:text-base">
                                     {syl}
                                   </span>
                                   {sIdx < currentWord.syllables.length - 1 && (
-                                    <span className="font-black text-emerald-300 text-sm sm:text-base">-</span>
+                                    <span className="font-black text-emerald-700 text-sm sm:text-base">-</span>
                                   )}
                                 </React.Fragment>
                               ))}
                             </div>
-                            <span className="rounded-md bg-emerald-400/30 text-emerald-200 font-black px-2 py-0.5 text-xs">
+                            <span className="rounded-md bg-emerald-600 text-white font-black px-2 py-0.5 text-xs shadow-xs">
                               TEBRİKLER! 🎉
                             </span>
                           </div>
@@ -724,11 +763,11 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                           <div className="flex items-center justify-center gap-1.5 flex-wrap min-h-[38px]">
                             {parts.map((part, pPartIdx) => (
                               <React.Fragment key={pPartIdx}>
-                                <div className="rounded-lg bg-slate-900/90 border border-cyan-400/40 text-cyan-200 font-black shadow tracking-wider px-3 py-1 text-sm sm:text-base">
+                                <div className="rounded-xl bg-slate-900 border-2 border-sky-400 text-white font-black shadow-md tracking-wider px-3.5 py-1 text-sm sm:text-base">
                                   {part}
                                 </div>
                                 {pPartIdx < parts.length - 1 && (
-                                  <span className="text-cyan-400 font-black text-base">-</span>
+                                  <span className="text-sky-600 font-black text-base">-</span>
                                 )}
                               </React.Fragment>
                             ))}
@@ -738,17 +777,17 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
 
                       {/* Progress: cuts made */}
                       <div className="relative z-10 flex items-center gap-1.5 shrink-0 mt-1">
-                        <span className="text-slate-300 font-bold text-xs">
+                        <span className="text-slate-800 font-black text-xs">
                           Kesim: {madeCutsCount} / {neededCutsCount}
                         </span>
                         <div className="flex items-center gap-1">
                           {Array.from({ length: neededCutsCount }).map((_, cIdx) => (
                             <div
                               key={cIdx}
-                              className={`rounded-full border flex items-center justify-center transition-all w-3.5 h-3.5 text-[8px] ${
+                              className={`rounded-full border-2 flex items-center justify-center transition-all w-4 h-4 text-[9px] font-black ${
                                 cIdx < madeCutsCount
-                                  ? 'bg-cyan-500 border-cyan-300 text-white shadow-[0_0_8px_rgba(6,182,212,0.8)]'
-                                  : 'bg-slate-800 border-slate-600 text-transparent'
+                                  ? 'bg-emerald-500 border-emerald-600 text-white shadow-xs'
+                                  : 'bg-white border-slate-400 text-transparent'
                               }`}
                             >
                               ✓
@@ -901,8 +940,18 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                       </div>
                     )}
 
-                    {/* Word Ribbon */}
-                    <div className={`relative flex items-center justify-center ${sizing.ribbonPadding} rounded-2xl sm:rounded-3xl border-2 ${theme.border} ${theme.ribbonBg} shadow-2xl max-w-full overflow-x-auto shrink-0`}>
+                    {/* Word Ribbon - Çizgili Defter Sayfası Modeli */}
+                    <div 
+                      className={`relative flex items-center justify-center ${sizing.ribbonPadding} rounded-2xl sm:rounded-3xl border-3 border-amber-300/80 shadow-2xl max-w-full overflow-x-auto shrink-0`}
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          linear-gradient(to right, transparent 36px, rgba(239, 68, 68, 0.7) 36px, rgba(239, 68, 68, 0.7) 38px, transparent 38px),
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
                       {letters.map((letter, letterIdx) => {
                         const isCutSlot = letterIdx < letters.length - 1;
                         const isCutDone = isCutSlot && player.selectedCuts.includes(letterIdx);

@@ -206,6 +206,41 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet',
     icon: '/MENUIKON/grid_icon_05.webp',
   },
+  sudoku: {
+    title: 'Sudoku Zeka Oyunu',
+    desc: '4x4 & 6x6 Akıl ve Mantık Oyunu (1 & 2 Kişilik Zeka Düellosu)',
+    icon: '/MENUIKON/grid_icon_19.webp',
+  },
+  abluka: {
+    title: 'Abluka Zeka Oyunu',
+    desc: '7x7 Taktik & Alan Kıstırma Zeka Oyunu (2 Kişilik Strateji)',
+    icon: '/MENUIKON/grid_icon_30.webp',
+  },
+  satir_sonu_hece: {
+    title: 'Satır Sonu Heceleme Oyunu',
+    desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma ve kısa çizgi kullanımı',
+    icon: '/MENUIKON/grid_icon_31.webp',
+  },
+  xox_matematik: {
+    title: 'XOX Matematik & Zeka',
+    desc: 'İki kişilik strateji ve mantık düellosu',
+    icon: '/MENUIKON/grid_icon_12.webp',
+  },
+  other_3d_lab: {
+    title: '3D Geometrik Laboratuvar',
+    desc: '3 Boyutlu cisimlerin yüzey, köşe ve ayrıtlarını keşfetme',
+    icon: '/MENUIKON/grid_icon_01.webp',
+  },
+  cisimler_acilimi: {
+    title: 'Geometrik Cisimler Açınımı',
+    desc: 'Küp, prizma ve piramitlerin 2D açılımları ve katlama modelleri',
+    icon: '/MENUIKON/grid_icon_03.webp',
+  },
+  geoboard: {
+    title: 'Geometri Tahtası (Geoboard)',
+    desc: 'Geometrik şekiller ve çevre/alan modelleri oluşturma',
+    icon: '/MENUIKON/grid_icon_02.webp',
+  },
 };
 
 export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
@@ -415,7 +450,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
   const gradeTopics: Record<string, { title: string; desc?: string; icon?: string }> = {
     ...baseGradeTopics,
-    ...(currentGrade === 2 ? ALL_INTERACTIVE_TOPICS : {})
+    ...ALL_INTERACTIVE_TOPICS
   };
 
   // Attach grade-specific Halat Çekme activities
@@ -484,6 +519,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'kuralli_cumle' ||
       key === 'hece_sayisi' ||
       key === 'hece_makasi' ||
+      key === 'satir_sonu_hece' ||
       key === 'yazim_dedektifi' ||
       key === 'dedektif_5n1k' ||
       key === 'turkce_5n1k' ||
@@ -506,7 +542,11 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'yirmiyi_bul' ||
       key === 'xox' ||
       key === 'xox_matematik' ||
-      key === 'abluka'
+      key === 'abluka' ||
+      key === 'sudoku' ||
+      key === 'other_3d_lab' ||
+      key === 'cisimler_acilimi' ||
+      key === 'geoboard'
     ) return 'diger_oyunlar';
 
     if (grade === 1) {

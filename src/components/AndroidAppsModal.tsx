@@ -72,12 +72,12 @@ const FEATURED_APPS: AndroidAppItem[] = [
     category: 'Araçlar • Zaman & Odak',
     description: 'Öğrenciler ve çocuklar için sağlıklı ekran süresi takibi, dijital denge ve günlük alışkanlık yönetimi uygulaması.',
     rating: '5.0',
-    downloads: 'Yakında',
+    downloads: 'Google Play',
     iconBg: 'from-lime-500 via-teal-600 to-cyan-600',
     iconEmoji: '📱',
     image: '/ekranlogo.webp?v=3',
     badge: '4. Uygulama',
-    playStoreUrl: ''
+    playStoreUrl: 'https://play.google.com/store/apps/details?id=com.olcico.ekransuresi'
   }
 ];
 
@@ -251,7 +251,11 @@ export const AndroidAppsModal: React.FC<AndroidAppsModalProps> = ({
                       }`}
                     >
                       {app.image ? (
-                        <img src={app.image} alt="" className="w-4 h-4 rounded object-cover" />
+                        <img 
+                          src={app.image} 
+                          alt="" 
+                          className={`w-4 h-4 rounded ${app.id === 'ekran_takibi' ? 'object-contain p-0.5 bg-slate-950' : 'object-cover'}`} 
+                        />
                       ) : (
                         <span>{app.iconEmoji}</span>
                       )}
@@ -351,7 +355,7 @@ export const AndroidAppsModal: React.FC<AndroidAppsModalProps> = ({
                         <img 
                           src={app.image} 
                           alt={app.title} 
-                          className="w-full h-full object-cover rounded-xl transition-transform group-hover/imgbtn:scale-110" 
+                          className={`w-full h-full ${app.id === 'ekran_takibi' ? 'object-contain p-1.5' : 'object-cover'} rounded-xl transition-transform group-hover/imgbtn:scale-105`} 
                         />
                       ) : (
                         <div className={`w-full h-full bg-gradient-to-br ${app.iconBg} flex items-center justify-center text-2xl sm:text-3xl`}>

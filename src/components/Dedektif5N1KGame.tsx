@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
 
 export interface Dedektif5N1KStory {
@@ -292,16 +291,22 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
     setSingleTimeLeft(100);
   }, [playerMode, createInitialPlayers]);
 
-  // 100-Saniye Tek Kişilik Geri Sayım Sayacı
+  // 100-Saniye Geri Sayım Sayacı (1, 2 VE 3 KİŞİLİK TÜM MODLARDA AKTİFTİR)
   useEffect(() => {
-    if (playerMode !== 1 || gameOver) return;
-    const p = players[0];
-    if (!p || p.showFeedback) return;
+    if (gameOver) return;
 
     if (singleTimeLeft <= 0) {
       triggerSound('/hata.mp3');
       setGameOver(true);
-      setRoundWinner(0);
+      let bestIdx = 0;
+      let maxScore = -1;
+      players.forEach((p, idx) => {
+        if (p.score > maxScore) {
+          maxScore = p.score;
+          bestIdx = idx;
+        }
+      });
+      setRoundWinner(bestIdx);
       triggerSound('/para.mp3');
       return;
     }
@@ -315,7 +320,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [playerMode, gameOver, players, singleTimeLeft, playMp3, triggerSound]);
+  }, [gameOver, players, singleTimeLeft, playMp3, triggerSound]);
 
   const handleSwitchMode = (mode: PlayerMode) => {
     setPlayerMode(mode);
@@ -405,8 +410,16 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* Main Game Arena */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -471,28 +484,59 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
                   <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2.5 sm:p-4 flex flex-col justify-between overflow-hidden min-h-0 w-full gap-1.5 sm:gap-2">
-                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                    <div 
+                      className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col justify-between overflow-hidden min-h-0 w-full gap-1.5 sm:gap-2"
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          /* Kırmızı dikey marjin çizgisi */
+                          linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
+                          /* Yatay açık mavi çizgili defter satırları */
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                          /* Doğal yumuşak defter kağıdı dokusu */
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
+                      {/* Sol kenar spiralli defter delikleri */}
+                      <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                          </div>
+                        ))}
+                      </div>
 
-                      {/* Vaka Metni (Hikaye) - Otomatik kaydırılabilir, soru metnini asla ezmez */}
-                      <div className="relative z-10 bg-black/60 border border-indigo-400/40 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 shrink overflow-y-auto max-h-[140px] sm:max-h-[190px] shadow-md no-scrollbar">
-                        <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-amber-300 mb-1">
+                      {/* Defter üst başlık çizgisi */}
+                      <div className="relative z-10 flex items-center justify-between w-full pl-8 pr-1 shrink-0 pb-1 border-b border-sky-300/80">
+                        <span className="text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider flex items-center gap-1">
+                          ✏️ TÜRKÇE DEFTERİ • 5N1K DEDEKTİFİ
+                        </span>
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 font-mono">
+                          Vaka No: #{sPlayer.questionIndex + 1}
+                        </span>
+                      </div>
+
+                      {/* Vaka Metni (Hikaye) - Otomatik kaydırılabilir */}
+                      <div className="relative z-10 ml-6 sm:ml-7 bg-white/95 border-2 border-indigo-300/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 shrink overflow-y-auto max-h-[140px] sm:max-h-[190px] shadow-sm no-scrollbar">
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-indigo-900 mb-1">
                           <span>🔍</span>
                           <span className="uppercase tracking-wider">Vaka Dosyası: {currentQ.title}</span>
                         </div>
-                        <p className="text-xs sm:text-sm md:text-base leading-relaxed text-slate-100 font-semibold">
+                        <p className="text-xs sm:text-sm md:text-base leading-relaxed text-slate-800 font-semibold">
                           "{currentQ.story}"
                         </p>
                       </div>
 
-                      {/* Soru Rozeti & Soru Cümlesi - HER ZAMAN %100 NET VE GÖRÜNÜR VURGULU KART */}
-                      <div className="relative z-10 flex flex-col items-center justify-center shrink-0 w-full py-1.5 sm:py-2 px-3 bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 border-2 border-amber-400/70 rounded-xl sm:rounded-2xl text-center shadow-md">
-                        <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[10.5px] sm:text-xs uppercase shadow-sm shrink-0 mb-1">
+                      {/* Soru Rozeti & Soru Cümlesi */}
+                      <div className="relative z-10 ml-6 sm:ml-7 flex flex-col items-center justify-center shrink-0 py-1.5 sm:py-2 px-3 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 border-2 border-amber-400 rounded-xl sm:rounded-2xl text-center shadow-xs">
+                        <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[10.5px] sm:text-xs uppercase shadow-xs shrink-0 mb-1">
                           {currentQ.qTypeLabel} • SORU
                         </span>
-                        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-amber-200 leading-snug drop-shadow-md">
+                        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-slate-900 leading-snug">
                           {currentQ.question}
                         </h3>
                       </div>
@@ -545,9 +589,25 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             </div>
           );
         })() : (
-        <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
-          playerMode === 1 ? 'grid-cols-1 max-w-3xl mx-auto' : playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
-        } min-h-0 items-stretch`}>
+        <div className="flex-1 flex flex-col justify-between w-full h-full min-h-0 overflow-hidden">
+          {/* ÜST ORTAK GERİ SAYIM SAYACI (2 VE 3 KİŞİLİKTE ÇOK BELİRGİN SÜRE) */}
+          <div className="w-full flex items-center justify-between bg-black/60 border border-teal-500/40 rounded-xl px-3 py-1.5 mb-1.5 shrink-0">
+            <div className="flex items-center gap-2 font-black text-xs sm:text-sm text-teal-300 uppercase tracking-wider">
+              <span>🔍 {playerMode} KİŞİLİK 5N 1K KAPIŞMASI</span>
+            </div>
+            <div className={`border rounded-xl px-3 py-0.5 flex items-center gap-1.5 font-mono font-black text-xs sm:text-sm shrink-0 transition-all ${
+              singleTimeLeft <= 5 
+                ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
+                : 'bg-[#080e1d] border-teal-500/60 text-teal-200'
+            }`}>
+              <span>⏱️ KALAN SÜRE:</span>
+              <span className="text-amber-300">{singleTimeLeft}s</span>
+            </div>
+          </div>
+
+          <div className={`w-full flex-1 grid gap-2 sm:gap-2.5 ${
+            playerMode === 2 ? 'grid-cols-2' : 'grid-cols-3'
+          } min-h-0 items-stretch`}>
           {players.map((player, pIdx) => {
             const currentQ = questions[player.questionIndex % questions.length];
             const pStudent = effectiveSelectedStudentIds[pIdx]
@@ -586,25 +646,35 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
                   </div>
                 </div>
 
-                {/* 2. BÖLÜM: Vaka Dosyası & Soru (Dengeli Orta Alan) */}
-                <div className="flex-1 min-h-0 flex flex-col justify-between my-0.5 gap-1 overflow-hidden">
+                {/* 2. BÖLÜM: Vaka Dosyası & Soru (Çizgili Defter Alanı) */}
+                <div 
+                  className="flex-1 min-h-0 flex flex-col justify-between my-0.5 gap-1 p-2 rounded-xl border-2 border-amber-300/80 shadow-md overflow-hidden relative"
+                  style={{
+                    backgroundColor: '#fbf9f2',
+                    backgroundImage: `
+                      linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
+                      repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+                      linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                    `
+                  }}
+                >
                   {/* Vaka Dosyası (Hikaye Metni) */}
-                  <div className="bg-black/55 border border-indigo-400/40 rounded-xl p-1.5 sm:p-2 shrink overflow-y-auto max-h-[90px] sm:max-h-[120px] no-scrollbar shadow-sm">
-                    <div className="flex items-center gap-1 mb-0.5 text-[10.5px] sm:text-xs font-black text-amber-300">
-                      <span className="text-xs sm:text-sm">🔍</span>
+                  <div className="ml-4 bg-white/95 border border-indigo-300 rounded-lg p-1.5 shrink overflow-y-auto max-h-[90px] sm:max-h-[120px] no-scrollbar shadow-xs">
+                    <div className="flex items-center gap-1 mb-0.5 text-[10px] sm:text-xs font-black text-indigo-900">
+                      <span className="text-xs">🔍</span>
                       <span className="uppercase tracking-wider truncate">Vaka: {currentQ.title}</span>
                     </div>
-                    <p className="text-[10.5px] sm:text-xs md:text-sm leading-snug font-semibold text-slate-100">
+                    <p className="text-[10.5px] sm:text-xs md:text-sm leading-snug font-semibold text-slate-800">
                       "{currentQ.story}"
                     </p>
                   </div>
 
-                  {/* Soru Rozeti & Soru Cümlesi - HER ZAMAN GÖRÜNÜR VURGULU KART */}
-                  <div className="shrink-0 bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 border border-amber-400/60 rounded-xl px-2 py-1 flex flex-col items-center justify-center text-center shadow-sm">
-                    <span className="px-2 py-0.2 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[9.5px] sm:text-[10.5px] uppercase shadow-xs mb-0.5 shrink-0">
+                  {/* Soru Rozeti & Soru Cümlesi */}
+                  <div className="ml-4 shrink-0 bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 border border-amber-400 rounded-lg px-2 py-1 flex flex-col items-center justify-center text-center shadow-xs">
+                    <span className="px-2 py-0.2 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-[9px] sm:text-[10px] uppercase shadow-xs mb-0.5 shrink-0">
                       {currentQ.qTypeLabel} • SORU
                     </span>
-                    <h3 className="text-xs sm:text-sm md:text-base font-black text-amber-200 leading-tight px-1 drop-shadow-sm line-clamp-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-black text-slate-900 leading-tight px-1 line-clamp-2">
                       {currentQ.question}
                     </h3>
                   </div>
@@ -659,7 +729,8 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             );
           })}
         </div>
-        )}
+      </div>
+      )}
       </main>
 
       {/* Student Avatar Dock (Single Row) */}

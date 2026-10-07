@@ -5,12 +5,14 @@ import { getIconAccentColor } from '../App';
 interface EnglishGamesHubProps {
   onClose: () => void;
   onOpenWordGame: () => void;
+  onOpenSchoolLife?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
 export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
   onClose,
   onOpenWordGame,
+  onOpenSchoolLife,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -20,6 +22,18 @@ export const EnglishGamesHub: React.FC<EnglishGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'school_life',
+      title: 'School Life',
+      subtitle: 'Choose and Check - Okul Yaşamı & Sözcük Seçimi (1, 2 ve 3 Kişilik)',
+      icon: '/MENUIKON/grid_icon_10.webp',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenSchoolLife) onOpenSchoolLife();
+      },
+      badge: 'YENİ ETKİNLİK • 1, 2 & 3 KİŞİLİK',
+      badgeColor: 'bg-amber-500 text-slate-950 font-black'
+    },
     {
       id: 'kelime_oyunlari',
       title: 'Kelime Oyunları',

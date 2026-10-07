@@ -7,7 +7,6 @@ import {
 import { YazimDedektifiQuestion, getRandomYazimQuestions } from '../data/yazimDedektifiData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
 
 // Helper function for automatic max font size matching single player standard design
@@ -409,10 +408,18 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-[#050811] text-white select-none overflow-hidden font-sans"
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 text-white select-none overflow-hidden font-sans"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* 2. MAIN BATTLE ARENA */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -494,14 +501,34 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
                   <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-2 sm:p-3 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
-                      {/* Subtle top inner gradient */}
-                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                    <div 
+                      className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full"
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          /* Kırmızı dikey marjin çizgisi */
+                          linear-gradient(to right, transparent 56px, rgba(239, 68, 68, 0.75) 56px, rgba(239, 68, 68, 0.75) 58px, transparent 58px),
+                          /* Yatay açık mavi çizgili defter satırları */
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                          /* Doğal yumuşak defter kağıdı dokusu */
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
+                      {/* Sol kenar spiralli defter delikleri */}
+                      <div className="absolute left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                          </div>
+                        ))}
+                      </div>
 
-                      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full min-h-0 max-h-full overflow-hidden px-2">
-                        <span className="text-[11px] sm:text-xs font-black text-amber-300 uppercase tracking-widest mb-1.5 [text-shadow:_0_2px_4px_#000]">
+                      <div className="relative z-10 flex flex-col items-center justify-center w-full h-full min-h-0 max-h-full overflow-hidden px-2 pl-8">
+                        <span className="text-[11px] sm:text-xs font-black text-rose-700 uppercase tracking-widest mb-1.5 px-3 py-0.5 rounded-full bg-white/90 border border-rose-300 shadow-xs">
                           {sPlayer.step === 'find_wrong'
                             ? `🔍 ${currentQ.category} • YANLIŞ YAZILAN KELİMEYE TIKLA:`
                             : sPlayer.step === 'choose_correct'
@@ -686,8 +713,18 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
 
                     {/* Detective Workspace */}
                     <div className="flex-1 flex flex-col items-center justify-center my-1 sm:my-2 min-h-0">
-                      {/* Sentence Board */}
-                      <div className={`w-full max-w-2xl p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 shadow-2xl ${theme.boardBg} flex flex-col items-center gap-2 sm:gap-3`}>
+                      {/* Sentence Board - Çizgili Defter Sayfası */}
+                      <div 
+                        className="w-full max-w-2xl p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-amber-300/80 shadow-2xl flex flex-col items-center gap-2 sm:gap-3 relative overflow-hidden"
+                        style={{
+                          backgroundColor: '#fbf9f2',
+                          backgroundImage: `
+                            linear-gradient(to right, transparent 36px, rgba(239, 68, 68, 0.7) 36px, rgba(239, 68, 68, 0.7) 38px, transparent 38px),
+                            repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+                            linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          `
+                        }}
+                      >
                         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
                           {currentQ.words.map((word, wIdx) => {
                             const isWrongTarget = wIdx === currentQ.wrongWordIndex;

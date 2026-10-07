@@ -8,7 +8,6 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrack';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface HeceSayisiActivityProps {
   onClose: () => void;
@@ -882,8 +881,16 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* MAIN CONTENT AREA */}
       <div className={`flex-1 flex flex-row items-center justify-center ${
@@ -1007,14 +1014,41 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                     </div>
                   )}
 
-                  {/* 100% OPAQUE SOLID QUESTION CONTAINER (DİĞER ETKİNLİKLERDEKİ GİBİ ŞIK VE BELİRGİN ÇERÇEVE) */}
+                  {/* ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
                   <div className="w-full my-1.5 sm:my-2 shrink-0">
-                    <div className="relative w-full rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-indigo-400/60 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden">
-                      {/* Subtle top inner gradient glare */}
-                      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-indigo-400/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                    <div 
+                      className="relative w-full rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden"
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          /* Kırmızı dikey marjin çizgisi */
+                          linear-gradient(to right, transparent 48px, rgba(239, 68, 68, 0.75) 48px, rgba(239, 68, 68, 0.75) 50px, transparent 50px),
+                          /* Yatay açık mavi çizgili defter satırları */
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                          /* Doğal yumuşak defter kağıdı dokusu */
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
+                      {/* Sol kenar spiralli defter delikleri */}
+                      <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                        {Array.from({ length: 7 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                          </div>
+                        ))}
+                      </div>
 
-                      <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                        <span className="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest mb-1.5 [text-shadow:_0_2px_4px_#000] flex items-center gap-1.5">
+                      {/* Defter üst başlık çizgisi */}
+                      <div className="relative z-10 flex items-center justify-between w-full pl-8 pr-1 shrink-0 pb-0.5 border-b border-sky-300/80">
+                        <span className="text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider flex items-center gap-1">
+                          ✏️ TÜRKÇE DEFTERİ • HECE SAYISI BULMA
+                        </span>
+                      </div>
+
+                      <div className="relative z-10 flex flex-col items-center justify-center w-full pl-7">
+                        <span className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                           <span>📖</span>
                           <span>BU KELİME KAÇ HECEDEN OLUŞUR?</span>
                         </span>

@@ -13,7 +13,6 @@ import {
 } from '../data/sozlukSiralaData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 interface SozlukSiralaGameProps {
   onClose: () => void;
@@ -552,8 +551,16 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col bg-slate-950 font-sans select-none overflow-hidden text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN (SIFIR KASMA, SIFIR DÖNEN ŞEKİL) */}
-      <TurkishActivityBackground darkness="normal" showFloatingAlphabet={false} />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* 2. ALPHABET QUICK GUIDE POPUP STRIP (A-Z) */}
       {showAlphabetGuide && (

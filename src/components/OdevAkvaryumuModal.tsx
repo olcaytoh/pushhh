@@ -10,8 +10,11 @@ import {
   VolumeX,
   Info,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Cloud,
+  CloudCheck
 } from 'lucide-react';
+import { User } from '../firebase';
 import { Student } from '../types/student';
 import { StudentHomeworkData } from '../types/homeworkAquarium';
 import {
@@ -119,6 +122,8 @@ interface OdevAkvaryumuModalProps {
   initialGrade?: number;
   onOpenRosterModal?: (grade?: number) => void;
   playMp3?: (src: string) => void;
+  currentUser?: User | null;
+  onTriggerCloudSync?: () => void;
 }
 
 export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
@@ -127,7 +132,9 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   students,
   initialGrade = 4,
   onOpenRosterModal,
-  playMp3
+  playMp3,
+  currentUser,
+  onTriggerCloudSync
 }) => {
   // Seçili Sınıf: 1, 2, 3 veya 4
   const [selectedGrade, setSelectedGrade] = useState<number>(initialGrade || 4);
@@ -208,10 +215,16 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   // Verileri yükle & senkronize et (Sadece modal açıldığında veya sınıf değiştiğinde 1 kez çalışır)
   useEffect(() => {
     if (!isOpen) return;
-    const existing = loadHomeworkData();
+    const existing = loadHomeworkData(currentUser?.uid);
     const synced = syncHomeworkWithStudents(currentGradeStudents, existing);
     setHomeworkMap(synced);
-    saveHomeworkData(synced);
+
+    // Yalnızca yeni öğrenci eklenmişse kaydet
+    const existingCount = Object.keys(existing).length;
+    const syncedCount = Object.keys(synced).length;
+    if (syncedCount > existingCount) {
+      saveHomeworkData(synced, currentUser?.uid);
+    }
 
     // Balık fizik durumlarını ref'e hazırla
     const physicsList: FishPhysics[] = [];
@@ -374,8 +387,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     }
 
     // Bugün ilk defa yapılıyorsa tamamla
-    const res = completeHomeworkToday(fish.studentId, fish.name);
+    const res = completeHomeworkToday(fish.studentId, fish.name, 0, currentUser?.uid);
     if (res.success) {
+      if (onTriggerCloudSync) {
+        onTriggerCloudSync();
+      }
+
       // Ses efekti
       if (soundEnabled && playMp3) {
         playMp3('/farklilvl.mp3');
@@ -396,7 +413,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       } catch {}
 
       // State güncelle (Tek bir kez re-render tetikler)
-      const updated = loadHomeworkData();
+      const updated = loadHomeworkData(currentUser?.uid);
       setHomeworkMap(updated);
 
       const levelInfo = getFishLevelTitle(res.newCount);
@@ -436,14 +453,17 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         title: levelInfo.title
       });
     }
-  }, [todayStr, soundEnabled, playMp3]);
+  }, [todayStr, soundEnabled, playMp3, currentUser, onTriggerCloudSync]);
 
   // Öğretmen Modunda Bugünkü Ödevi Geri Alma
   const handleUndo = useCallback((studentId: string, studentName: string) => {
-    const success = undoTodayHomework(studentId);
+    const success = undoTodayHomework(studentId, currentUser?.uid);
     if (success) {
+      if (onTriggerCloudSync) {
+        onTriggerCloudSync();
+      }
       if (soundEnabled && playMp3) playMp3('/hata.mp3');
-      const updated = loadHomeworkData();
+      const updated = loadHomeworkData(currentUser?.uid);
       setHomeworkMap(updated);
 
       setFishes(prev =>
@@ -570,6 +590,30 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             >
               {isFullscreen ? <Minimize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> : <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />}
             </button>
+
+            {/* Bulut Durumu & Hızlı Eşitleme */}
+            {currentUser && (
+              <button
+                onClick={() => {
+                  if (onTriggerCloudSync) {
+                    onTriggerCloudSync();
+                    setActivePopup({
+                      studentName: 'Bulut Yedekleme',
+                      message: 'Akvaryum ve ödev verileriniz Google Cloud hesabınıza güvenle eşitlendi! ☁️',
+                      type: 'info',
+                      count: totalHomeworksGiven,
+                      badge: '☁️',
+                      title: 'Buluta Kaydedildi'
+                    });
+                  }
+                }}
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-cyan-950/70 hover:bg-cyan-900 border border-cyan-400/50 text-cyan-200 text-[10px] sm:text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-95"
+                title="Google Hesabınız bağlı. Ödevler bulutta korunur. Şimdi bulutu güncellemek için tıklayın."
+              >
+                <Cloud className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300 shrink-0" />
+                <span className="hidden xl:inline text-[10px]">Bulut Korumalı</span>
+              </button>
+            )}
 
             {/* Kapat Butonu */}
             <button

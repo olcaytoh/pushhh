@@ -15,13 +15,14 @@
     },
     "TeacherClassData": {
       "title": "TeacherClassData",
-      "description": "Synced student roster, class counters, and statistics for the teacher",
+      "description": "Synced student roster, class counters, homework aquarium data, and statistics for the teacher",
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "studentsJson": { "type": "string" },
         "countersJson": { "type": "string" },
         "selectedStudentIdsJson": { "type": "string" },
+        "homeworkJson": { "type": "string" },
         "lastSyncedAt": { "type": "string" }
       },
       "required": ["userId", "studentsJson", "countersJson", "lastSyncedAt"]

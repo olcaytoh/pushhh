@@ -21,6 +21,7 @@ interface OtherGamesHubProps {
   onOpenYazimDedektifi?: () => void;
   onOpenGeometrikSekilleriBul?: () => void;
   onOpenDedektif5N1K?: () => void;
+  onOpenSatirSonuHece?: () => void;
   onOpenNoktalamaAvcisi?: () => void;
   onOpenHarfCorbasi?: () => void;
   onOpenGeriDonusum?: () => void;
@@ -51,6 +52,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenYazimDedektifi,
   onOpenGeometrikSekilleriBul,
   onOpenDedektif5N1K,
+  onOpenSatirSonuHece,
   onOpenNoktalamaAvcisi,
   onOpenHarfCorbasi,
   onOpenGeriDonusum,
@@ -220,6 +222,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/para.mp3',
       action: () => {
         if (onOpenDedektif5N1K) onOpenDedektif5N1K();
+      },
+    },
+    {
+      id: 'satir_sonu_hece',
+      title: 'Satır Sonu Hece Ayırma',
+      subtitle: 'Kısa Çizgi ve Heceleme',
+      icon: '/MENUIKON/grid_icon_32.webp',
+      sound: '/op.mp3',
+      action: () => {
+        if (onOpenSatirSonuHece) onOpenSatirSonuHece();
       },
     },
     {

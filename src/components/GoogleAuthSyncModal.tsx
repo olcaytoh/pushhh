@@ -498,7 +498,11 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400 font-bold">✓</span>
-                  <span><strong>Kayıp Riski Yok:</strong> Tarayıcı çerezleri silinse bile verileriniz güvenle bulutta saklanır.</span>
+                  <span><strong>Kayıp Riski Yok:</strong> Tarayıcı çerezleri silinse bile öğrenci listeniz ve <strong>Ödev Akvaryumu</strong> verileriniz güvenle bulutta saklanır, sıfırlanmaz.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>Ödev Takibi:</strong> Balıkların büyüme geçmişi ve günlük ödev kayıtları Google hesabınıza anlık eşitlenir.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400 font-bold">✓</span>

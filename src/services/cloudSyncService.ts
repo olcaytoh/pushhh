@@ -10,12 +10,15 @@ import {
 import { doc, getDoc, getDocFromServer, setDoc } from 'firebase/firestore';
 import { Student } from '../types/student';
 import { ClassCountersData } from '../utils/counterStorage';
+import { StudentHomeworkData } from '../types/homeworkAquarium';
+import { loadHomeworkData, calculateTotalHomework } from '../utils/homeworkStore';
 
 export interface CloudClassroomData {
   userId: string;
   students: Student[];
   counters: ClassCountersData;
   selectedStudentIds?: (string | null)[] | Record<string, any>;
+  homeworkData?: Record<string, StudentHomeworkData>;
   lastSyncedAt: string;
 }
 
@@ -105,12 +108,13 @@ export async function saveUserDataToCloud(
   students: Student[],
   counters: ClassCountersData,
   selectedStudentIds?: (string | null)[] | Record<string, any>,
-  userEmail?: string | null
+  userEmail?: string | null,
+  homeworkData?: Record<string, StudentHomeworkData>
 ): Promise<string> {
   const timestamp = new Date().toISOString();
   const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
 
-  const payload = {
+  const payload: Record<string, any> = {
     userId,
     userEmail: userEmail || '',
     studentsJson: JSON.stringify(students),
@@ -118,6 +122,18 @@ export async function saveUserDataToCloud(
     selectedStudentIdsJson: selectedStudentIds ? JSON.stringify(selectedStudentIds) : '[]',
     lastSyncedAt: timestamp
   };
+
+  // Ödev akvaryumu verilerini belirle
+  const hwToSave = homeworkData !== undefined ? homeworkData : loadHomeworkData(userId);
+  const hwKeysLength = hwToSave ? Object.keys(hwToSave).length : 0;
+  const hwCount = calculateTotalHomework(hwToSave);
+
+  // KRİTİK VERİ KORUMA:
+  // Yalnızca geçerli ödev verisi olduğunda homeworkJson'ı güncelle!
+  // Boş veya 0 ödevli geçici nesneyle buluttaki gerçek ödevlerin üzerine ASLA yazma!
+  if (hwToSave && hwKeysLength > 0 && (hwCount > 0 || homeworkData !== undefined)) {
+    payload.homeworkJson = JSON.stringify(hwToSave);
+  }
 
   await setDoc(classroomRef, payload, { merge: true });
   setLocalLastSyncedAt(timestamp, userId);
@@ -172,6 +188,7 @@ export async function loadUserDataFromCloud(
   let students: Student[] = [];
   let counters: ClassCountersData | null = null;
   let selectedStudentIds: (string | null)[] | undefined = undefined;
+  let homeworkData: Record<string, StudentHomeworkData> | undefined = undefined;
 
   try {
     if (data.studentsJson) {
@@ -200,6 +217,14 @@ export async function loadUserDataFromCloud(
     console.warn('Could not parse cloud selectedStudentIds JSON', e);
   }
 
+  try {
+    if (data.homeworkJson) {
+      homeworkData = JSON.parse(data.homeworkJson);
+    }
+  } catch (e) {
+    console.warn('Could not parse cloud homeworkJson', e);
+  }
+
   return {
     userId,
     students: Array.isArray(students) ? students : [],
@@ -217,6 +242,7 @@ export async function loadUserDataFromCloud(
       },
     },
     selectedStudentIds,
+    homeworkData,
     lastSyncedAt: data.lastSyncedAt || new Date().toISOString()
   };
 }

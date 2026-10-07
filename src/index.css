@@ -930,4 +930,27 @@ html.smartboard-4k-active #tug-of-war-arena {
 .animate-shake {
   animation: shake 0.4s ease-in-out;
 }
+
+/* ==========================================================================
+   ÇİZGİLİ DEFTER ARKA PLANI & SORU ÇERÇEVESİ
+   ========================================================================== */
+.bg-notebook-paper {
+  background-color: #fbf9f2;
+  background-image: 
+    linear-gradient(to right, transparent 48px, rgba(239, 68, 68, 0.75) 48px, rgba(239, 68, 68, 0.75) 50px, transparent 50px),
+    repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+    linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%);
+}
+
+.bg-notebook-paper-dense {
+  background-color: #fbf9f2;
+  background-image: 
+    linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
+    repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+    linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%);
+}
+
+.notebook-question-container .question-visual-box {
+  color: #0f172a;
+}
  

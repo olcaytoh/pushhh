@@ -5,6 +5,7 @@ interface AutoFitQuestionBoxProps {
   questionText?: string;
   mode?: 1 | 2 | 3;
   className?: string;
+  notebookTheme?: boolean;
 }
 
 export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
@@ -12,6 +13,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
   questionText,
   mode = 1,
   className = '',
+  notebookTheme = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -159,17 +161,29 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
           <div className="flex flex-col items-center justify-center w-full">
             <div
               dangerouslySetInnerHTML={{ __html: questionHTML }}
-              className={`question-visual-box multi-player-${mode} w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} font-black tracking-wide leading-snug drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:0_2px_4px_#000] text-white ${fontClass}`}
+              className={`question-visual-box multi-player-${mode} w-full ${isFullImageQuestion ? 'h-full flex flex-col justify-between' : 'flex flex-col items-center justify-center'} font-black tracking-wide leading-snug ${
+                notebookTheme
+                  ? 'text-slate-900 drop-shadow-xs'
+                  : 'drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:0_2px_4px_#000] text-white'
+              } ${fontClass}`}
             />
             {shouldRenderSeparateQuestionText && (
-              <div className="mt-1.5 text-sm xs:text-base sm:text-lg md:text-xl font-black text-amber-200 text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2">
+              <div className={`mt-1.5 text-sm xs:text-base sm:text-lg md:text-xl font-black text-center leading-snug px-2 ${
+                notebookTheme
+                  ? 'text-blue-950 drop-shadow-xs'
+                  : 'text-amber-200 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]'
+              }`}>
                 {questionText}
               </div>
             )}
           </div>
         ) : (
           <div
-            className={`my-auto font-black text-white tracking-wide leading-snug drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_6px_#000,_0_4px_14px_rgba(0,0,0,0.9)] px-2 py-1 max-w-full text-center ${fontClass}`}
+            className={`my-auto font-black tracking-wide leading-snug px-2 py-1 max-w-full text-center ${
+              notebookTheme
+                ? 'text-slate-900 drop-shadow-xs'
+                : 'text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_6px_#000,_0_4px_14px_rgba(0,0,0,0.9)]'
+            } ${fontClass}`}
           >
             {questionText}
           </div>

@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface HarfCorbasiWord {
   id: string;
@@ -377,8 +376,16 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* Main Game Area */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -433,23 +440,54 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                  {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
                   <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
-                    <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 ${
-                      sPlayer.showError ? 'border-rose-500 animate-shake' : sPlayer.isSuccess ? 'border-emerald-400' : 'border-slate-700/70'
-                    } shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full`}>
-                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                    <div 
+                      className={`relative flex-1 rounded-2xl sm:rounded-3xl border-3 ${
+                        sPlayer.showError ? 'border-rose-500 animate-shake' : sPlayer.isSuccess ? 'border-emerald-400' : 'border-amber-300/90'
+                      } shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full`}
+                      style={{
+                        backgroundColor: '#fbf9f2',
+                        backgroundImage: `
+                          /* Kırmızı dikey marjin çizgisi */
+                          linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
+                          /* Yatay açık mavi çizgili defter satırları */
+                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                          /* Doğal yumuşak defter kağıdı dokusu */
+                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                        `
+                      }}
+                    >
+                      {/* Sol kenar spiralli defter delikleri */}
+                      <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Defter üst başlık çizgisi */}
+                      <div className="relative z-10 flex items-center justify-between w-full pl-8 pr-1 shrink-0 pb-1 border-b border-sky-300/80">
+                        <span className="text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider flex items-center gap-1">
+                          ✏️ TÜRKÇE DEFTERİ • HARF ÇORBASI
+                        </span>
+                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 font-mono">
+                          Kelime: {sPlayer.wordIndex + 1}/4
+                        </span>
+                      </div>
 
                       {/* İpucu Rozeti */}
-                      <div className="relative z-10 flex items-center gap-2.5 px-4 py-1.5 sm:px-6 sm:py-2 rounded-2xl bg-orange-950/80 border-2 border-orange-500/50 shadow-md shrink-0">
+                      <div className="relative z-10 ml-6 flex items-center gap-2.5 px-4 py-1.5 sm:px-6 sm:py-2 rounded-2xl bg-orange-100 border-2 border-orange-400 shadow-sm shrink-0">
                         <span className="text-2xl sm:text-3xl shrink-0">{currentW.emoji}</span>
-                        <span className="text-sm sm:text-base md:text-lg font-black text-orange-200">{currentW.hint}</span>
+                        <span className="text-sm sm:text-base md:text-lg font-black text-orange-950">{currentW.hint}</span>
                       </div>
 
                       {/* Oluşturulan Kelime Yuvaları */}
-                      <div className="relative z-10 flex flex-col items-center justify-center my-auto gap-2 sm:gap-3 py-1">
-                        <div className="text-xs sm:text-sm md:text-base font-extrabold text-amber-200 tracking-wide">
-                          🍲 Harfleri tıkla, doğru kelimeyi tabağa diz:
+                      <div className="relative z-10 ml-6 flex flex-col items-center justify-center my-auto gap-2 sm:gap-3 py-1">
+                        <div className="text-xs sm:text-sm md:text-base font-extrabold text-slate-900 tracking-wide">
+                          🍲 Harfleri tıkla, doğru kelimeyi deftere yaz:
                         </div>
                         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                           {Array.from({ length: currentW.word.length }).map((_, idx) => {
@@ -580,12 +618,22 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                   </div>
                 </div>
 
-                {/* 2. BÖLÜM: Çorba Tenceresi & Oluşturulan Kelime Yuvaları (3 Bölümlü Dengeli Orta Alan) */}
-                <div className={`p-2 sm:p-2.5 rounded-2xl bg-black/45 border-2 ${
-                  player.showError ? 'border-rose-500 animate-shake' : player.isSuccess ? 'border-emerald-400' : 'border-white/20'
-                } flex-1 min-h-0 my-1 flex flex-col items-center justify-center gap-1.5`}>
-                  <div className="text-[10.5px] font-bold text-slate-300">
-                    🍲 Harfleri tıkla, doğru kelimeyi tabağa diz:
+                {/* 2. BÖLÜM: Çorba Tenceresi & Oluşturulan Kelime Yuvaları (Çizgili Defter Alanı) */}
+                <div 
+                  className={`p-2 sm:p-2.5 rounded-2xl border-2 ${
+                    player.showError ? 'border-rose-500 animate-shake' : player.isSuccess ? 'border-emerald-400' : 'border-amber-300/80'
+                  } flex-1 min-h-0 my-1 flex flex-col items-center justify-center gap-1.5 shadow-md`}
+                  style={{
+                    backgroundColor: '#fbf9f2',
+                    backgroundImage: `
+                      linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
+                      repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+                      linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                    `
+                  }}
+                >
+                  <div className="text-[10.5px] font-bold text-slate-800">
+                    🍲 Harfleri tıkla, doğru kelimeyi deftere yaz:
                   </div>
 
                   {/* Kelime Yuvaları */}

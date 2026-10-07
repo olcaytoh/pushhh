@@ -7,7 +7,6 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
-import { TurkishActivityBackground } from './TurkishActivityBackground';
 
 export interface NoktalamaQuestion {
   id: string;
@@ -398,8 +397,16 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
       style={{ top: 'var(--app-header-height, 74px)' }}
       className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white"
     >
-      {/* 1. TÜRKÇE TEMALI ÖZEL GÖRSEL ARKA PLAN */}
-      <TurkishActivityBackground darkness="normal" />
+      {/* 1. STANDART ESKİ ARKA PLAN GÖRSELİ (/dere3.webp) */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <img 
+          src="/dere3.webp" 
+          alt="Arka Plan Görseli"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center pointer-events-none select-none filter brightness-95" 
+        />
+        <div className="absolute inset-0 bg-slate-950/40 pointer-events-none" />
+      </div>
 
       {/* Main Game Area */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
@@ -465,17 +472,43 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                 </div>
               </div>
 
-                {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
+                {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
                 <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
-                  <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full">
-                    <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
+                  <div 
+                    className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full"
+                    style={{
+                      backgroundColor: '#fbf9f2',
+                      backgroundImage: `
+                        /* Kırmızı dikey marjin çizgisi */
+                        linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
+                        /* Yatay açık mavi çizgili defter satırları */
+                        repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
+                        /* Doğal yumuşak defter kağıdı dokusu */
+                        linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                      `
+                    }}
+                  >
+                    {/* Sol kenar spiralli defter delikleri */}
+                    <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-1">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
+                          <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
+                        </div>
+                      ))}
+                    </div>
 
-                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-3 sm:gap-4 px-2 sm:px-4">
-                      <span className="px-4 py-1 rounded-full bg-cyan-950/80 border-2 border-cyan-400/70 text-cyan-200 font-black text-xs sm:text-sm md:text-base uppercase shadow-md shrink-0">
+                    {/* Defter üst başlık çizgisi */}
+                    <div className="absolute top-2 right-4 flex items-center gap-2 text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider pointer-events-none z-10">
+                      <span>✏️ TÜRKÇE DEFTERİ • NOKTALAMA AVCISI</span>
+                    </div>
+
+                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-3 sm:gap-4 px-2 sm:px-4 pl-8">
+                      <span className="px-4 py-1 rounded-full bg-cyan-900 border-2 border-cyan-400/80 text-cyan-100 font-black text-xs sm:text-sm md:text-base uppercase shadow-md shrink-0">
                         🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
                       </span>
-                      <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
-                        <span className="drop-shadow-md">{currentQ.before}</span>
+                      <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-relaxed flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
+                        <span>{currentQ.before}</span>
                         <span className={`inline-flex items-center justify-center min-w-[50px] sm:min-w-[62px] md:min-w-[74px] h-12 sm:h-14 md:h-16 px-3 rounded-2xl font-black text-2xl sm:text-3xl md:text-4xl border-3 shadow-xl transition-all ${
                           sPlayer.showFeedback
                             ? sPlayer.isCorrect
@@ -485,11 +518,11 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                         }`}>
                           {sPlayer.selectedMark || '\u00A0'}
                         </span>
-                        <span className="drop-shadow-md">{currentQ.after}</span>
+                        <span>{currentQ.after}</span>
                       </div>
                     </div>
                     {sPlayer.showFeedback && (
-                      <div className="absolute bottom-2 inset-x-3 z-20 px-3 py-1 rounded-xl bg-black/85 border border-white/20 text-xs sm:text-sm text-amber-200 text-center animate-fade-in shadow-lg">
+                      <div className="absolute bottom-2 inset-x-8 z-20 px-3 py-1 rounded-xl bg-slate-950/90 border border-white/20 text-xs sm:text-sm text-amber-200 text-center animate-fade-in shadow-lg">
                         <span className="font-black text-cyan-300 mr-1.5">{currentQ.markName}:</span>
                         <span className="font-semibold">{currentQ.explanation}</span>
                       </div>
@@ -575,9 +608,19 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </span>
                 </div>
 
-                {/* 2. BÖLÜM: Cümle Kartı & Boşluk Alanı - 3 Bölümlü Dengeli Orta Alan */}
-                <div className="flex-1 min-h-0 bg-black/50 border-2 border-white/20 rounded-2xl p-2.5 sm:p-3.5 my-1 flex items-center justify-center text-center shadow-inner">
-                  <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                {/* 2. BÖLÜM: Cümle Kartı & Boşluk Alanı - Çizgili Defter Alanı */}
+                <div 
+                  className="flex-1 min-h-0 rounded-2xl p-2.5 sm:p-3.5 my-1 flex items-center justify-center text-center shadow-lg border-2 border-amber-300/80 relative"
+                  style={{
+                    backgroundColor: '#fbf9f2',
+                    backgroundImage: `
+                      linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
+                      repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
+                      linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                    `
+                  }}
+                >
+                  <div className="ml-4 text-base sm:text-lg md:text-xl lg:text-2xl font-black text-slate-900 leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                     <span>{currentQ.before}</span>
                     <span className={`inline-flex items-center justify-center min-w-[42px] sm:min-w-[50px] h-9 sm:h-12 px-2.5 rounded-xl font-black text-xl sm:text-2xl md:text-3xl border-2 shadow-lg transition-all ${
                       player.showFeedback
