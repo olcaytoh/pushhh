@@ -764,7 +764,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                   {/* Player Header Info & Score */}
                   <div className="relative z-10 flex items-center justify-between w-full max-w-lg mx-auto mb-1 shrink-0">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-black/40 text-white font-black text-xs sm:text-sm border border-white/30 backdrop-blur-sm shadow-sm flex items-center gap-1.5">
+                      <span className="px-2.5 sm:px-3 py-1 rounded-xl bg-black/60 text-white font-black text-xs sm:text-sm border border-white/30 shadow-sm flex items-center gap-1.5">
                         {assignedPlayerStudent ? (
                           <>
                             <span className="text-sm sm:text-base">{assignedPlayerStudent.avatar}</span>
@@ -807,7 +807,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
+                    <div className={`w-full rounded-2xl border shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR ALPHABETICAL ORDER */}
                       <div className={`flex items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {player.upperSlots.map((letter, slotIdx) => (
@@ -958,7 +958,7 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
 
       {/* 5. MATCH COMPLETE GAME-OVER MODAL */}
       {gameOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-300">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in duration-300">
           <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.5)] flex flex-col items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center shadow-lg">
               <Trophy className="w-9 h-9 sm:w-11 sm:h-11 text-amber-400 animate-bounce" />

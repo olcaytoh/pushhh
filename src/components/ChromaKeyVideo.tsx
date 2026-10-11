@@ -352,13 +352,31 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
       }
     };
 
-    const processLoop = (timestamp: number) => {
-      if (!isMounted) return;
+    let isLoopActive = false;
 
-      // Ekranda görünmüyorsa veya video duraklatılmışsa işlem yapma
-      if (isVisibleRef.current && video && !video.paused && !video.ended && video.readyState >= 2) {
+    const stopLoop = () => {
+      isLoopActive = false;
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    };
+
+    const processLoop = (timestamp: number) => {
+      if (!isMounted) {
+        isLoopActive = false;
+        return;
+      }
+
+      // Ekranda görünmüyorsa veya video duraklatılmış/bitmişse döngüyü uyut (0 CPU tüketimi)
+      if (!isVisibleRef.current || !video || video.paused || video.ended || document.hidden) {
+        isLoopActive = false;
+        return;
+      }
+
+      if (video.readyState >= 2) {
         // Maksimum 30 FPS hız limiti ile kare çiz (gereksiz GPU/CPU ısınmasını önler)
-        if (!lastRenderTime || timestamp - lastRenderTime >= 32) {
+        if (!lastRenderTime || timestamp - lastRenderTime >= 33) {
           lastRenderTime = timestamp;
           try {
             renderFrame();
@@ -366,9 +384,14 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
         }
       }
 
-      if (isMounted) {
-        animId = requestAnimationFrame(processLoop);
-      }
+      animId = requestAnimationFrame(processLoop);
+    };
+
+    const startLoop = () => {
+      if (!isMounted || isLoopActive) return;
+      if (!isVisibleRef.current || !video || video.paused || video.ended || document.hidden) return;
+      isLoopActive = true;
+      animId = requestAnimationFrame(processLoop);
     };
 
     // IntersectionObserver: Ekranda olmayan videoları duraklat
@@ -380,6 +403,7 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
 
           if (!isIntersecting) {
             // Ekranda değil, duraklat ve concurrency listesinden çıkar
+            stopLoop();
             if (video && !video.paused) {
               video.pause();
               unregisterActiveVideo(video);
@@ -401,16 +425,19 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
     const handlePlay = () => {
       setIsPlaying(true);
       registerActiveVideo(video);
+      startLoop();
     };
 
     const handlePause = () => {
       setIsPlaying(false);
       unregisterActiveVideo(video);
+      stopLoop();
     };
 
     const handleEnded = () => {
       setIsPlaying(false);
       unregisterActiveVideo(video);
+      stopLoop();
       if (onEnded) onEnded();
     };
 
@@ -419,6 +446,9 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
         setAspectRatio(video.videoWidth / video.videoHeight);
       }
       renderFrame();
+      if (!video.paused) {
+        startLoop();
+      }
     };
 
     video.addEventListener('play', handlePlay);
@@ -426,17 +456,17 @@ export const ChromaKeyVideo: React.FC<ChromaKeyVideoProps> = ({
     video.addEventListener('ended', handleEnded);
     video.addEventListener('loadeddata', handleLoadedData);
 
-    animId = requestAnimationFrame(processLoop);
-
     if (autoPlay) {
       shouldPlayRef.current = true;
       registerActiveVideo(video);
       video.play().catch(() => {});
+    } else if (!video.paused) {
+      startLoop();
     }
 
     return () => {
       isMounted = false;
-      cancelAnimationFrame(animId);
+      stopLoop();
       observer.disconnect();
       unregisterActiveVideo(video);
       if (video) {

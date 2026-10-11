@@ -117,7 +117,7 @@ export const SchoolSettingsModal: React.FC<SchoolSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-slate-950/90">
       <div className="w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl border-2 border-red-500/40 bg-gradient-to-b from-[#132b61] to-[#0b1735] shadow-2xl">
         <div className="flex items-start justify-between gap-3 p-4 sm:p-6 border-b border-white/10">
           <div className="flex items-center gap-3">

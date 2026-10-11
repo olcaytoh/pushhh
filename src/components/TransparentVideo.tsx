@@ -205,19 +205,36 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
       }
     };
 
-    const processLoop = (timestamp: number) => {
-      if (!isMounted) return;
+    let isLoopActive = false;
 
-      // Sadece görünür durumdayken, duraklatılmamışken ve video oynarken render yap
+    const stopLoop = () => {
+      isLoopActive = false;
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    };
+
+    const processLoop = (timestamp: number) => {
+      if (!isMounted) {
+        isLoopActive = false;
+        return;
+      }
+
+      // Sadece görünür durumdayken, sekme aktifken ve video oynarken döngüyü sürdür
       if (
-        isVisibleRef.current &&
-        !document.hidden &&
-        !isPausedRef.current &&
-        video &&
-        !video.paused &&
-        !video.ended &&
-        video.readyState >= 2
+        !isVisibleRef.current ||
+        document.hidden ||
+        isPausedRef.current ||
+        !video ||
+        video.paused ||
+        video.ended
       ) {
+        isLoopActive = false;
+        return; // DÖNGÜYÜ UYUT: 0 CPU yükü
+      }
+
+      if (video.readyState >= 2) {
         // Akıllı tahta CPU/GPU optimizasyonu: 30 FPS hız limiti (her karede boşa dönmeyi engeller)
         const frameInterval = gl ? 33 : 48; // WebGL için 30 FPS, 2D fallback için 20 FPS
         if (!lastRenderTime || timestamp - lastRenderTime >= frameInterval) {
@@ -228,9 +245,23 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
         }
       }
 
-      if (isMounted) {
-        animId = requestAnimationFrame(processLoop);
+      animId = requestAnimationFrame(processLoop);
+    };
+
+    const startLoop = () => {
+      if (!isMounted || isLoopActive) return;
+      if (
+        !isVisibleRef.current ||
+        document.hidden ||
+        isPausedRef.current ||
+        !video ||
+        video.paused ||
+        video.ended
+      ) {
+        return;
       }
+      isLoopActive = true;
+      animId = requestAnimationFrame(processLoop);
     };
 
     const notifyReady = () => {
@@ -238,20 +269,31 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
       setIsVideoReady(true);
       if (!isPausedRef.current && isVisibleRef.current && !document.hidden) {
         video.play().catch(() => {});
+        startLoop();
       }
     };
 
     const handleEnded = () => {
       if (!isMounted) return;
+      stopLoop();
       video.currentTime = 0;
       if (!isPausedRef.current && isVisibleRef.current && !document.hidden) {
         video.play().catch(() => {});
       }
     };
 
+    const handlePlay = () => {
+      startLoop();
+    };
+
+    const handlePause = () => {
+      stopLoop();
+    };
+
     video.addEventListener('loadeddata', notifyReady);
     video.addEventListener('canplay', notifyReady);
-    video.addEventListener('playing', notifyReady);
+    video.addEventListener('playing', handlePlay);
+    video.addEventListener('pause', handlePause);
     video.addEventListener('ended', handleEnded);
 
     if (video.readyState >= 2) {
@@ -266,12 +308,16 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
           isVisibleRef.current = isIntersecting;
 
           if (!isIntersecting) {
+            stopLoop();
             if (video && !video.paused) {
               video.pause();
             }
           } else {
             if (video && !isPausedRef.current && !document.hidden && video.paused) {
               video.play().catch(() => {});
+            }
+            if (video && !video.paused) {
+              startLoop();
             }
           }
         });
@@ -284,6 +330,7 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
     const handleVisibilityChange = () => {
       if (document.hidden) {
         isVisibleRef.current = false;
+        stopLoop();
         if (video && !video.paused) {
           video.pause();
         }
@@ -292,22 +339,27 @@ export const TransparentVideo: React.FC<TransparentVideoProps> = ({
         if (video && !isPausedRef.current && video.paused) {
           video.play().catch(() => {});
         }
+        if (video && !video.paused) {
+          startLoop();
+        }
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    animId = requestAnimationFrame(processLoop);
+    if (video && !video.paused) {
+      startLoop();
+    }
 
     return () => {
       isMounted = false;
-      cancelAnimationFrame(animId);
+      stopLoop();
       observer.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-
       if (video) {
+        video.removeEventListener('playing', handlePlay);
+        video.removeEventListener('pause', handlePause);
         video.removeEventListener('loadeddata', notifyReady);
         video.removeEventListener('canplay', notifyReady);
-        video.removeEventListener('playing', notifyReady);
         video.removeEventListener('ended', handleEnded);
         video.pause();
       }

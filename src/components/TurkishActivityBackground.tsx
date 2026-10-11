@@ -71,31 +71,31 @@ export const TurkishActivityBackground: React.FC<TurkishActivityBackgroundProps>
       {showFloatingAlphabet && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-25 sm:opacity-35 select-none z-10">
           {/* Sol Üst köşe - Renkli alfabe & yıldız */}
-          <div className="absolute top-5 left-16 flex items-center gap-2 transform -rotate-6 animate-pulse" style={{ animationDuration: '6s' }}>
-            <span className="text-2xl sm:text-3xl font-black text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">A</span>
-            <span className="text-xl sm:text-2xl font-bold text-sky-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">b</span>
+          <div className="absolute top-5 left-16 flex items-center gap-2 transform -rotate-6">
+            <span className="text-2xl sm:text-3xl font-black text-amber-300">A</span>
+            <span className="text-xl sm:text-2xl font-bold text-sky-300">b</span>
             <span className="text-sm">✏️</span>
           </div>
 
           {/* Sağ Üst köşe - Kitap ve Türkçe harf */}
-          <div className="absolute top-6 right-12 flex items-center gap-2 transform rotate-6 animate-pulse" style={{ animationDuration: '7s' }}>
+          <div className="absolute top-6 right-12 flex items-center gap-2 transform rotate-6">
             <span className="text-2xl">📖</span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">C</span>
+            <span className="text-2xl sm:text-3xl font-black text-emerald-300">C</span>
             <span className="text-lg text-yellow-300 font-bold">ç</span>
           </div>
 
           {/* Sol Alt köşe - Kalem ve hece notu */}
-          <div className="absolute bottom-10 left-16 flex items-center gap-2 transform rotate-6 animate-pulse" style={{ animationDuration: '8s' }}>
+          <div className="absolute bottom-10 left-16 flex items-center gap-2 transform rotate-6">
             <span className="text-xl">📐</span>
-            <span className="text-2xl sm:text-3xl font-black text-rose-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">D</span>
+            <span className="text-2xl sm:text-3xl font-black text-rose-300">D</span>
             <span className="text-lg text-amber-200 font-bold">e</span>
           </div>
 
           {/* Sağ Alt köşe - Yıldız ve Türkçe karakterler */}
-          <div className="absolute bottom-10 right-12 flex items-center gap-2 transform -rotate-6 animate-pulse" style={{ animationDuration: '5s' }}>
+          <div className="absolute bottom-10 right-12 flex items-center gap-2 transform -rotate-6">
             <span className="text-lg">⭐</span>
-            <span className="text-2xl sm:text-3xl font-black text-cyan-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">ğ</span>
-            <span className="text-2xl sm:text-3xl font-black text-purple-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">Ş</span>
+            <span className="text-2xl sm:text-3xl font-black text-cyan-300">ğ</span>
+            <span className="text-2xl sm:text-3xl font-black text-purple-300">Ş</span>
           </div>
         </div>
       )}

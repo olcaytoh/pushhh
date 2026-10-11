@@ -229,7 +229,7 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
   other_3d_lab: {
     title: '3D Geometrik Laboratuvar',
     desc: '3 Boyutlu cisimlerin yüzey, köşe ve ayrıtlarını keşfetme',
-    icon: '/MENUIKON/grid_icon_01.webp',
+    icon: '/MENUIKON/grid_icon_10.webp',
   },
   cisimler_acilimi: {
     title: 'Geometrik Cisimler Açınımı',
@@ -239,7 +239,7 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
   geoboard: {
     title: 'Geometri Tahtası (Geoboard)',
     desc: 'Geometrik şekiller ve çevre/alan modelleri oluşturma',
-    icon: '/MENUIKON/grid_icon_02.webp',
+    icon: '/MENUIKON/grid_icon_04.webp',
   },
 };
 

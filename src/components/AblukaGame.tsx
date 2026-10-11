@@ -410,7 +410,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
       </div>
 
       {/* TOP HEADER CONTROLS */}
-      <header className="relative z-20 px-2 sm:px-6 py-1.5 sm:py-2 bg-slate-950/85 backdrop-blur-md border-b border-amber-400/30 flex items-center justify-between shrink-0 shadow-md">
+      <header className="relative z-20 px-2 sm:px-6 py-1.5 sm:py-2 bg-slate-950/95 border-b border-amber-400/30 flex items-center justify-between shrink-0 shadow-md">
         {/* LEFT: BACK BUTTON & TITLE */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
@@ -557,7 +557,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
       {/* MAIN GAMEPLAY CONTAINER */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-between p-1.5 sm:p-2.5 overflow-hidden min-h-0 w-full max-w-5xl mx-auto">
         {/* TURN & INSTRUCTION STATUS BAR */}
-        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-slate-950/85 backdrop-blur-md border border-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.6)] shrink-0">
+        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-3 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-slate-950/95 border border-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.6)] shrink-0">
           {/* PLAYER 1 (RED) BADGE */}
           <div className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl transition-all ${
             turn === 1 && winner === null
@@ -855,7 +855,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
 
       {/* RULES MODAL */}
       {showRulesModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-3">
           <div className="max-w-md w-full bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 shadow-2xl flex flex-col text-slate-200 animate-fadeIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
               <h3 className="text-base sm:text-lg font-black text-amber-300 uppercase tracking-wide flex items-center gap-2">
@@ -903,7 +903,7 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
 
       {/* VICTORY MODAL */}
       {winner !== null && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 animate-fadeIn">
+        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-3 animate-fadeIn">
           <div className="max-w-sm w-full bg-slate-950 border-3 border-amber-400 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-2xl bg-amber-400 border-2 border-white shadow-lg flex items-center justify-center mb-3 animate-bounce">
               <Trophy size={36} className="text-slate-950" />

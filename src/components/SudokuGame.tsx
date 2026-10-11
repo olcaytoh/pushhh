@@ -456,7 +456,7 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
     const themeSelected = isP1 ? 'bg-blue-600/50 ring-2 ring-blue-400' : 'bg-rose-600/50 ring-2 ring-rose-400';
 
     return (
-      <div className={`relative p-1 sm:p-2 rounded-2xl bg-black/50 border-2 ${themeBorder} shadow-2xl backdrop-blur-md flex flex-col items-center justify-center shrink-0`}>
+      <div className={`relative p-1 sm:p-2 rounded-2xl bg-slate-900/90 border-2 ${themeBorder} shadow-2xl flex flex-col items-center justify-center shrink-0`}>
         <div 
           className="grid gap-0.5 sm:gap-1 bg-slate-800 p-1 sm:p-1.5 rounded-xl border border-slate-700 shadow-inner"
           style={{
@@ -565,7 +565,7 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
       </div>
 
       {/* 2. TOP HEADER BAR */}
-      <header className="relative z-20 px-2 sm:px-4 py-1.5 bg-slate-950/90 backdrop-blur-md border-b border-amber-400/40 flex items-center justify-between shrink-0 shadow-lg gap-2">
+      <header className="relative z-20 px-2 sm:px-4 py-1.5 bg-slate-950/95 border-b border-amber-400/40 flex items-center justify-between shrink-0 shadow-lg gap-2">
         {/* LEFT: BACK, HOME & TITLE */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
@@ -874,7 +874,7 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
 
       {/* 5. GAME OVER & VICTORY MODAL */}
       {gameOver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in zoom-in-95 duration-200">
           <div className="relative w-full max-w-md rounded-3xl bg-gradient-to-b from-[#131f38] to-[#0c1424] border-2 border-amber-400 shadow-[0_0_50px_rgba(245,158,11,0.4)] p-6 flex flex-col items-center text-center">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-3xl sm:text-4xl shadow-xl border-2 border-white mb-3 animate-bounce">
               🏆
@@ -933,7 +933,7 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
 
       {/* 5. RULES MODAL */}
       {showRulesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4">
           <div className="relative w-full max-w-md rounded-3xl bg-[#0f172a] border-2 border-amber-400/80 p-5 sm:p-6 shadow-2xl text-left">
             <h3 className="text-lg font-black text-amber-300 mb-2 flex items-center gap-2">
               <HelpCircle size={20} className="text-amber-400" />

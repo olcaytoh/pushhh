@@ -624,7 +624,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
             return (
               <div
                 key={player.id}
-                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm min-h-0 overflow-hidden`}
+                className={`rounded-2xl border-2 ${cardBorder} p-2 sm:p-2.5 flex flex-col justify-between shadow-xl min-h-0 overflow-hidden`}
               >
                 {/* 1. BÖLÜM: Header */}
                 <div className="flex items-center justify-between border-b border-white/15 pb-1 mb-1 shrink-0 h-7 sm:h-8">
@@ -750,7 +750,7 @@ export const Dedektif5N1KGame: React.FC<Dedektif5N1KGameProps> = ({
 
       {/* Victory Celebration Modal */}
       {gameOver && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/85 animate-fade-in">
           <div className="bg-gradient-to-b from-[#1b2b48] to-[#0c1527] border-2 border-amber-400 rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl text-center flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-3xl shadow-lg">
               🔍

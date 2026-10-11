@@ -291,66 +291,69 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     const updatePhysics = (now: number) => {
       if (!isRunning) return;
 
-      const dt = Math.min(now - lastTime, 64); // Frame drop durumunda fırlamayı önle
-      lastTime = now;
-      const speedFactor = dt / 16.666; // 60 FPS normalize çarpanı
+      // Akıllı tahta CPU optimizasyonu: 30 FPS hız limiti ile balık fiziği
+      if (!lastTime || now - lastTime >= 33) {
+        const dt = Math.min(now - (lastTime || now), 64); // Frame drop durumunda fırlamayı önle
+        lastTime = now;
+        const speedFactor = dt / 16.666; // Normalize hız çarpanı
 
-      const dims = aquariumDimsRef.current;
-      const w = dims.w;
-      const h = dims.h;
-      const list = fishesPhysicsRef.current;
-      const domMap = fishDomMap.current;
-      const bodyMap = fishBodyDomMap.current;
+        const dims = aquariumDimsRef.current;
+        const w = dims.w;
+        const h = dims.h;
+        const list = fishesPhysicsRef.current;
+        const domMap = fishDomMap.current;
+        const bodyMap = fishBodyDomMap.current;
 
-      for (let i = 0; i < list.length; i++) {
-        const f = list[i];
-        let newX = f.x + f.vx * speedFactor;
-        let newY = f.y + f.vy * speedFactor;
+        for (let i = 0; i < list.length; i++) {
+          const f = list[i];
+          let newX = f.x + f.vx * speedFactor;
+          let newY = f.y + f.vy * speedFactor;
 
-        // X sınırları (%8 - %88)
-        if (newX <= 8) {
-          newX = 8;
-          f.vx = Math.abs(f.vx);
-        } else if (newX >= 88) {
-          newX = 88;
-          f.vx = -Math.abs(f.vx);
-        }
+          // X sınırları (%8 - %88)
+          if (newX <= 8) {
+            newX = 8;
+            f.vx = Math.abs(f.vx);
+          } else if (newX >= 88) {
+            newX = 88;
+            f.vx = -Math.abs(f.vx);
+          }
 
-        // Y sınırları (%14 - %80)
-        if (newY <= 14) {
-          newY = 14;
-          f.vy = Math.abs(f.vy);
-        } else if (newY >= 80) {
-          newY = 80;
-          f.vy = -Math.abs(f.vy);
-        }
+          // Y sınırları (%14 - %80)
+          if (newY <= 14) {
+            newY = 14;
+            f.vy = Math.abs(f.vy);
+          } else if (newY >= 80) {
+            newY = 80;
+            f.vy = -Math.abs(f.vy);
+          }
 
-        // Minik organik dalgalanmalar
-        if (Math.random() < 0.012) {
-          f.vy = (Math.random() - 0.5) * 0.05;
-        }
+          // Minik organik dalgalanmalar
+          if (Math.random() < 0.012) {
+            f.vy = (Math.random() - 0.5) * 0.05;
+          }
 
-        f.x = newX;
-        f.y = newY;
-        f.direction = f.vx >= 0 ? 1 : -1;
+          f.x = newX;
+          f.y = newY;
+          f.direction = f.vx >= 0 ? 1 : -1;
 
-        // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
-        const el = domMap.get(f.id);
-        if (el) {
-          const px = (newX * w) / 100;
-          const py = (newY * h) / 100;
-          el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
-        }
+          // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
+          const el = domMap.get(f.id);
+          if (el) {
+            const px = (newX * w) / 100;
+            const py = (newY * h) / 100;
+            el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
+          }
 
-        // Sadece yüzme yönü değiştiğinde gövdeyi ters çevir
-        if (f.direction !== f.prevDirection) {
-          f.prevDirection = f.direction;
-          const bodyEl = bodyMap.get(f.id);
-          if (bodyEl) {
-            const scaleX = f.direction === 1
-              ? (f.nativeFacing === 'right' ? 1 : -1)
-              : (f.nativeFacing === 'left' ? 1 : -1);
-            bodyEl.style.transform = `scaleX(${scaleX})`;
+          // Sadece yüzme yönü değiştiğinde gövdeyi ters çevir
+          if (f.direction !== f.prevDirection) {
+            f.prevDirection = f.direction;
+            const bodyEl = bodyMap.get(f.id);
+            if (bodyEl) {
+              const scaleX = f.direction === 1
+                ? (f.nativeFacing === 'right' ? 1 : -1)
+                : (f.nativeFacing === 'left' ? 1 : -1);
+              bodyEl.style.transform = `scaleX(${scaleX})`;
+            }
           }
         }
       }

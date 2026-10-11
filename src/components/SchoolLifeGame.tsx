@@ -12,6 +12,7 @@ export interface SchoolLifeItem {
   number: number;
   targetWord: string;
   turkishMeaning: string;
+  imageSrc: string;
   options: string[];
   themeColor: 'yellow' | 'blue' | 'purple' | 'green' | 'orange' | 'pink';
   sceneType: 
@@ -36,12 +37,14 @@ export interface SchoolLifeItem {
 // 1. classroom, 2. a kid, 3. a sports hall, 4. a teacher, 5. a pupil, 6. a teacher's room,
 // 7. a garden, 8. a library, 9. a playground, 10. a boy, 11. a teacher, 12. a pupil,
 // 13. books, 14. a library, 15. a school
+// Using cropped card images from /kartlar/kart_01.png to /kartlar/kart_15.png
 export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
   {
     id: 'sl-1',
     number: 1,
     targetWord: 'classroom',
     turkishMeaning: 'Derslik / Sınıf',
+    imageSrc: '/kartlar/kart_01.png',
     options: ['classroom', 'a garden', 'a sports hall'],
     themeColor: 'yellow',
     sceneType: 'classroom'
@@ -51,6 +54,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 2,
     targetWord: 'a kid',
     turkishMeaning: 'Küçük Çocuk',
+    imageSrc: '/kartlar/kart_02.png',
     options: ['a kid', 'a teacher', 'a school'],
     themeColor: 'blue',
     sceneType: 'kid'
@@ -60,6 +64,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 3,
     targetWord: 'a sports hall',
     turkishMeaning: 'Spor Salonu',
+    imageSrc: '/kartlar/kart_03.png',
     options: ['a library', 'a sports hall', "a teacher's room"],
     themeColor: 'purple',
     sceneType: 'sports_hall'
@@ -69,6 +74,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 4,
     targetWord: 'a teacher',
     turkishMeaning: 'Öğretmen (Kadın)',
+    imageSrc: '/kartlar/kart_04.png',
     options: ['a pupil', 'a teacher', 'a kid'],
     themeColor: 'green',
     sceneType: 'teacher_female'
@@ -78,6 +84,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 5,
     targetWord: 'a pupil',
     turkishMeaning: 'Öğrenci (Kız)',
+    imageSrc: '/kartlar/kart_05.png',
     options: ['a pupil', 'a boy', "a teacher's room"],
     themeColor: 'pink',
     sceneType: 'pupil_girl'
@@ -87,6 +94,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 6,
     targetWord: "a teacher's room",
     turkishMeaning: 'Öğretmenler Odası',
+    imageSrc: '/kartlar/kart_06.png',
     options: ['a playground', 'a garden', "a teacher's room"],
     themeColor: 'orange',
     sceneType: 'teachers_room'
@@ -96,6 +104,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 7,
     targetWord: 'a garden',
     turkishMeaning: 'Okul Bahçesi',
+    imageSrc: '/kartlar/kart_07.png',
     options: ['a garden', 'a sports hall', 'classroom'],
     themeColor: 'green',
     sceneType: 'garden'
@@ -105,6 +114,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 8,
     targetWord: 'a library',
     turkishMeaning: 'Okul Kütüphanesi',
+    imageSrc: '/kartlar/kart_08.png',
     options: ['a library', 'a playground', 'books'],
     themeColor: 'blue',
     sceneType: 'library'
@@ -114,6 +124,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 9,
     targetWord: 'a playground',
     turkishMeaning: 'Oyun Parkı / Bahçe',
+    imageSrc: '/kartlar/kart_09.png',
     options: ['a kid', 'a playground', 'a school'],
     themeColor: 'yellow',
     sceneType: 'playground'
@@ -123,6 +134,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 10,
     targetWord: 'a boy',
     turkishMeaning: 'Erkek Çocuk / Öğrenci',
+    imageSrc: '/kartlar/kart_10.png',
     options: ['a boy', 'a pupil', 'a teacher'],
     themeColor: 'blue',
     sceneType: 'boy'
@@ -132,6 +144,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 11,
     targetWord: 'a teacher',
     turkishMeaning: 'Öğretmen (Erkek)',
+    imageSrc: '/kartlar/kart_11.png',
     options: ['a teacher', 'a sports hall', 'a boy'],
     themeColor: 'purple',
     sceneType: 'teacher_male'
@@ -141,6 +154,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 12,
     targetWord: 'a pupil',
     turkishMeaning: 'Öğrenci (Erkek)',
+    imageSrc: '/kartlar/kart_12.png',
     options: ['books', 'a kid', 'a pupil'],
     themeColor: 'pink',
     sceneType: 'pupil_boy'
@@ -150,6 +164,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 13,
     targetWord: 'books',
     turkishMeaning: 'Ders Kitapları / Kitaplar',
+    imageSrc: '/kartlar/kart_13.png',
     options: ['classroom', 'books', 'a library'],
     themeColor: 'orange',
     sceneType: 'books'
@@ -159,6 +174,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 14,
     targetWord: 'a library',
     turkishMeaning: 'Kütüphane Okuma Köşesi',
+    imageSrc: '/kartlar/kart_14.png',
     options: ['a school', "a teacher's room", 'a library'],
     themeColor: 'blue',
     sceneType: 'library_reading'
@@ -168,6 +184,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
     number: 15,
     targetWord: 'a school',
     turkishMeaning: 'Okul Binası',
+    imageSrc: '/kartlar/kart_15.png',
     options: ['a sports hall', 'a playground', 'a school'],
     themeColor: 'yellow',
     sceneType: 'school'
@@ -850,11 +867,11 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
   // Sync playerMode with top app header playerCountMode
   useEffect(() => {
     if (playerCountMode && (playerCountMode === 1 || playerCountMode === 2 || playerCountMode === 3)) {
-      if (playerCountMode !== playerMode) {
-        setPlayerMode(playerCountMode);
-      }
+      setPlayerMode(playerCountMode);
     }
-  }, [playerCountMode, playerMode]);
+  }, [playerCountMode]);
+
+  const activePlayerCount = (playerCountMode || playerMode || 1) as 1 | 2 | 3;
 
   // Per-player state: question index, score, streak, lives, selected option, feedback
   const [playerStates, setPlayerStates] = useState([
@@ -914,7 +931,7 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
           if (nextQIdx >= SCHOOL_LIFE_ITEMS.length) {
             setIsGameOver(true);
             triggerAudio('/kazandin.mp3');
-            if (onGameCompleted) onGameCompleted(playerIdx, playerMode);
+            if (onGameCompleted) onGameCompleted(playerIdx, activePlayerCount);
           }
 
           next[playerIdx] = {
@@ -1057,7 +1074,7 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
 
       {/* 3. MAIN ARENA WORKSPACE */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2.5 flex items-stretch justify-center gap-2 overflow-hidden min-h-0">
-        {Array.from({ length: playerMode }).map((_, pIdx) => {
+        {Array.from({ length: activePlayerCount }).map((_, pIdx) => {
           const pState = playerStates[pIdx];
           const currentItem = SCHOOL_LIFE_ITEMS[pState.questionIndex % SCHOOL_LIFE_ITEMS.length];
           const assignedStudentId = selectedStudentIds[pIdx];
@@ -1117,9 +1134,23 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
                     {currentItem.number}
                   </div>
 
-                  {/* Scene Frame */}
-                  <div className="w-full max-w-[280px] sm:max-w-[320px] h-[130px] sm:h-[155px] md:h-[175px] rounded-2xl border-4 border-amber-300 shadow-md overflow-hidden relative">
-                    <SceneIllustration type={currentItem.sceneType} />
+                  {/* Scene Frame with Cropped Worksheet Images from /kartlar/ */}
+                  <div className="w-full max-w-[290px] sm:max-w-[340px] md:max-w-[370px] h-[135px] sm:h-[160px] md:h-[185px] rounded-2xl border-4 border-amber-300 shadow-md overflow-hidden relative bg-white flex items-center justify-center p-0.5">
+                    <img
+                      src={currentItem.imageSrc}
+                      alt={currentItem.targetWord}
+                      loading="eager"
+                      decoding="async"
+                      className="w-full h-full object-contain pointer-events-none select-none rounded-xl"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                        const fallbackEl = (e.currentTarget.nextElementSibling as HTMLElement);
+                        if (fallbackEl) fallbackEl.style.display = 'block';
+                      }}
+                    />
+                    <div className="w-full h-full hidden">
+                      <SceneIllustration type={currentItem.sceneType} />
+                    </div>
                   </div>
 
                   {/* Turkish Hint (if enabled) */}
@@ -1196,8 +1227,8 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
           <StudentAvatarDock
             students={students}
             currentGrade={6}
-            playerCount={playerMode}
-            selectedStudentIds={selectedStudentIds.slice(0, playerMode)}
+            playerCount={activePlayerCount}
+            selectedStudentIds={selectedStudentIds.slice(0, activePlayerCount)}
             onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
             onOpenRosterModal={onOpenRosterModal}
             playMp3={playMp3}
@@ -1219,7 +1250,7 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
 
             {/* Scores List */}
             <div className="w-full my-4 flex flex-col gap-2">
-              {playerStates.slice(0, playerMode).map((p, idx) => (
+              {playerStates.slice(0, activePlayerCount).map((p, idx) => (
                 <div 
                   key={idx}
                   className="flex items-center justify-between px-4 py-2 rounded-xl bg-slate-900/90 border border-amber-400/30"

@@ -380,7 +380,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
       <div className="w-full max-w-md flex-1 min-h-0 flex flex-col items-center justify-center py-0.5 gap-1 sm:gap-1.5 z-10">
         
         {/* Game Mode & Difficulty Controls */}
-        <div className="w-full flex flex-wrap items-center justify-center gap-1.5 bg-slate-900/85 p-1 sm:p-1.5 rounded-xl border border-indigo-500/40 backdrop-blur-sm shadow-md shrink-0">
+        <div className="w-full flex flex-wrap items-center justify-center gap-1.5 bg-slate-900/95 p-1 sm:p-1.5 rounded-xl border border-indigo-500/40 shadow-md shrink-0">
           {/* PVP / PVE Toggle */}
           <div className="flex rounded-lg bg-slate-950 p-0.5 border border-white/10 shrink-0">
             <button
@@ -459,10 +459,10 @@ export const XOXGame: React.FC<XOXGameProps> = ({
         {/* Score & Turn Banner */}
         <div className="w-full grid grid-cols-3 gap-1.5 text-center shrink-0">
           {/* Player X Card */}
-          <div className={`py-1 px-1.5 rounded-xl border transition-all backdrop-blur-md ${
+          <div className={`py-1 px-1.5 rounded-xl border transition-all ${
             turn === 'X' && !winner
               ? 'bg-cyan-950/90 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)] scale-102 ring-1 ring-cyan-400/30'
-              : 'bg-slate-900/80 border-cyan-800/40 opacity-85'
+              : 'bg-slate-900/90 border-cyan-800/40 opacity-85'
           }`}>
             <div className="flex items-center justify-center gap-1 text-cyan-400 text-[9px] sm:text-[11px] font-black">
               <span>{gameMode === 'pve' ? 'Sen (X)' : '1. Oyuncu (X)'}</span>
@@ -472,7 +472,7 @@ export const XOXGame: React.FC<XOXGameProps> = ({
           </div>
 
           {/* Draws / Status Card */}
-          <div className="py-1 px-1.5 rounded-xl bg-slate-900/80 border border-slate-700/50 backdrop-blur-md flex flex-col justify-center items-center">
+          <div className="py-1 px-1.5 rounded-xl bg-slate-900/90 border border-slate-700/50 flex flex-col justify-center items-center">
             <div className="text-[9px] sm:text-[10px] font-bold text-slate-400">Beraberlik</div>
             <div className="text-base sm:text-lg font-black text-slate-200 leading-tight">{scores.draws}</div>
             {streak > 1 && (
@@ -484,10 +484,10 @@ export const XOXGame: React.FC<XOXGameProps> = ({
           </div>
 
           {/* Player O Card */}
-          <div className={`py-1 px-1.5 rounded-xl border transition-all backdrop-blur-md ${
+          <div className={`py-1 px-1.5 rounded-xl border transition-all ${
             turn === 'O' && !winner
               ? 'bg-amber-950/90 border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)] scale-102 ring-1 ring-amber-400/30'
-              : 'bg-slate-900/80 border-amber-800/40 opacity-85'
+              : 'bg-slate-900/90 border-amber-800/40 opacity-85'
           }`}>
             <div className="flex items-center justify-center gap-1 text-amber-400 text-[9px] sm:text-[11px] font-black">
               <span>{gameMode === 'pve' ? 'Robot (O)' : '2. Oyuncu (O)'}</span>

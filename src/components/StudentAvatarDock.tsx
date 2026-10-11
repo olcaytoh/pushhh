@@ -107,7 +107,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
 
   return (
     <div className="w-full shrink-0 z-20 mt-auto mb-0 px-1 sm:px-2 select-none">
-      <div className="relative rounded-2xl bg-[#070c18]/95 border border-slate-700/80 shadow-[0_8px_24px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] px-2 py-1 backdrop-blur-md">
+      <div className="relative rounded-2xl bg-[#070c18] border border-slate-700/80 shadow-[0_8px_24px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.08)] px-2 py-1">
         {sortedStudents.length === 0 ? (
           <div className="flex items-center justify-between gap-2 p-1.5 bg-slate-900/80 rounded-xl border border-dashed border-amber-500/40">
             <div className="flex items-center gap-2 text-xs text-amber-200">

@@ -850,7 +850,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                     </div>
 
                     {/* Glassy Card holding Upper Target Slots and Lower Tray */}
-                    <div className={`w-full rounded-2xl border backdrop-blur-md shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
+                    <div className={`w-full rounded-2xl border shadow-2xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR DICTIONARY ORDER */}
                       <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {player.upperSlots.map((word, slotIdx) => (
@@ -994,7 +994,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
 
       {/* 5. MATCH COMPLETE GAME-OVER MODAL */}
       {gameOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-300">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 p-4 animate-in fade-in duration-300">
           <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.5)] flex flex-col items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center shadow-lg">
               <Trophy className="w-9 h-9 sm:w-11 sm:h-11 text-amber-400 animate-bounce" />

@@ -201,26 +201,33 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
       // Create 3D Mesh
       create3DShapeMesh(selectedShape.id, group, wireframe, highlightMode);
 
+      // Initial frame render
+      try {
+        renderer.render(scene, camera);
+      } catch {}
+
       // Animation Loop (Throttled to 30 FPS for smartboard performance)
       let lastRenderTime = 0;
       const animate = (time: number) => {
         if (isDisposed || !renderer) return;
-        animationFrameId = requestAnimationFrame(animate);
 
         // Cap to 30 FPS (~33ms) to prevent integrated GPU overheating on smartboards
-        if (time - lastRenderTime < 32) return;
-        lastRenderTime = time;
-
-        try {
-          if (autoRotate && shapeGroupRef.current && !isDraggingRef.current) {
-            shapeGroupRef.current.rotation.y += 0.008;
-            shapeGroupRef.current.rotation.x += 0.003;
+        if (!lastRenderTime || time - lastRenderTime >= 33) {
+          lastRenderTime = time;
+          try {
+            if (autoRotate && shapeGroupRef.current && !isDraggingRef.current) {
+              shapeGroupRef.current.rotation.y += 0.008;
+              shapeGroupRef.current.rotation.x += 0.003;
+              renderer.render(scene, camera);
+            } else if (isDraggingRef.current) {
+              renderer.render(scene, camera);
+            }
+          } catch {
+            // Ignore render loop errors
           }
-
-          renderer.render(scene, camera);
-        } catch {
-          // Ignore render loop errors
         }
+
+        animationFrameId = requestAnimationFrame(animate);
       };
       animationFrameId = requestAnimationFrame(animate);
 
@@ -290,7 +297,7 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] bg-slate-950/95 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
     >
       {/* Background Image /dere3.webp */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -412,7 +419,7 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
 
             {/* FLOATING CONTROLS OVERLAY */}
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-              <div className="bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-400/80 text-xs sm:text-sm font-black text-amber-300 flex items-center gap-2 shadow-md">
+              <div className="bg-slate-900/95 px-3 py-1.5 rounded-xl border border-amber-400/80 text-xs sm:text-sm font-black text-amber-300 flex items-center gap-2 shadow-md">
                 <span className="text-base sm:text-lg">{selectedShape.emoji}</span>
                 <span>{selectedShape.name}</span>
               </div>
@@ -447,7 +454,7 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
             </div>
 
             {/* DRAG INSTRUCTION WATERMARK */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-amber-200/90 font-medium border border-white/10 pointer-events-none flex items-center gap-1">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1 rounded-full text-[10px] text-amber-200/90 font-medium border border-white/10 pointer-events-none flex items-center gap-1">
               <span>👈 Parmağınla veya fareyle çevir 👉</span>
             </div>
           </div>
