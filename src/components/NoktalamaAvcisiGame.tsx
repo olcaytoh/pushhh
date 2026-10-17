@@ -7,6 +7,7 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
+import { ActivityQuestionFrame, QuestionBadge } from './ActivityQuestionFrame';
 
 export interface NoktalamaQuestion {
   id: string;
@@ -137,6 +138,446 @@ export const NOKTALAMA_QUESTIONS: NoktalamaQuestion[] = [
     correctMark: '.',
     markName: 'Nokta (.)',
     explanation: 'Tamamlanan duyguların ve düşüncelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-16',
+    before: 'Pazardan domates',
+    after: 'biber ve patlıcan aldık.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Eş görevli kelimeleri birbirinden ayırmak için aralarına virgül konur.'
+  },
+  {
+    id: 'nok-17',
+    before: 'Cumhuriyet 29 Ekim 1923',
+    after: 'te ilan edildi.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Belirli bir tarihe gelen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-18',
+    before: 'Dur, karşıdan araba geliyor',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Tehlike ve acil uyarı bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-19',
+    before: 'Bu güzel resmi sen mi yaptın',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru anlamı taşıyan cümlenin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-20',
+    before: 'Kitap okumak hayal gücünü ve aklı geliştirir',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Tamamlanmış düşünce ve kurallı cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-21',
+    before: 'Kedi Tekir',
+    after: 'in mamasını verdin mi?',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Hayvanlara verilen özel adlara gelen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-22',
+    before: 'Vah vah, zavallı kuşun kanadı incinmiş',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Acıma ve üzüntü bildiren duygulu cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-23',
+    before: 'Kütüphaneden hangi kitabı ödünç aldın',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru bildiren cümlelerin sonuna soru işareti gelir.'
+  },
+  {
+    id: 'nok-24',
+    before: 'Sabah erkenden uyandım',
+    after: 'elimi yüzümü yıkayıp kahvaltı yaptım.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Birbiri ardına sıralanan cümleleri ayırmak için aralarına virgül konur.'
+  },
+  {
+    id: 'nok-25',
+    before: 'İzmir',
+    after: 'in saat kulesi çok meşhurdur.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Şehir ve yer adlarına gelen çekim ekleri kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-26',
+    before: 'Aman Allah\'ım, ne kadar görkemli bir gökkuşağı',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Hayranlık, coşku ve şaşkınlık bildiren cümlelerin sonuna ünlem konur.'
+  },
+  {
+    id: 'nok-27',
+    before: 'Teneffüs zili çaldı mı',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Cevap bekleyen soru cümlelerinin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-28',
+    before: 'Yaz tatilinde dedemin köyüne gittik',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Yargısı tamamlanan ve biten cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-29',
+    before: 'Sevgili Anneciğim',
+    after: 'seni dünyalar kadar seviyorum.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Mektuplarda ve hitap sözcüklerinden sonra virgül kullanılır.'
+  },
+  {
+    id: 'nok-30',
+    before: 'TBMM',
+    after: 'nin açılışını 23 Nisan\'da coşkuyla kutladık.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Büyük harfle yapılan kısaltmalara getirilen ekleri ayırmak için kesme işareti konur.'
+  },
+  {
+    id: 'nok-31',
+    before: 'Dikkat et, yerler çok kaygan',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Uyarı ve ikaz bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-32',
+    before: 'Okul servisiniz sabah saat kaçta geliyor',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru anlamı taşıyan ifadelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-33',
+    before: 'Bahar gelince papatyalar',
+    after: 'güller ve laleler açtı.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Birbiri ardına sıralanan benzer kelimeleri ayırmak için virgül kullanılır.'
+  },
+  {
+    id: 'nok-34',
+    before: 'Trafik kurallarına uymak hayat kurtarır',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Hüküm bildiren tamamlanmış cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-35',
+    before: 'Van Gölü',
+    after: 'nün suyu sodalı ve mavidir.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Coğrafi özel isimlere getirilen ekler kesme işareti ile ayrılır.'
+  },
+  {
+    id: 'nok-36',
+    before: 'Of, bu sıcakta yürümek çok yorucu',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Bıkkınlık ve yakınma duygularını belirten cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-37',
+    before: 'Akşam yemeğinde ne yiyeceğiz',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru cümlelerinin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-38',
+    before: 'Doktora gittik',
+    after: 'ilaçlarımızı aldık ve evimize döndük.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Birbiri ardınca gelen sıralı cümleleri ayırmak için virgül konur.'
+  },
+  {
+    id: 'nok-39',
+    before: 'Ali',
+    after: 'nin suluğu masanın üzerinde kalmış.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Kişi adlarına gelen çekim eklerini ayırmak için kesme işareti kullanılır.'
+  },
+  {
+    id: 'nok-40',
+    before: 'Yaşasın, satranç turnuvasında madalya kazandım',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Büyük sevinç ve coşku bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-41',
+    before: 'Kırmızı Başlıklı Kız masalını dinledin mi',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru eki (-mi) içeren cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-42',
+    before: 'Çantamda cetvel',
+    after: 'pergel ve boya kalemleri var.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Eş görevli kelimeleri birbirinden ayırmak için aralarına virgül konur.'
+  },
+  {
+    id: 'nok-43',
+    before: 'Düzenli spor yapmak kemiklerimizi güçlendirir',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Tamamlanmış cümlenin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-44',
+    before: 'Trabzon',
+    after: 'un yaylaları yemyeşildir.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Şehir adlarına gelen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-45',
+    before: 'Ormanlar dünyamızın can damarıdır',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Bitmiş kurallı cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-46',
+    before: 'Bu akşam gökyüzünde parlayan kutup yıldızını gördün mü',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru anlamı taşıyan cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-47',
+    before: 'Dikkat et, yerler yeni silindiği için çok kaygan',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Uyarı ve ikaz bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-48',
+    before: 'Manavdan kiraz',
+    after: 'çilek ve şeftali aldık.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Birbiri ardınca sıralanan eş görevli kelimeler arasına virgül konur.'
+  },
+  {
+    id: 'nok-49',
+    before: 'Cumhuriyet 29 Ekim 1923',
+    after: 'te ilan edildi.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Sayılara ve tarihlere getirilen ekleri ayırmak için kesme işareti konur.'
+  },
+  {
+    id: 'nok-50',
+    before: 'Her akşam uyumadan önce yirmi sayfa kitap okurum',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Yargı bildiren tamamlanmış cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-51',
+    before: 'Hangi müzik aletini çalmayı öğrenmek istersin',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru bildiren cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-52',
+    before: 'Vah vah, minik serçenin kanadı incinmiş',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Acıma ve üzüntü duygularını anlatan cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-53',
+    before: 'Sabah erkenden uyandı',
+    after: 'elini yüzünü yıkadı ve neşeyle kahvaltı yaptı.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Sıralı cümleleri birbirinden ayırmak için aralarına virgül konur.'
+  },
+  {
+    id: 'nok-54',
+    before: 'Ayşe',
+    after: 'nin çizdiği resim yarışmada birinci seçildi.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Kişi adlarına gelen çekim eklerini ayırmak için kesme işareti kullanılır.'
+  },
+  {
+    id: 'nok-55',
+    before: 'Sonbahar mevsiminde ağaçların yaprakları sararır ve dökülür',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Tamamlanmış kurallı cümlelerin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-56',
+    before: 'Yarın okul kütüphanesine birlikte gidelim mi',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru eki (-mi) içeren cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-57',
+    before: 'İmdat, yavru kedi ağacın tepesinde mahsur kaldı',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Korku ve yardım çağrısı bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-58',
+    before: 'Evet',
+    after: 'ben de sizinle satranç turnuvasına katılmak istiyorum.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Kabul veya ret bildiren sözcüklerden sonra virgül konur.'
+  },
+  {
+    id: 'nok-59',
+    before: 'Pamukkale Travertenleri Denizli',
+    after: 'dedir.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Şehir ve yer adlarına getirilen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-60',
+    before: 'Geri dönüşüm sayesinde hem doğayı koruruz hem enerji tasarrufu sağlarız',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Tamamlanmış cümlenin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-61',
+    before: 'Saat kaçta futbol sahasında buluşacağız',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru anlamı taşıyan cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-62',
+    before: 'Harika, fen deneyini başarıyla tamamladık',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Coşku ve sevinç belirten ifadelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-63',
+    before: 'Resim yapmayı',
+    after: 'şiir okumayı ve müzik dinlemeyi çok seviyorum.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Eş görevli kelime öbeklerini ayırmak için aralarına virgül konur.'
+  },
+  {
+    id: 'nok-64',
+    before: 'Ağrı Dağı',
+    after: 'nın zirvesi yıl boyunca karla kaplıdır.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Coğrafi özel isimlere getirilen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-65',
+    before: 'Arılar çiçeklerden nektar toplayarak kovanlarında şifalı bal üretir',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Hüküm bildiren kurallı cümlenin sonuna nokta konur.'
+  },
+  {
+    id: 'nok-66',
+    before: 'Fen bilimleri dersinde hangi konuyu işlediniz',
+    after: '',
+    correctMark: '?',
+    markName: 'Soru İşareti (?)',
+    explanation: 'Soru bildiren cümlelerin sonuna soru işareti konur.'
+  },
+  {
+    id: 'nok-67',
+    before: 'Aman Tanrım, ne kadar görkemli bir şelale',
+    after: '',
+    correctMark: '!',
+    markName: 'Ünlem İşareti (!)',
+    explanation: 'Hayranlık ve şaşkınlık bildiren cümlelerin sonuna ünlem işareti konur.'
+  },
+  {
+    id: 'nok-68',
+    before: 'Küçük çocuk',
+    after: 'heyecanla koşarak annesine sarıldı.',
+    correctMark: ',',
+    markName: 'Virgül (,)',
+    explanation: 'Cümledeki özneyi belirginleştirmek için özneden sonra virgül konabilir.'
+  },
+  {
+    id: 'nok-69',
+    before: 'Mehmet Akif Ersoy İstiklal Marşı',
+    after: 'mızın büyük şairidir.',
+    correctMark: "'",
+    markName: 'Kesme İşareti (\')',
+    explanation: 'Özel isimlere gelen ekler kesme işaretiyle ayrılır.'
+  },
+  {
+    id: 'nok-70',
+    before: 'Spor yapmak vücudumuzu hem zinde tutar hem kaslarımızı güçlendirir',
+    after: '',
+    correctMark: '.',
+    markName: 'Nokta (.)',
+    explanation: 'Tamamlanmış cümlenin sonuna nokta konur.'
   }
 ];
 
@@ -175,6 +616,36 @@ interface PlayerState {
   isCorrect: boolean | null;
   showFeedback: boolean;
 }
+
+/** Noktalama kutucuğunun duruma göre rengi (tüm modlarda aynı) */
+const markBoxClass = (showFeedback: boolean, isCorrect: boolean) =>
+  showFeedback
+    ? isCorrect
+      ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
+      : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400'
+    : 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse';
+
+/** Soru kutusu içeriği: rozet + noktalaması eksik cümle (kutuya göre otomatik ölçeklenir) */
+const NoktalamaQuestionContent: React.FC<{
+  before: string;
+  after: string;
+  mark: string | null | undefined;
+  showFeedback: boolean;
+  isCorrect: boolean;
+}> = ({ before, after, mark, showFeedback, isCorrect }) => (
+  <>
+    <QuestionBadge>🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?</QuestionBadge>
+    <div className="flex flex-wrap items-center justify-center gap-[0.3em] text-[0.7em] leading-relaxed [text-shadow:none]">
+      <span className="text-white [text-shadow:0_2px_4px_#000]">{before}</span>
+      <span
+        className={`inline-flex items-center justify-center min-w-[1.1em] h-[1.3em] px-[0.25em] rounded-[0.3em] font-black border-2 shadow-lg transition-all [text-shadow:none] ${markBoxClass(showFeedback, isCorrect)}`}
+      >
+        {mark || '\u00A0'}
+      </span>
+      <span className="text-white [text-shadow:0_2px_4px_#000]">{after}</span>
+    </div>
+  </>
+);
 
 export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
   onClose,
@@ -472,55 +943,18 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                 </div>
               </div>
 
-                {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
+                {/* CENTER: SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
                 <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
-                  <div 
-                    className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full"
-                    style={{
-                      backgroundColor: '#fbf9f2',
-                      backgroundImage: `
-                        /* Kırmızı dikey marjin çizgisi */
-                        linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
-                        /* Yatay açık mavi çizgili defter satırları */
-                        repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                        /* Doğal yumuşak defter kağıdı dokusu */
-                        linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
-                      `
-                    }}
-                  >
-                    {/* Sol kenar spiralli defter delikleri */}
-                    <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="flex items-center gap-1">
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
-                          <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Defter üst başlık çizgisi */}
-                    <div className="absolute top-2 right-4 flex items-center gap-2 text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider pointer-events-none z-10">
-                      <span>✏️ TÜRKÇE DEFTERİ • NOKTALAMA AVCISI</span>
-                    </div>
-
-                    <div className="relative z-10 w-full h-full flex flex-col items-center justify-center min-h-0 max-h-full overflow-hidden gap-3 sm:gap-4 px-2 sm:px-4 pl-8">
-                      <span className="px-4 py-1 rounded-full bg-cyan-900 border-2 border-cyan-400/80 text-cyan-100 font-black text-xs sm:text-sm md:text-base uppercase shadow-md shrink-0">
-                        🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
-                      </span>
-                      <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-relaxed flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2">
-                        <span>{currentQ.before}</span>
-                        <span className={`inline-flex items-center justify-center min-w-[50px] sm:min-w-[62px] md:min-w-[74px] h-12 sm:h-14 md:h-16 px-3 rounded-2xl font-black text-2xl sm:text-3xl md:text-4xl border-3 shadow-xl transition-all ${
-                          sPlayer.showFeedback
-                            ? sPlayer.isCorrect
-                              ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400 scale-110'
-                              : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400 scale-110'
-                            : 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse'
-                        }`}>
-                          {sPlayer.selectedMark || '\u00A0'}
-                        </span>
-                        <span>{currentQ.after}</span>
-                      </div>
-                    </div>
+                  <div className="relative flex-1 min-h-0 flex">
+                    <ActivityQuestionFrame mode={1} contentKey={sPlayer.questionIndex}>
+                      <NoktalamaQuestionContent
+                        before={currentQ.before}
+                        after={currentQ.after}
+                        mark={sPlayer.selectedMark}
+                        showFeedback={sPlayer.showFeedback}
+                        isCorrect={!!sPlayer.isCorrect}
+                      />
+                    </ActivityQuestionFrame>
                     {sPlayer.showFeedback && (
                       <div className="absolute bottom-2 inset-x-8 z-20 px-3 py-1 rounded-xl bg-slate-950/90 border border-white/20 text-xs sm:text-sm text-amber-200 text-center animate-fade-in shadow-lg">
                         <span className="font-black text-cyan-300 mr-1.5">{currentQ.markName}:</span>
@@ -601,38 +1035,17 @@ export const NoktalamaAvcisiGame: React.FC<NoktalamaAvcisiGameProps> = ({
                   </div>
                 </div>
 
-                {/* Soru Görevi Rozeti */}
-                <div className="text-center my-0.5 shrink-0">
-                  <span className="px-3 py-0.5 rounded-full bg-cyan-900/70 border border-cyan-400/60 text-cyan-200 font-black text-[11px] sm:text-xs uppercase shadow-sm">
-                    🎯 Renkli kutucuğa hangi noktalama işareti gelmeli?
-                  </span>
-                </div>
-
-                {/* 2. BÖLÜM: Cümle Kartı & Boşluk Alanı - Çizgili Defter Alanı */}
-                <div 
-                  className="flex-1 min-h-0 rounded-2xl p-2.5 sm:p-3.5 my-1 flex items-center justify-center text-center shadow-lg border-2 border-amber-300/80 relative"
-                  style={{
-                    backgroundColor: '#fbf9f2',
-                    backgroundImage: `
-                      linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
-                      repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
-                      linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
-                    `
-                  }}
-                >
-                  <div className="ml-4 text-base sm:text-lg md:text-xl lg:text-2xl font-black text-slate-900 leading-relaxed flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                    <span>{currentQ.before}</span>
-                    <span className={`inline-flex items-center justify-center min-w-[42px] sm:min-w-[50px] h-9 sm:h-12 px-2.5 rounded-xl font-black text-xl sm:text-2xl md:text-3xl border-2 shadow-lg transition-all ${
-                      player.showFeedback
-                        ? player.isCorrect
-                          ? 'bg-emerald-500 text-white border-emerald-300 ring-4 ring-emerald-400'
-                          : 'bg-rose-500 text-white border-rose-300 ring-4 ring-rose-400'
-                        : 'bg-amber-400 text-slate-950 border-amber-200 animate-pulse'
-                    }`}>
-                      {player.selectedMark || '\u00A0'}
-                    </span>
-                    <span>{currentQ.after}</span>
-                  </div>
+                {/* SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
+                <div className="flex-1 min-h-0 flex my-1 overflow-hidden">
+                  <ActivityQuestionFrame mode={playerMode as 2 | 3} contentKey={player.questionIndex}>
+                    <NoktalamaQuestionContent
+                      before={currentQ.before}
+                      after={currentQ.after}
+                      mark={player.selectedMark}
+                      showFeedback={player.showFeedback}
+                      isCorrect={!!player.isCorrect}
+                    />
+                  </ActivityQuestionFrame>
                 </div>
 
                 {/* 3. BÖLÜM: Noktalama İşareti Tuşları (ŞIKLAR) */}

@@ -46,7 +46,8 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   surukle_birak: { title: 'Sürükle Bırak Eşleştirme', desc: 'Kavram ve nesne eşleştirme', icon: '🎯' },
   tug_of_war: { title: 'Halat Çekmece Yarışı', desc: 'Hızlı cevapla halatı grubuna çek', icon: '🪢' },
   basketball: { title: 'Basketbol Yarışı', desc: 'Doğru cevapla basket at', icon: '🏀' },
-  abluka: { title: 'Abluka Strateji Oyunu', desc: 'Hedefi çevreleme ve abluka kurma zeka oyunu', icon: '🛡️' }
+  abluka: { title: 'Abluka Strateji Oyunu', desc: 'Hedefi çevreleme ve abluka kurma zeka oyunu', icon: '🛡️' },
+  sivi_tahmin_akvaryum: { title: 'Sıvı Miktarını Tahmin Etme: Akvaryum Düellosu', desc: 'Sıvı miktarlarını kova, sürahi, bardak ve kaşıkla uygulamalı tahmin etme', icon: '🐠' }
 };
 
 export interface TopicInfo {

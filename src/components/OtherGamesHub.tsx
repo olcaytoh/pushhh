@@ -30,6 +30,7 @@ interface OtherGamesHubProps {
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
   onOpenSudoku?: () => void;
+  onOpenSiviTahminAkvaryum?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -61,6 +62,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenMevsimGardirobu,
   onOpenAbluka,
   onOpenSudoku,
+  onOpenSiviTahminAkvaryum,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -312,6 +314,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/coin.mp3',
       action: () => {
         if (onOpenSudoku) onOpenSudoku();
+      },
+    },
+    {
+      id: 'sivi_tahmin_akvaryum',
+      title: 'Sıvı Ölçme Tahmini',
+      subtitle: 'Akvaryum, Kova & Sürahi',
+      icon: '/MENUIKON/grid_icon_37.webp',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenSiviTahminAkvaryum) onOpenSiviTahminAkvaryum();
       },
     }
   ];

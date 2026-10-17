@@ -921,13 +921,13 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
         confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
       }
 
-      // Advance to next question
+  // Advance to next question
       setTimeout(() => {
         setPlayerStates(prev => {
           const next = [...prev];
           const nextQIdx = next[playerIdx].questionIndex + 1;
           
-          // Check if all 15 questions completed
+          // Check if all questions completed
           if (nextQIdx >= SCHOOL_LIFE_ITEMS.length) {
             setIsGameOver(true);
             triggerAudio('/kazandin.mp3');
@@ -1120,7 +1120,7 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
                     <Volume2 className="w-4 h-4" />
                   </button>
                   <span className="text-xs font-bold text-slate-400 px-1.5 py-0.5 rounded bg-black/40">
-                    {(pState.questionIndex % SCHOOL_LIFE_ITEMS.length) + 1} / {SCHOOL_LIFE_ITEMS.length}
+                    {Math.min(SCHOOL_LIFE_ITEMS.length, pState.questionIndex + 1)} / {SCHOOL_LIFE_ITEMS.length}
                   </span>
                 </div>
               </div>
@@ -1245,7 +1245,7 @@ export const SchoolLifeGame: React.FC<SchoolLifeGameProps> = ({
               Great Job! • Harika!
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1">
-              "School Life" İngilizce kelime çalışmasındaki 15 görseli ve sözcüğü başarıyla tamamladın!
+              "School Life" İngilizce kelime çalışmasındaki 15 soruyu başarıyla tamamladın!
             </p>
 
             {/* Scores List */}

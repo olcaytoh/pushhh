@@ -7,6 +7,7 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
+import { ActivityQuestionFrame, QuestionBadge, QuestionSentence } from './ActivityQuestionFrame';
 
 export interface SatirSonuQuestion {
   id: string;
@@ -24,18 +25,19 @@ export interface SatirSonuQuestion {
 }
 
 export const SATIR_SONU_QUESTIONS: SatirSonuQuestion[] = [
+  // --- 1. TEK HARF KURALI (Satır sonunda veya başında tek harf ASLA bırakılamaz) ---
   {
     id: 'ssh-1',
     title: 'Tek Harf Kuralı',
     ruleCategory: 'tek_harf',
     ruleCategoryLabel: 'TEK HARF KURALI',
     word: 'uçurtma',
-    question: 'Aşağıdaki satır sonu bölmelerinden hangisi DOĞRUDUR?',
-    line1: 'uçur-',
-    line2: 'tma',
-    options: ['uçur- / tma', 'u- / çurtma', 'uç- / urtma', 'uçurtm- / a'],
-    correctAnswer: 'uçur- / tma',
-    explanation: 'Satır sonunda veya başında tek harf bırakılamaz! Bu yüzden "u- / çurtma" yanlıştır, "uçur- / tma" doğrudur.',
+    question: '"Uçurtma" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'uçurt-',
+    line2: 'ma',
+    options: ['uçurt- / ma', 'u- / çurtma', 'uç- / urtma', 'uçur- / tma'],
+    correctAnswer: 'uçurt- / ma',
+    explanation: 'Satır sonunda tek harf (u-) bırakılamaz ve heceler bölünemez (u-çurt-ma). Bu yüzden tek doğru ayrım "uçurt- / ma"dır.',
     isCorrectSplit: true
   },
   {
@@ -44,54 +46,54 @@ export const SATIR_SONU_QUESTIONS: SatirSonuQuestion[] = [
     ruleCategory: 'tek_harf',
     ruleCategoryLabel: 'TEK HARF KURALI',
     word: 'araba',
-    question: 'Hangisi satır sonunda YANLIŞ bölünmüştür?',
-    line1: 'a-',
-    line2: 'raba',
-    options: ['a- / raba', 'ara- / ba', 'ar- / aba', 'araba- / lar'],
-    correctAnswer: 'a- / raba',
-    explanation: '"a- / raba" yanlıştır! Çünkü satır sonunda tek bir harf (a-) asla tek başına bırakılamaz.',
-    isCorrectSplit: false
+    question: '"Araba" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ara-',
+    line2: 'ba',
+    options: ['ara- / ba', 'a- / raba', 'ar- / aba', 'arab- / a'],
+    correctAnswer: 'ara- / ba',
+    explanation: 'Satır sonunda veya alt satır başında tek sesli harf bırakılamaz! Doğru heceleme a-ra-ba olduğu için doğru ayrım "ara- / ba"dır.',
+    isCorrectSplit: true
   },
   {
     id: 'ssh-3',
-    title: 'Bileşik Sözcük Kuralı',
-    ruleCategory: 'bilesik_kelime',
-    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
-    word: 'ilkokul',
-    question: '"İlkokul" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
-    line1: 'ilko-',
-    line2: 'kul',
-    options: ['ilko- / kul', 'ilk- / okul', 'i- / lkokul', 'ilkok- / ul'],
-    correctAnswer: 'ilko- / kul',
-    explanation: 'Bileşik kelimeler hecelenirken ulama yapılır: il-ko-kul. Bu nedenle "ilko- / kul" doğrudur, "ilk- / okul" yanlıştır.',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'öğrenci',
+    question: '"Öğrenci" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'öğret-',
+    line2: 'ci',
+    options: ['öğren- / ci', 'ö- / ğrenci', 'öğr- / enci', 'öğrenc- / i'],
+    correctAnswer: 'öğren- / ci',
+    explanation: 'Satır sonunda tek harf "ö-" kalamaz, alt satırda da tek harf "-i" kalamaz. Doğru heceden ayrım "öğren- / ci"dir.',
     isCorrectSplit: true
   },
   {
     id: 'ssh-4',
-    title: 'Heceleme Kuralı',
-    ruleCategory: 'heceleme',
-    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
-    word: 'bilgisayar',
-    question: 'Hangisi satır sonuna DOĞRU hecelenerek sığdırılmıştır?',
-    line1: 'bilgi-',
-    line2: 'sayar',
-    options: ['bilgi- / sayar', 'bi- / lgisayar', 'bilgis- / ayar', 'bil- / g-isayar'],
-    correctAnswer: 'bilgi- / sayar',
-    explanation: 'Sözcük bil-gi-sa-yar şeklinde hecelenir. Hecenin ortasından "bi- / lgisayar" diye bölünemez.',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'elma',
+    question: '"Elma" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'el-',
+    line2: 'ma',
+    options: ['el- / ma', 'e- / lma', 'elm- / a', 'el-m / a'],
+    correctAnswer: 'el- / ma',
+    explanation: '"e- / lma"da satır sonunda tek harf, "elm- / a"da alt satırda tek harf hatası vardır! Doğrusu "el- / ma"dır.',
     isCorrectSplit: true
   },
   {
     id: 'ssh-5',
-    title: 'Bileşik Sözcük Kuralı',
-    ruleCategory: 'bilesik_kelime',
-    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
-    word: 'başöğretmen',
-    question: '"Başöğretmen" sözcüğü satır sonunda nasıl bölünmelidir?',
-    line1: 'ba-',
-    line2: 'şöğretmen',
-    options: ['ba- / şöğretmen', 'baş- / öğretmen', 'başö- / ğretmen', 'b- / aşöğretmen'],
-    correctAnswer: 'ba- / şöğretmen',
-    explanation: 'Bileşik sözcükler ba-şöğ-ret-men şeklinde hecelenir! "baş- / öğretmen" heceleme yanlışıdır.',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'aile',
+    question: '"Aile" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ai-',
+    line2: 'le',
+    options: ['ai- / le', 'a- / ile', 'ail- / e', 'a-i / le'],
+    correctAnswer: 'ai- / le',
+    explanation: 'a-i-le sözcüğünde üstte tek "a-" kalamaz, altta tek "-e" kalamaz! Tek kurala uygun ayrım "ai- / le"dir.',
     isCorrectSplit: true
   },
   {
@@ -99,79 +101,69 @@ export const SATIR_SONU_QUESTIONS: SatirSonuQuestion[] = [
     title: 'Tek Harf Kuralı',
     ruleCategory: 'tek_harf',
     ruleCategoryLabel: 'TEK HARF KURALI',
-    word: 'öğrenci',
-    question: '"Ö- / ğrenci" ayrımı neden YANLIŞTIR?',
-    line1: 'ö-',
-    line2: 'ğrenci',
-    options: [
-      'Satır sonunda tek harf bırakılamaz',
-      'Kelime yanlış yazılmıştır',
-      'Kısa çizgi konulmaz',
-      'Ö harfi büyük olmalıdır'
-    ],
-    correctAnswer: 'Satır sonunda tek harf bırakılamaz',
-    explanation: 'Türkçede satır sonunda tek başına sesli ya da sessiz tek bir harf bırakılamaz! Doğrusu "öğ- / renci"dir.',
-    isCorrectSplit: false
+    word: 'ayakkabı',
+    question: '"Ayakkabı" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ayak-',
+    line2: 'kabı',
+    options: ['ayak- / kabı', 'a- / yakkabı', 'ay- / akkabı', 'ayakkab- / ı'],
+    correctAnswer: 'ayak- / kabı',
+    explanation: 'Başta "a-" veya sonda "-ı" tek harf olarak bölünemez. Doğru heceleme a-yak-ka-bı olduğundan "ayak- / kabı" doğrudur.',
+    isCorrectSplit: true
   },
   {
     id: 'ssh-7',
-    title: 'Heceleme Kuralı',
-    ruleCategory: 'heceleme',
-    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
-    word: 'pencere',
-    question: 'Hangisi satır sonunda DOĞRU ayrılmıştır?',
-    line1: 'pen-',
-    line2: 'cere',
-    options: ['pen- / cere', 'p- / encere', 'penc- / ere', 'pencer- / e'],
-    correctAnswer: 'pen- / cere',
-    explanation: '"pen-cere" doğru heceden bölünmüştür. Hem tek harf kuralına hem de hece yapısına tam uygundur.',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'oyuncak',
+    question: '"Oyuncak" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'oyun-',
+    line2: 'cak',
+    options: ['oyun- / cak', 'o- / yuncak', 'oy- / uncak', 'oyunca- / k'],
+    correctAnswer: 'oyun- / cak',
+    explanation: 'Sözcük o-yun-cak şeklinde hecelenir. "o- / yuncak" tek harf hatasıdır, altta tek "-k" kalamaz. Doğrusu "oyun- / cak"tır.',
     isCorrectSplit: true
   },
   {
     id: 'ssh-8',
-    title: 'Heceleme Kuralı',
-    ruleCategory: 'heceleme',
-    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
-    word: 'sandalye',
-    question: 'Hangisi satır sonunda YANLIŞ bölünmüştür?',
-    line1: 'sa-',
-    line2: 'ndalye',
-    options: ['sa- / ndalye', 'san- / dalye', 'sandal- / ye', 'san- / dal-ye'],
-    correctAnswer: 'sa- / ndalye',
-    explanation: '"sa- / ndalye" yanlıştır! Çünkü "nd" aynı hecede kalamaz, sözcük san-dal-ye şeklinde ayrılır.',
-    isCorrectSplit: false
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'eriklik',
+    question: '"Eriklik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'erik-',
+    line2: 'lik',
+    options: ['erik- / lik', 'e- / riklik', 'er- / iklik', 'erikl- / ik'],
+    correctAnswer: 'erik- / lik',
+    explanation: 'Satır sonuna tek başına "e-" bırakılamaz! Doğru heceleme e-rik-lik olduğundan "erik- / lik" doğrudur.',
+    isCorrectSplit: true
   },
   {
     id: 'ssh-9',
-    title: 'Bileşik Sözcük Kuralı',
-    ruleCategory: 'bilesik_kelime',
-    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
-    word: 'hanımeli',
-    question: '"Hanımeli" çiçeğinin satır sonu doğru ayrımı hangisidir?',
-    line1: 'hanı-',
-    line2: 'meli',
-    options: ['hanı- / meli', 'hanım- / eli', 'h- / anımeli', 'hanımel- / i'],
-    correctAnswer: 'hanı- / meli',
-    explanation: 'Bileşik kelime ha-nı-me-li olarak hecelenir. Bu yüzden "hanı- / meli" doğrudur, "hanım- / eli" yanlıştır.',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'odunluk',
+    question: '"Odunluk" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'odun-',
+    line2: 'luk',
+    options: ['odun- / luk', 'o- / dunluk', 'od- / unluk', 'odunl- / uk'],
+    correctAnswer: 'odun- / luk',
+    explanation: 'Satır sonunda tek harf "o-" bırakılamaz. Doğru heceden ayrım "odun- / luk"tur.',
     isCorrectSplit: true
   },
   {
     id: 'ssh-10',
-    title: 'Özel İsim & Kesme İşareti',
-    ruleCategory: 'kesme_isareti',
-    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
-    word: "Ankara'ya",
-    question: 'Özel isimlerde satır sonuna kesme işareti gelirse ne yapılır?',
-    line1: "Ankara'",
-    line2: 'ya',
-    options: [
-      "Yalnızca kesme işareti konur (kısa çizgi konmaz)",
-      "Hem kesme hem kısa çizgi konur",
-      "Hiçbir işaret konmaz",
-      "Kelime bölünemez"
-    ],
-    correctAnswer: "Yalnızca kesme işareti konur (kısa çizgi konmaz)",
-    explanation: "Özel isimler satır sonuna geldiğinde kesme işareti (') yeterlidir; ayrıca kısa çizgi (-) konulmaz!",
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'iğnelik',
+    question: '"İğnelik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'iğne-',
+    line2: 'lik',
+    options: ['iğne- / lik', 'i- / ğnelik', 'iğn- / elik', 'iğnel- / ik'],
+    correctAnswer: 'iğne- / lik',
+    explanation: 'Tek sesli harf "i-" satır sonunda yalnız bırakılamaz. Doğru ayrım "iğne- / lik"tir.',
     isCorrectSplit: true
   },
   {
@@ -179,35 +171,804 @@ export const SATIR_SONU_QUESTIONS: SatirSonuQuestion[] = [
     title: 'Tek Harf Kuralı',
     ruleCategory: 'tek_harf',
     ruleCategoryLabel: 'TEK HARF KURALI',
-    word: 'elma',
-    question: '"Elma" sözcüğü satır sonunda nasıl ayrılmalıdır?',
-    line1: 'el-',
-    line2: 'ma',
-    options: ['el- / ma', 'e- / lma', 'elm- / a', 'elma- / s'],
-    correctAnswer: 'el- / ma',
-    explanation: '"e- / lma" ve "elm- / a" yanlıştır çünkü satır başında veya sonunda tek harf kalamaz! "el- / ma" doğrudur.',
+    word: 'ekmeklik',
+    question: '"Ekmeklik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ekmek-',
+    line2: 'lik',
+    options: ['ekmek- / lik', 'e- / kmeklik', 'ekm- / eklik', 'ekmekl- / ik'],
+    correctAnswer: 'ekmek- / lik',
+    explanation: 'Heceleme ek-mek-lik şeklindedir. "e- / kmeklik"te tek harf kuralı ihlal edilmiştir; doğru ayrım "ekmek- / lik"tir.',
     isCorrectSplit: true
   },
   {
     id: 'ssh-12',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'okuldaş',
+    question: '"Okuldaş" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'okul-',
+    line2: 'daş',
+    options: ['okul- / daş', 'o- / kuldaş', 'ok- / uldaş', 'okuld- / aş'],
+    correctAnswer: 'okul- / daş',
+    explanation: '"o-" tek harf kalamaz, "ok- / uldaş" heceyi bozar. Doğru ayrım "okul- / daş"tır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-13',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'üzümlük',
+    question: '"Üzümlük" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'üzüm-',
+    line2: 'lük',
+    options: ['üzüm- / lük', 'ü- / zümlük', 'üz- / ümlük', 'üzüml- / ük'],
+    correctAnswer: 'üzüm- / lük',
+    explanation: 'Satır sonunda tek "ü-" harfi bırakılmaz. Doğru heceleme ü-züm-lük olduğundan doğru ayrım "üzüm- / lük"tür.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-14',
+    title: 'Tek Harf Kuralı',
+    ruleCategory: 'tek_harf',
+    ruleCategoryLabel: 'TEK HARF KURALI',
+    word: 'ıspanak',
+    question: '"Ispanak" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ıspa-',
+    line2: 'nak',
+    options: ['ıspa- / nak', 'ı- / spanak', 'ıs- / panak değil', 'ıspana- / k'],
+    correctAnswer: 'ıspa- / nak',
+    explanation: '"ı- / spanak" yanlıştır çünkü "ı" tek harf kalamaz ve "sp" ile Türkçe hece başlamaz! Doğrusu "ıspa- / nak"tır.',
+    isCorrectSplit: true
+  },
+
+  // --- 2. BİLEŞİK KELİMELER KURALI (Ulama ile hecelenir: il-ko-kul, ba-şöğ-ret-men) ---
+  {
+    id: 'ssh-15',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'ilkokul',
+    question: '"İlkokul" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'ilko-',
+    line2: 'kul',
+    options: ['ilko- / kul', 'ilk- / okul', 'i- / lkokul', 'ilkok- / ul'],
+    correctAnswer: 'ilko- / kul',
+    explanation: 'Bileşik sözcükler ulamayla il-ko-kul şeklinde hecelenir. Bu yüzden "ilko- / kul" doğrudur, "ilk- / okul" yanlıştır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-16',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'başöğretmen',
+    question: '"Başöğretmen" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'başöğ-',
+    line2: 'retmen',
+    options: ['başöğ- / retmen', 'baş- / öğretmen', 'başö- / ğretmen', 'ba-ş / öğretmen'],
+    correctAnswer: 'başöğ- / retmen',
+    explanation: 'Bileşik sözcükler ba-şöğ-ret-men şeklinde hecelenir! "baş- / öğretmen" yanlıştır, doğru ayrım "başöğ- / retmen"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-17',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'hanımeli',
+    question: '"Hanımeli" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'hanı-',
+    line2: 'meli',
+    options: ['hanı- / meli', 'hanım- / eli', 'h- / anımeli', 'hanımel- / i'],
+    correctAnswer: 'hanı- / meli',
+    explanation: 'Bileşik kelime ha-nı-me-li olarak hecelenir. Bu yüzden "hanı- / meli" doğrudur, "hanım- / eli" heceleme hatasıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-18',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'aslanağzı',
+    question: '"Aslanağzı" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'asla-',
+    line2: 'nağzı',
+    options: ['asla- / nağzı', 'aslan- / ağzı', 'a- / slanağzı', 'aslana- / ğzı'],
+    correctAnswer: 'asla- / nağzı',
+    explanation: 'Bileşik kelimeler as-la-nağ-zı olarak hecelenir. Doğrusu "asla- / nağzı"dır, "aslan- / ağzı" kurala aykırıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-19',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'kırkayak',
+    question: '"Kırkayak" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'kırka-',
+    line2: 'yak',
+    options: ['kırka- / yak', 'kırk- / ayak', 'k- / ırkayak', 'kırkay- / ak'],
+    correctAnswer: 'kırka- / yak',
+    explanation: 'Bileşik sözcükler kır-ka-yak şeklinde hecelenir! "kırk- / ayak" yanlıştır, doğru ayrım "kırka- / yak"tır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-20',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'denizaltı',
+    question: '"Denizaltı" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'deni-',
+    line2: 'zaltı',
+    options: ['deni- / zaltı', 'deniz- / altı', 'd- / enizaltı', 'denizal- / tı değil'],
+    correctAnswer: 'deni- / zaltı',
+    explanation: 'Bileşik sözcükler ulamayla de-ni-zal-tı şeklinde hecelenir! Bu yüzden "deni- / zaltı" doğrudur, "deniz- / altı" yanlıştır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-21',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'yayınevi',
+    question: '"Yayınevi" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'yayı-',
+    line2: 'nevi',
+    options: ['yayı- / nevi', 'yayın- / evi', 'ya-yın / evi', 'y- / ayınevi'],
+    correctAnswer: 'yayı- / nevi',
+    explanation: 'Bileşik sözcük ya-yı-ne-vi olarak hecelenir. Bu yüzden "yayı- / nevi" doğrudur, "yayın- / evi" yanlıştır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-22',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'semizotu',
+    question: '"Semizotu" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'semi-',
+    line2: 'zotu',
+    options: ['semi- / zotu', 'semiz- / otu', 's- / emizotu', 'semizot- / u'],
+    correctAnswer: 'semi- / zotu',
+    explanation: 'Sözcük se-mi-zo-tu şeklinde ulamayla hecelenir. "semi- / zotu" doğrudur, "semiz- / otu" yanlıştır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-23',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'başeser',
+    question: '"Başeser" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'başe-',
+    line2: 'ser',
+    options: ['başe- / ser', 'baş- / eser', 'ba- / şeser', 'başes- / er'],
+    correctAnswer: 'başe- / ser',
+    explanation: 'ba-şe-ser olarak hecelenir. "ba-" tek harf kuralı gibi durmamalıdır, "başe- / ser" doğrudur, "baş- / eser" heceleme hatasıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-24',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'kuşburnu',
+    question: '"Kuşburnu" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'kuşbur-',
+    line2: 'nu',
+    options: ['kuşbur- / nu', 'ku- / şburnu', 'k- / uşburnu', 'kuşburn- / u'],
+    correctAnswer: 'kuşbur- / nu',
+    explanation: 'kuş-bur-nu şeklinde hecelenir. "kuşbur- / nu" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-25',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'karayolu',
+    question: '"Karayolu" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'karayo-',
+    line2: 'lu',
+    options: ['karayo- / lu', 'kara- / y-olu', 'k- / arayolu', 'karayol- / u'],
+    correctAnswer: 'karayo- / lu',
+    explanation: 'ka-ra-yo-lu şeklinde hecelenir. "karayo- / lu" kurala tam uygundur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-26',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'gökyüzü',
+    question: '"Gökyüzü" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'gök-',
+    line2: 'yüzü',
+    options: ['gök- / yüzü', 'gö- / kyüzü', 'g- / ökyüzü', 'gökyüz- / ü'],
+    correctAnswer: 'gök- / yüzü',
+    explanation: 'gök-yü-zü şeklinde hecelenir. "gö- / kyüzü" yanlıştır ("ky" ile hece başlamaz); "gök- / yüzü" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-27',
+    title: 'Bileşik Sözcük Kuralı',
+    ruleCategory: 'bilesik_kelime',
+    ruleCategoryLabel: 'BİLEŞİK SÖZCÜKLER',
+    word: 'sivrisinek',
+    question: '"Sivrisinek" bileşik sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'sivri-',
+    line2: 'sinek',
+    options: ['sivri- / sinek', 'siv- / risinek', 's- / ivrisinek', 'sivrisine- / k'],
+    correctAnswer: 'sivri- / sinek',
+    explanation: 'siv-ri-si-nek şeklinde hecelenir. "sivri- / sinek" doğru heceden bölünmüştür.',
+    isCorrectSplit: true
+  },
+
+  // --- 3. ÖZEL İSİMLER VE KESME İŞARETİ KURALI ---
+  {
+    id: 'ssh-28',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Ankara'ya",
+    question: '"Ankara\'ya" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Ankara'",
+    line2: 'ya',
+    options: ["Ankara' / ya", "Ankara'- / ya", "An- / karaya", "A- / nkara'ya"],
+    correctAnswer: "Ankara' / ya",
+    explanation: "Özel isimlerde kesme işareti (') satır sonuna geldiğinde ayrıca kısa çizgi (-) konmaz! Doğrusu \"Ankara' / ya\"dır.",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-29',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Atatürk'ün",
+    question: '"Atatürk\'ün" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Atatürk'",
+    line2: 'ün',
+    options: ["Atatürk' / ün", "Atatürk'- / ün", "Ata- / türkün", "A- / tatürk'ün"],
+    correctAnswer: "Atatürk' / ün",
+    explanation: "Kesme işareti satır sonuna geldiğinde sadece kesme işareti yeterlidir, kısa çizgi konulmaz: \"Atatürk' / ün\".",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-30',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "İstanbul'da",
+    question: '"İstanbul\'da" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "İstanbul'",
+    line2: 'da',
+    options: ["İstanbul' / da", "İstanbul'- / da", "İstan- / bulda", "İ- / stanbul'da"],
+    correctAnswer: "İstanbul' / da",
+    explanation: "Özel isim satır sonuna geldiğinde kesme işareti varken kısa çizgi konmaz. Doğrusu \"İstanbul' / da\"dır.",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-31',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Türkiye'nin",
+    question: '"Türkiye\'nin" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Türkiye'",
+    line2: 'nin',
+    options: ["Türkiye' / nin", "Türkiye'- / nin", "Türki- / yenin", "T- / ürkiye'nin"],
+    correctAnswer: "Türkiye' / nin",
+    explanation: "Kesme işaretinden sonra ayrıca kısa çizgi eklenmez: \"Türkiye' / nin\".",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-32',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Ahmet'in",
+    question: '"Ahmet\'in" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Ahmet'",
+    line2: 'in',
+    options: ["Ahmet' / in", "Ahmet'- / in", "Ah- / metin", "A- / hmet'in"],
+    correctAnswer: "Ahmet' / in",
+    explanation: "Özel ismin ekini ayırmak için kesme işareti yeterlidir; kısa çizgi çekilmez: \"Ahmet' / in\".",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-33',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Bursa'ya",
+    question: '"Bursa\'ya" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Bursa'",
+    line2: 'ya',
+    options: ["Bursa' / ya", "Bursa'- / ya", "Bur- / saya", "B- / ursa'ya"],
+    correctAnswer: "Bursa' / ya",
+    explanation: "Satır sonunda hem kesme hem kısa çizgi yan yana bulunamaz; doğrusu \"Bursa' / ya\"dır.",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-34',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Samsun'dan",
+    question: '"Samsun\'dan" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Samsun'",
+    line2: 'dan',
+    options: ["Samsun' / dan", "Samsun'- / dan", "Sam- / sundan", "S- / amsun'dan"],
+    correctAnswer: "Samsun' / dan",
+    explanation: "Özel isim satır sonuna geldiğinde kesme işareti tek başına yeterlidir, kısa çizgi konmaz.",
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-35',
+    title: 'Özel İsim & Kesme İşareti',
+    ruleCategory: 'kesme_isareti',
+    ruleCategoryLabel: 'KESME İŞARETİ KURALI',
+    word: "Trabzon'da",
+    question: '"Trabzon\'da" özel ismi satır sonuna sığmadığında hangisi DOĞRUDUR?',
+    line1: "Trabzon'",
+    line2: 'da',
+    options: ["Trabzon' / da", "Trabzon'- / da", "Trab- / zonda", "T- / rabzon'da"],
+    correctAnswer: "Trabzon' / da",
+    explanation: "Sadece kesme işareti konur: \"Trabzon' / da\". Kısa çizgi eklenmesi yazım hatasıdır.",
+    isCorrectSplit: true
+  },
+
+  // --- 4. HECE BÖLÜNMEZ VE ÜNSÜZ KURALI (Konsonant kuralı, iki ünlü arasındaki ünsüz) ---
+  {
+    id: 'ssh-36',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'karınca',
+    question: '"Karınca" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'karın-',
+    line2: 'ca',
+    options: ['karın- / ca', 'kar- / ınca', 'karınc- / a', 'k- / arınca'],
+    correctAnswer: 'karın- / ca',
+    explanation: 'ka-rın-ca şeklinde hecelenir. "kar- / ınca" heceyi böler, "karınc- / a" ve "k- / arınca" tek harf hatasıdır. Tek doğru ayrım "karın- / ca"dır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-37',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'astronot',
+    question: '"Astronot" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'astro-',
+    line2: 'not',
+    options: ['astro- / not', 'a- / stronot', 'astron- / ot', 'as-t / ronot'],
+    correctAnswer: 'astro- / not',
+    explanation: 'Sözcük as-tro-not şeklinde hecelenir. "a- / stronot"ta tek harf hatası vardır, doğru ayrım "astro- / not"tur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-38',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'papatyalar',
+    question: '"Papatyalar" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'papat-',
+    line2: 'yalar',
+    options: ['papat- / yalar', 'pa-p / atyalar', 'p- / apatyalar', 'papatyal- / ar'],
+    correctAnswer: 'papat- / yalar',
+    explanation: 'pa-pat-ya-lar şeklinde hecelenir. "papat- / yalar" doğru hece sınırından ayrılmıştır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-39',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'bisküvi',
+    question: '"Bisküvi" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'bis-',
+    line2: 'küvi',
+    options: ['bis- / küvi', 'bi- / sküvi', 'b- / isküvi', 'bisküv- / i'],
+    correctAnswer: 'bis- / küvi',
+    explanation: 'Türkçede hece "sk" ile başlayamaz! Bu yüzden "bi- / sküvi" yanlıştır; doğru ayrım "bis- / küvi"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-40',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'sandalye',
+    question: '"Sandalye" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'san-',
+    line2: 'dalye',
+    options: ['san- / dalye', 'sa- / ndalye', 'sand- / alye', 's- / andalye'],
+    correctAnswer: 'san- / dalye',
+    explanation: 'san-dal-ye şeklinde hecelenir. "sa- / ndalye" yanlıştır ("nd" ile hece başlamaz); "san- / dalye" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-41',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'bilgisayar',
+    question: '"Bilgisayar" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'bilgi-',
+    line2: 'sayar',
+    options: ['bilgi- / sayar', 'bi- / lgisayar', 'bilgis- / ayar', 'bil- / g-isayar'],
+    correctAnswer: 'bilgi- / sayar',
+    explanation: 'bil-gi-sa-yar şeklinde hecelenir. Hece ortadan bölünemez, "bilgi- / sayar" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-42',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'pencere',
+    question: '"Pencere" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'pen-',
+    line2: 'cere',
+    options: ['pen- / cere', 'p- / encere', 'penc- / ere', 'pencer- / e'],
+    correctAnswer: 'pen- / cere',
+    explanation: 'pen-ce-re şeklinde hecelenir. "pen- / cere" doğru hecedir, tek harfler ayrılamaz.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-43',
     title: 'Heceleme Kuralı',
     ruleCategory: 'heceleme',
     ruleCategoryLabel: 'HECE BÖLÜNMEZ',
     word: 'türkçe',
-    question: '"Türkçe" sözcüğü satır sonunda nasıl bölünür?',
+    question: '"Türkçe" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
     line1: 'türk-',
     line2: 'çe',
     options: ['türk- / çe', 'tür- / kçe', 't- / ürkçe', 'türkç- / e'],
     correctAnswer: 'türk- / çe',
-    explanation: 'Sözcük türk-çe olarak hecelenir. Bu yüzden "türk- / çe" doğrudur.',
+    explanation: 'türk-çe olarak hecelenir. "tür- / kçe" yanlıştır ("kç" ile hece başlamaz); doğrusu "türk- / çe"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-44',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'kitaplık',
+    question: '"Kitaplık" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'kitap-',
+    line2: 'lık',
+    options: ['kitap- / lık', 'kit- / aplık', 'k- / itaplık', 'kitapl- / ık'],
+    correctAnswer: 'kitap- / lık',
+    explanation: 'ki-tap-lık şeklinde hecelenir. "kitap- / lık" doğru hece sınırıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-45',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'cumhuriyet',
+    question: '"Cumhuriyet" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'cumhu-',
+    line2: 'riyet',
+    options: ['cumhu- / riyet', 'c- / umhuriyet', 'cumhur- / iyet', 'cumhuriye- / t'],
+    correctAnswer: 'cumhu- / riyet',
+    explanation: 'cum-hu-ri-yet şeklinde hecelenir. Doğru ayrım "cumhu- / riyet"tir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-46',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'televizyon',
+    question: '"Televizyon" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'tele-',
+    line2: 'vizyon',
+    options: ['tele- / vizyon', 'te-l / evizyon', 'telev- / izyon', 'televizyo- / n'],
+    correctAnswer: 'tele- / vizyon',
+    explanation: 'te-le-viz-yon şeklinde hecelenir. "tele- / vizyon" tam hece sınırıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-47',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'helikopter',
+    question: '"Helikopter" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'heli-',
+    line2: 'kopter',
+    options: ['heli- / kopter', 'helik- / opter', 'he-li-k / opter', 'h- / elikopter'],
+    correctAnswer: 'heli- / kopter',
+    explanation: 'he-li-kop-ter şeklinde hecelenir. Doğru ayrım "heli- / kopter"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-48',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'çiçeklik',
+    question: '"Çiçeklik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'çiçek-',
+    line2: 'lik',
+    options: ['çiçek- / lik', 'çiç- / eklik', 'ç- / içeklik', 'çiçekl- / ik'],
+    correctAnswer: 'çiçek- / lik',
+    explanation: 'çi-çek-lik şeklinde hecelenir. Doğru ayrım "çiçek- / lik"tir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-49',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'kelebek',
+    question: '"Kelebek" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'kele-',
+    line2: 'bek',
+    options: ['kele- / bek', 'kel- / ebek', 'k- / elebek', 'kelebe- / k'],
+    correctAnswer: 'kele- / bek',
+    explanation: 'ke-le-bek şeklinde hecelenir. "kel- / ebek" hece hatasıdır, "kele- / bek" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-50',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'kütüphane',
+    question: '"Kütüphane" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'kütüp-',
+    line2: 'hane',
+    options: ['kütüp- / hane', 'k- / ütüphane', 'küt- / üphane', 'kütüphan- / e'],
+    correctAnswer: 'kütüp- / hane',
+    explanation: 'kü-tüp-ha-ne şeklinde hecelenir. Doğrusu "kütüp- / hane"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-51',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'öğretmenler',
+    question: '"Öğretmenler" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'öğret-',
+    line2: 'menler',
+    options: ['öğret- / menler', 'ö- / ğretmenler', 'öğr- / etmenler', 'öğretmenl- / er'],
+    correctAnswer: 'öğret- / menler',
+    explanation: 'öğ-ret-men-ler şeklinde hecelenir. "ö- / ğretmenler" tek harf hatasıdır, "öğret- / menler" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-52',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'merdiven',
+    question: '"Merdiven" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'merdi-',
+    line2: 'ven',
+    options: ['merdi- / ven', 'merd- / iven', 'm- / erdiven', 'merdive- / n'],
+    correctAnswer: 'merdi- / ven',
+    explanation: 'mer-di-ven şeklinde hecelenir. Doğrusu "merdi- / ven"dir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-53',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'şemsiyelik',
+    question: '"Şemsiyelik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'şemsi-',
+    line2: 'yelik',
+    options: ['şemsi- / yelik', 'şems- / iyelik', 'ş- / emsiyelik', 'şemsiyel- / ik'],
+    correctAnswer: 'şemsi- / yelik',
+    explanation: 'şem-si-ye-lik şeklinde hecelenir. "şemsi- / yelik" doğru heceden bölünmüştür.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-54',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'karpuzcu',
+    question: '"Karpuzcu" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'karpuz-',
+    line2: 'cu',
+    options: ['karpuz- / cu', 'kar-p / uzcu', 'k- / arpuzcu', 'karpuzc- / u'],
+    correctAnswer: 'karpuz- / cu',
+    explanation: 'kar-puz-cu şeklinde hecelenir. Doğru ayrım "karpuz- / cu"dur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-55',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'portakallar',
+    question: '"Portakallar" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'porta-',
+    line2: 'kallar',
+    options: ['porta- / kallar', 'por-t / akallar', 'p- / ortakallar', 'portakall- / ar'],
+    correctAnswer: 'porta- / kallar',
+    explanation: 'por-ta-kal-lar şeklinde hecelenir. Doğru ayrım "porta- / kallar"dır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-56',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'akvaryum',
+    question: '"Akvaryum" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'akvar-',
+    line2: 'yum',
+    options: ['akvar- / yum', 'a- / kvaryum', 'ak-v / aryum', 'akvary- / um'],
+    correctAnswer: 'akvar- / yum',
+    explanation: 'ak-var-yum şeklinde hecelenir. "a- / kvaryum" tek harf hatasıdır, doğrusu "akvar- / yum"dur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-57',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'teleskop',
+    question: '"Teleskop" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'te-les-',
+    line2: 'kop',
+    options: ['teles- / kop', 'tele- / skop', 't- / eleskop', 'telesko- / p'],
+    correctAnswer: 'teles- / kop',
+    explanation: 'te-les-kop şeklinde hecelenir. "tele- / skop" yanlıştır ("sk" ile Türkçe hece başlamaz); "teles- / kop" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-58',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'elektrik',
+    question: '"Elektrik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'elek-',
+    line2: 'trik',
+    options: ['elek- / trik', 'e- / lektrik', 'elekt- / rik', 'elektri- / k'],
+    correctAnswer: 'elek- / trik',
+    explanation: 'e-lek-trik şeklinde hecelenir. "e- / lektrik" tek harf hatasıdır, doğru ayrım "elek- / trik"tir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-59',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'program',
+    question: '"Program" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'prog-',
+    line2: 'ram',
+    options: ['prog- / ram', 'pro-g / ram', 'p- / rogram', 'progra- / m'],
+    correctAnswer: 'prog- / ram',
+    explanation: 'prog-ram şeklinde hecelenir. Doğrusu "prog- / ram"dır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-60',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'orkestra',
+    question: '"Orkestra" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'orkes-',
+    line2: 'tra',
+    options: ['orkes- / tra', 'or- / kestra değil', 'o- / rkestra', 'orkest- / ra'],
+    correctAnswer: 'orkes- / tra',
+    explanation: 'or-kes-tra şeklinde hecelenir. "o-" tek harf kalamaz, doğru ayrım "orkes- / tra"dır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-61',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'laboratuvar',
+    question: '"Laboratuvar" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'labora-',
+    line2: 'tuvar',
+    options: ['labora- / tuvar', 'lab- / oratuvar', 'l- / aboratuvar', 'laboratuv- / ar'],
+    correctAnswer: 'labora- / tuvar',
+    explanation: 'la-bo-ra-tu-var şeklinde hecelenir. "labora- / tuvar" tam hece sınırıdır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-62',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'mikroskop',
+    question: '"Mikroskop" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'mikros-',
+    line2: 'kop',
+    options: ['mikros- / kop', 'mikro- / skop', 'm- / ikroskop', 'mikrosko- / p'],
+    correctAnswer: 'mikros- / kop',
+    explanation: 'mik-ros-kop şeklinde hecelenir. "mikro- / skop" yanlıştır ("sk" ile hece başlamaz); "mikros- / kop" doğrudur.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-63',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'akrobatik',
+    question: '"Akrobatik" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'akro-',
+    line2: 'batik',
+    options: ['akro- / batik', 'a- / krobatik', 'ak- / robatik değil', 'akrobat- / ik'],
+    correctAnswer: 'akro- / batik',
+    explanation: 'ak-ro-ba-tik şeklinde hecelenir. "a- / krobatik" tek harf hatasıdır; doğru ayrım "akro- / batik"tir.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-64',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'fotoğrafçı',
+    question: '"Fotoğrafçı" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'fotoğ-',
+    line2: 'rafçı',
+    options: ['fotoğ- / rafçı', 'fot- / oğrafçı', 'f- / otoğrafçı', 'fotoğrafç- / ı'],
+    correctAnswer: 'fotoğ- / rafçı',
+    explanation: 'fo-toğ-raf-çı şeklinde hecelenir. Doğru ayrım "fotoğ- / rafçı"dır.',
+    isCorrectSplit: true
+  },
+  {
+    id: 'ssh-65',
+    title: 'Heceleme Kuralı',
+    ruleCategory: 'heceleme',
+    ruleCategoryLabel: 'HECE BÖLÜNMEZ',
+    word: 'veteriner',
+    question: '"Veteriner" sözcüğü satır sonunda nasıl DOĞRU bölünür?',
+    line1: 'veteri-',
+    line2: 'ner',
+    options: ['veteri- / ner', 'vet- / eriner', 'v- / eteriner', 'veterin- / er'],
+    correctAnswer: 'veteri- / ner',
+    explanation: 've-te-ri-ner şeklinde hecelenir. Doğru heceden ayrım "veteri- / ner"dir.',
     isCorrectSplit: true
   }
 ];
 
-function getRandomSatirSonuQuestions(count = 8): SatirSonuQuestion[] {
+function getRandomSatirSonuQuestions(count = 10): SatirSonuQuestion[] {
   const shuffled = [...SATIR_SONU_QUESTIONS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
+
+
+/** Soru kutusu içeriği: rozet + defter satırı örneği + soru cümlesi (tüm modlarda aynı, kutuya göre ölçeklenir) */
+const SatirSonuQuestionContent: React.FC<{ q: SatirSonuQuestion }> = ({ q }) => (
+  <>
+    <QuestionBadge>{q.ruleCategoryLabel}</QuestionBadge>
+    <div className="w-full max-w-[26em] bg-[#fbf9f2] text-slate-900 border-2 border-amber-300 rounded-xl px-[0.5em] py-[0.25em] my-[0.2em] shadow-md text-left">
+      <div className="text-[0.38em] font-black text-slate-500 uppercase tracking-wider text-center">
+        ✏️ Defter satırı ({q.word})
+      </div>
+      <div className="flex items-center justify-between border-b-2 border-sky-300 py-[0.1em] px-[0.2em] font-mono font-black text-[0.85em] leading-tight">
+        <span className="text-slate-400">...</span>
+        <span className="bg-amber-100 px-[0.3em] rounded-lg border-2 border-amber-400">{q.line1}</span>
+      </div>
+      <div className="flex items-center justify-start border-b-2 border-sky-300 py-[0.1em] px-[0.2em] font-mono font-black text-[0.85em] leading-tight">
+        <span className="bg-sky-100 px-[0.3em] rounded-lg border-2 border-sky-400">{q.line2}</span>
+      </div>
+    </div>
+    <QuestionSentence className="text-[0.62em]">{q.question}</QuestionSentence>
+  </>
+);
 
 export type PlayerMode = 1 | 2 | 3;
 
@@ -563,78 +1324,11 @@ export const SatirSonuHeceGame: React.FC<SatirSonuHeceGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
+                  {/* CENTER: SORU ÇERÇEVESİ (İleri Üçer Sayma ile aynı tasarım) */}
                   <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                    <div 
-                      className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col justify-between overflow-hidden min-h-0 w-full gap-1.5 sm:gap-2"
-                      style={{
-                        backgroundColor: '#fbf9f2',
-                        backgroundImage: `
-                          /* Kırmızı dikey marjin çizgisi */
-                          linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
-                          /* Yatay açık mavi çizgili defter satırları */
-                          repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                          /* Doğal yumuşak defter kağıdı dokusu */
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
-                        `
-                      }}
-                    >
-                      {/* Sol kenar spiralli defter delikleri */}
-                      <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <div key={i} className="flex items-center gap-1">
-                            <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
-                            <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Defter üst başlık çizgisi */}
-                      <div className="relative z-10 flex items-center justify-between w-full pl-8 pr-1 shrink-0 pb-1 border-b border-sky-300/80">
-                        <span className="text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider flex items-center gap-1">
-                          ✏️ TÜRKÇE DEFTERİ • SATIR SONU HECE BÖLÜNMESİ
-                        </span>
-                        <span className="text-[10px] sm:text-xs font-bold text-slate-600 font-mono">
-                          Kelime: {sPlayer.questionIndex + 1}/10
-                        </span>
-                      </div>
-
-                      {/* İNTERAKTİF ÇİZGİLİ DEFTER SATIR SONU MODELİ & SORU ÇERÇEVESİ */}
-                      <div className="relative z-10 ml-6 sm:ml-7 text-slate-900 bg-white/90 border-2 border-amber-300 rounded-xl sm:rounded-2xl p-3 sm:p-4 shrink shadow-md overflow-hidden">
-                        {/* Kırmızı dikey marjin çizgisi ve etiket */}
-                        <div className="text-[10px] sm:text-xs font-black text-slate-600 uppercase tracking-wider mb-1 flex items-center justify-between">
-                          <span className="flex items-center gap-1">
-                            <span>✏️</span> Defter Satırı ({currentQ.word}):
-                          </span>
-                          <span className="text-[9px] text-rose-600 font-bold tracking-tight">
-                            Satır Sonu Kırmızı Çizgisi |
-                          </span>
-                        </div>
-                        {/* 1. Satır: Satır sonu hecesi ve kısa çizgi */}
-                        <div className="flex items-center justify-between border-b-2 border-sky-300 py-1.5 px-2 font-mono font-black text-base sm:text-xl md:text-2xl tracking-wider text-slate-900">
-                          <span className="text-slate-600 font-sans text-xs sm:text-sm font-bold">... deftere yazarken:</span>
-                          <span className="bg-amber-100 px-2.5 py-0.5 rounded-lg border-2 border-amber-400 text-slate-950 shadow-xs">
-                            {currentQ.line1}
-                          </span>
-                        </div>
-                        {/* 2. Satır: Alt satıra geçen hece */}
-                        <div className="flex items-center justify-start border-b-2 border-sky-300 py-1.5 px-2 font-mono font-black text-base sm:text-xl md:text-2xl tracking-wider text-slate-900">
-                          <span className="bg-sky-100 px-2.5 py-0.5 rounded-lg border-2 border-sky-400 text-slate-950 shadow-xs">
-                            {currentQ.line2}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Soru Rozeti & Soru Cümlesi */}
-                      <div className="relative z-10 ml-6 sm:ml-7 flex flex-col items-center justify-center shrink-0 py-1.5 sm:py-2 px-3 bg-gradient-to-r from-sky-500/20 via-cyan-400/25 to-sky-500/20 border-2 border-sky-400 rounded-xl sm:rounded-2xl text-center shadow-xs">
-                        <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-cyan-600 via-sky-500 to-blue-600 text-white font-black text-[10.5px] sm:text-xs uppercase shadow-xs shrink-0 mb-1">
-                          {currentQ.ruleCategoryLabel} • SORU
-                        </span>
-                        <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-slate-900 leading-snug">
-                          {currentQ.question}
-                        </h3>
-                      </div>
-                    </div>
+                    <ActivityQuestionFrame mode={1} contentKey={sPlayer.questionIndex}>
+                      <SatirSonuQuestionContent q={currentQ} />
+                    </ActivityQuestionFrame>
                   </div>
 
                   {/* BOTTOM: ŞIKLAR (2x2 GRID) */}
@@ -677,6 +1371,13 @@ export const SatirSonuHeceGame: React.FC<SatirSonuHeceGameProps> = ({
                       );
                     })}
                   </div>
+
+                  {/* Didaktik Açıklama (Tekli Mod) */}
+                  {sPlayer.showFeedback && (
+                    <div className="mt-1.5 p-2 rounded-xl bg-black/60 border border-cyan-400/40 text-xs sm:text-sm text-cyan-200 text-center animate-fade-in shrink-0">
+                      <span>💡 <strong>Kural:</strong> {currentQ.explanation}</span>
+                    </div>
+                  )}
 
                 </div>
               </div>
@@ -741,39 +1442,11 @@ export const SatirSonuHeceGame: React.FC<SatirSonuHeceGameProps> = ({
                     </div>
                   </div>
 
-                  {/* Defter Modeli & Soru Alanı */}
-                  <div className="flex-1 min-h-0 flex flex-col justify-between my-0.5 gap-1 overflow-hidden">
-                    <div 
-                      className="text-slate-900 border-2 border-amber-300/80 rounded-xl p-1.5 sm:p-2 shrink shadow-sm overflow-hidden text-center relative"
-                      style={{
-                        backgroundColor: '#fbf9f2',
-                        backgroundImage: `
-                          linear-gradient(to right, transparent calc(100% - 40px), rgba(239, 68, 68, 0.7) calc(100% - 40px), rgba(239, 68, 68, 0.7) calc(100% - 38px), transparent calc(100% - 38px)),
-                          repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
-                        `
-                      }}
-                    >
-                      <div className="text-[9.5px] font-bold text-slate-500 uppercase">
-                        Defter Satırı ({currentQ.word}):
-                      </div>
-                      <div className="font-mono font-black text-xs sm:text-sm md:text-base text-slate-900 flex justify-between px-1">
-                        <span>...</span>
-                        <span className="bg-amber-200/90 px-1.5 rounded">{currentQ.line1}</span>
-                      </div>
-                      <div className="font-mono font-black text-xs sm:text-sm md:text-base text-slate-900 text-left px-1">
-                        <span className="bg-sky-200/90 px-1.5 rounded">{currentQ.line2}</span>
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 bg-gradient-to-r from-cyan-500/20 via-sky-400/25 to-cyan-500/20 border border-cyan-400/60 rounded-xl px-2 py-1 flex flex-col items-center justify-center text-center shadow-sm">
-                      <span className="px-2 py-0.2 rounded-full bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-500 text-slate-950 font-black text-[9.5px] sm:text-[10.5px] uppercase shadow-xs mb-0.5 shrink-0">
-                        {currentQ.ruleCategoryLabel}
-                      </span>
-                      <h3 className="text-xs sm:text-sm md:text-base font-black text-cyan-200 leading-tight px-1 drop-shadow-sm line-clamp-2">
-                        {currentQ.question}
-                      </h3>
-                    </div>
+                  {/* Soru Alanı: İleri Üçer Sayma ile aynı tasarım, kutuyu doldurur */}
+                  <div className="flex-1 min-h-0 flex my-0.5 overflow-hidden">
+                    <ActivityQuestionFrame mode={playerMode as 2 | 3} contentKey={player.questionIndex}>
+                      <SatirSonuQuestionContent q={currentQ} />
+                    </ActivityQuestionFrame>
                   </div>
 
                   {/* Şıklar */}

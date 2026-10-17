@@ -506,14 +506,14 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                     <div 
                       className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full"
                       style={{
-                        backgroundColor: '#fbf9f2',
+                        backgroundColor: '#ffffff',
                         backgroundImage: `
                           /* Kırmızı dikey marjin çizgisi */
                           linear-gradient(to right, transparent 56px, rgba(239, 68, 68, 0.75) 56px, rgba(239, 68, 68, 0.75) 58px, transparent 58px),
                           /* Yatay açık mavi çizgili defter satırları */
                           repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                          /* Doğal yumuşak defter kağıdı dokusu */
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          /* Beyaz temiz defter kağıdı dokusu */
+                          linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                         `
                       }}
                     >
@@ -717,11 +717,11 @@ export const YazimDedektifiGame: React.FC<YazimDedektifiGameProps> = ({
                       <div 
                         className="w-full max-w-2xl p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-amber-300/80 shadow-2xl flex flex-col items-center gap-2 sm:gap-3 relative overflow-hidden"
                         style={{
-                          backgroundColor: '#fbf9f2',
+                          backgroundColor: '#ffffff',
                           backgroundImage: `
                             linear-gradient(to right, transparent 36px, rgba(239, 68, 68, 0.7) 36px, rgba(239, 68, 68, 0.7) 38px, transparent 38px),
                             repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
-                            linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                            linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                           `
                         }}
                       >

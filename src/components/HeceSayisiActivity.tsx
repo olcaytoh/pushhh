@@ -100,11 +100,19 @@ export const HECE_WORDS_POOL: WordSyllableItem[] = [
   { id: 'h4_7', word: 'kaplumbağa', syllables: ['kap', 'lum', 'ba', 'ğa'], count: 4, emoji: '🐢', vowels: ['a', 'u', 'a', 'a'], hint: '4 ünlü harf -> kap - lum - ba - ğa', category: 'Hayvanlar' },
   { id: 'h4_8', word: 'denizaltı', syllables: ['de', 'niz', 'al', 'tı'], count: 4, emoji: '🤿', vowels: ['e', 'i', 'a', 'ı'], hint: '4 ünlü harf -> de - niz - al - tı', category: 'Taşıtlar' },
   { id: 'h4_9', word: 'çikolata', syllables: ['çi', 'ko', 'la', 'ta'], count: 4, emoji: '🍫', vowels: ['i', 'o', 'a', 'a'], hint: '4 ünlü harf -> çi - ko - la - ta', category: 'Tatlılar' },
+  { id: 'h4_10', word: 'kütüphaneci', syllables: ['kü', 'tüp', 'ha', 'ne', 'ci'], count: 5, emoji: '🏛️', vowels: ['ü', 'ü', 'a', 'e', 'i'], hint: '5 ünlü harf -> kü - tüp - ha - ne - ci', category: 'Meslekler' },
+  { id: 'h4_11', word: 'laboratuvar', syllables: ['la', 'bo', 'ra', 'tu', 'var'], count: 5, emoji: '🔬', vowels: ['a', 'o', 'a', 'u', 'a'], hint: '5 ünlü harf -> la - bo - ra - tu - var', category: 'Bilim' },
+  { id: 'h4_12', word: 'fotoğrafçı', syllables: ['fo', 'toğ', 'raf', 'çı'], count: 4, emoji: '📷', vowels: ['o', 'o', 'a', 'ı'], hint: '4 ünlü harf -> fo - toğ - raf - çı', category: 'Sanat' },
+  { id: 'h4_13', word: 'kelebekler', syllables: ['ke', 'le', 'bek', 'ler'], count: 4, emoji: '🦋', vowels: ['e', 'e', 'e', 'e'], hint: '4 ünlü harf -> ke - le - bek - ler', category: 'Doğa' },
+  { id: 'h4_14', word: 'karıncalar', syllables: ['ka', 'rın', 'ca', 'lar'], count: 4, emoji: '🐜', vowels: ['a', 'ı', 'a', 'a'], hint: '4 ünlü harf -> ka - rın - ca - lar', category: 'Doğa' },
+  { id: 'h4_15', word: 'akvaryumcu', syllables: ['ak', 'var', 'yum', 'cu'], count: 4, emoji: '🐠', vowels: ['a', 'a', 'u', 'u'], hint: '4 ünlü harf -> ak - var - yum - cu', category: 'Meslekler' },
 
   // 5 HECELİ KELİMELER
   { id: 'h5_1', word: 'öğrencileri', syllables: ['öğ', 'ren', 'ci', 'le', 'ri'], count: 5, emoji: '🎒', vowels: ['ö', 'e', 'i', 'e', 'i'], hint: '5 ünlü harf -> öğ - ren - ci - le - ri', category: 'Okul' },
   { id: 'h5_2', word: 'cumhuriyetçi', syllables: ['cum', 'hu', 'ri', 'yet', 'çi'], count: 5, emoji: '✨', vowels: ['u', 'u', 'i', 'e', 'i'], hint: '5 ünlü harf -> cum - hu - ri - yet - çi', category: 'Kavramlar' },
-  { id: 'h5_3', word: 'biliminsanı', syllables: ['bi', 'lim', 'in', 'sa', 'nı'], count: 5, emoji: '🔬', vowels: ['i', 'i', 'i', 'a', 'ı'], hint: '5 ünlü harf -> bi - lim - in - sa - nı', category: 'Bilim' }
+  { id: 'h5_3', word: 'biliminsanı', syllables: ['bi', 'lim', 'in', 'sa', 'nı'], count: 5, emoji: '🔬', vowels: ['i', 'i', 'i', 'a', 'ı'], hint: '5 ünlü harf -> bi - lim - in - sa - nı', category: 'Bilim' },
+  { id: 'h5_4', word: 'cumhuriyetimiz', syllables: ['cum', 'hu', 'ri', 'ye', 'ti', 'miz'], count: 6, emoji: '🇹🇷', vowels: ['u', 'u', 'i', 'e', 'i', 'i'], hint: '6 ünlü harf -> cum - hu - ri - ye - ti - miz', category: 'Tarih' },
+  { id: 'h5_5', word: 'kütüphaneler', syllables: ['kü', 'tüp', 'ha', 'ne', 'ler'], count: 5, emoji: '📚', vowels: ['ü', 'ü', 'a', 'e', 'e'], hint: '5 ünlü harf -> kü - tüp - ha - ne - ler', category: 'Kültür' }
 ];
 
 export interface HeceDuelQuestion {
@@ -1019,14 +1027,14 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
                     <div 
                       className="relative w-full rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-4 flex flex-col items-center justify-center text-center overflow-hidden"
                       style={{
-                        backgroundColor: '#fbf9f2',
+                        backgroundColor: '#ffffff',
                         backgroundImage: `
                           /* Kırmızı dikey marjin çizgisi */
                           linear-gradient(to right, transparent 48px, rgba(239, 68, 68, 0.75) 48px, rgba(239, 68, 68, 0.75) 50px, transparent 50px),
                           /* Yatay açık mavi çizgili defter satırları */
                           repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                          /* Doğal yumuşak defter kağıdı dokusu */
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          /* Beyaz temiz defter kağıdı dokusu */
+                          linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                         `
                       }}
                     >

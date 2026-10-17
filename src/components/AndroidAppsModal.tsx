@@ -59,12 +59,12 @@ const FEATURED_APPS: AndroidAppItem[] = [
     category: 'Eğitici • Matematik',
     description: '1. sınıf öğrencileri için eğlenceli sayma, temel toplama, çıkarma ve interaktif mini matematik oyunları.',
     rating: '5.0',
-    downloads: 'Yakında',
+    downloads: '1.000+',
     iconBg: 'from-emerald-600 via-green-600 to-teal-500',
     iconEmoji: '🎲',
     image: '/1sbf.webp?v=3',
     badge: '3. Uygulama',
-    playStoreUrl: ''
+    playStoreUrl: 'https://play.google.com/store/apps/details?id=co.median.android.xlzarpd'
   },
   {
     id: 'ekran_takibi',

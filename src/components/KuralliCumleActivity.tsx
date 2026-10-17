@@ -894,10 +894,94 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "'yaparım' eylemi yüklem olarak cümlenin en sonunda yer alır!",
       funFact: "Düzenli çalışan öğrenciler derslerinde her zaman başarılı olurlar!"
+    },
+    {
+      id: "g3-7",
+      grade: 3,
+      themeTitle: "Yıldız Gözlemi",
+      themeEmoji: "🔭",
+      categoryTheme: 'space',
+      themeGradient: "from-[#0d1630] via-[#132247] to-[#0d1630]",
+      borderColor: "border-cyan-400",
+      glowColor: "shadow-[0_0_20px_rgba(6,182,212,0.35)]",
+      correctWords: ["Gözlemci", "çocuklar", "gökyüzünde", "parlak", "yıldızları", "inceledi"],
+      punctuation: ".",
+      didacticHint: "Cümlenin eylemi olan 'inceledi' kelimesi yüklemdir ve en sonda olmalıdır!",
+      funFact: "Kutup Yıldızı kuzey yönünü gösterir ve geceleri yön bulmamıza yardımcı olur!"
+    },
+    {
+      id: "g3-8",
+      grade: 3,
+      themeTitle: "Meşe Ormanı",
+      themeEmoji: "🐿️",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#2f1c0a] via-[#43270e] to-[#2f1c0a]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Sevimli", "sincap", "meşe", "ağacına", "fındık", "sakladı"],
+      punctuation: ".",
+      didacticHint: "Yapılan işi bildiren 'sakladı' eylemi cümlenin en sonunda yer alır!",
+      funFact: "Sincaplar sakladıkları tohumların bir kısmını unuttukları için yeni ağaçların büyümesine vesile olurlar!"
+    },
+    {
+      id: "g3-9",
+      grade: 3,
+      themeTitle: "Kütüphane Düzeni",
+      themeEmoji: "📚",
+      categoryTheme: 'school',
+      themeGradient: "from-[#1c0d28] via-[#2d1440] to-[#1c0d28]",
+      borderColor: "border-purple-400",
+      glowColor: "shadow-[0_0_20px_rgba(168,85,247,0.35)]",
+      correctWords: ["Akıllı", "kütüphaneci", "raflardaki", "kitapları", "özenle", "dizdi"],
+      punctuation: ".",
+      didacticHint: "Cümlede iş bildiren 'dizdi' yüklemi kural gereği en sonda bulunmalıdır!",
+      funFact: "Dünyanın en eski kütüphanelerinden biri Anadolu'daki Efes Celsus Kütüphanesi'dir!"
+    },
+    {
+      id: "g3-10",
+      grade: 3,
+      themeTitle: "Ressamın Tuvali",
+      themeEmoji: "🎨",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2c0f24] via-[#411635] to-[#2c0f24]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Yetenekli", "ressam", "tuvale", "harika", "manzaralar", "çizdi"],
+      punctuation: ".",
+      didacticHint: "İş bildiren 'çizdi' yüklemi kurallı Türkçe cümlelerde en sonda yer alır!",
+      funFact: "Resim yapmak el-göz koordinasyonunu ve estetik bakış açısını geliştirir!"
+    },
+    {
+      id: "g3-11",
+      grade: 3,
+      themeTitle: "Karlı Zirve",
+      themeEmoji: "🏔️",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#081e28] via-[#0d2d3d] to-[#081e28]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Cesur", "dağcı", "karlı", "zirveye", "gururla", "tırmandı"],
+      punctuation: ".",
+      didacticHint: "'tırmandı' eylemi cümlenin yüklemidir ve en sona gelmelidir!",
+      funFact: "Türkiye'nin en yüksek dağı 5137 metre yüksekliğindeki Ağrı Dağı'dır!"
+    },
+    {
+      id: "g3-12",
+      grade: 3,
+      themeTitle: "Deniz Feneri",
+      themeEmoji: "🏮",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#0a1b2c] via-[#0e2944] to-[#0a1b2c]",
+      borderColor: "border-teal-400",
+      glowColor: "shadow-[0_0_20px_rgba(20,184,166,0.35)]",
+      correctWords: ["Deniz", "feneri", "karanlıkta", "gemilere", "yol", "gösterdi"],
+      punctuation: ".",
+      didacticHint: "Eylem bildiren 'gösterdi' yüklemi cümlenin en sonunda yer alır!",
+      funFact: "Deniz fenerleri güçlü optik mercekler sayesinde kilometrelerce öteden görülebilir!"
     }
   ],
 
-  // 4. SINIF: 6 KELİMEYE SAHİP CÜMLELER
+  // 4. SINIF: 6-7 KELİMEYE SAHİP CÜMLELER
   4: [
     {
       id: "g4-1",
@@ -982,6 +1066,90 @@ const GRADE_SENTENCES: Record<GradeLevel, SentenceData[]> = {
       punctuation: ".",
       didacticHint: "'paylaşırım' yüklemi kurallı cümlenin en sonunda bulunur!",
       funFact: "Paylaşmak ve dostluk dünyayı güzelleştiren en değerli değerdir!"
+    },
+    {
+      id: "g4-7",
+      grade: 4,
+      themeTitle: "Mars Keşif Aracı",
+      themeEmoji: "🪐",
+      categoryTheme: 'space',
+      themeGradient: "from-[#2c0f1f] via-[#45142f] to-[#2c0f1f]",
+      borderColor: "border-rose-400",
+      glowColor: "shadow-[0_0_20px_rgba(244,63,94,0.35)]",
+      correctWords: ["Uzay", "aracı", "kızıl", "gezegen", "yüzeyine", "güvenle", "indi"],
+      punctuation: ".",
+      didacticHint: "Cümlenin eylemi olan 'indi' kelimesi yüklem olarak en sonda yer alır!",
+      funFact: "Mars yüzeyindeki robot kaşifler güneş panelleriyle elektrik enerjisi üretir!"
+    },
+    {
+      id: "g4-8",
+      grade: 4,
+      themeTitle: "Ekolojik Köprü",
+      themeEmoji: "🌉",
+      categoryTheme: 'nature',
+      themeGradient: "from-[#09221b] via-[#10352b] to-[#09221b]",
+      borderColor: "border-emerald-400",
+      glowColor: "shadow-[0_0_20px_rgba(16,185,129,0.35)]",
+      correctWords: ["Yaratıcı", "mimar", "orman", "yoluna", "yeşil", "köprü", "inşa", "etti"],
+      punctuation: ".",
+      didacticHint: "'inşa etti' birleşik eylemi yüklemdir ve cümlenin sonunda yer alır!",
+      funFact: "Yaban hayatı köprüleri geyiklerin ve ayıların otoyollardan güvenle geçmesini sağlar!"
+    },
+    {
+      id: "g4-9",
+      grade: 4,
+      themeTitle: "Kutup Macerası",
+      themeEmoji: "🐧",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#091b2c] via-[#0e2944] to-[#091b2c]",
+      borderColor: "border-sky-400",
+      glowColor: "shadow-[0_0_20px_rgba(56,189,248,0.35)]",
+      correctWords: ["Sevimli", "penguenler", "buzlu", "tepelerden", "denize", "doğru", "kaydı"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'kaydı' yüklemi kurallı cümle sonunda bulunur!",
+      funFact: "İmparator penguenler -50 derece soğukta bile birbirlerine sarılarak ısınırlar!"
+    },
+    {
+      id: "g4-10",
+      grade: 4,
+      themeTitle: "Tarihi Kazı",
+      themeEmoji: "🏺",
+      categoryTheme: 'school',
+      themeGradient: "from-[#2f2208] via-[#48330c] to-[#2f2208]",
+      borderColor: "border-amber-400",
+      glowColor: "shadow-[0_0_20px_rgba(245,158,11,0.35)]",
+      correctWords: ["Arkeologlar", "antik", "kentte", "binlerce", "yıllık", "eserler", "buldu"],
+      punctuation: ".",
+      didacticHint: "Cümlede iş bildiren 'buldu' yüklemi kurallı cümle gereği en sonda olmalıdır!",
+      funFact: "Göbeklitepe, insanlık tarihinin bilinen en eski anıtsal tapınak kompleksidir!"
+    },
+    {
+      id: "g4-11",
+      grade: 4,
+      themeTitle: "Yazılım Dünyası",
+      themeEmoji: "💻",
+      categoryTheme: 'robot',
+      themeGradient: "from-[#110e2e] via-[#1a1745] to-[#110e2e]",
+      borderColor: "border-indigo-400",
+      glowColor: "shadow-[0_0_20px_rgba(99,102,241,0.35)]",
+      correctWords: ["Genç", "mühendis", "okul", "için", "eğitici", "bir", "oyun", "geliştirdi"],
+      punctuation: ".",
+      didacticHint: "Cümlenin yüklemi olan 'geliştirdi' sözcüğü cümlenin sonunda yer alır!",
+      funFact: "Kodlama öğrenmek algoritmik düşünme ve problem çözme becerilerini geliştirir!"
+    },
+    {
+      id: "g4-12",
+      grade: 4,
+      themeTitle: "Mercan Resifi",
+      themeEmoji: "🤿",
+      categoryTheme: 'animals',
+      themeGradient: "from-[#081e28] via-[#0d2d3d] to-[#081e28]",
+      borderColor: "border-cyan-400",
+      glowColor: "shadow-[0_0_20px_rgba(6,182,212,0.35)]",
+      correctWords: ["Dalgıç", "rengarenk", "resiflerde", "nadir", "deniz", "canlılarını", "fotoğrafladı"],
+      punctuation: ".",
+      didacticHint: "Eylemi bildiren 'fotoğrafladı' yüklemi kurallı cümlede en sonda yer alır!",
+      funFact: "Mercan resifleri denizlerdeki canlı türlerinin yüzde yirmi beşine ev sahipliği yapar!"
     }
   ]
 };
@@ -1007,6 +1175,151 @@ function shuffleWords(words: string[]): WordItem[] {
     isIdentical = items.every((item, i) => item.text === words[i]);
   }
   return items;
+}
+
+// ---------------------------------------------------------------------------
+// TÜRKÇE KURALLI CÜMLE DOĞRULAMA SİSTEMİ
+// Türkçe söz diziminde yüklem cümlenin sonunda yer alır; yüklemden önceki
+// sözcük öbekleri (özne, nesne, yer/zaman tamlayıcıları) anlam bozulmadan
+// yer değiştirebilir (Örn: "Yemekten önce ellerimi yıkarım" = "Ellerimi yemekten önce yıkarım").
+// ---------------------------------------------------------------------------
+interface SentenceRule {
+  chunks: string[][];
+  verb: string[];
+}
+
+const SENTENCE_RULES: Record<string, SentenceRule> = {
+  'ali elma yedi': { chunks: [['ali'], ['elma']], verb: ['yedi'] },
+  'kedi süt içti': { chunks: [['kedi'], ['süt']], verb: ['içti'] },
+  'güneş neşeyle doğdu': { chunks: [['güneş'], ['neşeyle']], verb: ['doğdu'] },
+  'ayşe kitap okudu': { chunks: [['ayşe'], ['kitap']], verb: ['okudu'] },
+  'kuşlar gökyüzünde uçtu': { chunks: [['kuşlar'], ['gökyüzünde']], verb: ['uçtu'] },
+  'çöpleri çöpe atarım': { chunks: [['çöpleri'], ['çöpe']], verb: ['atarım'] },
+  'hayvanları çok severim': { chunks: [['hayvanları'], ['çok']], verb: ['severim'] },
+  'herkese dürüst olurum': { chunks: [['herkese'], ['dürüst']], verb: ['olurum'] },
+  'arkadaşımla oyuncaklarımı güzelce paylaşırım': { chunks: [['arkadaşımla'], ['oyuncaklarımı'], ['güzelce']], verb: ['paylaşırım'] },
+  'odamı akşamları düzenli topluyorum': { chunks: [['odamı'], ['akşamları'], ['düzenli']], verb: ['topluyorum'] },
+  'öğretmenimi sınıfta sessizce dinlerim': { chunks: [['öğretmenimi'], ['sınıfta'], ['sessizce']], verb: ['dinlerim'] },
+  'arkadaşıma yardım etmeyi severim': { chunks: [['arkadaşıma'], ['yardım', 'etmeyi']], verb: ['severim'] },
+  'sabahları günaydın demeyi unutmam': { chunks: [['sabahları'], ['günaydın', 'demeyi']], verb: ['unutmam'] },
+  'arkadaşımın kalbini asla kırmam': { chunks: [['arkadaşımın', 'kalbini'], ['asla']], verb: ['kırmam'] },
+  'hata yapınca özür dilerim': { chunks: [['hata', 'yapınca']], verb: ['özür', 'dilerim'] },
+  'kapıyı çalarak içeri girerim': { chunks: [['kapıyı', 'çalarak'], ['içeri']], verb: ['girerim'] },
+  'yemekten önce ellerimi yıkarım': { chunks: [['yemekten', 'önce'], ['ellerimi']], verb: ['yıkarım'] },
+  'görevlerimi zamanında yerine getiririm': { chunks: [['görevlerimi'], ['zamanında']], verb: ['yerine', 'getiririm'] },
+  'hayvanları çok şefkatle severim': { chunks: [['hayvanları'], ['çok', 'şefkatle']], verb: ['severim'] },
+  'arkadaşımın oyununa saygı duyarım': { chunks: [['arkadaşımın', 'oyununa']], verb: ['saygı', 'duyarım'] },
+  'başkalarının eşyalarını izinsiz almam': { chunks: [['başkalarının', 'eşyalarını'], ['izinsiz']], verb: ['almam'] },
+  'çevreyi her zaman korurum': { chunks: [['çevreyi'], ['her', 'zaman']], verb: ['korurum'] },
+  'güzel sözler söylemeyi severim': { chunks: [['güzel', 'sözler'], ['söylemeyi']], verb: ['severim'] },
+  'sıramı sabırla sessizce beklerim': { chunks: [['sıramı'], ['sabırla'], ['sessizce']], verb: ['beklerim'] },
+  'arkadaşımla güzel oyunlar kurarım': { chunks: [['arkadaşımla'], ['güzel', 'oyunlar']], verb: ['kurarım'] },
+  'herkese karşı dürüst olurum': { chunks: [['herkese', 'karşı'], ['dürüst']], verb: ['olurum'] },
+  'çöpleri her zaman çöpe atarım': { chunks: [['çöpleri'], ['her', 'zaman'], ['çöpe']], verb: ['atarım'] },
+  'büyüklere her zaman saygı duyarım': { chunks: [['büyüklere'], ['her', 'zaman']], verb: ['saygı', 'duyarım'] },
+  'küçük sincap ceviz topladı': { chunks: [['küçük', 'sincap'], ['ceviz']], verb: ['topladı'] },
+  'çocuklar bahçede hızlıca koştu': { chunks: [['çocuklar'], ['bahçede'], ['hızlıca']], verb: ['koştu'] },
+  'annem balkondaki çiçekleri suladı': { chunks: [['annem'], ['balkondaki', 'çiçekleri']], verb: ['suladı'] },
+  'can rengarenk resimler çizdi': { chunks: [['can'], ['rengarenk', 'resimler']], verb: ['çizdi'] },
+  'cesur astronot uzay gemisine bindi': { chunks: [['cesur', 'astronot'], ['uzay', 'gemisine']], verb: ['bindi'] },
+  'yavru köpek sokakta top oynadı': { chunks: [['yavru', 'köpek'], ['sokakta'], ['top']], verb: ['oynadı'] },
+  'öğretmenimiz sınıfta yeni şarkı öğretti': { chunks: [['öğretmenimiz'], ['sınıfta'], ['yeni', 'şarkı']], verb: ['öğretti'] },
+  'yeşil dinozor ormanda meyveleri yedi': { chunks: [['yeşil', 'dinozor'], ['ormanda'], ['meyveleri']], verb: ['yedi'] },
+  'çalışkan karıncalar yuvalarına buğday taşıdı': { chunks: [['çalışkan', 'karıncalar'], ['yuvalarına'], ['buğday']], verb: ['taşıdı'] },
+  'görevlerimi her gün zamanında yaparım': { chunks: [['görevlerimi'], ['her', 'gün'], ['zamanında']], verb: ['yaparım'] },
+  'gözlemci çocuklar gökyüzünde parlak yıldızları inceledi': { chunks: [['gözlemci', 'çocuklar'], ['gökyüzünde'], ['parlak', 'yıldızları']], verb: ['inceledi'] },
+  'sevimli sincap meşe ağacına fındık sakladı': { chunks: [['sevimli', 'sincap'], ['meşe', 'ağacına'], ['fındık']], verb: ['sakladı'] },
+  'akıllı kütüphaneci raflardaki kitapları özenle dizdi': { chunks: [['akıllı', 'kütüphaneci'], ['raflardaki', 'kitapları'], ['özenle']], verb: ['dizdi'] },
+  'yetenekli ressam tuvale harika manzaralar çizdi': { chunks: [['yetenekli', 'ressam'], ['tuvale'], ['harika', 'manzaralar']], verb: ['çizdi'] },
+  'cesur dağcı karlı zirveye gururla tırmandı': { chunks: [['cesur', 'dağcı'], ['karlı', 'zirveye'], ['gururla']], verb: ['tırmandı'] },
+  'deniz feneri karanlıkta gemilere yol gösterdi': { chunks: [['deniz', 'feneri'], ['karanlıkta'], ['gemilere']], verb: ['yol', 'gösterdi'] },
+  'akıllı robot fabrikada parçaları başarıyla birleştirdi': { chunks: [['akıllı', 'robot'], ['fabrikada'], ['parçaları'], ['başarıyla']], verb: ['birleştirdi'] },
+  'neşeli yunuslar masmavi denizde birlikte dans etti': { chunks: [['neşeli', 'yunuslar'], ['masmavi', 'denizde'], ['birlikte']], verb: ['dans', 'etti'] },
+  'bahçıvan özenle toprağa küçük fidanlar dikti': { chunks: [['bahçıvan'], ['özenle'], ['toprağa'], ['küçük', 'fidanlar']], verb: ['dikti'] },
+  'kaptan fırtınalı denizde gemisini güvenle limana yanaştırdı': { chunks: [['kaptan'], ['fırtınalı', 'denizde'], ['gemisini'], ['güvenle'], ['limana']], verb: ['yanaştırdı'] },
+  'meraklı bilim insanı laboratuvarda buluşlar yaptı': { chunks: [['meraklı', 'bilim', 'insanı'], ['laboratuvarda']], verb: ['buluşlar', 'yaptı'] },
+  'arkadaşımla oyuncaklarımı her zaman güzelce paylaşırım': { chunks: [['arkadaşımla'], ['oyuncaklarımı'], ['her', 'zaman'], ['güzelce']], verb: ['paylaşırım'] },
+  'uzay aracı kızıl gezegen yüzeyine güvenle indi': { chunks: [['uzay', 'aracı'], ['kızıl', 'gezegen', 'yüzeyine'], ['güvenle']], verb: ['indi'] },
+  'yaratıcı mimar orman yoluna yeşil köprü inşa etti': { chunks: [['yaratıcı', 'mimar'], ['orman', 'yoluna'], ['yeşil', 'köprü']], verb: ['inşa', 'etti'] },
+  'sevimli penguenler buzlu tepelerden denize doğru kaydı': { chunks: [['sevimli', 'penguenler'], ['buzlu', 'tepelerden'], ['denize', 'doğru']], verb: ['kaydı'] },
+  'arkeologlar antik kentte binlerce yıllık eserler buldu': { chunks: [['arkeologlar'], ['antik', 'kentte'], ['binlerce', 'yıllık', 'eserler']], verb: ['buldu'] },
+  'genç mühendis okul için eğitici bir oyun geliştirdi': { chunks: [['genç', 'mühendis'], ['okul', 'için'], ['eğitici', 'bir', 'oyun']], verb: ['geliştirdi'] },
+  'dalgıç rengarenk resiflerde nadir deniz canlılarını fotoğrafladı': { chunks: [['dalgıç'], ['rengarenk', 'resiflerde'], ['nadir', 'deniz', 'canlılarını']], verb: ['fotoğrafladı'] }
+};
+
+function matchesAnyChunkPermutation(prefixWords: string[], chunks: string[][]): boolean {
+  if (chunks.length === 0) {
+    return prefixWords.length === 0;
+  }
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    if (prefixWords.length >= chunk.length) {
+      let chunkMatches = true;
+      for (let c = 0; c < chunk.length; c++) {
+        if (prefixWords[c] !== chunk[c]) {
+          chunkMatches = false;
+          break;
+        }
+      }
+      if (chunkMatches) {
+        const remainingPrefix = prefixWords.slice(chunk.length);
+        const remainingChunks = chunks.filter((_, idx) => idx !== i);
+        if (matchesAnyChunkPermutation(remainingPrefix, remainingChunks)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+export function checkSentenceCorrectness(
+  userWords: string[], 
+  sentence: SentenceData
+): { isMatch: boolean; feedbackHint?: string } {
+  const u = userWords.map(w => w.toLocaleLowerCase('tr-TR').trim());
+  const c = sentence.correctWords.map(w => w.toLocaleLowerCase('tr-TR').trim());
+
+  // 1. Birebir doğru sıralama eşleşmesi
+  if (u.join(' ') === c.join(' ')) {
+    return { isMatch: true };
+  }
+
+  // 2. Parça (öbek) kural tablosu kontrolü
+  const canonicalKey = c.join(' ');
+  const rule = SENTENCE_RULES[canonicalKey];
+
+  if (rule) {
+    const v = rule.verb.map(w => w.toLocaleLowerCase('tr-TR'));
+    if (u.length >= v.length) {
+      const userVerb = u.slice(-v.length);
+      const verbMatches = userVerb.every((w, i) => w === v[i]);
+      if (verbMatches) {
+        const prefix = u.slice(0, -v.length);
+        const cList = rule.chunks.map(chunk => chunk.map(w => w.toLocaleLowerCase('tr-TR')));
+        if (matchesAnyChunkPermutation(prefix, cList)) {
+          return { isMatch: true };
+        }
+      }
+    }
+  }
+
+  // 3. Eşleşmediyse detaylı ipucu hazırla
+  const targetVerb = rule ? rule.verb.join(' ') : sentence.correctWords[sentence.correctWords.length - 1];
+  const userLastWord = u[u.length - 1];
+  const targetLastWord = targetVerb.toLocaleLowerCase('tr-TR');
+
+  if (!userLastWord || !targetLastWord.endsWith(userLastWord)) {
+    return {
+      isMatch: false,
+      feedbackHint: `💡 İpucu: Kurallı cümlede iş, oluş, hareket bildiren eylem (yüklem) cümlenin EN SONUNDA yer alır! "${targetVerb}" sözcüğünü en sona koymayı dene.`
+    };
+  }
+
+  return {
+    isMatch: false,
+    feedbackHint: `💡 İpucu: Yüklem sonda ancak kelime öbeklerinin sırasını kontrol etmen gerekiyor. Kelimelerin yerini değiştirerek tekrar dene!`
+  };
 }
 
 
@@ -1308,6 +1621,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   const [showHintModal, setShowHintModal] = useState(false);
   const [completedSentences, setCompletedSentences] = useState<string[]>([]);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
   // -------------------------------------------------------------------------
   // 2 VE 3 OYUNCU MODU DURUMLARI
@@ -1366,6 +1680,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
     setIsCorrect(false);
     setShowErrorShake(false);
+    setFeedbackMessage(null);
     setP1Shake(false);
     setP2Shake(false);
     setP3Shake(false);
@@ -1461,6 +1776,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   // =========================================================================
   const handleWordClick = (index: number) => {
     if (isCorrect) return;
+    setFeedbackMessage(null);
 
     if (selectedWordIndex === null) {
       setSelectedWordIndex(index);
@@ -1483,6 +1799,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
   // SÜRÜKLE & BIRAK (DRAG & DROP) DESTEĞİ
   const handleDropWord = (fromIdx: number, toIdx: number) => {
     if (isCorrect || fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
+    setFeedbackMessage(null);
     const updated = [...words];
     const [moved] = updated.splice(fromIdx, 1);
     updated.splice(toIdx, 0, moved);
@@ -1522,6 +1839,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const moveWord = (index: number, direction: 'left' | 'right') => {
     if (isCorrect) return;
+    setFeedbackMessage(null);
     const targetIndex = direction === 'left' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= words.length) return;
 
@@ -1537,12 +1855,15 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const handleCheck = () => {
     const currentOrder = words.map(w => w.text);
-    const correctOrder = currentSentence.correctWords;
-    const isMatch = currentOrder.every((w, i) => w === correctOrder[i]);
+    const result = checkSentenceCorrectness(currentOrder, currentSentence);
 
-    if (isMatch) {
+    if (result.isMatch) {
       setIsCorrect(true);
       setShowErrorShake(false);
+      setFeedbackMessage({
+        type: 'success',
+        text: '🎉 Harika! Cümleyi doğru ve kurallı olarak oluşturdun!'
+      });
       triggerSound('/farklilvl.mp3');
 
       if (onQuestionAnswered) {
@@ -1576,6 +1897,10 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     } else {
       setIsCorrect(false);
       setShowErrorShake(true);
+      setFeedbackMessage({
+        type: 'error',
+        text: result.feedbackHint || 'Cümle henüz kurallı değil!'
+      });
       triggerSound('/hata.mp3');
 
       if (onQuestionAnswered) {
@@ -1657,10 +1982,9 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
     const targetWords = player === 'p1' ? p1Words : player === 'p2' ? p2Words : p3Words;
     const currentOrder = targetWords.map(w => w.text);
-    const correctOrder = currentSentence.correctWords;
-    const isMatch = currentOrder.every((w, i) => w === correctOrder[i]);
+    const result = checkSentenceCorrectness(currentOrder, currentSentence);
 
-    if (isMatch) {
+    if (result.isMatch) {
       setRoundWinner(player);
       triggerSound('/correct.mp3');
 
@@ -1786,7 +2110,9 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     },
   ];
 
-  const assembledText = words.map(w => w.text).join(' ') + currentSentence.punctuation;
+  const assembledText = words.length > 0
+    ? words.map((w, idx) => (idx === 0 ? w.text.charAt(0).toLocaleUpperCase('tr-TR') + w.text.slice(1) : w.text)).join(' ') + currentSentence.punctuation
+    : '';
   const gradeCompletedCount = currentGradeSentences.filter(s => completedSentences.includes(s.id)).length;
 
   return (
@@ -1990,6 +2316,17 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                       "{assembledText}"
                     </span>
                   </div>
+
+                  {/* Kontrol Geri Bildirimi & Didaktik İpucu */}
+                  {feedbackMessage && (
+                    <div className={`w-full px-3 py-1.5 rounded-xl border text-xs sm:text-sm text-center font-bold animate-fade-in shrink-0 shadow-md ${
+                      feedbackMessage.type === 'success'
+                        ? 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200'
+                        : 'bg-rose-950/90 border-rose-500/80 text-rose-200'
+                    }`}>
+                      {feedbackMessage.text}
+                    </div>
+                  )}
 
                   {/* Aksiyon Butonları */}
                   <div className="flex items-center gap-2 sm:gap-3 shrink-0">

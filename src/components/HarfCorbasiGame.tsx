@@ -16,76 +16,75 @@ export interface HarfCorbasiWord {
 }
 
 export const HARF_CORBASI_WORDS: HarfCorbasiWord[] = [
-  {
-    id: 'hc-1',
-    word: 'ASLAN',
-    scrambled: ['S', 'L', 'A', 'N', 'A'],
-    hint: 'Ormanların kralı olarak bilinen yeleli hayvan',
-    emoji: '🦁'
-  },
-  {
-    id: 'hc-2',
-    word: 'GÜNEŞ',
-    scrambled: ['Ş', 'N', 'G', 'E', 'Ü'],
-    hint: 'Dünyamızı ısıtan ve aydınlatan gök cismi',
-    emoji: '☀️'
-  },
-  {
-    id: 'hc-3',
-    word: 'TAVŞAN',
-    scrambled: ['Ş', 'A', 'T', 'N', 'V', 'A'],
-    hint: 'Havuç seven, uzun kulaklı sevimli hayvan',
-    emoji: '🐰'
-  },
-  {
-    id: 'hc-4',
-    word: 'KİTAP',
-    scrambled: ['P', 'T', 'K', 'İ', 'A'],
-    hint: 'Sayfalarında bilgiler ve maceralar saklayan hazine',
-    emoji: '📚'
-  },
-  {
-    id: 'hc-5',
-    word: 'KELEBEK',
-    scrambled: ['E', 'B', 'K', 'L', 'E', 'K', 'E'],
-    hint: 'Tırtıldan dönüşen, rengarenk kanatlı sevimli böcek',
-    emoji: '🦋'
-  },
-  {
-    id: 'hc-6',
-    word: 'ŞEMSİYE',
-    scrambled: ['M', 'Ş', 'E', 'Y', 'İ', 'S', 'E'],
-    hint: 'Yağmurlu günlerde bizi ıslanmaktan korur',
-    emoji: '☂️'
-  },
-  {
-    id: 'hc-7',
-    word: 'DÜNYA',
-    scrambled: ['N', 'Y', 'D', 'A', 'Ü'],
-    hint: 'Üzerinde yaşadığımız mavi gezegen',
-    emoji: '🌍'
-  },
-  {
-    id: 'hc-8',
-    word: 'ELMA',
-    scrambled: ['M', 'A', 'E', 'L'],
-    hint: 'Kırmızı veya yeşil, çok lezzetli vitaminli meyve',
-    emoji: '🍎'
-  },
-  {
-    id: 'hc-9',
-    word: 'YILDIZ',
-    scrambled: ['D', 'Z', 'Y', 'I', 'L', 'I'],
-    hint: 'Geceleri gökyüzünde ışıl ışıl parlar',
-    emoji: '⭐'
-  },
-  {
-    id: 'hc-10',
-    word: 'BALIK',
-    scrambled: ['L', 'K', 'B', 'I', 'A'],
-    hint: 'Denizlerde ve göllerde yüzen pullu canlı',
-    emoji: '🐟'
-  }
+  { id: 'hc-1', word: 'ASLAN', scrambled: ['S', 'L', 'A', 'N', 'A'], hint: 'Ormanların kralı olarak bilinen yeleli hayvan', emoji: '🦁' },
+  { id: 'hc-2', word: 'GÜNEŞ', scrambled: ['Ş', 'N', 'G', 'E', 'Ü'], hint: 'Dünyamızı ısıtan ve aydınlatan gök cismi', emoji: '☀️' },
+  { id: 'hc-3', word: 'TAVŞAN', scrambled: ['Ş', 'A', 'T', 'N', 'V', 'A'], hint: 'Havuç seven, uzun kulaklı sevimli hayvan', emoji: '🐰' },
+  { id: 'hc-4', word: 'KİTAP', scrambled: ['P', 'T', 'K', 'İ', 'A'], hint: 'Sayfalarında bilgiler ve maceralar saklayan hazine', emoji: '📚' },
+  { id: 'hc-5', word: 'KELEBEK', scrambled: ['E', 'B', 'K', 'L', 'E', 'K', 'E'], hint: 'Tırtıldan dönüşen, rengarenk kanatlı sevimli böcek', emoji: '🦋' },
+  { id: 'hc-6', word: 'ŞEMSİYE', scrambled: ['M', 'Ş', 'E', 'Y', 'İ', 'S', 'E'], hint: 'Yağmurlu günlerde bizi ıslanmaktan korur', emoji: '☂️' },
+  { id: 'hc-7', word: 'DÜNYA', scrambled: ['N', 'Y', 'D', 'A', 'Ü'], hint: 'Üzerinde yaşadığımız mavi gezegen', emoji: '🌍' },
+  { id: 'hc-8', word: 'ELMA', scrambled: ['M', 'A', 'E', 'L'], hint: 'Kırmızı veya yeşil, çok lezzetli vitaminli meyve', emoji: '🍎' },
+  { id: 'hc-9', word: 'YILDIZ', scrambled: ['D', 'Z', 'Y', 'I', 'L', 'I'], hint: 'Geceleri gökyüzünde ışıl ışıl parlar', emoji: '⭐' },
+  { id: 'hc-10', word: 'BALIK', scrambled: ['L', 'K', 'B', 'I', 'A'], hint: 'Denizlerde ve göllerde yüzen pullu canlı', emoji: '🐟' },
+  { id: 'hc-11', word: 'ZÜRAFA', scrambled: ['F', 'Z', 'R', 'A', 'Ü', 'A'], hint: 'Uzun boynuyla ağaçların en tepesine ulaşır', emoji: '🦒' },
+  { id: 'hc-12', word: 'PENGUEN', scrambled: ['N', 'P', 'G', 'E', 'U', 'E', 'N'], hint: 'Kutuplarda yaşayan, uçamayan ama usta yüzen kuş', emoji: '🐧' },
+  { id: 'hc-13', word: 'GÖKKUŞAĞI', scrambled: ['Ş', 'G', 'Ö', 'K', 'U', 'A', 'K', 'Ğ', 'I'], hint: 'Yağmur sonrası gökyüzünü saran yedi renk', emoji: '🌈' },
+  { id: 'hc-14', word: 'ASTRONOT', scrambled: ['T', 'S', 'A', 'R', 'N', 'O', 'O', 'T'], hint: 'Uzay mekiğiyle yıldızlara ve aya yolculuk yapar', emoji: '👨‍🚀' },
+  { id: 'hc-15', word: 'KİTAPLIK', scrambled: ['P', 'K', 'L', 'İ', 'T', 'I', 'A', 'K'], hint: 'Kitaplarımızı düzenli yerleştirdiğimiz mobilya', emoji: '📖' },
+  { id: 'hc-16', word: 'DİNOZOR', scrambled: ['N', 'Z', 'D', 'O', 'İ', 'R', 'O'], hint: 'Milyonlarca yıl önce yaşamış devasa canlı', emoji: '🦖' },
+  { id: 'hc-17', word: 'PUSULA', scrambled: ['L', 'P', 'S', 'U', 'A', 'U'], hint: 'Yönümüzü bulmamızı sağlayan manyetik araç', emoji: '🧭' },
+  { id: 'hc-18', word: 'PAPATYA', scrambled: ['T', 'P', 'P', 'A', 'Y', 'A', 'A'], hint: 'Beyaz yapraklı, sarı göbekli narin kır çiçeği', emoji: '🌼' },
+  { id: 'hc-19', word: 'DENİZALTI', scrambled: ['Z', 'D', 'T', 'E', 'N', 'İ', 'A', 'L', 'I'], hint: 'Okyanusların derinliklerinde yüzen su altı gemisi', emoji: '🤿' },
+  { id: 'hc-20', word: 'TİYATRO', scrambled: ['R', 'T', 'İ', 'O', 'Y', 'A', 'T'], hint: 'Oyuncuların sahnede canlandırdığı gösteri sanatı', emoji: '🎭' },
+  { id: 'hc-21', word: 'KARINCA', scrambled: ['R', 'K', 'N', 'A', 'A', 'C', 'I'], hint: 'Çok çalışkan, yuvasına yiyecek taşıyan minik böcek', emoji: '🐜' },
+  { id: 'hc-22', word: 'TİMSAH', scrambled: ['M', 'T', 'S', 'İ', 'H', 'A'], hint: 'Nehirlerde yaşayan, güçlü çeneli büyük sürüngen', emoji: '🐊' },
+  { id: 'hc-23', word: 'PAPAĞAN', scrambled: ['Ğ', 'P', 'P', 'A', 'A', 'A', 'N'], hint: 'Rengarenk tüyleri olan ve konuşmayı taklit eden kuş', emoji: '🦜' },
+  { id: 'hc-24', word: 'ÇİLEK', scrambled: ['L', 'Ç', 'K', 'İ', 'E'], hint: 'Kırmızı renkli, mis kokulu ve çekirdekli yaz meyvesi', emoji: '🍓' },
+  { id: 'hc-25', word: 'ŞELALE', scrambled: ['L', 'Ş', 'E', 'E', 'A', 'L'], hint: 'Yüksek kayalıklardan köpük köpük dökülen su', emoji: '🌊' },
+  { id: 'hc-26', word: 'KARPUZ', scrambled: ['P', 'K', 'Z', 'A', 'R', 'U'], hint: 'Yazın sofraları süsleyen kocaman, tatlı sulu meyve', emoji: '🍉' },
+  { id: 'hc-27', word: 'PORTAKAL', scrambled: ['R', 'P', 'L', 'O', 'T', 'A', 'K', 'A'], hint: 'Turuncu kabuklu, C vitamini zengini kış meyvesi', emoji: '🍊' },
+  { id: 'hc-28', word: 'SİNCAP', scrambled: ['C', 'S', 'P', 'İ', 'N', 'A'], hint: 'Ağaçlarda yaşayan, meşe palamudu saklayan sevimli hayvan', emoji: '🐿️' },
+  { id: 'hc-29', word: 'KARTAL', scrambled: ['T', 'K', 'R', 'A', 'A', 'L'], hint: 'Keskin gözleriyle göklerde süzülen heybetli avcı kuş', emoji: '🦅' },
+  { id: 'hc-30', word: 'YUNUS', scrambled: ['N', 'Y', 'S', 'U', 'U'], hint: 'Denizlerde neşeyle zıplayan akıllı memeli hayvan', emoji: '🐬' },
+  { id: 'hc-31', word: 'BİSİKLET', scrambled: ['S', 'B', 'K', 'İ', 'T', 'İ', 'L', 'E'], hint: 'Pedal çevirerek sürdüğümüz iki tekerlekli eğlenceli araç', emoji: '🚲' },
+  { id: 'hc-32', word: 'UÇAK', scrambled: ['Ç', 'U', 'K', 'A'], hint: 'Bulutların üzerinde süzülerek şehirleri kavuşturan hava taşıtı', emoji: '✈️' },
+  { id: 'hc-33', word: 'ORMAN', scrambled: ['M', 'O', 'N', 'R', 'A'], hint: 'Binlerce ağaç ve hayvanın yaşadığı yemyeşil doğa', emoji: '🌲' },
+  { id: 'hc-35', word: 'KÖPEK', scrambled: ['P', 'K', 'K', 'Ö', 'E'], hint: 'İnsanların en sadık ve neşeli koruyucu dostu', emoji: '🐶' },
+  { id: 'hc-36', word: 'GÜVERCİN', scrambled: ['R', 'G', 'C', 'Ü', 'İ', 'V', 'N', 'E'], hint: 'Barışın ve özgürlüğün simgesi kanatlı kuş', emoji: '🕊️' },
+  { id: 'hc-37', word: 'BALİNA', scrambled: ['L', 'B', 'N', 'A', 'İ', 'A'], hint: 'Okyanusların en büyük devasa memeli canlısı', emoji: '🐋' },
+  { id: 'hc-38', word: 'GEZEGEN', scrambled: ['Z', 'G', 'N', 'E', 'G', 'E', 'E'], hint: 'Güneşin çevresinde dönen büyük gök cismi', emoji: '🪐' },
+  { id: 'hc-39', word: 'PİYANO', scrambled: ['Y', 'P', 'O', 'İ', 'N', 'A'], hint: 'Siyah ve beyaz tuşlarıyla harika melodiler çalan çalgı', emoji: '🎹' },
+  { id: 'hc-40', word: 'KEMAN', scrambled: ['M', 'K', 'N', 'E', 'A'], hint: 'Yay ile çalınan, büyüleyici sesli narin enstrüman', emoji: '🎻' },
+  { id: 'hc-41', word: 'TELESKOP', scrambled: ['S', 'T', 'K', 'E', 'P', 'L', 'O', 'E'], hint: 'Uzak yıldızları ve gezegenleri yakından görmemizi sağlar', emoji: '🔭' },
+  { id: 'hc-42', word: 'VOLKAN', scrambled: ['L', 'V', 'N', 'O', 'A', 'K'], hint: 'İçinden lavlar ve dumanlar fışkıran yanardağ', emoji: '🌋' },
+  { id: 'hc-43', word: 'KANGURU', scrambled: ['G', 'K', 'R', 'A', 'U', 'N', 'U'], hint: 'Yavrusunu karnındaki kesesinde taşıyan zıplayan hayvan', emoji: '🦘' },
+  { id: 'hc-44', word: 'YELKENLİ', scrambled: ['K', 'Y', 'N', 'E', 'İ', 'L', 'L', 'E'], hint: 'Rüzgarın gücüyle dalgaları yaran beyaz yelkenli gemi', emoji: '⛵' },
+  { id: 'hc-45', word: 'PİRAMİT', scrambled: ['M', 'P', 'T', 'İ', 'A', 'R', 'İ'], hint: 'Eski Mısır krallarının dev taş anıt mezarları', emoji: '🏛️' },
+  { id: 'hc-46', word: 'LABİRENT', scrambled: ['R', 'L', 'T', 'A', 'N', 'B', 'E', 'İ'], hint: 'Çıkışını bulması eğlenceli ve zeka gerektiren dolambaçlı yol', emoji: '🌀' },
+  { id: 'hc-47', word: 'ŞAMPİYON', scrambled: ['P', 'Ş', 'N', 'A', 'O', 'M', 'Y', 'İ'], hint: 'Yarışmayı ve turnuvayı birincilikle bitiren kazanan', emoji: '🏆' },
+  { id: 'hc-48', word: 'TRAKTÖR', scrambled: ['K', 'T', 'R', 'R', 'Ö', 'A', 'T'], hint: 'Tarlaları sürmek için köylerde kullanılan güçlü motorlu araç', emoji: '🚜' },
+  { id: 'hc-49', word: 'MIKNATIS', scrambled: ['T', 'M', 'S', 'I', 'I', 'K', 'A', 'N'], hint: 'Demir ve metalleri kendine doğru çeken mucizevi cisim', emoji: '🧲' },
+  { id: 'hc-50', word: 'ZEYTİN', scrambled: ['T', 'Z', 'N', 'E', 'İ', 'Y'], hint: 'Kahvaltıların vazgeçilmezi, dalında barış yeşeren meyve', emoji: '🫒' },
+  { id: 'hc-51', word: 'BÜLBÜL', scrambled: ['L', 'B', 'B', 'Ü', 'L', 'Ü'], hint: 'Gül dalında en güzel şarkıları söyleyen ötücü kuş', emoji: '🐦' },
+  { id: 'hc-52', word: 'GÖKTAŞI', scrambled: ['Ş', 'G', 'I', 'Ö', 'A', 'K', 'T'], hint: 'Uzay boşluğundan atmosfere girip parlayan taş parçası', emoji: '☄️' },
+  { id: 'hc-53', word: 'LOKOMOTİF', scrambled: ['M', 'L', 'F', 'O', 'İ', 'K', 'T', 'O', 'O'], hint: 'Tren vagonlarını raylar üzerinde çeken güçlü baş araç', emoji: '🚂' },
+  { id: 'hc-54', word: 'RESSAM', scrambled: ['S', 'R', 'M', 'E', 'A', 'S'], hint: 'Fırçası ve tuvaliyle harika tablolar çizen sanatçı', emoji: '🎨' },
+  { id: 'hc-55', word: 'FLÜT', scrambled: ['Ü', 'F', 'T', 'L'], hint: 'Üflenerek çalınan delikli ince zarif müzik aleti', emoji: '🪈' },
+  { id: 'hc-56', word: 'MERCAN', scrambled: ['C', 'M', 'N', 'E', 'A', 'R'], hint: 'Deniz altını süsleyen renkli ve canlı su altı resifi', emoji: '🪸' },
+  { id: 'hc-57', word: 'KAHRAMAN', scrambled: ['R', 'K', 'N', 'A', 'A', 'H', 'M', 'A'], hint: 'Cesaretiyle zorlukların üstesinden gelen iyilik elçisi', emoji: '🦸' },
+  { id: 'hc-58', word: 'MACERA', scrambled: ['C', 'M', 'A', 'A', 'R', 'E'], hint: 'Bilinmeyene doğru çıkılan heyecan dolu keşif yolculuğu', emoji: '🧭' },
+  { id: 'hc-59', word: 'GİTAR', scrambled: ['T', 'G', 'R', 'İ', 'A'], hint: 'Tellerine dokunularak neşeli şarkılar çalınan enstrüman', emoji: '🎸' },
+  { id: 'hc-60', word: 'ÇADIR', scrambled: ['D', 'Ç', 'R', 'A', 'I'], hint: 'Kampta doğayla baş başa uyumak için kurulan kumaş barınak', emoji: '⛺' },
+  { id: 'hc-61', word: 'DENİZKABUĞU', scrambled: ['K', 'D', 'Ğ', 'E', 'U', 'N', 'B', 'İ', 'U', 'Z', 'A'], hint: 'Kumsalda bulunan, kulağa tutulduğunda dalga sesi veren kabuk', emoji: '🐚' },
+  { id: 'hc-62', word: 'KARTOPU', scrambled: ['T', 'K', 'U', 'A', 'P', 'R', 'O'], hint: 'Kışın kardan yuvarlanarak oynanan eğlenceli oyun aracı', emoji: '⛄' },
+  { id: 'hc-63', word: 'UÇURTMA', scrambled: ['R', 'U', 'A', 'Ç', 'M', 'U', 'T'], hint: 'İpi elinde, rüzgarda gökyüzüne doğru dans eden renkli oyuncak', emoji: '🪁' },
+  { id: 'hc-64', word: 'HARİTA', scrambled: ['R', 'H', 'A', 'A', 'T', 'İ'], hint: 'Yeryüzünü veya bir ülkeyi kağıt üstünde gösteren rehber çizim', emoji: '🗺️' },
+  { id: 'hc-65', word: 'DENİZCİ', scrambled: ['Z', 'D', 'İ', 'E', 'C', 'N', 'İ'], hint: 'Gemisiyle fırtınalara meydan okuyan kaptan dostu', emoji: '⚓' },
+  { id: 'hc-66', word: 'SAATKULESİ', scrambled: ['K', 'S', 'İ', 'A', 'S', 'A', 'E', 'T', 'L', 'U'], hint: 'Meydanları süsleyen, zamanı herkese duyuran yüksek kule', emoji: '🕰️' },
+  { id: 'hc-67', word: 'BAYRAK', scrambled: ['R', 'B', 'K', 'A', 'A', 'Y'], hint: 'Gökyüzünde gururla dalgalanan ay yıldızlı bağımsızlık simgemiz', emoji: '🇹🇷' },
+  { id: 'hc-68', word: 'KUMBARA', scrambled: ['M', 'K', 'A', 'U', 'A', 'B', 'R'], hint: 'Harçlıklarımızı biriktirdiğimiz sevimli tasarruf kutusu', emoji: '🪙' },
+  { id: 'hc-69', word: 'FUTBOL', scrambled: ['T', 'F', 'L', 'U', 'O', 'B'], hint: 'Yeşil sahada 11 kişilik takımlarla oynanan popüler top oyunu', emoji: '⚽' },
+  { id: 'hc-70', word: 'BASKETBOL', scrambled: ['K', 'B', 'L', 'A', 'O', 'S', 'T', 'E', 'B'], hint: 'Topu potadaki çemberden geçirerek sayı kazanılan spor', emoji: '🏀' }
 ];
 
 export const getRandomCorbaWords = (count: number = 6): HarfCorbasiWord[] => {
@@ -447,14 +446,14 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                         sPlayer.showError ? 'border-rose-500 animate-shake' : sPlayer.isSuccess ? 'border-emerald-400' : 'border-amber-300/90'
                       } shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-3 sm:p-5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full`}
                       style={{
-                        backgroundColor: '#fbf9f2',
+                        backgroundColor: '#ffffff',
                         backgroundImage: `
                           /* Kırmızı dikey marjin çizgisi */
                           linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.75) 52px, rgba(239, 68, 68, 0.75) 54px, transparent 54px),
                           /* Yatay açık mavi çizgili defter satırları */
                           repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                          /* Doğal yumuşak defter kağıdı dokusu */
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          /* Beyaz temiz defter kağıdı dokusu */
+                          linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                         `
                       }}
                     >
@@ -624,11 +623,11 @@ export const HarfCorbasiGame: React.FC<HarfCorbasiGameProps> = ({
                     player.showError ? 'border-rose-500 animate-shake' : player.isSuccess ? 'border-emerald-400' : 'border-amber-300/80'
                   } flex-1 min-h-0 my-1 flex flex-col items-center justify-center gap-1.5 shadow-md`}
                   style={{
-                    backgroundColor: '#fbf9f2',
+                    backgroundColor: '#ffffff',
                     backgroundImage: `
                       linear-gradient(to right, transparent 32px, rgba(239, 68, 68, 0.7) 32px, rgba(239, 68, 68, 0.7) 34px, transparent 34px),
                       repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
-                      linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                      linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                     `
                   }}
                 >

@@ -6,17 +6,27 @@ interface AutoFitOptionContentProps {
   isGrade4?: boolean;
   mode?: 1 | 2 | 3;
   fallbackFontClass?: string;
+  isLarge?: boolean;
 }
 
-function formatOptionText(rawText: string | number, mode: 1 | 2 | 3): string | number {
+function formatOptionText(rawText: string | number, mode: 1 | 2 | 3, isLarge: boolean = false): string | number {
   if (typeof rawText !== 'string') return rawText;
   if (rawText.includes('<')) return rawText; // HTML tags (fractions etc.)
   const clean = rawText.trim();
   const words = clean.split(/\s+/);
   if (words.length <= 1) return clean;
 
-  // 3 Oyuncu modunda (ve 2 oyuncu modundaki uzun şıklarda) kelimeler alt satıra kaysın, büyüklük korunsun
-  if (mode === 3 || (mode === 2 && clean.length > 8) || (mode === 1 && clean.length > 13)) {
+  const mode1Threshold = isLarge ? 22 : 13;
+  // 2 Kişilik modda genişlik ferah olduğu için sadece gerçekten uzun şıkları (18+ karakter) 2 satıra böl
+  const mode2Threshold = isLarge ? 18 : 14;
+  // 3 Kişilik modda dar sütun olduğu için 8+ karakterli çok kelimeli şıkları 2 satıra böl
+  const mode3Threshold = isLarge ? 8 : 7;
+
+  if (
+    (mode === 3 && clean.length > mode3Threshold) ||
+    (mode === 2 && clean.length > mode2Threshold) ||
+    (mode === 1 && clean.length > mode1Threshold)
+  ) {
     if (words.length === 2) {
       return words[0] + '\n' + words[1];
     }
@@ -34,14 +44,15 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
   isGrade4 = false,
   mode = 1,
   fallbackFontClass = '',
+  isLarge = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
 
   const formattedDisplayOpt = React.useMemo(() => {
-    return formatOptionText(displayOpt, mode);
-  }, [displayOpt, mode]);
+    return formatOptionText(displayOpt, mode, isLarge);
+  }, [displayOpt, mode, isLarge]);
 
   const hasLineBreak = typeof formattedDisplayOpt === 'string' && formattedDisplayOpt.includes('\n');
   const isHTML = typeof displayOpt === 'string' && displayOpt.includes('<');
@@ -58,45 +69,57 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
       return "text-base sm:text-lg font-black";
     }
 
+    const formattedStr = typeof formattedDisplayOpt === 'string' ? formattedDisplayOpt : String(formattedDisplayOpt ?? '');
+    const lines = formattedStr.split('\n');
+    const effectiveLen = Math.max(...lines.map(l => l.trim().length), 1);
+
     if (mode === 1) {
-      const words = clean.split(/\s+/);
-      const effectiveLen = words.length > 1 && clean.length > 13
-        ? Math.max(...words.map(w => w.length))
-        : len;
+      if (isLarge) {
+        if (effectiveLen <= 6) return "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black";
+        if (effectiveLen <= 12) return "text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black";
+        if (effectiveLen <= 20) return "text-lg sm:text-xl md:text-2xl lg:text-3xl font-black";
+        if (effectiveLen <= 32) return "text-base sm:text-lg md:text-xl lg:text-2xl font-black";
+        return "text-sm sm:text-base md:text-lg lg:text-xl font-bold";
+      }
 
       if (effectiveLen <= 3) return "text-2xl sm:text-3xl md:text-4xl font-black";
       if (effectiveLen <= 6) return "text-xl sm:text-2xl md:text-3xl font-black";
       if (effectiveLen <= 9) return "text-base sm:text-lg md:text-xl lg:text-2xl font-black";
       if (effectiveLen <= 14) return "text-sm sm:text-base md:text-lg lg:text-xl font-bold";
       if (effectiveLen <= 20) return "text-xs sm:text-sm md:text-base font-bold";
-      return "text-[11px] sm:text-xs md:text-sm font-bold";
+      return "text-xs sm:text-sm md:text-base font-bold";
     }
 
     if (mode === 2) {
-      const words = clean.split(/\s+/);
-      const effectiveLen = words.length > 1 && clean.length > 8
-        ? Math.max(...words.map(w => w.length))
-        : len;
+      if (isLarge) {
+        if (effectiveLen <= 6) return "text-xl sm:text-2xl md:text-3xl font-black";
+        if (effectiveLen <= 12) return "text-lg sm:text-xl md:text-2xl font-black";
+        if (effectiveLen <= 18) return "text-base sm:text-lg md:text-xl font-bold";
+        if (effectiveLen <= 26) return "text-sm sm:text-base md:text-lg font-bold";
+        return "text-sm sm:text-base md:text-lg font-bold";
+      }
 
       if (effectiveLen <= 3) return "text-lg sm:text-xl md:text-2xl font-black";
       if (effectiveLen <= 6) return "text-base sm:text-lg md:text-xl font-black";
-      if (effectiveLen <= 10) return "text-xs sm:text-sm md:text-base font-bold";
-      if (effectiveLen <= 16) return "text-[11px] sm:text-xs md:text-sm font-bold";
-      return "text-[10px] sm:text-[11px] font-bold";
+      if (effectiveLen <= 12) return "text-sm sm:text-base md:text-lg font-bold";
+      if (effectiveLen <= 18) return "text-xs sm:text-sm md:text-base font-bold";
+      return "text-xs sm:text-sm font-bold";
     }
 
-    // mode === 3: Şıklar alt alta kaysın, yazı büyüklüğü yüksek tutulup korunsun
-    const words = clean.split(/\s+/);
-    const effectiveLen = words.length > 1
-      ? Math.max(...words.map(w => w.length))
-      : len;
+    // mode === 3: 3 Kişilik mod
+    if (isLarge) {
+      if (effectiveLen <= 6) return "text-base sm:text-lg md:text-xl font-black";
+      if (effectiveLen <= 10) return "text-sm sm:text-base md:text-lg font-black";
+      if (effectiveLen <= 16) return "text-xs sm:text-sm md:text-base font-bold";
+      return "text-xs sm:text-sm font-bold";
+    }
 
-    if (effectiveLen <= 3) return "text-base sm:text-lg md:text-xl font-black";
-    if (effectiveLen <= 6) return "text-sm sm:text-base md:text-lg font-black";
-    if (effectiveLen <= 10) return "text-xs sm:text-sm md:text-base font-black";
-    if (effectiveLen <= 14) return "text-[11px] sm:text-xs md:text-sm font-black";
-    return "text-[10px] sm:text-[11px] md:text-xs font-bold";
-  }, [opt, displayOpt, mode]);
+    if (effectiveLen <= 3) return "text-base sm:text-lg font-black";
+    if (effectiveLen <= 6) return "text-sm sm:text-base font-black";
+    if (effectiveLen <= 12) return "text-xs sm:text-sm md:text-base font-bold";
+    if (effectiveLen <= 18) return "text-xs sm:text-sm font-bold";
+    return "text-xs sm:text-sm font-bold";
+  }, [opt, displayOpt, formattedDisplayOpt, mode, isLarge]);
 
   const updateScale = React.useCallback(() => {
     const container = containerRef.current;
@@ -116,23 +139,24 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     if (naturalW <= 0 || naturalH <= 0) return;
 
     // Target available dimensions with generous horizontal padding so content never touches borders
-    const targetW = Math.max(10, availW - 6);
-    const targetH = Math.max(10, availH - 4);
+    const targetW = Math.max(8, availW - 4);
+    const targetH = Math.max(8, availH - 2);
 
     const scaleW = targetW / naturalW;
     const scaleH = targetH / naturalH;
     let s = Math.min(scaleW, scaleH);
 
     // If s > 1, short numbers/visuals expand nicely up to 1.5x for visuals or 1.2x for text
-    // If s < 1, long text scales down smoothly without arbitrary minimum clipping to prevent any overflow!
+    // If s < 1, long text scales down smoothly with a protective floor so text is never unreadably small
     if (s > 1.0) {
       s = Math.min(s, isHTML ? 1.5 : 1.2);
     } else {
-      s = Math.max(s, 0.20);
+      const minFloor = mode === 3 ? 0.78 : mode === 2 ? 0.82 : 0.65;
+      s = Math.max(s, minFloor);
     }
 
     setScale(s);
-  }, [isHTML]);
+  }, [isHTML, mode]);
 
   useLayoutEffect(() => {
     updateScale();

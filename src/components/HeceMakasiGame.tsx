@@ -5,12 +5,18 @@ import {
   Sparkles, CheckCircle2, Trophy, ArrowRight, ArrowLeft, Home,
   ChevronLeft, ChevronRight, HelpCircle
 } from 'lucide-react';
-import { HeceWord, HECE_MAKASI_WORDS, getRandomHeceWords } from '../data/heceMakasiData';
+import { 
+  HeceWord, 
+  HECE_MAKASI_WORDS, 
+  getRandomHeceWords,
+  getMultiplayerUniqueHeceWordSets,
+  getFreshReplacementHeceWord
+} from '../data/heceMakasiData';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { playScissorCutSound } from '../utils/scissorSound';
 
-export const TARGET_QUESTIONS = 5;
+export const TARGET_QUESTIONS = 30;
 
 // Diğer etkinliklerle tam uyumlu zafer videoları:
 // 1. Oyuncu (Kaplumbağa) -> /kap.mp4
@@ -88,7 +94,7 @@ interface PlayerState {
   colorName: 'blue' | 'rose' | 'emerald';
   score: number;
   currentWordIndex: number;
-  completedCount: number; // 5 hece sorusundan kaçı tamamlandı
+  completedCount: number; // 30 hece sorusundan kaçı tamamlandı
   selectedCuts: number[]; // Slot indices cut by this player
   isCompleted: boolean;
   shakeSlot: number | null; // Slot index that just failed
@@ -128,8 +134,19 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
     }
   }, [playerCountMode]);
 
-  // Questions pool for this match (15 words per match)
-  const [wordList, setWordList] = useState<HeceWord[]>(() => getRandomHeceWords(15, filterSyllables || undefined));
+  // Oturum boyunca daha önce çözülen kelime ID'lerini takip ederek tekrarsız sürekli değişim sağlar
+  const usedIdsRef = React.useRef<Set<string>>(new Set());
+
+  // Her oyuncuya özel bağımsız soru listesi (2 ve 3 kişilik modda oyuncular farklı kelimeler görür)
+  const [playerWordSets, setPlayerWordSets] = useState<HeceWord[][]>(() => {
+    return getMultiplayerUniqueHeceWordSets(playerCountMode || 2, TARGET_QUESTIONS, filterSyllables || undefined, usedIdsRef.current);
+  });
+
+  const getPlayerCurrentWord = useCallback((playerIndex: number, wordIndex: number): HeceWord => {
+    const list = playerWordSets[playerIndex] || playerWordSets[0] || [];
+    if (list.length === 0) return HECE_MAKASI_WORDS[0];
+    return list[wordIndex % list.length] || HECE_MAKASI_WORDS[0];
+  }, [playerWordSets]);
 
   // Audio helper
   const triggerSound = useCallback((src: string) => {
@@ -210,7 +227,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
   // Reset when player count or filter changes
   useEffect(() => {
     setPlayers(createInitialPlayers(playerMode));
-    setWordList(getRandomHeceWords(15, filterSyllables || undefined));
+    setPlayerWordSets(getMultiplayerUniqueHeceWordSets(playerMode, TARGET_QUESTIONS, filterSyllables || undefined, usedIdsRef.current));
     setGameOver(false);
     setFinalWinner(null);
     setRoundWinner(null);
@@ -231,7 +248,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
     const player = players[playerIdx];
     if (!player || player.isCompleted || gameOver) return;
 
-    const currentWord = wordList[player.currentWordIndex % wordList.length];
+    const currentWord = getPlayerCurrentWord(playerIdx, player.currentWordIndex);
     if (!currentWord) return;
 
     // Check if slotIndex is already cut
@@ -262,6 +279,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
 
       if (isWordFullyCut) {
         triggerSound('/ding.mp3');
+        usedIdsRef.current.add(currentWord.id);
         onQuestionAnswered?.(true, playerIdx);
 
         const nextCompleted = player.completedCount + 1;
@@ -383,9 +401,53 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
     }));
   };
 
+  // Tekil bir oyuncunun aktif kelimesini anında başka bir kelimeyle değiştirir
+  const handleReplaceCurrentWord = (playerIdx: number) => {
+    const activeIds = playerWordSets.flatMap(list => list.map(w => w.id));
+    const newWord = getFreshReplacementHeceWord(activeIds, filterSyllables || undefined);
+
+    setPlayerWordSets(prev => {
+      const next = [...prev];
+      if (next[playerIdx]) {
+        const curList = [...next[playerIdx]];
+        const currentIdx = players[playerIdx]?.currentWordIndex || 0;
+        curList[currentIdx % curList.length] = newWord;
+        next[playerIdx] = curList;
+      }
+      return next;
+    });
+
+    setPlayers(prev => prev.map((p, idx) => {
+      if (idx !== playerIdx) return p;
+      return {
+        ...p,
+        selectedCuts: [],
+        isCompleted: false,
+        shakeSlot: null,
+        wrongAttempts: 0
+      };
+    }));
+
+    triggerSound('/op.mp3');
+  };
+
+  // Tüm desteleri yeni kelimelerle karıştırıp tazeler
+  const handleShuffleAllDecks = () => {
+    triggerSound('/op.mp3');
+    const newSets = getMultiplayerUniqueHeceWordSets(playerMode, TARGET_QUESTIONS, filterSyllables || undefined, usedIdsRef.current);
+    setPlayerWordSets(newSets);
+    setPlayers(prev => prev.map(p => ({
+      ...p,
+      selectedCuts: [],
+      isCompleted: false,
+      shakeSlot: null,
+      wrongAttempts: 0
+    })));
+  };
+
   const handleResetGame = () => {
     triggerSound('/op.mp3');
-    setWordList(getRandomHeceWords(15, filterSyllables || undefined));
+    setPlayerWordSets(getMultiplayerUniqueHeceWordSets(playerMode, TARGET_QUESTIONS, filterSyllables || undefined, usedIdsRef.current));
     setPlayers(createInitialPlayers(playerMode));
     setGameOver(false);
     setFinalWinner(null);
@@ -548,7 +610,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden min-h-0">
         {playerMode === 1 && players[0] ? (() => {
           const player = players[0];
-          const currentWord = wordList[player.currentWordIndex % wordList.length];
+          const currentWord = getPlayerCurrentWord(0, player.currentWordIndex);
           const sStudent = effectiveSelectedStudentIds[0]
             ? students?.find(s => s.id === effectiveSelectedStudentIds[0])
             : null;
@@ -618,6 +680,14 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                         </span>
                       </div>
                       <button
+                        onClick={() => handleReplaceCurrentWord(0)}
+                        className="h-full px-2 sm:px-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-400/40 text-amber-200 flex items-center gap-1 text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
+                        title="Farklı Kelime Getir"
+                      >
+                        <RotateCcw size={12} className="text-amber-300" />
+                        <span className="hidden sm:inline">Değiştir</span>
+                      </button>
+                      <button
                         onClick={() => handleNextWordManually(0)}
                         className="h-full px-2 sm:px-2.5 rounded-xl bg-[#0e172a] hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white flex items-center gap-1 text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
                         title="Kelimeyi Geç"
@@ -633,14 +703,14 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                     <div 
                       className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2.5 sm:p-4 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full"
                       style={{
-                        backgroundColor: '#fbf9f2',
+                        backgroundColor: '#ffffff',
                         backgroundImage: `
                           /* Kırmızı dikey marjin çizgisi */
                           linear-gradient(to right, transparent 56px, rgba(239, 68, 68, 0.75) 56px, rgba(239, 68, 68, 0.75) 58px, transparent 58px),
                           /* Yatay açık mavi çizgili defter satırları (32px aralıklı Türkçe ilkokul defteri satırları) */
                           repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                          /* Doğal yumuşak defter kağıdı dokusu */
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          /* Beyaz temiz defter kağıdı dokusu */
+                          linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                         `
                       }}
                     >
@@ -802,10 +872,27 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
             </div>
           );
         })() : (
+        <div className="flex-1 flex flex-col justify-between w-full h-full min-h-0 overflow-hidden">
+          {/* ÜST ORTAK BİLGİ VE YENİLEME ÇUBUĞU */}
+          <div className="w-full flex items-center justify-between bg-black/60 border border-teal-500/40 rounded-xl px-3 py-1 mb-1 shrink-0">
+            <div className="flex items-center gap-2 font-black text-xs sm:text-sm text-cyan-300 uppercase tracking-wider">
+              <span>✂️ {playerMode} KİŞİLİK HECE DÜELLOSU</span>
+              <span className="text-[11px] font-semibold text-slate-400 hidden sm:inline">• Her oyuncuya özel farklı kelimeler</span>
+            </div>
+            <button
+              onClick={handleShuffleAllDecks}
+              className="px-2.5 py-0.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/50 text-teal-200 flex items-center gap-1 text-xs font-bold transition cursor-pointer active:scale-95"
+              title="Tüm Oyuncuların Kelimelerini Yenile"
+            >
+              <RotateCcw size={12} className="text-teal-300" />
+              <span>Tüm Kelimeleri Yenile</span>
+            </button>
+          </div>
+
           <div className="flex-1 flex flex-row relative min-h-0 min-w-0 h-full w-full overflow-hidden rounded-2xl border border-slate-800/80 shadow-2xl bg-[#080d1a]">
           {players.map((player, pIdx) => {
             const theme = getPlayerTheme(player.colorName);
-            const currentWord = wordList[player.currentWordIndex % wordList.length];
+            const currentWord = getPlayerCurrentWord(pIdx, player.currentWordIndex);
             const isWinnerThisRound = roundWinner === pIdx;
             const assignedStudent = effectiveSelectedStudentIds[pIdx]
               ? students?.find(s => s.id === effectiveSelectedStudentIds[pIdx])
@@ -862,41 +949,36 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                           }`}>
                             Soru {Math.min(TARGET_QUESTIONS, player.currentWordIndex + 1)} / {TARGET_QUESTIONS}
                           </span>
-                          <div className="flex items-center gap-0.5 sm:gap-1">
-                            {Array.from({ length: TARGET_QUESTIONS }).map((_, stepIdx) => {
-                              const isPast = stepIdx < player.completedCount;
-                              const isCurrent = stepIdx === player.currentWordIndex && !isPast;
-                              return (
-                                <div
-                                  key={stepIdx}
-                                  className={`rounded-full transition-all duration-300 ${
-                                    playerMode === 3 ? 'w-1.5 h-1.5 sm:w-2 sm:h-2' : 'w-2 h-2 sm:w-2.5 sm:h-2.5'
-                                  } ${
-                                    isPast
-                                      ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]'
-                                      : isCurrent
-                                      ? 'bg-amber-400 ring-1 ring-amber-300 animate-pulse'
-                                      : 'bg-slate-700/70 border border-slate-600'
-                                  }`}
-                                  title={`${stepIdx + 1}. Soru`}
-                                />
-                              );
-                            })}
+                          <div className="flex items-center gap-1 w-14 sm:w-20 md:w-24 h-1.5 sm:h-2 rounded-full bg-slate-800/90 border border-slate-700/80 overflow-hidden shadow-inner">
+                            <div
+                              className="h-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 rounded-full transition-all duration-300"
+                              style={{ width: `${Math.min(100, (player.completedCount / TARGET_QUESTIONS) * 100)}%` }}
+                            />
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Score Badge */}
-                    <div className={`flex items-center gap-1 rounded-xl bg-slate-950/80 border border-amber-400/40 shadow-inner shrink-0 ${
-                      playerMode === 3 ? 'px-1.5 sm:px-2 py-0.5' : 'px-2.5 sm:px-3 py-1'
-                    }`}>
-                      <Trophy size={playerMode === 3 ? 12 : 14} className="text-amber-400" />
-                      <span className={`font-black text-amber-300 ${
-                        playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
+                    {/* Right Controls: Değiştir & Score Badge */}
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                      <button
+                        onClick={() => handleReplaceCurrentWord(pIdx)}
+                        className="px-1.5 sm:px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 flex items-center gap-1 text-[10px] font-bold cursor-pointer active:scale-95 transition"
+                        title="Farklı Kelime Getir"
+                      >
+                        <RotateCcw size={11} className="text-amber-300" />
+                        <span className="hidden sm:inline">Değiştir</span>
+                      </button>
+                      <div className={`flex items-center gap-1 rounded-xl bg-slate-950/80 border border-amber-400/40 shadow-inner shrink-0 ${
+                        playerMode === 3 ? 'px-1.5 sm:px-2 py-0.5' : 'px-2.5 sm:px-3 py-1'
                       }`}>
-                        {player.score} Puan
-                      </span>
+                        <Trophy size={playerMode === 3 ? 12 : 14} className="text-amber-400" />
+                        <span className={`font-black text-amber-300 ${
+                          playerMode === 3 ? 'text-[11px] sm:text-xs' : 'text-xs sm:text-sm'
+                        }`}>
+                          {player.score} P
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -944,11 +1026,11 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                     <div 
                       className={`relative flex items-center justify-center ${sizing.ribbonPadding} rounded-2xl sm:rounded-3xl border-3 border-amber-300/80 shadow-2xl max-w-full overflow-x-auto shrink-0`}
                       style={{
-                        backgroundColor: '#fbf9f2',
+                        backgroundColor: '#ffffff',
                         backgroundImage: `
                           linear-gradient(to right, transparent 36px, rgba(239, 68, 68, 0.7) 36px, rgba(239, 68, 68, 0.7) 38px, transparent 38px),
                           repeating-linear-gradient(to bottom, transparent 0px, transparent 23px, rgba(147, 197, 253, 0.6) 23px, rgba(147, 197, 253, 0.6) 24px),
-                          linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+                          linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
                         `
                       }}
                     >
@@ -1136,7 +1218,8 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
             );
           })}
         </div>
-        )}
+      </div>
+      )}
       </main>
 
       {/* 3. STUDENT AVATAR DOCK - EN ALTTA TEK SIRA (TÜM MODLARDA) */}
@@ -1258,7 +1341,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                           </span>
                         </div>
                         <span className="font-black text-sm sm:text-lg text-white">
-                          {p.completedCount} / 5 Soru
+                          {p.completedCount} / {TARGET_QUESTIONS} Soru
                         </span>
                         <span className="text-[9.5px] sm:text-[10.5px] text-amber-300 font-bold">
                           {p.score} Puan
@@ -1274,7 +1357,7 @@ export const HeceMakasiGame: React.FC<HeceMakasiGameProps> = ({
                     onClick={handleResetGame}
                     className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg transition-all transform hover:scale-102 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <RotateCcw className="w-4 h-4" /> Yeni 5 Soru (Tekrar Oyna)
+                    <RotateCcw className="w-4 h-4" /> Yeni {TARGET_QUESTIONS} Soru (Tekrar Oyna)
                   </button>
 
                   <button

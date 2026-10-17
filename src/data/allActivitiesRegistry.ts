@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life';
+  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life' | 'sivi_tahmin_akvaryum';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -16,6 +16,7 @@ export interface ActivityRegistryItem {
 
 const resolveTitle = (key: string, grade?: number): string => {
   if (key === 'cisimler_acilimi') return 'Geometrik Cisimler Açılımı';
+  if (key === 'sivi_tahmin_akvaryum') return 'Sıvı Ölçme Tahmini';
   if (halatCekmeTopics[key]?.title) return halatCekmeTopics[key].title;
   if (sureliExtraTopics[key]?.title) return sureliExtraTopics[key].title;
   if (grade === 1 && topics1stGrade[key]?.title) return topics1stGrade[key].title;
@@ -145,13 +146,20 @@ const g2Geometri = [
   'geometrik_oruntu',
   'uzamsal_iliskiler_simetri',
   'sivi_olcme',
+  'sivi_tahmin_akvaryum',
   'tartma_olcme',
   'cisimler_acilimi'
 ];
 g2Geometri.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g2_${key}`,
-    type: key === 'geometri_tahtasi' ? 'geoboard' : key === 'cisimler_acilimi' ? 'geometric_nets' : 'grade_topic',
+    type: key === 'geometri_tahtasi' 
+      ? 'geoboard' 
+      : key === 'cisimler_acilimi' 
+      ? 'geometric_nets' 
+      : key === 'sivi_tahmin_akvaryum'
+      ? 'sivi_tahmin_akvaryum'
+      : 'grade_topic',
     grade: 2,
     topicKey: key,
     title: resolveTitle(key, 2),
@@ -695,6 +703,12 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     type: 'sudoku',
     title: 'Sudoku Zeka Oyunu (4x4 & 6x6)',
     categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_sivi_tahmin_akvaryum',
+    type: 'sivi_tahmin_akvaryum',
+    title: 'Sıvı Ölçme Tahmini (Akvaryum & Kova & Sürahi)',
+    categoryLabel: 'Diğer Oyunlar'
   }
 ];
 
@@ -937,6 +951,14 @@ export const findActivityIndex = (
       if (idx !== -1) return idx;
     }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sudoku' || a.id.includes('sudoku'));
+    if (idx !== -1) return idx;
+  }
+  if (type === 'sivi_tahmin_akvaryum' || topicKey === 'sivi_tahmin_akvaryum') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sivi_tahmin_akvaryum' || a.id.includes('sivi_tahmin_akvaryum')) && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sivi_tahmin_akvaryum' || a.id.includes('sivi_tahmin_akvaryum'));
     if (idx !== -1) return idx;
   }
   if (type === '3d_lab') {

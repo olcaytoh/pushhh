@@ -26,14 +26,14 @@ export const TurkishActivityBackground: React.FC<TurkishActivityBackgroundProps>
       <div 
         className="absolute inset-1 sm:inset-2 md:inset-3 rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_3px_rgba(255,255,255,0.4)] overflow-hidden"
         style={{
-          backgroundColor: '#fbf9f2',
+          backgroundColor: '#ffffff',
           backgroundImage: `
             /* Kırmızı dikey kenar kılavuz çizgisi (Türkçe defteri kırmızı marjini) */
             linear-gradient(to right, transparent 52px, rgba(239, 68, 68, 0.85) 52px, rgba(239, 68, 68, 0.85) 55px, transparent 55px),
             /* Yatay açık mavi çizgili defter satırları (32px aralıklı Türkçe ilkokul defteri satırları) */
-            repeating-linear-gradient(to bottom, transparent 0px, transparent 30px, rgba(96, 165, 250, 0.8) 30px, rgba(96, 165, 250, 0.8) 32px),
-            /* Doğal kağıt dokusu */
-            linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
+            repeating-linear-gradient(to bottom, transparent 0px, transparent 30px, rgba(96, 165, 250, 0.75) 30px, rgba(96, 165, 250, 0.75) 32px),
+            /* Beyaz temiz kağıt dokusu */
+            linear-gradient(135deg, #ffffff 0%, #ffffff 100%)
           `,
         }}
       >
@@ -57,11 +57,8 @@ export const TurkishActivityBackground: React.FC<TurkishActivityBackgroundProps>
           </span>
         </div>
 
-        {/* 2c. DEFTER SAYFASI YUMUŞAK KAĞIT DOKUSU VE VİNYET */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(15,23,42,0.08)_100%)] pointer-events-none" />
-
-        {/* 2d. HAFİF ARKA PLAN DERİNLİĞİ (Kartların ve renkli butonların okunabilirliğini artırır) */}
-        <div className="absolute inset-0 bg-slate-900/10 pointer-events-none" />
+        {/* 2c. DEFTER SAYFASI YUMUŞAK VİNYET */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_70%,rgba(15,23,42,0.03)_100%)] pointer-events-none" />
       </div>
 
       {/* 3. MERKEZİ ODAK IŞIĞI (Etkinlik kartlarının altındaki alana ekstra parlaklık ve okunabilirlik sağlar) */}

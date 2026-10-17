@@ -9,6 +9,7 @@ import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrac
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { AutoFitOptionContent } from './AutoFitOptionContent';
+import { ActivityQuestionFrame } from './ActivityQuestionFrame';
 
 interface WordGameModalProps {
   gameType: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -175,6 +176,17 @@ const getWinnerVideoConfig = (winnerIdx: number | null) => {
     glowColor: 'shadow-[0_0_35px_rgba(16,185,129,0.95)]'
   };
 };
+
+/** Soru kutusu içeriği: etiket + büyük kelime kapsülü (tüm modlarda aynı, kutuya göre ölçeklenir) */
+const WordQuestionContent: React.FC<{ label: string; word: string; emoji?: string }> = ({ label, word, emoji }) => (
+  <>
+    <span className="block text-[0.4em] font-black text-amber-300 uppercase tracking-widest mb-[0.25em]">{label}</span>
+    <div className="inline-flex items-center justify-center gap-[0.35em] max-w-full px-[0.6em] py-[0.2em] rounded-[0.5em] bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 shadow-lg [text-shadow:none] drop-shadow-none">
+      {emoji && <span className="text-[0.9em] leading-none">{emoji}</span>}
+      <span className="font-black tracking-wide uppercase leading-tight break-words text-center">{word}</span>
+    </div>
+  </>
+);
 
 export const WordGameModal: React.FC<WordGameModalProps> = ({
   gameType,
@@ -869,11 +881,9 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
           </div>
         </div>
 
-        {/* QUESTION SOLID CONTAINER FOR THIS PLAYER */}
-        <div className={`relative flex-1 rounded-2xl sm:rounded-3xl bg-[#0f172a] border-2 border-cyan-300/60 shadow-[0_8px_32px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.15)] ${activeMode === 'duel3' ? 'px-1.5 py-1.5 sm:px-2 sm:py-2 my-0.5' : 'px-3 py-2 sm:px-4 sm:py-3 my-1'} flex flex-col items-center justify-center text-center z-10 overflow-hidden min-h-0 w-full`}>
-          <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/10 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
-
-          {p.isEliminated || p.lives <= 0 ? (
+        {/* SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
+        {p.isEliminated || p.lives <= 0 ? (
+          <div className="relative flex-1 min-h-0 w-full rounded-2xl sm:rounded-3xl bg-[#080e1d]/90 border-2 border-amber-300/80 flex items-center justify-center overflow-hidden">
             <div className="relative z-20 flex flex-col items-center justify-center gap-1 p-2">
               <div className="text-2xl sm:text-3xl animate-bounce">💔</div>
               <div className="text-xl xs:text-2xl sm:text-3xl font-black text-rose-500 uppercase tracking-widest [text-shadow:0_3px_6px_#000,0_6px_16px_rgba(0,0,0,0.95)] drop-shadow-[0_4px_12px_rgba(225,29,72,0.95)] animate-pulse">
@@ -883,37 +893,19 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                 Diğer oyuncular yarışıyor...
               </div>
             </div>
-          ) : p.currentQuestion ? (
-            <div className="relative z-10 flex flex-col items-center justify-center text-center px-2 sm:px-3 w-full max-h-full overflow-hidden my-auto">
-              <div className="text-xs sm:text-sm md:text-base font-black uppercase text-amber-300 tracking-wider mb-1.5 drop-shadow-[0_2px_4px_#000] [text-shadow:0_2px_4px_#000]">
-                {isIng ? 'TÜRKÇE ANLAMI:' : isZit ? 'ZIT ANLAMLISI:' : 'EŞ ANLAMLISI:'}
-              </div>
-
-              {/* TARGET WORD DISPLAY - DİNAMİK VE ÇERÇEVEYE TAM SIĞAN KAPSÜL */}
-              <div className="px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black shadow-[0_6px_20px_rgba(245,158,11,0.4)] border-2 sm:border-3 border-white flex items-center justify-center gap-1.5 sm:gap-2.5 max-w-full min-w-0">
-                {!isIng && p.currentQuestion.emoji && (
-                  <span className="text-base sm:text-xl md:text-2xl shrink-0 filter drop-shadow-sm">
-                    {p.currentQuestion.emoji}
-                  </span>
-                )}
-                {(() => {
-                  const wText = p.currentQuestion.word || '';
-                  const len = wText.length;
-                  const isDuel3 = activeMode === 'duel3';
-                  const wordFont = isDuel3
-                    ? (len <= 5 ? 'text-sm sm:text-base md:text-lg' : len <= 8 ? 'text-xs sm:text-sm md:text-base' : len <= 12 ? 'text-[11px] sm:text-xs md:text-sm' : 'text-[10px] sm:text-[11px] md:text-xs')
-                    : (len <= 5 ? 'text-base sm:text-xl md:text-2xl' : len <= 8 ? 'text-sm sm:text-lg md:text-xl' : len <= 12 ? 'text-xs sm:text-base md:text-lg' : 'text-xs sm:text-sm md:text-base');
-
-                  return (
-                    <span className={`${wordFont} font-black tracking-wide uppercase leading-tight text-slate-950 text-center break-words max-w-full px-0.5`}>
-                      {wText}
-                    </span>
-                  );
-                })()}
-              </div>
-            </div>
-          ) : null}
-        </div>
+          
+          </div>
+        ) : p.currentQuestion ? (
+          <ActivityQuestionFrame mode={activeMode === 'duel3' ? 3 : 2} contentKey={p.currentQuestion.word}>
+            <WordQuestionContent
+              label={isIng ? 'TÜRKÇE ANLAMI:' : isZit ? 'ZIT ANLAMLISI:' : 'EŞ ANLAMLISI:'}
+              word={p.currentQuestion.word || ''}
+              emoji={!isIng ? p.currentQuestion.emoji : undefined}
+            />
+          </ActivityQuestionFrame>
+        ) : (
+          <div className="flex-1 min-h-0" />
+        )}
 
         {/* 4 CHOICES GRID UNDER THE QUESTION - EXACTLY MATCHING QUESTION FRAME WIDTH */}
         {!p.isEliminated && p.lives > 0 && p.currentQuestion && (
@@ -1372,69 +1364,15 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                       </div>
                     </div>
 
-                    {/* CENTER: ÇİZGİLİ DEFTER SAYFASI SORU ÇERÇEVESİ */}
+                    {/* CENTER: SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
                     <div className="flex-1 flex items-stretch justify-center my-1 sm:my-1.5 min-h-0 w-full overflow-hidden">
-                      <div 
-                        className="relative flex-1 rounded-2xl sm:rounded-3xl border-3 border-amber-300/90 shadow-[0_16px_50px_rgba(0,0,0,0.95),inset_0_2px_4px_rgba(255,255,255,0.5)] p-2 sm:p-3 flex flex-col items-center justify-center text-center overflow-hidden min-h-0 w-full"
-                        style={{
-                          backgroundColor: '#fbf9f2',
-                          backgroundImage: `
-                            /* Kırmızı dikey marjin çizgisi */
-                            linear-gradient(to right, transparent 48px, rgba(239, 68, 68, 0.75) 48px, rgba(239, 68, 68, 0.75) 50px, transparent 50px),
-                            /* Yatay açık mavi çizgili defter satırları */
-                            repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, rgba(147, 197, 253, 0.65) 31px, rgba(147, 197, 253, 0.65) 32px),
-                            /* Doğal yumuşak defter kağıdı dokusu */
-                            linear-gradient(135deg, #fdfcf7 0%, #f7f3e8 50%, #f4eee0 100%)
-                          `
-                        }}
-                      >
-                        {/* Sol kenar spiralli defter delikleri */}
-                        <div className="absolute left-1 sm:left-1.5 top-0 bottom-0 w-8 flex flex-col justify-around py-3 pointer-events-none z-10 opacity-70">
-                          {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-1">
-                              <div className="w-2.5 h-2.5 rounded-full bg-[#1e293b] shadow-inner border border-slate-400/50" />
-                              <div className="w-2 h-1 bg-gradient-to-r from-slate-400 to-slate-200 rounded-xs shadow-xs -ml-1 transform -rotate-12" />
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Defter üst başlık çizgisi */}
-                        <div className="relative z-10 flex items-center justify-between w-full pl-8 pr-1 shrink-0 pb-0.5 border-b border-sky-300/80">
-                          <span className="text-[10px] sm:text-xs font-black text-rose-600/90 uppercase tracking-wider flex items-center gap-1">
-                            ✏️ ÇİZGİLİ DEFTER • {isIng ? 'ENGLISH' : gameConcept.toUpperCase()}
-                          </span>
-                        </div>
-
-                        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full min-h-0 max-h-full overflow-hidden px-2 pl-7">
-                          <span className="text-[11px] sm:text-xs font-black text-slate-700 uppercase tracking-widest mb-1">
-                            {isIng ? 'BU KELİMENİN TÜRKÇE KARŞILIĞI:' : `BU KELİMENİN ${gameConcept.toUpperCase()} ANLAMLISI:`}
-                          </span>
-
-                          <div className="px-3 py-1.5 sm:px-5 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black shadow-[0_6px_20px_rgba(245,158,11,0.5)] border-2 border-white flex items-center justify-center gap-2 sm:gap-3 my-0.5 max-w-full">
-                            {!isIng && quizQuestion.emoji && (
-                              <span className="text-xl sm:text-2xl md:text-3xl filter drop-shadow-md shrink-0">
-                                {quizQuestion.emoji}
-                              </span>
-                            )}
-                            {(() => {
-                              const word = quizQuestion.word || '';
-                              const len = word.length;
-                              const wordFontClass = len <= 6
-                                ? 'text-2xl sm:text-3xl md:text-4xl'
-                                : len <= 10
-                                ? 'text-xl sm:text-2xl md:text-3xl'
-                                : len <= 14
-                                ? 'text-lg sm:text-xl md:text-2xl'
-                                : 'text-base sm:text-lg md:text-xl';
-                              return (
-                                <span className={`${wordFontClass} font-black tracking-wide uppercase text-slate-950 text-center leading-tight break-words max-w-full`}>
-                                  {word}
-                                </span>
-                              );
-                            })()}
-                          </div>
-                        </div>
-                      </div>
+                      <ActivityQuestionFrame mode={1} contentKey={quizQuestion.word}>
+                        <WordQuestionContent
+                          label={isIng ? 'BU KELİMENİN TÜRKÇE KARŞILIĞI:' : `BU KELİMENİN ${gameConcept.toUpperCase()} ANLAMLISI:`}
+                          word={quizQuestion.word || ''}
+                          emoji={!isIng ? quizQuestion.emoji : undefined}
+                        />
+                      </ActivityQuestionFrame>
                     </div>
 
                     {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID) */}

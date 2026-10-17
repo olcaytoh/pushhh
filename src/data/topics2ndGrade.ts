@@ -1547,6 +1547,19 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         }
       }
     },
+    onluk_birlik: {
+      title: "Onluk - Birlik (Sürükle Bırak)",
+      desc: "Onluk çubuklarını ve birlik küplerini sürükleyerek verilen sayıyı oluşturma.",
+      generate: () => {
+        const n = Math.floor(Math.random() * 91) + 10;
+        return {
+          question: `${Math.floor(n / 10)} onluk ve ${n % 10} birlik kaç eder?`,
+          correct: n,
+          wrong: [n + 1, n + 10, Math.max(10, n - 1)],
+          isLong: false
+        };
+      }
+    },
     sayi_basamak_degeri: {
       title: "Sayı ve Basamak Değeri",
       desc: "İki basamaklı sayılarda rakamların basamak ve sayı değerlerini bulma.",
@@ -3237,6 +3250,20 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           question: `1 sürahi 4 bardak su almaktadır. Buna göre ${b} sürahi kaç bardak su alır?`,
           correct: s,
           wrong: benzersizYanlislar(s, [s + 2, s - 2, b + 4, s + 4], 1),
+          isLong: true
+        };
+      }
+    },
+    sivi_tahmin_akvaryum: {
+      title: "Sıvı Ölçme Tahmini",
+      desc: "Kova, cam akvaryum ve sürahiyi farklı dolum araçlarıyla doldurma tahmin düellosu.",
+      generate: () => {
+        const surahi = Math.floor(Math.random() * 3) + 3;
+        const bardak = surahi * 4;
+        return {
+          question: `1 sürahi 4 su bardağı su almaktadır. ${surahi} sürahi kaç bardak su ile dolar?`,
+          correct: bardak,
+          wrong: [bardak + 2, bardak - 2, bardak + 4],
           isLong: true
         };
       }

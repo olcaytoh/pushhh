@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { ActivityQuestionFrame, QuestionBadge, QuestionVisual, QuestionSentence } from './ActivityQuestionFrame';
 
 export interface NeedWantItem {
   id: string;
@@ -63,6 +64,17 @@ interface PlayerState {
   isCorrect: boolean | null;
   showFeedback: boolean;
 }
+
+/** Soru kutusu içeriği: rozet + eşya görseli + eşya adı (tüm modlarda aynı, kutuya göre ölçeklenir) */
+const IstekQuestionContent: React.FC<{ emoji: string; name: string }> = ({ emoji, name }) => (
+  <>
+    <QuestionBadge>❓ İSTEK mi, İHTİYAÇ mı?</QuestionBadge>
+    <QuestionVisual>
+      <span className="text-[1.5em] leading-none filter drop-shadow-xl">{emoji}</span>
+    </QuestionVisual>
+    <QuestionSentence className="text-[0.62em] text-amber-200">{name}</QuestionSentence>
+  </>
+);
 
 export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
   onClose,
@@ -312,26 +324,13 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
                     </div>
                   </div>
 
-                  {/* CENTER: 100% OPAQUE SOLID QUESTION CONTAINER */}
-                  <div className="flex-1 flex items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden">
-                    <div className="relative flex-1 rounded-2xl sm:rounded-3xl bg-[#060a14] border-2 border-slate-700/70 shadow-[0_12px_40px_rgba(0,0,0,0.95),inset_0_1px_2px_rgba(255,255,255,0.08)] p-3 sm:p-5 flex flex-col items-center justify-between text-center overflow-hidden min-h-0 w-full">
-                      <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-t-2xl sm:rounded-t-3xl" />
-
-                      <div className="relative z-10 flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-950/80 border-2 border-indigo-400/60 text-indigo-200 font-black text-xs sm:text-sm md:text-base uppercase shadow-md shrink-0">
-                        ❓ Bu nesne bizim için bir İSTEK mi yoksa İHTİYAÇ mı?
-                      </div>
-
-                      <div className="relative z-10 flex flex-col items-center justify-center my-auto gap-2 py-1">
-                        <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-3xl bg-gradient-to-br from-indigo-500/25 to-purple-900/40 border-2 border-indigo-400/50 flex items-center justify-center shadow-inner">
-                          <span className="text-6xl sm:text-7xl md:text-8xl animate-bounce filter drop-shadow-xl">
-                            {currentItem.emoji}
-                          </span>
-                        </div>
-                        <div className="text-xl sm:text-2xl md:text-3xl font-black text-amber-200 text-center tracking-wide drop-shadow-md mt-1">
-                          {currentItem.name}
-                        </div>
-                      </div>
-
+                  {/* CENTER: SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
+                  <div className="flex-1 flex flex-col items-stretch justify-center my-1 sm:my-2 min-h-0 w-full overflow-hidden gap-1.5">
+                    <div className="flex-1 min-h-0 flex">
+                      <ActivityQuestionFrame mode={1} contentKey={currentItem.name}>
+                        <IstekQuestionContent emoji={currentItem.emoji} name={currentItem.name} />
+                      </ActivityQuestionFrame>
+                    </div>
                       {sPlayer.showFeedback && (
                         <div className="relative z-10 p-2 rounded-xl bg-black/80 border border-white/20 text-xs sm:text-sm text-amber-200 text-center animate-fade-in shrink-0 w-full shadow-lg">
                           <span className={`font-black mr-1.5 ${currentItem.isNeed ? 'text-emerald-300' : 'text-amber-300'}`}>
@@ -340,7 +339,6 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
                           <span className="font-semibold">{currentItem.explanation}</span>
                         </div>
                       )}
-                    </div>
                   </div>
 
                   {/* BOTTOM: 2 BÜYÜK BUTON (İHTİYAÇ & İSTEK) */}
@@ -433,19 +431,11 @@ export const IstekIhtiyacGame: React.FC<IstekIhtiyacGameProps> = ({
                   </div>
                 </div>
 
-                {/* 2. BÖLÜM: Eşya Kartı - 3 Bölümlü Dengeli Orta Alan */}
-                <div className="flex-1 min-h-0 my-1 py-2 sm:py-3 px-3 sm:px-4 rounded-2xl bg-black/60 border-2 border-blue-400/40 flex flex-col items-center justify-center gap-1.5 sm:gap-2 shadow-xl">
-                  <div className="w-18 h-18 sm:w-22 sm:h-22 md:w-26 md:h-26 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-900/40 border-2 border-blue-400/40 flex items-center justify-center shadow-inner shrink-0">
-                    <span className="text-5xl sm:text-6xl md:text-7xl animate-bounce filter drop-shadow-lg">
-                      {currentItem.emoji}
-                    </span>
-                  </div>
-                  <div className="text-lg sm:text-xl md:text-2xl font-black text-amber-200 text-center tracking-wide drop-shadow-sm">
-                    {currentItem.name}
-                  </div>
-                  <div className="text-[11px] sm:text-xs md:text-sm font-bold text-cyan-200 text-center">
-                    👉 Bu eşya yaşamak için temel bir İHTİYAÇ mı, yoksa eğlenceli bir İSTEK mi?
-                  </div>
+                {/* SORU KUTUSU (İleri Üçer Sayma ile aynı tasarım) */}
+                <div className="flex-1 min-h-0 flex my-1 overflow-hidden">
+                  <ActivityQuestionFrame mode={playerMode as 2 | 3} contentKey={currentItem.name}>
+                    <IstekQuestionContent emoji={currentItem.emoji} name={currentItem.name} />
+                  </ActivityQuestionFrame>
                 </div>
 
                 {/* 3. BÖLÜM: Seçim Butonları: İhtiyaç mı? İstek mi? */}
