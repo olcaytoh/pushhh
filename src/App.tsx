@@ -36,6 +36,7 @@ import { GeometrikSekilleriBulActivity } from './components/GeometrikSekilleriBu
 import { Dedektif5N1KGame } from './components/Dedektif5N1KGame';
 import { OnlukBirlikGame } from './components/OnlukBirlikGame';
 import { SatirSonuHeceGame } from './components/SatirSonuHeceGame';
+import { LessonVideoPlayer } from './components/LessonVideoPlayer';
 import { NoktalamaAvcisiGame } from './components/NoktalamaAvcisiGame';
 import { HarfCorbasiGame } from './components/HarfCorbasiGame';
 import { GeriDonusumGame } from './components/GeriDonusumGame';
@@ -46,6 +47,7 @@ import { AblukaGame } from './components/AblukaGame';
 import { SudokuGame } from './components/SudokuGame';
 import { SchoolLifeGame } from './components/SchoolLifeGame';
 import { SiviMiktariTahminGame } from './components/SiviMiktariTahminGame';
+import { StandartOlmayanSiviOlcmeVideoModal } from './components/StandartOlmayanSiviOlcmeVideoModal';
 import { EnglishGamesHub } from './components/EnglishGamesHub';
 import { WordGameModal } from './components/WordGameModal';
 import { FeedbackModal } from './components/FeedbackModal';
@@ -1702,7 +1704,7 @@ const CATEGORY_MAP = [
     name: "1. Nesnelerin Geometrisi",
     shortName: "Geometri",
     icon: "/MENUIKON/grid_icon_39.webp",
-    keys: ["uzamsal_iliskiler", "es_nesneler", "geometrik_sekil_cisim", "geometri_tahtasi", "yuz_ayrit_kose", "geometrik_oruntu", "uzamsal_iliskiler_simetri", "sivi_olcme", "sivi_tahmin_akvaryum", "tartma_olcme"]
+    keys: ["uzamsal_iliskiler", "es_nesneler", "geometrik_sekil_cisim", "geometri_tahtasi", "yuz_ayrit_kose", "geometrik_oruntu", "uzamsal_iliskiler_simetri", "standart_olmayan_sivi_olcme_video", "sivi_olcme", "sivi_tahmin_akvaryum", "tartma_olcme"]
   },
   {
     id: 'sayilar',
@@ -1979,6 +1981,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   yuz_ayrit_kose: '/MENUIKON/grid_icon_16.webp',
   geometrik_oruntu: '/MENUIKON/grid_icon_19.webp',
   uzamsal_iliskiler_simetri: '/MENUIKON/grid_icon_07.webp',
+  standart_olmayan_sivi_olcme_video: '/MENUIKON/grid_icon_37.webp',
   sivi_olcme: '/MENUIKON/grid_icon_37.webp',
   sivi_tahmin_akvaryum: '/MENUIKON/grid_icon_37.webp',
   tartma_olcme: '/MENUIKON/grid_icon_40.webp',
@@ -3037,6 +3040,7 @@ export default function App() {
   const [showDedektif5N1K, setShowDedektif5N1K] = useState(false);
   const [showOnlukBirlik, setShowOnlukBirlik] = useState(false);
   const [showSatirSonuHece, setShowSatirSonuHece] = useState(false);
+  const [showLessonVideo, setShowLessonVideo] = useState(false);
   const [showNoktalamaAvcisi, setShowNoktalamaAvcisi] = useState(false);
   const [showHarfCorbasi, setShowHarfCorbasi] = useState(false);
   const [showGeriDonusum, setShowGeriDonusum] = useState(false);
@@ -3047,6 +3051,7 @@ export default function App() {
   const [showSudokuGame, setShowSudokuGame] = useState(false);
   const [showSchoolLifeGame, setShowSchoolLifeGame] = useState(false);
   const [showSiviTahminAkvaryum, setShowSiviTahminAkvaryum] = useState(false);
+  const [showSiviOlcmeVideoModal, setShowSiviOlcmeVideoModal] = useState(false);
   const [wordGameType, setWordGameType] = useState<'zit_anlam' | 'es_anlam' | 'ingilizce' | null>(null);
   const [activityToast, setActivityToast] = useState<string | null>(null);
 
@@ -3071,6 +3076,7 @@ export default function App() {
     showDedektif5N1K || 
     showOnlukBirlik || 
     showSatirSonuHece ||
+    showLessonVideo ||
     showNoktalamaAvcisi || 
     showHarfCorbasi || 
     showGeriDonusum || 
@@ -3081,6 +3087,7 @@ export default function App() {
     showSudokuGame ||
     showSchoolLifeGame ||
     showSiviTahminAkvaryum ||
+    showSiviOlcmeVideoModal ||
     wordGameType !== null
   );
 
@@ -4372,8 +4379,14 @@ export default function App() {
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
     setWordGameType(null);
 
+    if (topicKey === 'standart_olmayan_sivi_olcme_video') {
+      setCurrentTopic('standart_olmayan_sivi_olcme_video');
+      setShowSiviOlcmeVideoModal(true);
+      return;
+    }
     if (topicKey === 'sivi_tahmin_akvaryum') {
       setCurrentTopic('sivi_tahmin_akvaryum');
       setShowSiviTahminAkvaryum(true);
@@ -4624,6 +4637,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
@@ -4634,6 +4648,7 @@ export default function App() {
     setShowSudokuGame(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -4792,6 +4807,15 @@ export default function App() {
       }
       setGameState('welcome');
       setShowDedektif5N1K(true);
+    } else if (entry.type === 'lesson_video') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
+      }
+      setGameState('welcome');
+      setShowLessonVideo(true);
     } else if (entry.type === 'satir_sonu_hece' || entry.id.includes('satir_sonu_hece')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4877,6 +4901,16 @@ export default function App() {
       setSelectedGrade(null);
       setGameState('welcome');
       setShowSchoolLifeGame(true);
+    } else if (entry.type === 'sivi_olcme_video' || entry.id.includes('standart_olmayan_sivi_olcme_video')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId('geometri');
+      } else {
+        setSelectedGrade(2);
+      }
+      setGameState('welcome');
+      setShowSiviOlcmeVideoModal(true);
     } else if (entry.type === 'sivi_tahmin_akvaryum' || entry.id.includes('sivi_tahmin_akvaryum')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -4921,6 +4955,7 @@ export default function App() {
         if (showYazimDedektifi && (cur.type === 'yazim_dedektifi' || cur.id.includes('yazim_dedektifi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showOnlukBirlik && cur.type === 'onluk_birlik') return currentActivityIndex;
         if (showDedektif5N1K && (cur.type === 'dedektif_5n1k' || cur.id.includes('dedektif_5n1k')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showLessonVideo && cur.type === 'lesson_video') return currentActivityIndex;
         if (showSatirSonuHece && (cur.type === 'satir_sonu_hece' || cur.id.includes('satir_sonu_hece')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showNoktalamaAvcisi && (cur.type === 'noktalama_avcisi' || cur.id.includes('noktalama_avcisi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showHarfCorbasi && (cur.type === 'harf_corbasi' || cur.id.includes('harf_corbasi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
@@ -5029,6 +5064,10 @@ export default function App() {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_dedektif_5n1k' || a.type === 'dedektif_5n1k');
       if (idx !== -1) return idx;
     }
+    if (showLessonVideo) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video' && (!selectedGrade || a.grade === selectedGrade));
+      if (idx !== -1) return idx;
+    }
     if (showSatirSonuHece) {
       if (selectedGrade) {
         const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'satir_sonu_hece' || a.id.includes('satir_sonu_hece')) && a.grade === selectedGrade);
@@ -5099,6 +5138,14 @@ export default function App() {
         if (idx !== -1) return idx;
       }
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_sudoku' || a.type === 'sudoku');
+      if (idx !== -1) return idx;
+    }
+    if (showSiviOlcmeVideoModal) {
+      if (selectedGrade) {
+        const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sivi_olcme_video' || a.id.includes('standart_olmayan_sivi_olcme_video')) && a.grade === selectedGrade);
+        if (idx !== -1) return idx;
+      }
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_standart_olmayan_sivi_olcme_video' || a.type === 'sivi_olcme_video');
       if (idx !== -1) return idx;
     }
     if (showSiviTahminAkvaryum) {
@@ -5253,6 +5300,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
@@ -5263,6 +5311,7 @@ export default function App() {
     setShowSudokuGame(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -5338,6 +5387,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
@@ -5348,6 +5398,7 @@ export default function App() {
     setShowSudokuGame(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -5392,6 +5443,9 @@ export default function App() {
     } else if (entry.type === 'dedektif_5n1k') {
       setGameState('welcome');
       setShowDedektif5N1K(true);
+    } else if (entry.type === 'lesson_video') {
+      setGameState('welcome');
+      setShowLessonVideo(true);
     } else if (entry.type === 'satir_sonu_hece') {
       setGameState('welcome');
       setShowSatirSonuHece(true);
@@ -5486,6 +5540,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
@@ -5496,6 +5551,7 @@ export default function App() {
     setShowSudokuGame(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -6032,6 +6088,7 @@ export default function App() {
     if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
     if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul';
     if (showOnlukBirlik) return 'Onluk - Birlik';
+    if (showLessonVideo) return 'Noktalama İşaretleri';
     if (showDedektif5N1K) return '5N 1K Dedektifi';
     if (showNoktalamaAvcisi) return 'Noktalama İşareti Avcısı';
     if (showHarfCorbasi) return 'Harf Çorbası';
@@ -6040,6 +6097,7 @@ export default function App() {
     if (showIstekIhtiyac) return 'İstek mi, İhtiyaç mı?';
     if (showMevsimGardirobu) return 'Mevsim Gardırobu';
     if (showSchoolLifeGame) return 'School Life';
+    if (showSiviOlcmeVideoModal) return 'Standart Olmayan Sıvı Ölçme Araçları';
     if (showSiviTahminAkvaryum) return 'Sıvı Ölçme Tahmini';
     if (wordGameType === 'zit_anlam') return 'Zıt Anlamlı Kelimeler';
     if (wordGameType === 'es_anlam') return 'Eş Anlamlı Kelimeler';
@@ -6155,6 +6213,7 @@ export default function App() {
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
+                      setShowSiviOlcmeVideoModal(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -6184,6 +6243,7 @@ export default function App() {
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
+                      setShowSiviOlcmeVideoModal(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -6216,6 +6276,7 @@ export default function App() {
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
+                      setShowSiviOlcmeVideoModal(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
                       setShowTopicModal(false);
@@ -6266,7 +6327,14 @@ export default function App() {
           onClick={() => {
             playMp3('/op.mp3');
 
-            // 0. If inside an active game/activity, navigate to previous activity sequentially!
+            // 0. If inside video modal, close it directly and return to 2. Grade geometry
+            if (showSiviOlcmeVideoModal) {
+              setShowSiviOlcmeVideoModal(false);
+              setSelectedGrade(2);
+              setSelectedCategoryId('geometri');
+              setGameState('welcome');
+              return;
+            }
             if (showAndroidAppsModal) {
               setShowAndroidAppsModal(false);
               return;
@@ -6474,6 +6542,12 @@ export default function App() {
         <button
           onClick={() => {
             playMp3('/op.mp3');
+            // If inside video modal, advance to next activity (sivi_olcme)
+            if (showSiviOlcmeVideoModal) {
+              setShowSiviOlcmeVideoModal(false);
+              selectTopicAndStart('sivi_olcme', 2);
+              return;
+            }
             // If inside an active game/activity, navigate to next activity sequentially!
             if (isInsideAnyGame) {
               handleNextActivity();
@@ -7182,7 +7256,7 @@ export default function App() {
             /* CATEGORY CARDS SCREEN */
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-0">
               {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
-              <div className="w-full relative flex items-center justify-center mb-0 px-2 shrink-0 z-20">
+              <div className="w-full relative flex max-[699px]:flex-col max-[699px]:gap-1.5 items-center justify-center mb-0 px-2 shrink-0 z-20">
                 <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
                   <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
                   <div className="flex items-center gap-2 sm:gap-3.5">
@@ -7205,7 +7279,7 @@ export default function App() {
 
                 {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
                 {[1, 2, 3, 4].includes(selectedGrade) && (
-                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -7224,7 +7298,7 @@ export default function App() {
               {/* 4. SINIF: 4 MAIN THEME CARDS (2x2 GRID) */}
               {selectedGrade === 4 ? (
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                  <div className="grid grid-cols-1 min-[700px]:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
                     <button
                       onClick={() => {
@@ -7375,7 +7449,7 @@ export default function App() {
                 </div>
               ) : selectedGrade === 3 ? (
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                  <div className="grid grid-cols-1 min-[700px]:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* TEMA 1: SAYILAR VE NİCELİKLER 1 (GÖKYÜZÜ / MAVİ TEMA) */}
                     <button
                       onClick={() => {
@@ -7528,7 +7602,7 @@ export default function App() {
                 /* MAIN CATEGORY CARDS - 1. SINIF (YENİ MODERN VE DENGELİ TASARIM) */
                 <div className="w-full max-w-6xl mx-auto flex flex-col gap-2 sm:gap-2.5">
                   {/* ÜST 4 KART: 2x2 IZGARA */}
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                  <div className="grid grid-cols-1 min-[700px]:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* KART 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
                       onClick={() => {
@@ -7684,6 +7758,38 @@ export default function App() {
                 <div className="w-full max-w-6xl mx-auto">
                   {/* 6 TÜRKÇE ETKİNLİĞİ GRID */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: NOKTALAMA İŞARETLERİ (KONU ANLATIM VİDEOSU) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = findActivityIndex('lesson_video', undefined, 2);
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowLessonVideo(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#35120f] via-[#4f1b16] to-[#35120f] hover:from-[#411611] hover:via-[#62231c] hover:to-[#411611] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.25)] hover:shadow-[0_0_28px_rgba(251,113,133,0.45)] transition-all active:scale-[0.98] cursor-pointer flex items-center gap-2 sm:gap-3 overflow-hidden"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_25.webp" alt="Noktalama İşaretleri" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">KONU ANLATIMI</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Noktalama İşaretleri
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
+                          Nokta, Virgül, Soru İşareti ve Ünlem Konu Anlatım Videosu
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-rose-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-rose-300 tracking-wider uppercase drop-shadow">İZLE</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
                     {/* CARD 1: SÖZLÜK SIRALAMA PORTALI */}
                     <button
                       onClick={() => {
@@ -7699,7 +7805,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          1. Sözlük Sıralama
+                          2. Sözlük Sıralama
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-purple-200/70 mt-0.5 break-words leading-tight">
                           Alfabe Portalı (1, 2 & 3 Kişilik Yarış)
@@ -7731,7 +7837,7 @@ export default function App() {
                           <span className="bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
                         </div>
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          2. Kelime Sıralama
+                          3. Kelime Sıralama
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
                           Sözlük Sırasına Göre Dizme (1, 2 & 3 Kişilik)
@@ -7760,7 +7866,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          3. Zıt Anlamlı Kelimeler
+                          4. Zıt Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
                           Karşıt Anlamlar & Çok Oyunculu Düello
@@ -7789,7 +7895,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          4. Eş Anlamlı Kelimeler
+                          5. Eş Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Anlamdaş Kelimeleri Bulma & Yarışma
@@ -7818,7 +7924,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          5. Kurallı Cümle Oluşturma
+                          6. Kurallı Cümle Oluşturma
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           Kelimeleri Kurallı ve Anlamlı Sıraya Dizme
@@ -7847,7 +7953,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          6. Kelimelerin Hece Sayısı
+                          7. Kelimelerin Hece Sayısı
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
@@ -7876,7 +7982,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          7. Hece Makası
+                          8. Hece Makası
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
                           Sözcükleri Hecelerine Ayırma & Makasla Kesme
@@ -7905,7 +8011,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          8. Yazım Yanlışı Dedektifi
+                          9. Yazım Yanlışı Dedektifi
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
@@ -7934,7 +8040,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          9. 5N 1K Dedektifi
+                          10. 5N 1K Dedektifi
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
                           Kim, Ne, Nerede, Ne Zaman, Nasıl, Niçin Sorularını Çöz
@@ -7952,7 +8058,7 @@ export default function App() {
               ) : (
                 /* MAIN CATEGORY CARDS - 2. SINIF MATEMATİK (TÜM MEVCUT ETKİNLİKLER) */
                 <div className="w-full max-w-6xl mx-auto space-y-2.5">
-                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                  <div className="grid grid-cols-1 min-[700px]:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
                     {/* CARD 1: GEOMETRİ (ZÜMRÜT / YEŞİL TEMA) */}
                     <button
                       onClick={() => {
@@ -8137,7 +8243,7 @@ export default function App() {
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-1 sm:py-2">
               
               {/* GLOWING HEADER BADGE - KATEGORİ VE ETKİNLİK SEÇİMİ */}
-              <div className="w-full relative flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+              <div className="w-full relative flex max-[699px]:flex-col max-[699px]:gap-1.5 items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
                 {(() => {
                   const cat = CATEGORY_MAP.find(c => c.id === selectedCategoryId);
                   if (!cat) return null;
@@ -8279,7 +8385,7 @@ export default function App() {
 
                 {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
                 {[1, 2, 3, 4].includes(selectedGrade) && (
-                  <div className="absolute right-1 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 flex items-center">
+                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8303,7 +8409,7 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                     {(selectedGrade === 1
                       ? ['uzamsal_iliskiler', 'uzamsal_iliskiler_simetri', 'es_nesneler', 'geometrik_sekil_cisim', 'geometri_tahtasi', 'cisimler_acilimi']
-                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'sivi_olcme', 'sivi_tahmin_akvaryum', 'tartma_olcme', 'cisimler_acilimi']
+                      : ['geometrik_sekil_cisim', 'geometri_tahtasi', 'yuz_ayrit_kose', 'geometrik_oruntu', 'uzamsal_iliskiler_simetri', 'standart_olmayan_sivi_olcme_video', 'sivi_olcme', 'sivi_tahmin_akvaryum', 'tartma_olcme', 'cisimler_acilimi']
                     ).map(key => {
                       const t = topics[key];
                       if (!t) return null;
@@ -8312,6 +8418,7 @@ export default function App() {
                           key={key}
                           topicKey={key}
                           title={t.title}
+                          badgeText={key === 'standart_olmayan_sivi_olcme_video' ? 'KONU ANLATIMI' : undefined}
                           onClick={() => selectTopicAndStart(key)}
                           categoryTheme="geometri"
                         />
@@ -10470,6 +10577,26 @@ export default function App() {
         />
       )}
 
+      {/* KONU ANLATIM VİDEOSU (2. SINIF TÜRKÇE - NOKTALAMA İŞARETLERİ) */}
+      {showLessonVideo && (() => {
+        const lv =
+          (ALL_ACTIVITIES_LIST[currentActivityIndex]?.type === 'lesson_video'
+            ? ALL_ACTIVITIES_LIST[currentActivityIndex]
+            : ALL_ACTIVITIES_LIST.find(a => a.type === 'lesson_video')) || null;
+        if (!lv || !lv.videoSrc) return null;
+        return (
+          <LessonVideoPlayer
+            title={lv.title}
+            videoSrc={lv.videoSrc}
+            onClose={() => setShowLessonVideo(false)}
+            onGoHome={handleGoHome}
+            onPrevActivity={handlePrevActivity}
+            onNextActivity={handleNextActivity}
+            playMp3={playMp3}
+          />
+        );
+      })()}
+
       {/* SATIR SONU HECE AYIRMA (1, 2, 3 KİŞİLİK) */}
       {showSatirSonuHece && (
         <SatirSonuHeceGame
@@ -11029,6 +11156,25 @@ export default function App() {
           }}
           playerCountMode={playerCountMode}
           onSwitchPlayerCountMode={switchPlayerCountMode}
+        />
+      )}
+
+      {/* STANDART OLMAYAN SIVI ÖLÇME ARAÇLARI - KONU ANLATIMI VİDEO MODAL */}
+      {showSiviOlcmeVideoModal && (
+        <StandartOlmayanSiviOlcmeVideoModal
+          onClose={() => {
+            setShowSiviOlcmeVideoModal(false);
+          }}
+          onStartSiviOlcme={() => {
+            setShowSiviOlcmeVideoModal(false);
+            selectTopicAndStart('sivi_olcme', 2);
+          }}
+          onStartSiviTahmin={() => {
+            setShowSiviOlcmeVideoModal(false);
+            selectTopicAndStart('sivi_tahmin_akvaryum', 2);
+          }}
+          playMp3={playMp3}
+          soundEnabled={soundEnabled}
         />
       )}
 

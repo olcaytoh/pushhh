@@ -23,18 +23,18 @@ export { STORIES_5N1K, getRandom5N1KQuestions };
 
 /** Soru kutusu içeriği: rozet + vaka başlığı + vaka metni + soru cümlesi (tüm modlarda aynı, kutuya göre ölçeklenir) */
 const N1KQuestionContent: React.FC<{ q: Dedektif5N1KStory }> = ({ q }) => (
-  <div className="flex flex-col items-center justify-center w-full gap-[0.12em]">
+  <div className="flex flex-col items-center justify-center w-full gap-[0.16em]">
     {/* Üst etiket: tek ince satır (yer kaplamasın, metin büyüsün) */}
-    <div className="flex items-center justify-center gap-[0.25em] text-[0.3em] leading-none uppercase tracking-wider">
-      <span className="px-[0.6em] py-[0.15em] rounded-full bg-amber-400 text-slate-950 font-black [text-shadow:none]">
+    <div className="flex items-center justify-center gap-[0.25em] text-[0.38em] leading-none uppercase tracking-wider mb-[0.05em]">
+      <span className="px-[0.65em] py-[0.18em] rounded-full bg-amber-400 text-slate-950 font-black [text-shadow:none]">
         {q.qTypeLabel} • SORU
       </span>
       <span className="text-amber-200">{q.emoji || '🔍'} VAKA: {q.title}</span>
     </div>
-    {/* Vaka metni: en büyük alan */}
-    <p className="w-full text-[0.54em] font-extrabold leading-[1.18] text-white px-[0.15em]">{q.story}</p>
-    {/* Soru cümlesi */}
-    <p className="w-full text-[0.6em] font-black leading-[1.15] text-center text-amber-200 px-[0.15em]">{q.question}</p>
+    {/* Vaka metni: en az %150 büyütülmüş, net ve çerçeveyi dolduran okunaklı metin */}
+    <p className="w-full text-[0.68em] font-extrabold leading-[1.22] text-white px-[0.18em] drop-shadow-sm text-left">{q.story}</p>
+    {/* Soru cümlesi: vurgulu altın rengi büyük puntolu soru */}
+    <p className="w-full text-[0.78em] font-black leading-[1.18] text-center text-amber-300 px-[0.18em] drop-shadow">{q.question}</p>
   </div>
 );
 

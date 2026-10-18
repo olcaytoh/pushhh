@@ -3240,6 +3240,18 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         }
       }
     },
+    standart_olmayan_sivi_olcme_video: {
+      title: "Standart Olmayan Sıvı Ölçme Araçları",
+      desc: "KONU ANLATIMI",
+      generate: () => {
+        return {
+          question: "Aşağıdakilerden hangisi standart olmayan bir sıvı ölçme aracıdır?",
+          correct: "Su Bardağı",
+          wrong: ["Metre", "Kilogram", "Termometre"],
+          isLong: true
+        };
+      }
+    },
     sivi_olcme: {
       title: "Sıvı Ölçme",
       desc: "Sıvıları bardak, sürahi, kova gibi birimlerle ölçme.",

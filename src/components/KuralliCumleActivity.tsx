@@ -1277,10 +1277,11 @@ export function checkSentenceCorrectness(
   userWords: string[], 
   sentence: SentenceData
 ): { isMatch: boolean; feedbackHint?: string } {
-  const u = userWords.map(w => w.toLocaleLowerCase('tr-TR').trim());
-  const c = sentence.correctWords.map(w => w.toLocaleLowerCase('tr-TR').trim());
+  const clean = (w: string) => w.toLocaleLowerCase('tr-TR').trim().replace(/^[.,!?;:\"\'’]+|[.,!?;:\"\'’]+$/g, '');
+  const u = userWords.map(clean).filter(Boolean);
+  const c = sentence.correctWords.map(clean).filter(Boolean);
 
-  // 1. Birebir doğru sıralama eşleşmesi
+  // 1. Birebir tam doğru sıralama eşleşmesi
   if (u.join(' ') === c.join(' ')) {
     return { isMatch: true };
   }
@@ -1289,27 +1290,45 @@ export function checkSentenceCorrectness(
   const canonicalKey = c.join(' ');
   const rule = SENTENCE_RULES[canonicalKey];
 
-  if (rule) {
-    const v = rule.verb.map(w => w.toLocaleLowerCase('tr-TR'));
-    if (u.length >= v.length) {
-      const userVerb = u.slice(-v.length);
-      const verbMatches = userVerb.every((w, i) => w === v[i]);
-      if (verbMatches) {
-        const prefix = u.slice(0, -v.length);
-        const cList = rule.chunks.map(chunk => chunk.map(w => w.toLocaleLowerCase('tr-TR')));
+  const v = rule 
+    ? rule.verb.map(clean) 
+    : [clean(sentence.correctWords[sentence.correctWords.length - 1])];
+
+  if (u.length >= v.length) {
+    const userVerb = u.slice(-v.length);
+    const verbMatches = userVerb.every((w, i) => w === v[i]);
+
+    if (verbMatches) {
+      const prefix = u.slice(0, -v.length);
+
+      // 2a. Belirlenen öbek permütasyonları ile kontrol
+      if (rule) {
+        const cList = rule.chunks.map(chunk => chunk.map(clean));
         if (matchesAnyChunkPermutation(prefix, cList)) {
+          return { isMatch: true };
+        }
+      }
+
+      // 2b. Genel Türkçe Kurallı Cümle Kontrolü:
+      // Türkçe ilkokul müfredatında yüklemi sonda olan cümleler kurallı cümledir.
+      // Tüm kelimeler eksiksiz yer alıyorsa ve yüklem sondaysa geçerli kabul edilir.
+      if (u.length === c.length) {
+        const userSorted = [...prefix].sort().join(' ');
+        const expectedPrefix = c.slice(0, -v.length);
+        const expectedSorted = [...expectedPrefix].sort().join(' ');
+        if (userSorted === expectedSorted) {
           return { isMatch: true };
         }
       }
     }
   }
 
-  // 3. Eşleşmediyse detaylı ipucu hazırla
-  const targetVerb = rule ? rule.verb.join(' ') : sentence.correctWords[sentence.correctWords.length - 1];
+  // 3. Eşleşmediyse pedagojik ipucu hazırla
+  const targetVerb = v.join(' ');
   const userLastWord = u[u.length - 1];
-  const targetLastWord = targetVerb.toLocaleLowerCase('tr-TR');
+  const targetLastWord = clean(v[v.length - 1]);
 
-  if (!userLastWord || !targetLastWord.endsWith(userLastWord)) {
+  if (!userLastWord || userLastWord !== targetLastWord) {
     return {
       isMatch: false,
       feedbackHint: `💡 İpucu: Kurallı cümlede iş, oluş, hareket bildiren eylem (yüklem) cümlenin EN SONUNDA yer alır! "${targetVerb}" sözcüğünü en sona koymayı dene.`
@@ -1318,7 +1337,7 @@ export function checkSentenceCorrectness(
 
   return {
     isMatch: false,
-    feedbackHint: `💡 İpucu: Yüklem sonda ancak kelime öbeklerinin sırasını kontrol etmen gerekiyor. Kelimelerin yerini değiştirerek tekrar dene!`
+    feedbackHint: `💡 İpucu: Yüklem sonda ancak kelime sıralamasını gözden geçirmen gerekiyor. Kelimelerin yerini değiştirerek tekrar dene!`
   };
 }
 

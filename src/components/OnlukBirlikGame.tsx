@@ -99,7 +99,7 @@ export const OnlukBirlikGame: React.FC<OnlukBirlikGameProps> = ({
 
   // Sürükleme durumu
   const [drag, setDrag] = useState<{ kind: BlockKind; x: number; y: number } | null>(null);
-  const dragRef = useRef<{ kind: BlockKind } | null>(null);
+  const dragRef = useRef<{ kind: BlockKind; startX: number; startY: number } | null>(null);
   const tensColRef = useRef<HTMLDivElement>(null);
   const onesColRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -209,7 +209,7 @@ export const OnlukBirlikGame: React.FC<OnlukBirlikGameProps> = ({
   const startDrag = (kind: BlockKind) => (e: React.PointerEvent) => {
     if (locked || gameOver) return;
     e.preventDefault();
-    dragRef.current = { kind };
+    dragRef.current = { kind, startX: e.clientX, startY: e.clientY };
     setDrag({ kind, x: e.clientX, y: e.clientY });
   };
 
@@ -223,6 +223,11 @@ export const OnlukBirlikGame: React.FC<OnlukBirlikGameProps> = ({
       dragRef.current = null;
       setDrag(null);
       if (!info) return;
+      // Neredeyse hiç hareket etmediyse bu bir TIKLAMA: bloğu doğrudan ekle
+      if (Math.hypot(e.clientX - info.startX, e.clientY - info.startY) < 8 && e.type === 'pointerup') {
+        addBlock(info.kind);
+        return;
+      }
       const col = hitColumn(e.clientX, e.clientY);
       if (col === 'outside') return;
       if (info.kind === 'ten' && col === 'tens') addBlock('ten');
@@ -471,9 +476,13 @@ export const OnlukBirlikGame: React.FC<OnlukBirlikGameProps> = ({
                 </span>
                 <div
                   onPointerDown={startDrag('ten')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!locked && !gameOver) addBlock('ten'); } }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Onluk çubuğu ekle"
                   style={{ touchAction: 'none', animation: 'ob-bounce 1.6s ease-in-out infinite' }}
-                  className="cursor-grab active:cursor-grabbing hover:scale-110 transition-transform p-1.5 rounded-2xl bg-white/50 border-[3px] border-dashed border-white"
-                  title="Sürükle: 1 onluk = 10 birlik"
+                  className="cursor-pointer active:cursor-grabbing hover:scale-110 transition-transform p-1.5 rounded-2xl bg-white/50 border-[3px] border-dashed border-white"
+                  title="Sürükle ya da tıkla: 1 onluk = 10 birlik"
                 >
                   <TenRod />
                 </div>
@@ -584,9 +593,13 @@ export const OnlukBirlikGame: React.FC<OnlukBirlikGameProps> = ({
                 </span>
                 <div
                   onPointerDown={startDrag('one')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!locked && !gameOver) addBlock('one'); } }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Birlik küpü ekle"
                   style={{ touchAction: 'none', animation: 'ob-bounce 1.6s ease-in-out infinite' }}
-                  className="cursor-grab active:cursor-grabbing hover:scale-110 transition-transform p-2 rounded-2xl bg-white/50 border-[3px] border-dashed border-white"
-                  title="Sürükle: 1 birlik"
+                  className="cursor-pointer active:cursor-grabbing hover:scale-110 transition-transform p-2 rounded-2xl bg-white/50 border-[3px] border-dashed border-white"
+                  title="Sürükle ya da tıkla: 1 birlik"
                 >
                   <OneCube size={UNIT} />
                 </div>

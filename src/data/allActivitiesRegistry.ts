@@ -6,12 +6,14 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life' | 'sivi_tahmin_akvaryum';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life' | 'sivi_tahmin_akvaryum';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
   title: string;
   categoryLabel: string;
+  /** Konu anlatım videosu (type: 'lesson_video') için video dosyası yolu */
+  videoSrc?: string;
 }
 
 const resolveTitle = (key: string, grade?: number): string => {
@@ -249,6 +251,14 @@ g2Olcme.forEach(key => {
 // ==========================================
 // 2. SINIF TÜRKÇE DERSİ ETKİNLİKLERİ
 // ==========================================
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_noktalama_video',
+  type: 'lesson_video',
+  grade: 2,
+  title: 'Noktalama İşaretleri',
+  categoryLabel: '2. Sınıf Türkçe',
+  videoSrc: '/noktalama_isaretleri.mp4'
+});
 ALL_ACTIVITIES_LIST.push({
   id: 'g2_turkce_sozluk_sirala',
   type: 'sozluk_sirala',
@@ -796,6 +806,14 @@ export const findActivityIndex = (
       if (idx !== -1) return idx;
     }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'dedektif_5n1k' || a.id.includes('dedektif_5n1k'));
+    if (idx !== -1) return idx;
+  }
+  if (type === 'lesson_video') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video' && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video');
     if (idx !== -1) return idx;
   }
   if (type === 'satir_sonu_hece' || topicKey === 'satir_sonu_hece' || topicKey === 'turkce_satir_sonu_hece') {
