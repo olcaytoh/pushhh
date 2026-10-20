@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Home, X } from 'lucide-react';
 interface LessonVideoPlayerProps {
   title: string;
   videoSrc: string;
+  soundEnabled?: boolean;
   onClose: () => void;
   onGoHome?: () => void;
   onPrevActivity?: () => void;
@@ -19,6 +20,7 @@ interface LessonVideoPlayerProps {
 export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
   title,
   videoSrc,
+  soundEnabled = true,
   onClose,
   onGoHome,
   onPrevActivity,
@@ -32,6 +34,7 @@ export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
     const v = videoRef.current;
     if (!v) return;
     v.currentTime = 0;
+    v.muted = !soundEnabled;
     v.play().catch(() => {
       /* tarayıcı otomatik oynatmayı engellediyse kullanıcı oynat düğmesine basar */
     });
@@ -39,6 +42,12 @@ export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
       v.pause();
     };
   }, [videoSrc]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !soundEnabled;
+    }
+  }, [soundEnabled]);
 
   const btn =
     'w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer';
@@ -58,6 +67,11 @@ export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
               <ChevronRight size={18} />
             </button>
           )}
+        </div>
+
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-300 font-extrabold text-xs sm:text-sm tracking-wide uppercase shadow-sm">
+          <span>✨</span>
+          <span>{title}</span>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">

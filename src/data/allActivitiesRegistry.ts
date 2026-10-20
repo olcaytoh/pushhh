@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life' | 'sivi_tahmin_akvaryum';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -17,6 +17,8 @@ export interface ActivityRegistryItem {
 }
 
 const resolveTitle = (key: string, grade?: number): string => {
+  if (key === 'sayi_basketi') return 'Sayı Basketi';
+  if (key === 'saglikli_aliskanliklar') return 'Sağlıklı Alışkanlıklar';
   if (key === 'cisimler_acilimi') return 'Geometrik Cisimler Açılımı';
   if (key === 'sivi_tahmin_akvaryum') return 'Sıvı Ölçme Tahmini';
   if (halatCekmeTopics[key]?.title) return halatCekmeTopics[key].title;
@@ -172,6 +174,7 @@ g2Geometri.forEach(key => {
 // 2. Sayılar ve Nicelikler
 const g2Sayilar = [
   'nesne_sayisi',
+  'sayi_basketi',
   'sayi_basamak_degeri',
   'en_yakin_onluk',
   'deste_duzine',
@@ -196,7 +199,7 @@ const g2Sayilar = [
 g2Sayilar.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g2_${key}`,
-    type: 'grade_topic',
+    type: key === 'sayi_basketi' ? 'sayi_basketi' : 'grade_topic',
     grade: 2,
     topicKey: key,
     title: resolveTitle(key, 2),
@@ -330,6 +333,24 @@ ALL_ACTIVITIES_LIST.push({
   grade: 2,
   title: 'Satır Sonu Hece Ayırma',
   categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_karar_alma_video',
+  type: 'lesson_video',
+  topicKey: 'karar_alma',
+  grade: 2,
+  title: 'Karar Alma Süreci',
+  categoryLabel: '2. Sınıf Türkçe',
+  videoSrc: '/karar_alma_sunum.mp4'
+});
+ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_saglikli_aliskanliklar_video',
+  type: 'lesson_video',
+  topicKey: 'saglikli_aliskanliklar',
+  grade: 2,
+  title: 'Sağlıklı Alışkanlıklar',
+  categoryLabel: '2. Sınıf Türkçe',
+  videoSrc: '/saglikli_aliskanliklar_tanitim.mp4'
 });
 
 // 5. Diğer Oyunlar (2. Sınıf Mini Oyunları)
@@ -809,11 +830,23 @@ export const findActivityIndex = (
     if (idx !== -1) return idx;
   }
   if (type === 'lesson_video') {
+    if (topicKey) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video' && (a.id === topicKey || a.topicKey === topicKey || a.id.includes(topicKey)));
+      if (idx !== -1) return idx;
+    }
     if (grade) {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video' && a.grade === grade);
       if (idx !== -1) return idx;
     }
     const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'lesson_video');
+    if (idx !== -1) return idx;
+  }
+  if (type === 'sayi_basketi' || topicKey === 'sayi_basketi') {
+    if (grade) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sayi_basketi' || a.id.includes('sayi_basketi') || a.topicKey === 'sayi_basketi') && a.grade === grade);
+      if (idx !== -1) return idx;
+    }
+    const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.type === 'sayi_basketi' || a.id.includes('sayi_basketi') || a.topicKey === 'sayi_basketi');
     if (idx !== -1) return idx;
   }
   if (type === 'satir_sonu_hece' || topicKey === 'satir_sonu_hece' || topicKey === 'turkce_satir_sonu_hece') {

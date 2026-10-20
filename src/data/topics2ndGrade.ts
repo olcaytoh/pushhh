@@ -1478,6 +1478,31 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         };
       }
     },
+    sayi_basketi: {
+      title: "Sayı Basketi",
+      desc: "Potadaki sayının okunuşunu bul, doğru sayıyı potaya at! İlk 5 sayıyı yapan kazanır.",
+      generate: () => {
+        const n = Math.floor(Math.random() * 99) + 1;
+        const ones = ["", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"];
+        const tens = ["", "on", "yirmi", "otuz", "kırk", "elli", "altmış", "yetmiş", "seksen", "doksan"];
+        const word = n === 100 ? "YÜZ" : `${tens[Math.floor(n / 10)]} ${ones[n % 10]}`.trim().toLocaleUpperCase('tr-TR');
+        return {
+          question: `Potada "${word}" yazıyor. Hangi top potaya atılmalıdır?`,
+          questionHTML: `
+            <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 py-1 text-center">
+              <div class="p-3 bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl border-2 border-amber-400 shadow-md">
+                <span class="text-xs uppercase text-amber-300 font-bold block mb-1">Potadaki Sayı</span>
+                <span class="text-2xl sm:text-3xl font-black text-white">${word}</span>
+              </div>
+              <div class="text-base sm:text-lg font-black text-white">Bu okunuşa karşılık gelen sayı hangisidir?</div>
+            </div>
+          `,
+          correct: n,
+          wrong: [n + 10, n - 10, n + 1, n - 1].filter(v => v >= 1 && v <= 100 && v !== n).slice(0, 3),
+          isLong: false
+        };
+      }
+    },
     en_yakin_onluk: {
       title: "En Yakın Onluğa Yuvarlama (100'e Kadar)",
       desc: "100'e kadar olan iki basamaklı sayıları en yakın onluğa yuvarlama alıştırması yapıyoruz.",
