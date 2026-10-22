@@ -241,6 +241,26 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     desc: 'Geometrik şekiller ve çevre/alan modelleri oluşturma',
     icon: '/MENUIKON/grid_icon_04.webp',
   },
+  sayi_basketi: {
+    title: 'Sayı Basketi (Basketbol Düellosu)',
+    desc: 'Sayıları okunuşlarıyla eşleştirip potaya basket atma (1 & 2 Kişilik Düello)',
+    icon: '/MENUIKON/grid_icon_30.webp',
+  },
+  onluk_birlik: {
+    title: 'Onluk ve Birlik Modelleri',
+    desc: 'Onluk çubukları ve birlik küpleriyle sayı inşa etme (Sürükle-Bırak)',
+    icon: '/MENUIKON/grid_icon_21.webp',
+  },
+  school_life: {
+    title: 'School Life (İngilizce)',
+    desc: 'School subjects, classroom objects & daily routines vocabulary',
+    icon: '/MENUIKON/grid_icon_23.webp',
+  },
+  sivi_tahmin_akvaryum: {
+    title: 'Sıvı Ölçme Tahmini (Akvaryum)',
+    desc: 'Sıvı miktarlarını kova, sürahi, bardak ve kaşıkla uygulamalı tahmin etme',
+    icon: '/MENUIKON/grid_icon_37.webp',
+  },
 };
 
 export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
@@ -544,6 +564,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'xox_matematik' ||
       key === 'abluka' ||
       key === 'sudoku' ||
+      key === 'school_life' ||
       key === 'other_3d_lab' ||
       key === 'cisimler_acilimi' ||
       key === 'geoboard'

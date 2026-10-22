@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { RotateCcw, ArrowLeft, ArrowRight, Home, X, Users, User, Trophy } from 'lucide-react';
+import { RotateCcw, ArrowLeft, ArrowRight, Home, X, Users, User, Trophy, Search, Check, UserPlus } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 
@@ -13,6 +13,7 @@ export interface SayiBasketiGameProps {
   soundEnabled?: boolean;
   playerCountMode?: 1 | 2 | 3;
   onSwitchPlayerCountMode?: (mode: 1 | 2 | 3) => void;
+  grade?: number;
   students?: Student[];
   selectedStudentId?: string | null;
   selectedStudentIds?: (string | null)[];
@@ -86,6 +87,7 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
   soundEnabled = true,
   playerCountMode = 2,
   onSwitchPlayerCountMode,
+  grade = 2,
   students,
   selectedStudentId,
   selectedStudentIds,
@@ -123,17 +125,59 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
   const launcherRefs = useRef<(HTMLButtonElement | null)[]>([null, null]);
   const askedPerPlayer = useRef<number[][]>([[], []]);
 
+  // Öğrenci seçimi (1 ve 2 kişilik mod)
+  const [internalSelectedIds, setInternalSelectedIds] = useState<(string | null)[]>([
+    selectedStudentIds?.[0] !== undefined ? selectedStudentIds[0] : (selectedStudentId ?? null),
+    selectedStudentIds?.[1] !== undefined ? selectedStudentIds[1] : null,
+  ]);
+
+  useEffect(() => {
+    if (selectedStudentIds && selectedStudentIds.length > 0) {
+      setInternalSelectedIds([selectedStudentIds[0] ?? null, selectedStudentIds[1] ?? null]);
+    } else if (selectedStudentId !== undefined) {
+      setInternalSelectedIds(prev => [selectedStudentId ?? null, prev[1] ?? null]);
+    }
+  }, [selectedStudentIds, selectedStudentId]);
+
   const effectiveSelectedIds = [
-    selectedStudentIds?.[0] || selectedStudentId || null,
-    selectedStudentIds?.[1] || null,
+    selectedStudentIds?.[0] !== undefined ? selectedStudentIds[0] : internalSelectedIds[0],
+    selectedStudentIds?.[1] !== undefined ? selectedStudentIds[1] : internalSelectedIds[1],
   ];
+
+  // Öğrenci Seçici Modal Durumu
+  const [selectingPlayerIdx, setSelectingPlayerIdx] = useState<number | null>(null);
+  const [pickerSearch, setPickerSearch] = useState<string>('');
+  const [pickerGradeTab, setPickerGradeTab] = useState<number | 'ALL'>(grade || 2);
+
+  const handleSelectStudentForPlayer = useCallback(
+    (pIdx: number, sid: string | null) => {
+      setInternalSelectedIds(prev => {
+        const u = [...prev];
+        u[pIdx] = sid;
+        return u;
+      });
+      if (onSelectStudentForPlayer) {
+        onSelectStudentForPlayer(pIdx, sid);
+      } else if (pIdx === 0 && onSelectStudent) {
+        onSelectStudent(sid);
+      }
+      if (playMp3) {
+        try {
+          playMp3('/ding.mp3');
+        } catch {
+          // ignore
+        }
+      }
+    },
+    [onSelectStudentForPlayer, onSelectStudent, playMp3]
+  );
 
   const getPlayerTitle = useCallback(
     (idx: number) => {
       const sid = effectiveSelectedIds[idx];
       const st = sid ? students?.find((s) => s.id === sid) : null;
       if (st) return `${st.name} (${idx === 0 ? 'Kırmızı' : 'Mavi'})`;
-      return idx === 0 ? 'Kırmızı' : 'Mavi';
+      return idx === 0 ? '1. Oyuncu (Kırmızı)' : '2. Oyuncu (Mavi)';
     },
     [effectiveSelectedIds, students]
   );
@@ -667,13 +711,55 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
                     isLeft ? 'bg-[#ffefef]' : 'bg-[#edf4ff]'
                   }`}
                 >
-                  <span
-                    className={`font-black text-base sm:text-xl tracking-tight truncate ${
-                      isLeft ? 'text-[#dc2626]' : 'text-[#2563eb]'
-                    }`}
-                  >
-                    {getPlayerTitle(pIdx)}
-                  </span>
+                  {(() => {
+                    const sid = effectiveSelectedIds[pIdx];
+                    const st = sid ? students?.find((s) => s.id === sid) : null;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectingPlayerIdx(pIdx);
+                          setPickerSearch('');
+                          setPickerGradeTab(st?.grade || grade || 2);
+                        }}
+                        className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:opacity-90 active:scale-95 transition-all text-left group/btn"
+                        title={`${getPlayerTitle(pIdx)} - Tıkla ve Öğrenci Seç`}
+                      >
+                        {st ? (
+                          <div
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br ${
+                              st.avatarBg || 'from-amber-500 to-yellow-600'
+                            } border-2 border-black flex items-center justify-center text-xs sm:text-sm shadow-xs shrink-0`}
+                          >
+                            <span>{st.avatar}</span>
+                          </div>
+                        ) : (
+                          <span className="text-base sm:text-lg">
+                            {isLeft ? '🔴' : '🔵'}
+                          </span>
+                        )}
+
+                        <div className="flex flex-col min-w-0">
+                          <span
+                            className={`font-black text-sm sm:text-base md:text-lg tracking-tight truncate max-w-[130px] sm:max-w-xs ${
+                              isLeft ? 'text-[#dc2626]' : 'text-[#2563eb]'
+                            }`}
+                          >
+                            {st ? st.name : (isLeft ? '1. Oyuncu (Kırmızı)' : '2. Oyuncu (Mavi)')}
+                          </span>
+                          {st?.className && (
+                            <span className="text-[10px] text-slate-500 font-bold leading-none">
+                              {st.className}
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-lg bg-black/10 text-slate-800 group-hover/btn:bg-black/20 transition-colors flex items-center gap-1">
+                          {st ? 'Değiştir ✏️' : 'Öğrenci Seç +'}
+                        </span>
+                      </button>
+                    );
+                  })()}
 
                   {/* Skor Rozeti */}
                   <div
@@ -802,13 +888,10 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
         <div className="w-full shrink-0 z-30 px-1 sm:px-2 pb-0.5 bg-black/40 border-t border-white/10">
           <StudentAvatarDock
             students={students}
-            currentGrade={2}
+            currentGrade={grade || 2}
             playerCount={numPlayers}
             selectedStudentIds={effectiveSelectedIds}
-            onSelectStudentForPlayer={(pIdx, sid) => {
-              onSelectStudentForPlayer?.(pIdx, sid);
-              if (pIdx === 0) onSelectStudent?.(sid);
-            }}
+            onSelectStudentForPlayer={handleSelectStudentForPlayer}
             onOpenRosterModal={onOpenRosterModal}
             playMp3={triggerSound}
           />
@@ -863,6 +946,191 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
               >
                 Kapat
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ÖĞRENCİ SEÇİM MODALİ (1. VE 2. OYUNCU İÇİN ÖZEL SEÇİCİ) */}
+      {selectingPlayerIdx !== null && (
+        <div className="fixed inset-0 z-[350] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0b1329] border-2 border-slate-700 rounded-3xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] flex flex-col shadow-[0_16px_48px_rgba(0,0,0,0.85)] text-white">
+            {/* Modal Başlığı */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black text-white shrink-0 shadow-sm ${
+                    selectingPlayerIdx === 0 ? 'bg-[#dc2626]' : 'bg-[#2563eb]'
+                  }`}
+                >
+                  {selectingPlayerIdx === 0 ? '🔴 1' : '🔵 2'}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-black text-white truncate">
+                    {selectingPlayerIdx === 0 ? '1. Oyuncu (Kırmızı Sol Saha)' : '2. Oyuncu (Mavi Sağ Saha)'}
+                  </h3>
+                  <p className="text-xs text-slate-400">Bu oyuncu için sınıftan bir öğrenci seçin</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectingPlayerIdx(null)}
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Sınıf Kademesi Sekmeleri */}
+            <div className="flex items-center gap-1.5 py-2.5 shrink-0 overflow-x-auto no-scrollbar">
+              {(['ALL', 1, 2, 3, 4] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setPickerGradeTab(tab)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    pickerGradeTab === tab
+                      ? 'bg-amber-400 text-slate-950 font-black shadow-sm'
+                      : 'bg-white/5 hover:bg-white/10 text-slate-300'
+                  }`}
+                >
+                  {tab === 'ALL' ? 'Tüm Sınıflar' : `${tab}. Sınıf`}
+                </button>
+              ))}
+            </div>
+
+            {/* Arama Çubuğu */}
+            <div className="relative mb-2.5 shrink-0">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={pickerSearch}
+                onChange={(e) => setPickerSearch(e.target.value)}
+                placeholder="Öğrenci adı ile ara..."
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+              />
+              {pickerSearch && (
+                <button
+                  type="button"
+                  onClick={() => setPickerSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Öğrenci Listesi */}
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
+              {(() => {
+                const availableStudents = (students || []).filter((s) => {
+                  const matchesGrade = pickerGradeTab === 'ALL' || s.grade === pickerGradeTab;
+                  const matchesSearch =
+                    !pickerSearch.trim() || s.name.toLowerCase().includes(pickerSearch.toLowerCase().trim());
+                  return matchesGrade && matchesSearch;
+                });
+
+                if (availableStudents.length === 0) {
+                  return (
+                    <div className="p-6 text-center text-slate-400 text-xs sm:text-sm bg-white/5 rounded-2xl border border-dashed border-white/10">
+                      Öğrenci bulunamadı. Yeni öğrenci eklemek için aşağıdaki butonu kullanabilirsiniz.
+                    </div>
+                  );
+                }
+
+                return availableStudents.map((st) => {
+                  const isSelectedForCurrent = effectiveSelectedIds[selectingPlayerIdx] === st.id;
+                  const isSelectedForOther = effectiveSelectedIds[selectingPlayerIdx === 0 ? 1 : 0] === st.id;
+
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => {
+                        handleSelectStudentForPlayer(selectingPlayerIdx, st.id);
+                        setSelectingPlayerIdx(null);
+                      }}
+                      className={`w-full p-2.5 rounded-2xl border flex items-center justify-between gap-2.5 transition-all cursor-pointer text-left ${
+                        isSelectedForCurrent
+                          ? selectingPlayerIdx === 0
+                            ? 'bg-rose-500/20 border-rose-400 ring-2 ring-rose-500/50'
+                            : 'bg-blue-500/20 border-blue-400 ring-2 ring-blue-500/50'
+                          : isSelectedForOther
+                          ? 'bg-white/5 border-white/10 opacity-70 hover:opacity-100 hover:border-amber-400'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-full bg-gradient-to-br ${
+                            st.avatarBg || 'from-indigo-500 to-purple-600'
+                          } flex items-center justify-center text-base shadow-sm shrink-0 border border-white/20`}
+                        >
+                          <span>{st.avatar}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-sm text-white block truncate">
+                            {st.name}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-medium">
+                            {st.grade}. Sınıf {st.className ? `• ${st.className}` : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        {isSelectedForCurrent && (
+                          <span
+                            className={`px-2 py-0.5 rounded-lg text-xs font-black flex items-center gap-1 ${
+                              selectingPlayerIdx === 0 ? 'bg-rose-500 text-white' : 'bg-blue-500 text-white'
+                            }`}
+                          >
+                            <Check size={12} /> Seçili
+                          </span>
+                        )}
+                        {!isSelectedForCurrent && isSelectedForOther && (
+                          <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                            Diğer Oyuncuda
+                          </span>
+                        )}
+                        {!isSelectedForCurrent && !isSelectedForOther && (
+                          <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-slate-200">
+                            Seç
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Alt İşlemler */}
+            <div className="flex items-center justify-between gap-2 pt-3 mt-2 border-t border-white/10 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  handleSelectStudentForPlayer(selectingPlayerIdx, null);
+                  setSelectingPlayerIdx(null);
+                }}
+                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer"
+              >
+                İsimsiz Oyna
+              </button>
+
+              {onOpenRosterModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetG = typeof pickerGradeTab === 'number' ? pickerGradeTab : (grade || 2);
+                    setSelectingPlayerIdx(null);
+                    onOpenRosterModal(targetG);
+                  }}
+                  className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-black text-amber-300 transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <UserPlus size={13} />
+                  <span>Sınıf Listesini Yönet</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

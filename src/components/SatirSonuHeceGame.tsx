@@ -997,7 +997,7 @@ export interface SatirSonuHeceGameProps {
   onSelectStudent?: (studentId: string | null) => void;
   onSelectStudentForPlayer?: (pIdx: number, studentId: string | null) => void;
   onOpenRosterModal?: (grade?: number) => void;
-  onQuestionAnswered?: (isCorrect: boolean) => void;
+  onQuestionAnswered?: (isCorrect: boolean, playerIndex?: number) => void;
   onGameCompleted?: (winnerIndex: number | null, pCount: number) => void;
 }
 
@@ -1182,7 +1182,7 @@ export const SatirSonuHeceGame: React.FC<SatirSonuHeceGameProps> = ({
     }
 
     if (onQuestionAnswered) {
-      onQuestionAnswered(isRight);
+      onQuestionAnswered(isRight, playerIndex);
     }
 
     setPlayers(prev =>

@@ -2062,6 +2062,11 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   other_es_anlam: '/MENUIKON/grid_icon_21.webp',
   ingilizce: '/MENUIKON/grid_icon_14.webp',
   other_ingilizce: '/MENUIKON/grid_icon_14.webp',
+  school_life: '/MENUIKON/grid_icon_23.webp',
+  other_school_life: '/MENUIKON/grid_icon_23.webp',
+  satir_sonu_hece: '/MENUIKON/grid_icon_31.webp',
+  sudoku: '/MENUIKON/grid_icon_19.webp',
+  abluka: '/MENUIKON/grid_icon_30.webp',
   lab3d: '/MENUIKON/grid_icon_38.webp',
   geoboard: '/MENUIKON/grid_icon_29.webp',
   sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.webp',
@@ -10722,12 +10727,15 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           soundEnabled={soundEnabled}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          grade={selectedGrade || 2}
           students={students}
           selectedStudentId={selectedStudentIds[0] || null}
           selectedStudentIds={selectedStudentIds}
           onSelectStudent={(id) => {
             setSelectedStudentIds(prev => [
-              prev[0] === id ? null : id,
+              id,
               prev[1] || null,
               prev[2] || null
             ]);
@@ -10816,8 +10824,8 @@ export default function App() {
             setRosterModalGrade(grade || selectedGrade || 2);
             setShowStudentRosterModal(true);
           }}
-          onQuestionAnswered={(isCorrect) => {
-            handleUniversalActivityAnswer('satir_sonu_hece', isCorrect, 0, 'otherGames');
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('satir_sonu_hece', isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);

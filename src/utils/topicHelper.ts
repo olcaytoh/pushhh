@@ -47,7 +47,14 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   tug_of_war: { title: 'Halat Çekmece Yarışı', desc: 'Hızlı cevapla halatı grubuna çek', icon: '🪢' },
   basketball: { title: 'Basketbol Yarışı', desc: 'Doğru cevapla basket at', icon: '🏀' },
   abluka: { title: 'Abluka Strateji Oyunu', desc: 'Hedefi çevreleme ve abluka kurma zeka oyunu', icon: '🛡️' },
-  sivi_tahmin_akvaryum: { title: 'Sıvı Miktarını Tahmin Etme: Akvaryum Düellosu', desc: 'Sıvı miktarlarını kova, sürahi, bardak ve kaşıkla uygulamalı tahmin etme', icon: '🐠' }
+  sudoku: { title: 'Sudoku Zeka Oyunu', desc: '4x4 & 6x6 Akıl ve Mantık Oyunu (1 & 2 Kişilik Zeka Düellosu)', icon: '🧩' },
+  sivi_tahmin_akvaryum: { title: 'Sıvı Miktarını Tahmin Etme: Akvaryum Düellosu', desc: 'Sıvı miktarlarını kova, sürahi, bardak ve kaşıkla uygulamalı tahmin etme', icon: '🐠' },
+  satir_sonu_hece: { title: 'Satır Sonu Heceleme Oyunu', desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma ve kısa çizgi kullanımı', icon: '✂️' },
+  turkce_satir_sonu_hece: { title: 'Satır Sonu Heceleme Oyunu', desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma ve kısa çizgi kullanımı', icon: '✂️' },
+  sayi_basketi: { title: 'Sayı Basketi (Basketbol Düellosu)', desc: 'Sayıları okunuşlarıyla eşleştirip potaya basket atma (1 & 2 Kişilik)', icon: '🏀' },
+  onluk_birlik: { title: 'Onluk ve Birlik Modelleri', desc: 'Onluk çubukları ve birlik küpleriyle sayı inşa etme (Sürükle-Bırak)', icon: '🧱' },
+  school_life: { title: 'School Life (İngilizce Okul Hayatı)', desc: 'School subjects, classroom objects & daily routines quiz', icon: '🏫' },
+  xox_matematik: { title: 'XOX Matematik & Zeka', desc: 'İki kişilik matematik ve strateji düellosu', icon: '❌' }
 };
 
 export interface TopicInfo {
@@ -146,6 +153,13 @@ export function getCurriculumTopicsForGrade(grade: number): TopicInfo[] {
     { key: 'aynisini_bul', title: 'Aynısını Bul Dikkat Düellosu', desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır', grade },
     { key: 'onu_bul', title: '10\'u Bul Matematik Düellosu', desc: 'Toplamı 10 yapan sayı çiftlerini hızlıca keşfet', grade },
     { key: 'yirmiyi_bul', title: '20\'yi Bul Matematik Düellosu', desc: 'Toplamı 20 yapan sayı çiftlerini hızlıca keşfet', grade },
+    { key: 'sayi_basketi', title: 'Sayı Basketi (Basketbol Düellosu)', desc: 'Sayıları okunuşlarıyla eşleştirip potaya basket atma', grade },
+    { key: 'onluk_birlik', title: 'Onluk ve Birlik Modelleri', desc: 'Onluk çubukları ve birlik küpleriyle sayı inşa etme', grade },
+    { key: 'satir_sonu_hece', title: 'Satır Sonu Heceleme Oyunu', desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma', grade },
+    { key: 'sudoku', title: 'Sudoku Zeka Oyunu', desc: '4x4 & 6x6 Akıl ve Mantık Oyunu', grade },
+    { key: 'school_life', title: 'School Life (İngilizce)', desc: 'School vocabulary & interactive quiz', grade },
+    { key: 'sivi_tahmin_akvaryum', title: 'Sıvı Ölçme Tahmini (Akvaryum)', desc: 'Sıvı miktarlarını uygulamalı tahmin etme', grade },
+    { key: 'xox_matematik', title: 'XOX Matematik & Zeka', desc: 'İki kişilik strateji ve mantık oyunu', grade },
     { key: 'ingilizce', title: 'İngilizce Kelimeler', desc: 'Temel İngilizce sözcük çalışmaları & quiz', grade },
   ];
 
