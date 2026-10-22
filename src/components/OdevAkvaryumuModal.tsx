@@ -27,6 +27,7 @@ import {
   calculateFishScale,
   getFishLevelTitle
 } from '../utils/homeworkStore';
+import { getCutoutFishInfo, CUTOUT_FISH_SPECIES } from '../utils/cutoutFishData';
 
 // Kullanıcının public/blklar klasörüne yüklediği gerçek balık görselleri (27 adet tekil tropik balık)
 export const FISH_IMAGES = [
@@ -101,7 +102,24 @@ interface FishState {
   fishWidth: number;
   nativeFacing: 'left' | 'right';
   isHappy?: boolean;
+  speciesName: string;
+  stageName: string;
+  stageIndex: number;
+  badge: string;
+  neededForNext: number;
+  nextStageName: string | null;
+  animationDuration: string;
+  animationDelay: string;
 }
+
+// Akvaryumda aşağıdan yukarı yükselen gerçekçi hava kabarcıkları listesi
+const BUBBLE_LIST = Array.from({ length: 30 }).map((_, idx) => {
+  const size = 6 + (idx % 6) * 3.5;
+  const left = 2 + ((idx * 3.65 + (idx % 5) * 2.1) % 96);
+  const duration = 5.0 + (idx % 7) * 0.7;
+  const delay = -((idx * 1.15) % 8.0);
+  return { id: idx, size, left, duration, delay };
+});
 
 // Akıllı tahta CPU'sunu sıfıra indiren yüksek performanslı fizik nesnesi (Ref içinde saklanır)
 interface FishPhysics {
@@ -111,8 +129,9 @@ interface FishPhysics {
   vx: number;
   vy: number;
   direction: 1 | -1;
-  prevDirection: 1 | -1;
+  prevDirection: 1 | -1 | 0;
   nativeFacing: 'left' | 'right';
+  currentScaleX: number;
 }
 
 interface OdevAkvaryumuModalProps {
@@ -236,15 +255,15 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         studentName: st.name,
         homeworkCount: 0,
         lastCompletedDate: undefined,
-        fishModelIndex: i % FISH_IMAGES.length,
+        fishModelIndex: i,
         createdAt: new Date().toISOString()
       };
 
-      const imageIndex = (data.fishModelIndex ?? i) % FISH_IMAGES.length;
-      const imageSrc = FISH_IMAGES[imageIndex];
-      const nativeFacing = FISH_FACING_MAP[imageSrc] || 'left';
-      const scale = calculateFishScale(data.homeworkCount || 0);
-      const fishWidth = Math.min(140, Math.round(74 * scale));
+      const modelIndex = data.fishModelIndex ?? i;
+      const cutout = getCutoutFishInfo(modelIndex, data.homeworkCount || 0);
+      const imageSrc = cutout.imageSrc;
+      const nativeFacing: 'left' = 'left';
+      const fishWidth = cutout.calculatedWidth;
 
       // Akvaryumda rastgele başlangıç koordinatları
       const x = 12 + ((i * 19) % 74);
@@ -252,6 +271,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const vx = (Math.random() > 0.5 ? 1 : -1) * (0.035 + Math.random() * 0.04);
       const vy = (Math.random() > 0.5 ? 1 : -1) * (0.02 + Math.random() * 0.03);
       const dir: 1 | -1 = vx >= 0 ? 1 : -1;
+      const initialScaleX = dir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
 
       physicsList.push({
         id: st.id,
@@ -260,8 +280,9 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         vx,
         vy,
         direction: dir,
-        prevDirection: dir,
-        nativeFacing
+        prevDirection: 0,
+        nativeFacing,
+        currentScaleX: initialScaleX
       });
 
       return {
@@ -273,7 +294,15 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         imageSrc,
         fishWidth,
         nativeFacing,
-        isHappy: false
+        isHappy: false,
+        speciesName: cutout.speciesName,
+        stageName: cutout.stageName,
+        stageIndex: cutout.stageIndex,
+        badge: cutout.badge,
+        neededForNext: cutout.neededForNext,
+        nextStageName: cutout.nextStageName,
+        animationDuration: `${1.3 + (i % 5) * 0.22}s`,
+        animationDelay: `-${(i * 0.35) % 2}s`
       };
     });
 
@@ -344,15 +373,13 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
           }
 
-          // Sadece yüzme yönü değiştiğinde gövdeyi ters çevir
+          // Balığın her zaman yüzdüğü yöne bakması (Balık asla geri geri yüzmez!)
           if (f.direction !== f.prevDirection) {
             f.prevDirection = f.direction;
+            f.currentScaleX = f.direction === 1 ? -1 : 1;
             const bodyEl = bodyMap.get(f.id);
             if (bodyEl) {
-              const scaleX = f.direction === 1
-                ? (f.nativeFacing === 'right' ? 1 : -1)
-                : (f.nativeFacing === 'left' ? 1 : -1);
-              bodyEl.style.transform = `scaleX(${scaleX})`;
+              bodyEl.style.transform = `scaleX(${f.currentScaleX})`;
             }
           }
         }
@@ -376,15 +403,16 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     // Bugün zaten yapılmış mı kontrol et
     if (fish.lastCompletedDate === todayStr) {
       if (soundEnabled && playMp3) playMp3('/tek.mp3');
-      const levelInfo = getFishLevelTitle(fish.homeworkCount);
 
       setActivePopup({
         studentName: fish.name,
-        message: `Bugünkü ödevini zaten tamamladın! Balığın yarın yeni ödevinle birlikte daha da büyüyecek! 🌟`,
+        message: fish.nextStageName
+          ? `Bugünkü ödevini zaten tamamladın! Balığın yarın yeni ödevinle birlikte "${fish.nextStageName}" olmak için büyüyecek! 🌟`
+          : `Bugünkü ödevini zaten tamamladın! Balığın akvaryumun en büyük aşamasında görkemle yüzüyor! 👑✨`,
         type: 'already',
         count: fish.homeworkCount,
-        badge: levelInfo.badge,
-        title: levelInfo.title
+        badge: fish.badge,
+        title: `${fish.speciesName} • ${fish.stageName}`
       });
       return;
     }
@@ -411,7 +439,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             x: event.clientX / window.innerWidth,
             y: event.clientY / window.innerHeight
           },
-          colors: ['#06b6d4', '#3b82f6', '#f59e0b', '#10b981']
+          colors: ['#06b6d4', '#3b82f6', '#f59e0b', '#10b981', '#ec4899']
         });
       } catch {}
 
@@ -419,9 +447,13 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const updated = loadHomeworkData(currentUser?.uid);
       setHomeworkMap(updated);
 
-      const levelInfo = getFishLevelTitle(res.newCount);
-      const newScale = calculateFishScale(res.newCount);
-      const newFishWidth = Math.min(140, Math.round(74 * newScale));
+      const modelIndex = updated[fish.studentId]?.fishModelIndex ?? fishes.findIndex(item => item.studentId === fish.studentId);
+      const newCutout = getCutoutFishInfo(modelIndex, res.newCount);
+      const isEvolved = newCutout.stageIndex > fish.stageIndex;
+
+      if (isEvolved && soundEnabled && playMp3) {
+        setTimeout(() => playMp3('/alkis.mp3'), 500);
+      }
 
       setFishes(prev =>
         prev.map(item => {
@@ -430,7 +462,13 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               ...item,
               homeworkCount: res.newCount,
               lastCompletedDate: todayStr,
-              fishWidth: newFishWidth,
+              fishWidth: newCutout.calculatedWidth,
+              imageSrc: newCutout.imageSrc,
+              stageName: newCutout.stageName,
+              stageIndex: newCutout.stageIndex,
+              badge: newCutout.badge,
+              neededForNext: newCutout.neededForNext,
+              nextStageName: newCutout.nextStageName,
               isHappy: true
             };
           }
@@ -449,14 +487,18 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
       setActivePopup({
         studentName: fish.name,
-        message: `Tebrikler! Bugünkü ödevini tamamladın ve balığın büyüdü! 🌟`,
+        message: isEvolved
+          ? `HARİKA! Balığın evrim geçirdi ve büyüdü: ${newCutout.stageName}! 🎉👑`
+          : newCutout.nextStageName
+          ? `Tebrikler! Bugünkü ödevini tamamladın ve balığın beslendi! ${newCutout.neededForNext} ödev sonra "${newCutout.nextStageName}" olacak! 🌟`
+          : `Tebrikler! Bugünkü ödevini tamamladın! Balığın en büyük dev boyutuna ulaştı! 👑✨`,
         type: 'success',
         count: res.newCount,
-        badge: levelInfo.badge,
-        title: levelInfo.title
+        badge: newCutout.badge,
+        title: `${newCutout.speciesName} • ${newCutout.stageName}`
       });
     }
-  }, [todayStr, soundEnabled, playMp3, currentUser, onTriggerCloudSync]);
+  }, [todayStr, soundEnabled, playMp3, currentUser, onTriggerCloudSync, fishes]);
 
   // Öğretmen Modunda Bugünkü Ödevi Geri Alma
   const handleUndo = useCallback((studentId: string, studentName: string) => {
@@ -473,11 +515,18 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         prev.map(f => {
           if (f.studentId === studentId) {
             const nextCount = Math.max(0, f.homeworkCount - 1);
-            const scale = calculateFishScale(nextCount);
+            const modelIndex = updated[studentId]?.fishModelIndex ?? prev.findIndex(item => item.studentId === studentId);
+            const rolledCutout = getCutoutFishInfo(modelIndex, nextCount);
             return {
               ...f,
               homeworkCount: nextCount,
-              fishWidth: Math.min(140, Math.round(74 * scale)),
+              fishWidth: rolledCutout.calculatedWidth,
+              imageSrc: rolledCutout.imageSrc,
+              stageName: rolledCutout.stageName,
+              stageIndex: rolledCutout.stageIndex,
+              badge: rolledCutout.badge,
+              neededForNext: rolledCutout.neededForNext,
+              nextStageName: rolledCutout.nextStageName,
               lastCompletedDate: undefined
             };
           }
@@ -494,7 +543,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         title: 'Geri Alındı'
       });
     }
-  }, [soundEnabled, playMp3, homeworkMap]);
+  }, [soundEnabled, playMp3, homeworkMap, currentUser, onTriggerCloudSync]);
 
   // İstatistik hesaplamaları
   const totalStudents = fishes.length;
@@ -663,43 +712,101 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
           </div>
         </div>
 
+        {/* CSS KEYFRAMES: GERÇEKÇİ KUYRUK SALLAMA VE AŞAĞIDAN YUKARI BALONCUK YÜKSELME */}
+        <style>{`
+          @keyframes fishTailWag {
+            0% {
+              transform: rotate(0deg) skewY(0deg);
+            }
+            25% {
+              transform: rotate(3deg) skewY(1.8deg) scaleY(0.98);
+            }
+            50% {
+              transform: rotate(0deg) skewY(0deg) scaleY(1);
+            }
+            75% {
+              transform: rotate(-3deg) skewY(-1.8deg) scaleY(0.98);
+            }
+            100% {
+              transform: rotate(0deg) skewY(0deg);
+            }
+          }
+
+          @keyframes bubbleRise {
+            0% {
+              transform: translate3d(0, 0, 0) scale(0.6);
+              opacity: 0;
+            }
+            8% {
+              opacity: 0.85;
+            }
+            28% {
+              transform: translate3d(12px, -28vh, 0) scale(0.85);
+            }
+            55% {
+              transform: translate3d(-14px, -58vh, 0) scale(1.0);
+            }
+            80% {
+              opacity: 0.75;
+              transform: translate3d(10px, -88vh, 0) scale(1.15);
+            }
+            96% {
+              opacity: 0.55;
+            }
+            100% {
+              transform: translate3d(-6px, -118vh, 0) scale(1.25);
+              opacity: 0;
+            }
+          }
+        `}</style>
+
         {/* ANA AKVARYUM DÜNYASI (CANVAS / WATER VIEWPORT) */}
         <div
+          id="odev-akvaryumu-container"
           ref={aquariumRef}
           className="relative flex-1 w-full min-h-0 overflow-hidden select-none cursor-default bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "url('/akvar.webp')",
-            backgroundColor: '#02182b'
+            backgroundImage: "url('/akvaryum_arkaplan.jpeg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: '#041628'
           }}
         >
-          {/* Su Işık Huzmeleri (CPU dostu yumuşak gradyanlar - blur kaldırıldı) */}
-          <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+          {/* Su Işık Huzmeleri (Hafif doğal atmosfer) */}
+          <div className="absolute inset-0 pointer-events-none opacity-15 overflow-hidden">
             <div className="absolute -top-10 left-1/4 w-32 h-[600px] bg-gradient-to-b from-cyan-200/30 via-sky-300/10 to-transparent rotate-12" />
             <div className="absolute -top-10 left-2/4 w-44 h-[650px] bg-gradient-to-b from-cyan-100/25 via-teal-200/10 to-transparent -rotate-6" />
             <div className="absolute -top-10 left-3/4 w-36 h-[600px] bg-gradient-to-b from-cyan-200/30 via-sky-300/10 to-transparent rotate-12" />
           </div>
 
-          {/* Yükselen Doğal Su Kabarcıkları (Düşük GPU yükü) */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {[8, 20, 34, 46, 60, 74, 88].map((left, idx) => (
+          {/* Yükselen Gerçekçi Su Baloncukları (Aşağıdan Yukarı Sürekli Yükselir) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+            {BUBBLE_LIST.map((b) => (
               <div
-                key={idx}
-                className="absolute rounded-full bg-white/25 border border-white/40"
+                key={b.id}
+                className="absolute rounded-full"
                 style={{
-                  width: `${6 + (idx % 3) * 4}px`,
-                  height: `${6 + (idx % 3) * 4}px`,
-                  left: `${left}%`,
-                  bottom: `${(idx * 14) % 85}%`,
-                  opacity: 0.4
+                  left: `${b.left}%`,
+                  bottom: '-25px',
+                  width: `${b.size}px`,
+                  height: `${b.size}px`,
+                  background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 28%, rgba(186, 230, 253, 0.15) 55%, rgba(255, 255, 255, 0.65) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                  boxShadow: '0 0 6px rgba(255, 255, 255, 0.4), inset -1px -1px 3px rgba(56, 189, 248, 0.5)',
+                  animation: `bubbleRise ${b.duration}s linear infinite`,
+                  animationDelay: `${b.delay}s`,
+                  willChange: 'transform, opacity'
                 }}
-              />
+              >
+                <div className="absolute top-[18%] left-[22%] w-[28%] h-[28%] bg-white rounded-full opacity-90 pointer-events-none" />
+              </div>
             ))}
           </div>
 
           {/* YÜZEN TÜM ÖĞRENCİ BALIKLARI (DOĞRUDAN GPU TRANSLATE3D İLE HAREKET EDER) */}
           {fishes.map((fish) => {
             const isCompletedToday = fish.lastCompletedDate === todayStr;
-            const levelInfo = getFishLevelTitle(fish.homeworkCount);
             const firstName = fish.name ? fish.name.trim().split(/\s+/)[0] : '';
 
             return (
@@ -725,45 +832,63 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                       : 'bg-slate-950/90 text-slate-100 border-sky-400/50 hover:border-cyan-300'
                   }`}
                 >
-                  <span className="text-[10px]">{levelInfo.badge}</span>
+                  <span className="text-[9.5px]">{fish.badge}</span>
                   <span className="tracking-tight font-extrabold">{firstName}</span>
                   <span className={`text-[8.5px] px-1.5 py-0.2 rounded-full font-black ${isCompletedToday ? 'bg-emerald-500/30 text-emerald-300' : 'bg-slate-800 text-amber-300'}`}>
                     {fish.homeworkCount}
                   </span>
                   {isCompletedToday && (
-                    <span className="text-emerald-400 font-black text-[10px]" title="Bugünkü ödev yapıldı!">
+                    <span className="text-emerald-400 font-black text-[9.5px]" title="Bugünkü ödev yapıldı!">
                       ✔
                     </span>
                   )}
                 </div>
 
-                {/* Balık Gövdesi: Çift drop-shadow yerine hafif tekil gölge */}
+                {/* Balık Gövdesi: Kuyruk Sallama (Tail Wag), Dönüş Geçişi ve Gölge */}
                 <div
                   ref={(el) => {
-                    if (el) fishBodyDomMap.current.set(fish.studentId, el);
-                    else fishBodyDomMap.current.delete(fish.studentId);
+                    if (el) {
+                      fishBodyDomMap.current.set(fish.studentId, el);
+                      const phys = fishesPhysicsRef.current.find(p => p.id === fish.studentId);
+                      const targetScaleX = phys ? (phys.direction === 1 ? -1 : 1) : -1;
+                      el.style.transform = `scaleX(${targetScaleX})`;
+                    } else {
+                      fishBodyDomMap.current.delete(fish.studentId);
+                    }
                   }}
                   className={`relative flex items-center justify-center select-none ${
                     fish.isHappy ? 'animate-bounce' : ''
                   }`}
                   style={{
                     width: `${fish.fishWidth}px`,
+                    transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
                     willChange: 'transform',
                     filter: isCompletedToday
-                      ? 'drop-shadow(0 2px 5px rgba(34, 197, 94, 0.75))'
-                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45))'
+                      ? 'drop-shadow(0 2px 7px rgba(34, 197, 94, 0.85)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5))'
+                      : 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55))'
                   }}
                 >
-                  <img
-                    src={fish.imageSrc}
-                    alt={fish.name}
-                    className="w-full h-auto object-contain pointer-events-none select-none"
-                    loading="eager"
-                  />
+                  {/* Gerçekçi Balık Kuyruk Yüzme Animasyonu (Baştan Kuyruğa Dalgalanma) */}
+                  <div
+                    className="w-full h-full relative"
+                    style={{
+                      transformOrigin: '22% 50%',
+                      animation: `fishTailWag ${fish.animationDuration} ease-in-out infinite`,
+                      animationDelay: fish.animationDelay,
+                      willChange: 'transform'
+                    }}
+                  >
+                    <img
+                      src={fish.imageSrc}
+                      alt={fish.name}
+                      className="w-full h-auto object-contain pointer-events-none select-none transition-all duration-300"
+                      loading="eager"
+                    />
+                  </div>
 
                   {/* Bugün tamamlandıysa parlayan altın yıldız rozeti */}
                   {isCompletedToday && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border border-white text-[9px] flex items-center justify-center text-amber-950 font-black shadow">
+                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 border border-white text-[8px] flex items-center justify-center text-amber-950 font-black shadow">
                       ⭐
                     </div>
                   )}
@@ -858,14 +983,15 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                           <span className="font-black text-xs w-4 text-center">
                             {idx + 1}.
                           </span>
+                          <span className="text-sm shrink-0">{f.badge}</span>
                           <img
                             src={f.imageSrc}
                             alt=""
-                            className="w-7 h-7 object-contain shrink-0"
+                            className="w-8 h-8 object-contain shrink-0"
                           />
                           <div className="min-w-0">
                             <p className="font-bold text-xs truncate">{f.name}</p>
-                            <p className="text-[10px] text-slate-400">{level.title}</p>
+                            <p className="text-[10px] text-sky-300 font-semibold truncate">{f.stageName}</p>
                           </div>
                         </div>
 

@@ -327,6 +327,26 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
     };
   }, []);
 
+  // Senkronizasyon: Üst menüdeki 1 ve 2 kişilik butonlarından mod değiştiğinde
+  const prevModePropRef = useRef<number | undefined>(playerCountMode);
+  useEffect(() => {
+    if (playerCountMode !== undefined && prevModePropRef.current !== playerCountMode) {
+      prevModePropRef.current = playerCountMode;
+      const targetMode: 1 | 2 = playerCountMode === 1 ? 1 : 2;
+      setNumPlayers(targetMode);
+      startGame();
+    }
+  }, [playerCountMode, startGame]);
+
+  const handleSwitchMode = (mode: 1 | 2) => {
+    if (numPlayers === mode) return;
+    triggerSound('/op.mp3');
+    prevModePropRef.current = mode;
+    setNumPlayers(mode);
+    onSwitchPlayerCountMode?.(mode);
+    startGame();
+  };
+
   // Parabolic shot animation with watercolor basketball
   const launchBall = (pIdx: number, isCorrect: boolean, onDone: () => void) => {
     const court = courtRefs.current[pIdx];
@@ -596,39 +616,42 @@ export const SayiBasketiGame: React.FC<SayiBasketiGameProps> = ({
             </button>
           )}
 
-          {/* Mod Değiştirici: 1 Oyuncu (Solo) / 2 Oyuncu (Düello) */}
+          {/* Mod Değiştirici: 1 Oyuncu (Solo) / 2 Oyuncu (Düello) / 3 Oyuncu (Devre Dışı) */}
           <div className="flex items-center p-0.5 rounded-xl bg-black/50 border border-white/15">
             <button
-              onClick={() => {
-                triggerSound('/click.mp3');
-                setNumPlayers(1);
-                onSwitchPlayerCountMode?.(1);
-                startGame();
-              }}
-              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              type="button"
+              onClick={() => handleSwitchMode(1)}
+              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 numPlayers === 1
-                  ? 'bg-sky-500 text-slate-950 shadow-sm font-black'
+                  ? 'bg-sky-500 text-slate-950 shadow-sm font-black ring-1 ring-sky-300'
                   : 'text-slate-300 hover:text-white'
               }`}
+              title="1 Oyuncu (Solo Pota Modu)"
             >
-              <User size={13} />
+              <img src="/1oy.webp" alt="1 Oyuncu" className="w-4 h-4 object-contain pointer-events-none" />
               <span className="hidden xs:inline">1 Oyuncu</span>
             </button>
             <button
-              onClick={() => {
-                triggerSound('/click.mp3');
-                setNumPlayers(2);
-                onSwitchPlayerCountMode?.(2);
-                startGame();
-              }}
-              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              type="button"
+              onClick={() => handleSwitchMode(2)}
+              className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 numPlayers === 2
-                  ? 'bg-amber-400 text-slate-950 shadow-sm font-black'
+                  ? 'bg-rose-500 text-white shadow-sm font-black ring-1 ring-rose-300'
                   : 'text-slate-300 hover:text-white'
               }`}
+              title="2 Oyuncu (Kapışma Düello Modu)"
             >
-              <Users size={13} />
+              <img src="/2oy.webp" alt="2 Oyuncu" className="w-4 h-4 object-contain pointer-events-none" />
               <span className="hidden xs:inline">2 Oyuncu Düello</span>
+            </button>
+            <button
+              type="button"
+              disabled
+              title="Sayı Basketi oyununda 3 kişilik mod bulunmamaktadır (sadece 1 ve 2 kişiliktir)"
+              className="px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 opacity-30 cursor-not-allowed text-slate-400 grayscale"
+            >
+              <img src="/3oy.webp" alt="3 Oyuncu" className="w-4 h-4 object-contain pointer-events-none opacity-40" />
+              <span className="hidden xs:inline">3 Oyuncu (Yok)</span>
             </button>
           </div>
         </div>

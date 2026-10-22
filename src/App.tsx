@@ -3852,6 +3852,13 @@ export default function App() {
     }
   }, [gameState, gameResult]);
 
+  // Sayı Basketi oyunu 3 kişilik modu desteklemez (1 veya 2 kişiliktir)
+  useEffect(() => {
+    if (showSayiBasketi && playerCountMode === 3) {
+      setPlayerCountMode(2);
+    }
+  }, [showSayiBasketi, playerCountMode]);
+
   // Countdown Timer for Single Player Activities (10s per question for timed activities, 100s total session for 10 correct answers)
   useEffect(() => {
     if (gameState !== 'playing' || playerCountMode !== 1 || feedbackState !== 'none' || !currentQuestionData) {
@@ -4259,6 +4266,10 @@ export default function App() {
     if (gameState === 'playing' && isHalatCekmeTopic(currentTopic) && newMode !== 2) {
       return;
     }
+    if (showSayiBasketi && newMode === 3) {
+      playMp3?.('/hata.mp3');
+      return;
+    }
     setPlayerCountMode(newMode);
     // 1. Oyuncu seçilmişse koru
     setSelectedStudentIds(prev => [
@@ -4409,6 +4420,9 @@ export default function App() {
     }
     if (topicKey === 'sayi_basketi') {
       setCurrentTopic('sayi_basketi');
+      if (playerCountMode === 3) {
+        setPlayerCountMode(2);
+      }
       setShowSayiBasketi(true);
       return;
     }
@@ -6746,18 +6760,28 @@ export default function App() {
         <button
           onClick={() => {
             if (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) return;
+            if (showSayiBasketi) {
+              playMp3?.('/hata.mp3');
+              return;
+            }
             playMp3('/op.mp3');
             switchPlayerCountMode(3);
           }}
-          disabled={gameState === 'playing' && isHalatCekmeTopic(currentTopic)}
+          disabled={(gameState === 'playing' && isHalatCekmeTopic(currentTopic)) || showSayiBasketi}
           className={`relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0 rounded-2xl ${
-            gameState === 'playing' && isHalatCekmeTopic(currentTopic)
-              ? 'opacity-30 cursor-not-allowed'
+            (gameState === 'playing' && isHalatCekmeTopic(currentTopic)) || showSayiBasketi
+              ? 'opacity-25 cursor-not-allowed grayscale'
               : playerCountMode === 3
               ? 'ring-2 ring-emerald-500 scale-105 shadow-[0_0_12px_rgba(16,185,129,0.5)] cursor-pointer'
               : 'opacity-60 hover:opacity-100 cursor-pointer'
           }`}
-          title={gameState === 'playing' && isHalatCekmeTopic(currentTopic) ? "Halat Çekme oyunu sadece 2 kişiliktir" : "3 Oyuncu Kapışma Modu"}
+          title={
+            gameState === 'playing' && isHalatCekmeTopic(currentTopic)
+              ? "Halat Çekme oyunu sadece 2 kişiliktir"
+              : showSayiBasketi
+              ? "Sayı Basketi oyunu sadece 1 veya 2 kişiliktir (3 kişilik modu yoktur)"
+              : "3 Oyuncu Kapışma Modu"
+          }
         >
           <img 
             src="/3oy.webp" 
@@ -8579,7 +8603,7 @@ export default function App() {
                             <TopicButtonReferenceStyle
                               topicKey={key}
                               title={t.title}
-                              badgeText={key === 'sayi_basketi' ? 'İKİLİ YARIŞ' : undefined}
+                              badgeText={key === 'sayi_basketi' ? '1-2 KİŞİLİK YARIŞ' : undefined}
                               onClick={() => selectTopicAndStart(key)}
                               categoryTheme="sayilar"
                             />
