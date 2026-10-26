@@ -50,6 +50,35 @@ export function setLocalLastSyncedAt(timestamp: string, userId?: string | null):
   }
 }
 
+const QUOTA_EXCEEDED_STORAGE_KEY = 'olcico_firestore_quota_exceeded_until';
+
+export function isFirestoreQuotaExceeded(): boolean {
+  try {
+    const raw = localStorage.getItem(QUOTA_EXCEEDED_STORAGE_KEY);
+    if (!raw) return false;
+    const expiry = Number(raw);
+    if (Date.now() < expiry) {
+      return true;
+    }
+    localStorage.removeItem(QUOTA_EXCEEDED_STORAGE_KEY);
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function setFirestoreQuotaExceeded(durationMs: number = 3600000 * 6): void {
+  try {
+    localStorage.setItem(QUOTA_EXCEEDED_STORAGE_KEY, String(Date.now() + durationMs));
+  } catch {}
+}
+
+export function clearFirestoreQuotaExceeded(): void {
+  try {
+    localStorage.removeItem(QUOTA_EXCEEDED_STORAGE_KEY);
+  } catch {}
+}
+
 /**
  * Sign in with Google Popup
  */
@@ -58,16 +87,23 @@ export async function signInWithGoogle(): Promise<User> {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
-    // Record or update user profile document
-    if (user) {
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        id: user.uid,
-        email: user.email || '',
-        displayName: user.displayName || 'Öğretmen',
-        photoURL: user.photoURL || '',
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+    // Record or update user profile document (only if quota is not exceeded)
+    if (user && !isFirestoreQuotaExceeded()) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+          id: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || 'Öğretmen',
+          photoURL: user.photoURL || '',
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (profileErr: any) {
+        if (profileErr?.code === 'resource-exhausted' || profileErr?.message?.includes('Quota')) {
+          setFirestoreQuotaExceeded();
+          console.warn('Firestore write quota limit reached. Using local persistence.');
+        }
+      }
     }
 
     return user;
@@ -100,6 +136,31 @@ export async function signOutUser(): Promise<void> {
   }
 }
 
+export type CloudSyncMode = 'smart' | 'manual';
+
+const SYNC_MODE_KEY = 'olcico_cloud_sync_mode';
+
+export function getCloudSyncMode(): CloudSyncMode {
+  try {
+    const mode = localStorage.getItem(SYNC_MODE_KEY);
+    return mode === 'manual' ? 'manual' : 'smart';
+  } catch {
+    return 'smart';
+  }
+}
+
+export function setCloudSyncMode(mode: CloudSyncMode): void {
+  try {
+    localStorage.setItem(SYNC_MODE_KEY, mode);
+  } catch {}
+}
+
+let lastSyncedDataSignature: string | null = null;
+
+export function setLastSyncedDataSignature(sig: string | null): void {
+  lastSyncedDataSignature = sig;
+}
+
 /**
  * Saves classroom data (students, stats/counters, selected students) to Firestore cloud
  */
@@ -109,9 +170,17 @@ export async function saveUserDataToCloud(
   counters: ClassCountersData,
   selectedStudentIds?: (string | null)[] | Record<string, any>,
   userEmail?: string | null,
-  homeworkData?: Record<string, StudentHomeworkData>
+  homeworkData?: Record<string, StudentHomeworkData>,
+  force: boolean = false
 ): Promise<string> {
   const timestamp = new Date().toISOString();
+
+  // If quota was already exceeded, avoid spamming Firestore network requests
+  if (isFirestoreQuotaExceeded()) {
+    setLocalLastSyncedAt(timestamp, userId);
+    return timestamp;
+  }
+
   const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
 
   const payload: Record<string, any> = {
@@ -135,17 +204,25 @@ export async function saveUserDataToCloud(
     payload.homeworkJson = JSON.stringify(hwToSave);
   }
 
-  await setDoc(classroomRef, payload, { merge: true });
-  setLocalLastSyncedAt(timestamp, userId);
+  // KOTA KORUMA (Dirty-Checking):
+  // Veride (öğrenciler, seçili ID'ler, ödevler) gerçek bir değişiklik yoksa Firebase'e boşuna yazma yapma!
+  const currentSignature = `${userId}::${payload.studentsJson}::${payload.selectedStudentIdsJson}::${payload.homeworkJson || ''}`;
+  if (!force && lastSyncedDataSignature && currentSignature === lastSyncedDataSignature) {
+    return getLocalLastSyncedAt(userId) || timestamp;
+  }
 
-  // Also mirror to email document if provided so data is accessible across devices by email
-  if (userEmail && userEmail.trim()) {
-    try {
-      const emailRef = doc(db, 'users', userEmail.trim().toLowerCase(), 'data', 'classroom');
-      await setDoc(emailRef, payload, { merge: true });
-    } catch {
-      // Non-critical mirror
+  try {
+    await setDoc(classroomRef, payload, { merge: true });
+    lastSyncedDataSignature = currentSignature;
+    setLocalLastSyncedAt(timestamp, userId);
+  } catch (err: any) {
+    if (err?.code === 'resource-exhausted' || err?.message?.includes('Quota limit exceeded') || err?.message?.includes('quota')) {
+      setFirestoreQuotaExceeded();
+      setLocalLastSyncedAt(timestamp, userId);
+      console.warn('Firebase günlük yazma kotası aşıldı. Veriler yerel hafızada güvenle tutuluyor.');
+      return timestamp;
     }
+    throw err;
   }
 
   return timestamp;
@@ -224,6 +301,8 @@ export async function loadUserDataFromCloud(
   } catch (e) {
     console.warn('Could not parse cloud homeworkJson', e);
   }
+
+  lastSyncedDataSignature = `${userId}::${data.studentsJson || '[]'}::${data.selectedStudentIdsJson || '[]'}::${data.homeworkJson || ''}`;
 
   return {
     userId,

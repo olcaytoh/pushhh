@@ -14,7 +14,11 @@ import {
   signOutUser,
   saveUserDataToCloud,
   loadUserDataFromCloud,
-  getLocalLastSyncedAt
+  getLocalLastSyncedAt,
+  isFirestoreQuotaExceeded,
+  getCloudSyncMode,
+  setCloudSyncMode,
+  CloudSyncMode
 } from './services/cloudSyncService';
 import { BADGES, BadgeItem, getBadgeRepeatCount } from './badges';
 import { AslanSVG } from './components/Mascot';
@@ -3259,20 +3263,41 @@ export default function App() {
       }
     });
 
-    // Ödev akvaryumu güncellemelerini buluta otomatik kaydet
+    // Ödev akvaryumu güncellemelerini buluta tasarruflu toplu kaydet (6 sn debounce)
     const handleHwSaved = () => {
-      triggerImmediateCloudSync();
+      if (getCloudSyncMode() === 'manual') return;
+      if (isFirestoreQuotaExceeded()) return;
+      if (hwSyncTimeoutRef.current) {
+        clearTimeout(hwSyncTimeoutRef.current);
+      }
+      hwSyncTimeoutRef.current = setTimeout(() => {
+        triggerImmediateCloudSync();
+      }, 6000);
     };
     window.addEventListener('odev_akvaryumu_saved', handleHwSaved);
 
     return () => {
       unsubscribe();
       window.removeEventListener('odev_akvaryumu_saved', handleHwSaved);
+      if (hwSyncTimeoutRef.current) clearTimeout(hwSyncTimeoutRef.current);
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
   }, []);
 
-  // Immediate and fast debounced auto-sync to Cloud
+  // Bulut Senkronizasyon Modu (Akıllı / Tasarruflu veya Manuel)
+  const [cloudSyncMode, setCloudSyncModeState] = useState<CloudSyncMode>(() => getCloudSyncMode());
+  const handleUpdateSyncMode = (newMode: CloudSyncMode) => {
+    setCloudSyncModeState(newMode);
+    setCloudSyncMode(newMode);
+    setActivityToast(newMode === 'manual' 
+      ? 'Manuel Bulut Modu seçildi: Yalnızca "Buluta Yedekle"ye bastığınızda kota kullanılır. 🔒' 
+      : 'Akıllı Tasarruf Modu seçildi: Değişiklikler toplu ve kota tasarruflu kaydedilir. ⚡');
+    setTimeout(() => setActivityToast(null), 3500);
+  };
+
+  // Debounced auto-sync to Cloud (safeguarded against quota exhaustion)
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hwSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const triggerImmediateCloudSync = (
     updatedStudents?: Student[],
@@ -3280,6 +3305,8 @@ export default function App() {
     updatedSelectedIds?: (string | null)[]
   ) => {
     if (!auth.currentUser) return;
+    if (cloudSyncMode === 'manual') return;
+    if (isFirestoreQuotaExceeded()) return;
     const targetUid = auth.currentUser.uid;
     const email = auth.currentUser.email;
     const sList = updatedStudents || students;
@@ -3292,23 +3319,29 @@ export default function App() {
     }
     syncTimeoutRef.current = setTimeout(async () => {
       if (!auth.currentUser || auth.currentUser.uid !== targetUid) return;
+      if (isFirestoreQuotaExceeded()) return;
       try {
         setIsCloudSyncing(true);
-        const syncTime = await saveUserDataToCloud(targetUid, sList, cData, selIds, email, hwData);
+        const syncTime = await saveUserDataToCloud(targetUid, sList, cData, selIds, email, hwData, false);
         setLastCloudSyncedAt(syncTime);
       } catch (err) {
         console.error('Debounced cloud sync error:', err);
       } finally {
         setIsCloudSyncing(false);
       }
-    }, 400);
+    }, 4000);
   };
 
+  // KOTA OPTİMİZASYONU:
+  // countersData her soru çözüldüğünde değişir; bu yüzden sürekli buluta yazılmaz!
+  // Sadece öğrenciler veya seçili öğrenci değiştiğinde toplu eşitlenir.
   useEffect(() => {
     if (!currentUser) return;
     if (!isInitialCloudSyncDone.current) return;
+    if (cloudSyncMode === 'manual') return;
+    if (isFirestoreQuotaExceeded()) return;
     triggerImmediateCloudSync(students, countersData, selectedStudentIds);
-  }, [students, countersData, selectedStudentIds, currentUser]);
+  }, [students, selectedStudentIds, currentUser, cloudSyncMode]);
 
   // Manual Sync Up Handler (Forced upload)
   const handleManualSyncUp = async () => {
@@ -3316,14 +3349,19 @@ export default function App() {
       setShowGoogleAuthModal(true);
       return;
     }
+    if (isFirestoreQuotaExceeded()) {
+      setActivityToast('Firebase günlük yazma kotası dolu. Verileriniz bu cihazda güvenle saklanıyor! 💾');
+      setTimeout(() => setActivityToast(null), 3500);
+      return;
+    }
     setIsCloudSyncing(true);
     try {
       const hwData = loadHomeworkData(currentUser.uid);
-      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds, currentUser.email, hwData);
+      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds, currentUser.email, hwData, true);
       setLastCloudSyncedAt(syncTime);
       setActivityToast('Buluta başarıyla yedeklendi! ☁️');
       setTimeout(() => setActivityToast(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Manual sync up error:', err);
       setActivityToast('Yedekleme sırasında bir hata oluştu.');
       setTimeout(() => setActivityToast(null), 3000);
@@ -10427,6 +10465,8 @@ export default function App() {
         onManualSyncDown={handleManualSyncDown}
         onRecoverStudents={handleManualRecovery}
         playMp3={playMp3}
+        syncMode={cloudSyncMode}
+        onSyncModeChange={handleUpdateSyncMode}
       />
 
       {/* 3D GEOMETRY INTERACTIVE LAB MODAL */}

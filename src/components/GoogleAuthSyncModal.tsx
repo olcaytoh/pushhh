@@ -23,7 +23,10 @@ import { User } from '../firebase';
 import { 
   signInWithGoogle, 
   signOutUser, 
-  formatFriendlyDate 
+  formatFriendlyDate,
+  isFirestoreQuotaExceeded,
+  CloudSyncMode,
+  getCloudSyncMode
 } from '../services/cloudSyncService';
 import { Student } from '../types/student';
 import { ClassCountersData } from '../utils/counterStorage';
@@ -44,6 +47,8 @@ export interface GoogleAuthSyncModalProps {
   onRecoverStudents?: () => Promise<void>;
   isSyncing?: boolean;
   playMp3?: (src: string) => void;
+  syncMode?: CloudSyncMode;
+  onSyncModeChange?: (mode: CloudSyncMode) => void;
 }
 
 export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
@@ -60,7 +65,9 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
   onSignOut,
   onRecoverStudents,
   isSyncing,
-  playMp3
+  playMp3,
+  syncMode,
+  onSyncModeChange
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
@@ -252,6 +259,51 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
           </div>
         )}
 
+        {/* Firestore Quota Notice */}
+        {isFirestoreQuotaExceeded() && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/50 border-2 border-amber-500/60 text-slate-100 shadow-xl space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-amber-300">
+                    Günlük Ücretsiz Bulut Kotası Doldu
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Yerel Mod Aktif
+                  </span>
+                </div>
+                <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                  Firebase Firestore günlük ücretsiz yazma kotası (Spark planı) geçici olarak doldu. 
+                  <strong className="text-white block mt-0.5">Endişelenmeyin: Tüm öğrenci listeniz, puanlarınız ve ödevleriniz cihazınızın yerel hafızasında güvenle saklanmaya devam etmektedir.</strong>
+                </p>
+                <p className="text-[11px] text-amber-200/80 mt-1">
+                  Ücretsiz kota gece yarısı (UTC) otomatik sıfırlanacaktır. Dilerseniz kotanızı Firebase Konsolundan yükseltebilirsiniz:
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <a
+                    href={`https://console.firebase.google.com/project/${firebaseConfigData.projectId}/firestore/databases/${firebaseConfigData.firestoreDatabaseId}/data?openUpgradeDialog=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Firebase Kotasını Yükselt
+                  </a>
+                  <a
+                    href="https://firebase.google.com/pricing#cloud-firestore"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+                  >
+                    Fiyatlandırma & Limitler
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Unauthorized Domain Guide Card */}
         {unauthorizedDomain && (
           <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border-2 border-amber-500/60 text-slate-100 shadow-xl space-y-3">
@@ -396,6 +448,56 @@ export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
                     Çözülen Soru
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Kota Tasarruf Modu Seçici */}
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  Kota Tasarruf Modu
+                </span>
+                <span className="text-[10px] text-cyan-400/90 font-medium">
+                  {(syncMode || getCloudSyncMode()) === 'manual' ? 'Sıfır Otomatik Kota Tüketimi' : '%90+ Kota Tasarruflu'}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => onSyncModeChange?.('smart')}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    (syncMode || getCloudSyncMode()) === 'smart'
+                      ? 'bg-blue-600/20 border-blue-400 text-blue-200 shadow-sm'
+                      : 'bg-slate-800/40 border-slate-700/60 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-xs font-bold text-white flex items-center gap-1">
+                    <span>⚡ Akıllı Tasarruf</span>
+                    {(syncMode || getCloudSyncMode()) === 'smart' && <Check className="w-3 h-3 text-cyan-400 ml-auto" />}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 leading-snug">
+                    Değişiklikleri toplu eşitler, gereksiz yazmayı önler.
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onSyncModeChange?.('manual')}
+                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    (syncMode || getCloudSyncMode()) === 'manual'
+                      ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
+                      : 'bg-slate-800/40 border-slate-700/60 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="text-xs font-bold text-white flex items-center gap-1">
+                    <span>🔒 Yalnızca Manuel</span>
+                    {(syncMode || getCloudSyncMode()) === 'manual' && <Check className="w-3 h-3 text-amber-400 ml-auto" />}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5 leading-snug">
+                    Sadece "Şimdi Buluta Yedekle"ye basınca yazar.
+                  </div>
+                </button>
               </div>
             </div>
 
