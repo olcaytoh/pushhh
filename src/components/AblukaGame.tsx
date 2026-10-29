@@ -411,15 +411,42 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
 
       {/* TOP HEADER CONTROLS */}
       <header className="relative z-20 px-2 sm:px-6 py-1.5 sm:py-2 bg-slate-950/95 border-b border-amber-400/30 flex items-center justify-between shrink-0 shadow-md">
-        {/* LEFT: BACK BUTTON & TITLE */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* LEFT: PREV, BACK, HOME, NEXT & TITLE */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-sm"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-sm shrink-0"
             title="Geri Dön"
           >
             <ArrowLeft size={18} />
           </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center border border-emerald-400 transition cursor-pointer shadow-sm shrink-0"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={16} />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
               <span className="text-sm sm:text-base font-black tracking-wide text-amber-300 drop-shadow-sm uppercase">
@@ -496,36 +523,8 @@ export const AblukaGame: React.FC<AblukaGameProps> = ({
           )}
         </div>
 
-        {/* RIGHT: NAVIGATION, RULES, UNDO & RESTART */}
+        {/* RIGHT: RULES, UNDO & RESTART */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-sm"
-              title="Önceki Etkinlik"
-            >
-              <ChevronLeft size={18} />
-            </button>
-          )}
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-sm"
-              title="Sonraki Etkinlik"
-            >
-              <ChevronRight size={18} />
-            </button>
-          )}
-          {onGoHome && (
-            <button
-              onClick={onGoHome}
-              className="px-2 sm:px-2.5 py-1 rounded-xl bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-500/80 text-emerald-200 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-              title="Ana Sayfaya Dön"
-            >
-              <Home size={13} />
-              <span className="hidden md:inline">Ana Sayfa</span>
-            </button>
-          )}
 
           <button
             onClick={() => setShowRulesModal(true)}

@@ -30,6 +30,7 @@ interface OtherGamesHubProps {
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
   onOpenSudoku?: () => void;
+  onOpenGorselliSudoku?: () => void;
   onOpenSiviTahminAkvaryum?: () => void;
   onOpenSaatZaman?: () => void;
   onOpenMarketKasasi?: () => void;
@@ -67,6 +68,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenMevsimGardirobu,
   onOpenAbluka,
   onOpenSudoku,
+  onOpenGorselliSudoku,
   onOpenSiviTahminAkvaryum,
   onOpenSaatZaman,
   onOpenMarketKasasi,
@@ -317,9 +319,19 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       },
     },
     {
+      id: 'gorselli_sudoku',
+      title: '2 Kişilik Görselli Sudoku',
+      subtitle: '4x4 & 6x6 Yan Yana Şekilli Akıl Oyunu',
+      icon: '/assets/sudoku/gorselli.png',
+      sound: '/coin.mp3',
+      action: () => {
+        if (onOpenGorselliSudoku) onOpenGorselliSudoku();
+      },
+    },
+    {
       id: 'sudoku',
       title: 'Sudoku Zeka Oyunu',
-      subtitle: '4x4 & 6x6 Akıl Oyunu',
+      subtitle: '4x4 & 6x6 Sayısal Akıl Oyunu',
       icon: '/MENUIKON/grid_icon_19.webp',
       sound: '/coin.mp3',
       action: () => {

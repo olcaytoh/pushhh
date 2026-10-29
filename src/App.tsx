@@ -50,6 +50,7 @@ import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
 import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
 import { AblukaGame } from './components/AblukaGame';
 import { SudokuGame } from './components/SudokuGame';
+import { GorselliSudokuGame } from './components/GorselliSudokuGame';
 import { SchoolLifeGame } from './components/SchoolLifeGame';
 import { SiviMiktariTahminGame } from './components/SiviMiktariTahminGame';
 import { StandartOlmayanSiviOlcmeVideoModal } from './components/StandartOlmayanSiviOlcmeVideoModal';
@@ -3066,6 +3067,7 @@ export default function App() {
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
   const [showAblukaGame, setShowAblukaGame] = useState(false);
   const [showSudokuGame, setShowSudokuGame] = useState(false);
+  const [showGorselliSudoku, setShowGorselliSudoku] = useState(false);
   const [showSchoolLifeGame, setShowSchoolLifeGame] = useState(false);
   const [showSiviTahminAkvaryum, setShowSiviTahminAkvaryum] = useState(false);
   const [showSiviOlcmeVideoModal, setShowSiviOlcmeVideoModal] = useState(false);
@@ -3111,6 +3113,7 @@ export default function App() {
     showMevsimGardirobu || 
     showAblukaGame ||
     showSudokuGame ||
+    showGorselliSudoku ||
     showSchoolLifeGame ||
     showSiviTahminAkvaryum ||
     showSiviOlcmeVideoModal ||
@@ -4455,6 +4458,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
     setShowSiviTahminAkvaryum(false);
     setShowSiviOlcmeVideoModal(false);
     setShowSaatZaman(false);
@@ -4764,6 +4768,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
     setShowSiviOlcmeVideoModal(false);
@@ -5024,7 +5029,16 @@ export default function App() {
       }
       setGameState('welcome');
       setShowAblukaGame(true);
-    } else if (entry.type === 'sudoku' || entry.id.includes('sudoku')) {
+    } else if (entry.type === 'gorselli_sudoku' || entry.id === 'other_gorselli_sudoku' || entry.id.includes('gorselli_sudoku')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
+      }
+      setGameState('welcome');
+      setShowGorselliSudoku(true);
+    } else if (entry.type === 'sudoku' || (entry.id.includes('sudoku') && !entry.id.includes('gorselli'))) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
@@ -5147,6 +5161,7 @@ export default function App() {
         if (showMevsimGardirobu && (cur.type === 'mevsim_gardirobu' || cur.id.includes('mevsim_gardirobu')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showAblukaGame && (cur.type === 'abluka' || cur.id.includes('abluka')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showSudokuGame && (cur.type === 'sudoku' || cur.id.includes('sudoku')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showGorselliSudoku && (cur.type === 'gorselli_sudoku' || cur.id.includes('gorselli_sudoku')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showSiviTahminAkvaryum && (cur.type === 'sivi_tahmin_akvaryum' || cur.id.includes('sivi_tahmin_akvaryum')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showXOXGame && (cur.type === 'xox' || cur.id.includes('xox')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showAynisiniBul && cur.type === 'aynisini_bul' && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
@@ -5335,6 +5350,10 @@ export default function App() {
       const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_sudoku' || a.type === 'sudoku');
       if (idx !== -1) return idx;
     }
+    if (showGorselliSudoku) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'other_gorselli_sudoku' || a.type === 'gorselli_sudoku');
+      if (idx !== -1) return idx;
+    }
     if (showSiviOlcmeVideoModal) {
       if (selectedGrade) {
         const idx = ALL_ACTIVITIES_LIST.findIndex(a => (a.type === 'sivi_olcme_video' || a.id.includes('standart_olmayan_sivi_olcme_video')) && a.grade === selectedGrade);
@@ -5505,6 +5524,7 @@ export default function App() {
       if (item.id === 'other_mevsim_gardirobu' && showMevsimGardirobu) return true;
       if (item.id === 'other_abluka' && showAblukaGame) return true;
       if (item.id === 'other_sudoku' && showSudokuGame) return true;
+      if (item.id === 'other_gorselli_sudoku' && showGorselliSudoku) return true;
       if (item.id === 'other_saat_zaman' && showSaatZaman) return true;
       if (item.id === 'other_market_kasasi' && showMarketKasasi) return true;
       if (item.id === 'other_kesir_duvari_pizza' && showKesirDuvariPizza) return true;
@@ -5550,6 +5570,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
     setShowSiviOlcmeVideoModal(false);
@@ -5597,6 +5618,7 @@ export default function App() {
     else if (entry.id === 'other_mevsim_gardirobu') setShowMevsimGardirobu(true);
     else if (entry.id === 'other_abluka') setShowAblukaGame(true);
     else if (entry.id === 'other_sudoku') setShowSudokuGame(true);
+    else if (entry.id === 'other_gorselli_sudoku') setShowGorselliSudoku(true);
     else if (entry.id === 'other_sivi_tahmin_akvaryum') setShowSiviTahminAkvaryum(true);
     else if (entry.id === 'other_saat_zaman') setShowSaatZaman(true);
     else if (entry.id === 'other_market_kasasi') setShowMarketKasasi(true);
@@ -5648,6 +5670,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
     setShowSiviOlcmeVideoModal(false);
@@ -5730,6 +5753,9 @@ export default function App() {
     } else if (entry.type === 'abluka') {
       setGameState('welcome');
       setShowAblukaGame(true);
+    } else if (entry.type === 'gorselli_sudoku') {
+      setGameState('welcome');
+      setShowGorselliSudoku(true);
     } else if (entry.type === 'sudoku') {
       setGameState('welcome');
       setShowSudokuGame(true);
@@ -5825,6 +5851,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
     setShowSiviTahminAkvaryum(false);
     setShowSiviOlcmeVideoModal(false);
@@ -10520,7 +10547,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -10551,6 +10578,7 @@ export default function App() {
           onOpenIstekIhtiyac={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_istek_ihtiyac'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenMevsimGardirobu={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_mevsim_gardirobu'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenAbluka={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_abluka'); if (i !== -1) switchToOtherGameByIndex(i); }}
+          onOpenGorselliSudoku={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_gorselli_sudoku'); if (i !== -1) switchToOtherGameByIndex(i); else setShowGorselliSudoku(true); }}
           onOpenSudoku={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_sudoku'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenSiviTahminAkvaryum={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_sivi_tahmin_akvaryum'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenSaatZaman={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_saat_zaman'); if (i !== -1) switchToOtherGameByIndex(i); }}
@@ -11465,6 +11493,43 @@ export default function App() {
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
             handleUniversalActivityAnswer('sudoku', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* 2 KİŞİLİK GÖRSELLİ SUDOKU ZEKA OYUNU (4x4 & 6x6 / YAN YANA / ŞEKİLLİ DÜELLO) */}
+      {showGorselliSudoku && (
+        <GorselliSudokuGame
+          onClose={() => {
+            setShowGorselliSudoku(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          currentGrade={selectedGrade || 2}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('gorselli_sudoku', isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);

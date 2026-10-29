@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { 
   ArrowLeft, RotateCcw, HelpCircle, Trophy, Sparkles, 
   CheckCircle2, Eraser, Lightbulb, Clock, AlertCircle, 
-  Award, Play, Undo2, Star, Eye, Users, User, Flame
+  Award, Play, Undo2, Star, Eye, Users, User, Flame,
+  ChevronLeft, ChevronRight, Home
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types/student';
@@ -566,8 +567,17 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
 
       {/* 2. TOP HEADER BAR */}
       <header className="relative z-20 px-2 sm:px-4 py-1.5 bg-slate-950/95 border-b border-amber-400/40 flex items-center justify-between shrink-0 shadow-lg gap-2">
-        {/* LEFT: BACK, HOME & TITLE */}
+        {/* LEFT: PREV, BACK, HOME, NEXT & TITLE */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
           <button
             onClick={onClose}
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
@@ -582,6 +592,15 @@ export const SudokuGame: React.FC<SudokuGameProps> = ({
               title="Ana Sayfaya Dön"
             >
               <img src="/ana.webp" alt="Ana Sayfa" className="w-5 h-5 object-contain" />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
             </button>
           )}
 

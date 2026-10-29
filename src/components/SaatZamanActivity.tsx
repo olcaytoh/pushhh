@@ -7,6 +7,8 @@ import {
   X,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
+  Home,
   HelpCircle,
   Volume2,
   Trophy,
@@ -357,7 +359,45 @@ export const SaatZamanActivity: React.FC<SaatZamanActivityProps> = ({
       </div>
 
       {/* MOD VE FİLTRE ÇUBUĞU */}
-      <div className="w-full flex flex-wrap items-center justify-between px-2 sm:px-5 py-2 bg-[#0c2a4a]/85 border-b-2 border-cyan-300/40 gap-2 shrink-0 backdrop-blur-md z-20 shadow-md">
+      <div className="w-full flex flex-wrap items-center justify-between px-2 sm:px-5 py-2 bg-[#0c2a4a]/95 border-b-2 border-cyan-300/40 gap-2 shrink-0 backdrop-blur-md z-20 shadow-md">
+        {/* Sol: Gezinme Butonları */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-cyan-200 hover:text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+            title="Geri Dön"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center border border-emerald-400/60 transition cursor-pointer shadow-sm"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={16} />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-cyan-200 hover:text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
+
         {/* Oyun Modu Sekmeleri */}
         <div className="flex items-center gap-1 bg-[#06182c]/80 p-1 rounded-xl border border-cyan-400/40 shadow-inner">
           <button

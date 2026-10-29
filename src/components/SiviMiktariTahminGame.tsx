@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import confetti from 'canvas-confetti';
 import { 
   Trophy, RotateCcw, Volume2, VolumeX, Maximize2, Minimize2, 
-  X, ArrowRight, Sparkles, User, Users, CheckCircle2, ChevronRight,
-  Droplets, Waves, Star
+  X, ArrowRight, ArrowLeft, Home, Sparkles, User, Users, CheckCircle2, 
+  ChevronLeft, ChevronRight, Droplets, Waves, Star
 } from 'lucide-react';
 import { 
   SiviTahminRound, 
@@ -662,13 +662,48 @@ export const SiviMiktariTahminGame: React.FC<SiviMiktariTahminGameProps> = ({
     <div className="fixed inset-0 z-50 bg-[#091022] text-white flex flex-col select-none overflow-hidden font-sans">
       {/* 1. TOP HEADER BANNER */}
       <header className="w-full shrink-0 z-20 px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-slate-950 via-[#0e1b38] to-slate-950 border-b border-cyan-500/30 flex items-center justify-between gap-2 shadow-lg">
-        {/* Left: Activity Title & Round */}
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 border border-cyan-300 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md">
+        {/* Left: Gezinme & Activity Title & Round */}
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+            title="Geri Dön"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center border border-emerald-400 transition cursor-pointer shadow-sm shrink-0"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={16} />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white flex items-center justify-center border border-slate-600 transition cursor-pointer shadow-sm shrink-0"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+
+          <div className="px-2.5 sm:px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 border border-cyan-300 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md shrink-0">
             <span>🐠 Sıvı Ölçme Tahmini</span>
             <span className="text-cyan-200 text-[10px] sm:text-xs">| Düello</span>
           </div>
-          <div className="px-2 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 font-extrabold text-[11px] sm:text-xs">
+          <div className="px-2 py-0.5 rounded-lg bg-slate-800/90 border border-slate-700 text-slate-300 font-extrabold text-[11px] sm:text-xs shrink-0">
             {currentRoundIndex + 1}. tur / {rounds.length}
           </div>
         </div>

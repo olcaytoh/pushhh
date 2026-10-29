@@ -8,6 +8,10 @@ import {
   Sparkles,
   Trophy,
   ArrowRight,
+  ArrowLeft,
+  Home,
+  ChevronLeft,
+  ChevronRight,
   HelpCircle,
   Heart
 } from 'lucide-react';
@@ -66,6 +70,8 @@ const OBJECT_PROBLEMS: TargetProblem[] = [
 
 export const DengeTerazisiGame: React.FC<DengeTerazisiGameProps> = ({
   onClose,
+  onGoHome,
+  onPrevActivity,
   onNextActivity,
   playMp3,
   grade = 2,
@@ -203,8 +209,42 @@ export const DengeTerazisiGame: React.FC<DengeTerazisiGameProps> = ({
       </div>
 
       {/* GÖREV VE SKOR ŞERİDİ */}
-      <div className="w-full flex flex-wrap items-center justify-between px-2 sm:px-5 py-2 bg-[#0c2a4a]/85 border-b-2 border-cyan-300/40 backdrop-blur-md z-20 shrink-0 gap-2 shadow-md">
-        <div className="flex items-center gap-2">
+      <div className="w-full flex flex-wrap items-center justify-between px-2 sm:px-5 py-2 bg-[#0c2a4a]/95 border-b-2 border-cyan-300/40 backdrop-blur-md z-20 shrink-0 gap-2 shadow-md">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-cyan-200 hover:text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+            title="Geri Dön"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center border border-emerald-400/60 transition cursor-pointer shadow-sm"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={16} />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-black/40 hover:bg-black/60 active:scale-95 text-cyan-200 hover:text-white flex items-center justify-center border border-cyan-400/40 transition cursor-pointer shadow-sm"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
           <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 border-2 border-white text-slate-950 font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md">
             <Scale size={15} />
             <span>Eşit Kollu Denge Terazisi</span>
