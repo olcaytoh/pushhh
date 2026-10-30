@@ -54,6 +54,32 @@ export function calculateTotalHomework(data: Record<string, StudentHomeworkData>
   return Object.values(data).reduce((sum, item) => sum + (item?.homeworkCount || 0), 0);
 }
 
+export const DEFAULT_CLASS_23_HOMEWORK_DATA: Record<string, StudentHomeworkData> = {
+  std_g2_1: { studentId: 'std_g2_1', studentName: 'Aybüke', homeworkCount: 10, fishModelIndex: 0, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_2: { studentId: 'std_g2_2', studentName: 'Betül Sare', homeworkCount: 11, fishModelIndex: 1, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_3: { studentId: 'std_g2_3', studentName: 'Buğlem', homeworkCount: 9, fishModelIndex: 2, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_4: { studentId: 'std_g2_4', studentName: 'Çınar Eymen', homeworkCount: 10, fishModelIndex: 3, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_5: { studentId: 'std_g2_5', studentName: 'Derin Defne', homeworkCount: 10, fishModelIndex: 4, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_6: { studentId: 'std_g2_6', studentName: 'Efekan', homeworkCount: 11, fishModelIndex: 5, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_7: { studentId: 'std_g2_7', studentName: 'Elif Su', homeworkCount: 10, fishModelIndex: 6, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_8: { studentId: 'std_g2_8', studentName: 'Eslem', homeworkCount: 10, fishModelIndex: 7, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_9: { studentId: 'std_g2_9', studentName: 'Eymen', homeworkCount: 9, fishModelIndex: 8, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_10: { studentId: 'std_g2_10', studentName: 'Güneş', homeworkCount: 9, fishModelIndex: 9, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_11: { studentId: 'std_g2_11', studentName: 'Harun', homeworkCount: 11, fishModelIndex: 10, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_12: { studentId: 'std_g2_12', studentName: 'Miraç', homeworkCount: 9, fishModelIndex: 11, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_13: { studentId: 'std_g2_13', studentName: 'Muhammed Eymen', homeworkCount: 7, fishModelIndex: 12, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_14: { studentId: 'std_g2_14', studentName: 'Osman Emir', homeworkCount: 11, fishModelIndex: 13, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_15: { studentId: 'std_g2_15', studentName: 'Ömer Asaf', homeworkCount: 10, fishModelIndex: 14, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_16: { studentId: 'std_g2_16', studentName: 'Ömer Faruk', homeworkCount: 8, fishModelIndex: 15, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_17: { studentId: 'std_g2_17', studentName: 'Ravza', homeworkCount: 10, fishModelIndex: 16, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_18: { studentId: 'std_g2_18', studentName: 'Sudem', homeworkCount: 9, fishModelIndex: 17, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_19: { studentId: 'std_g2_19', studentName: 'Umut', homeworkCount: 10, fishModelIndex: 18, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_20: { studentId: 'std_g2_20', studentName: 'Zeynep', homeworkCount: 11, fishModelIndex: 19, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_21: { studentId: 'std_g2_21', studentName: 'Zilan', homeworkCount: 6, fishModelIndex: 20, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_22: { studentId: 'std_g2_22', studentName: 'Öykü Liya', homeworkCount: 10, fishModelIndex: 21, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() },
+  std_g2_23: { studentId: 'std_g2_23', studentName: 'Harun Ali', homeworkCount: 10, fishModelIndex: 22, lastCompletedDate: getTodayDateString(), createdAt: new Date().toISOString() }
+};
+
 // İki ödev veri setini güvenli şekilde birleştir (asla ödev sayısını düşürmez veya sıfırlamaz)
 export function mergeHomeworkData(
   localData: Record<string, StudentHomeworkData> = {},
@@ -214,6 +240,12 @@ export function loadHomeworkData(userId?: string | null): Record<string, Student
       const recoveredCount = calculateTotalHomework(recovered);
       if (recoveredCount > 0) {
         parsed = mergeHomeworkData(parsed, recovered);
+        try {
+          localStorage.setItem(key, JSON.stringify(parsed));
+        } catch {}
+        return parsed;
+      } else {
+        parsed = { ...DEFAULT_CLASS_23_HOMEWORK_DATA };
         try {
           localStorage.setItem(key, JSON.stringify(parsed));
         } catch {}

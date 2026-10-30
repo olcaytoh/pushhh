@@ -37,6 +37,7 @@ import {
   restoreDefaultStudentsForGrade
 } from '../utils/studentStore';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
+import { downloadDataToPC } from '../utils/backupFileService';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
 
 interface StudentRosterModalProps {
@@ -673,6 +674,30 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
               >
                 <FileText size={13} className="text-rose-200" />
                 <span>{isGeneratingPdf ? 'Hazırlanıyor...' : 'PDF İndir'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  playMp3?.('/op.mp3');
+                  try {
+                    const res = await downloadDataToPC({
+                      currentUser: currentUser || null,
+                      students
+                    });
+                    playMp3?.('/coin.mp3');
+                    setSuccessNotice(`💾 ${res.filename} yedeği PC'nize indirildi (${res.summary.totalStudents} öğrenci).`);
+                    setTimeout(() => setSuccessNotice(null), 4500);
+                  } catch (err: any) {
+                    setSuccessNotice('⚠️ Yedek indirilemedi: ' + (err?.message || 'Hata'));
+                    setTimeout(() => setSuccessNotice(null), 4000);
+                  }
+                }}
+                className="px-2 py-1 rounded-xl bg-teal-900/60 hover:bg-teal-800 border border-teal-500/40 text-teal-200 font-bold text-[11px] sm:text-xs flex items-center gap-1 transition cursor-pointer active:scale-95"
+                title="Tüm sınıf verilerini, puanları ve ödev kayıtlarını PC'ye .json olarak yedekle"
+              >
+                <Download size={13} className="text-teal-400" />
+                <span className="hidden sm:inline">JSON Yedek</span>
               </button>
 
               {/* CLEAR GRADE ROSTER BUTTON */}

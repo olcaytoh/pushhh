@@ -33,10 +33,30 @@ export const DEFAULT_STUDENTS: Student[] = [
   { id: 'std_g1_2', name: 'Elif Şahin', avatar: '🌟', avatarBg: 'from-amber-300 to-yellow-500', grade: 1, className: '1-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
   { id: 'std_g1_3', name: 'Deniz Aydın', avatar: '🐬', avatarBg: 'from-sky-500 to-blue-600', grade: 1, className: '1-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
 
-  // 2. SINIF ÖRNEK ÖĞRENCİLERİ
-  { id: 'std_g2_1', name: 'Ali Yılmaz', avatar: '🦁', avatarBg: 'from-amber-500 to-yellow-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_g2_2', name: 'Ayşe Kaya', avatar: '🦊', avatarBg: 'from-orange-500 to-amber-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
-  { id: 'std_g2_3', name: 'Mehmet Demir', avatar: '🚀', avatarBg: 'from-blue-600 to-indigo-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  // 2. SINIF GERÇEK SINIF LİSTESİ (23 ÖĞRENCİ)
+  { id: 'std_g2_1', name: 'Aybüke', avatar: '🐬', avatarBg: 'from-sky-500 to-blue-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_2', name: 'Betül Sare', avatar: '🌟', avatarBg: 'from-amber-300 to-yellow-500', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_3', name: 'Buğlem', avatar: '🦄', avatarBg: 'from-pink-500 to-purple-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_4', name: 'Çınar Eymen', avatar: '🦁', avatarBg: 'from-amber-500 to-yellow-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_5', name: 'Derin Defne', avatar: '🐰', avatarBg: 'from-rose-400 to-pink-500', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_6', name: 'Efekan', avatar: '🚀', avatarBg: 'from-blue-600 to-indigo-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_7', name: 'Elif Su', avatar: '🎨', avatarBg: 'from-fuchsia-500 to-purple-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_8', name: 'Eslem', avatar: '👑', avatarBg: 'from-yellow-400 to-amber-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_9', name: 'Eymen', avatar: '🐯', avatarBg: 'from-amber-600 to-orange-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_10', name: 'Güneş', avatar: '☀️', avatarBg: 'from-amber-400 to-yellow-500', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_11', name: 'Harun', avatar: '⚡', avatarBg: 'from-yellow-500 to-orange-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_12', name: 'Miraç', avatar: '⚽', avatarBg: 'from-emerald-500 to-green-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_13', name: 'Muhammed Eymen', avatar: '🦖', avatarBg: 'from-emerald-600 to-teal-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_14', name: 'Osman Emir', avatar: '🦊', avatarBg: 'from-orange-500 to-amber-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_15', name: 'Ömer Asaf', avatar: '🤖', avatarBg: 'from-cyan-600 to-blue-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_16', name: 'Ömer Faruk', avatar: '🐼', avatarBg: 'from-slate-600 to-slate-800', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_17', name: 'Ravza', avatar: '🐝', avatarBg: 'from-amber-400 to-yellow-600', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_18', name: 'Sudem', avatar: '🐱', avatarBg: 'from-orange-400 to-rose-500', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_19', name: 'Umut', avatar: '🏆', avatarBg: 'from-yellow-500 to-amber-700', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_20', name: 'Zeynep', avatar: '🦉', avatarBg: 'from-amber-700 to-stone-800', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_21', name: 'Zilan', avatar: '🐧', avatarBg: 'from-slate-700 to-cyan-900', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_22', name: 'Öykü Liya', avatar: '🌸', avatarBg: 'from-pink-400 to-rose-500', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
+  { id: 'std_g2_23', name: 'Harun Ali', avatar: '🐻', avatarBg: 'from-amber-800 to-stone-900', grade: 2, className: '2-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
 
   // 3. SINIF ÖRNEK ÖĞRENCİLERİ
   { id: 'std_g3_1', name: 'Zeynep Çelik', avatar: '🦄', avatarBg: 'from-pink-500 to-purple-600', grade: 3, className: '3-A', totalCorrect: 0, totalWrong: 0, gamesPlayed: 0, gamesWon: 0, topicStats: {}, createdAt: new Date().toISOString() },
@@ -194,6 +214,21 @@ export function loadStudents(userId?: string | null): Student[] {
     }
 
     if (Array.isArray(parsed) && parsed.length > 0) {
+      // Check if Grade 2 in this list has old demo students (Ali Yılmaz, Ayşe Kaya, Mehmet Demir)
+      // or if total students is 12 (the old 3x4 demo set)
+      const g2Students = parsed.filter((s: any) => Number(s.grade) === 2);
+      const isG2DemoOnly = g2Students.length <= 3 && g2Students.some((s: any) => s.name === 'Ali Yılmaz' || s.name === 'Ayşe Kaya');
+      const isOldTwelveSample = parsed.length === 12 && parsed.some((s: any) => s.name === 'Ali Yılmaz');
+
+      if (isG2DemoOnly || isOldTwelveSample) {
+        // Upgrade Grade 2 to the real 23 classroom students while keeping other grades intact
+        const nonG2 = parsed.filter((s: any) => Number(s.grade) !== 2);
+        const realG2 = DEFAULT_STUDENTS.filter(s => s.grade === 2);
+        const upgraded = [...nonG2, ...realG2];
+        saveStudents(upgraded, uid);
+        return upgraded;
+      }
+
       return parsed.map((s: any) => ({
         ...s,
         grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2

@@ -3189,8 +3189,15 @@ export default function App() {
           const cloudData = await loadUserDataFromCloud(user.uid, user.email);
           if (cloudData && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
             // THE CLOUD IS THE SOURCE OF TRUTH ACROSS DEVICES!
-            setStudents(cloudData.students);
-            saveStudents(cloudData.students, user.uid);
+            let studentsToSet = cloudData.students;
+            const g2 = studentsToSet.filter(s => Number(s.grade) === 2);
+            if (studentsToSet.length === 12 || (g2.length <= 3 && g2.some(s => s.name === 'Ali Yılmaz' || s.name === 'Ayşe Kaya'))) {
+              const nonG2 = studentsToSet.filter(s => Number(s.grade) !== 2);
+              const realG2 = DEFAULT_STUDENTS.filter(s => s.grade === 2);
+              studentsToSet = [...nonG2, ...realG2];
+            }
+            setStudents(studentsToSet);
+            saveStudents(studentsToSet, user.uid);
 
             if (cloudData.counters) {
               setCountersData(cloudData.counters);
@@ -7620,6 +7627,29 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* 5. Uygulama Butonu (Olcico Sudoku) */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playMp3('/op.mp3');
+                        window.open('https://play.google.com/store/apps/details?id=com.olcico.sudoku1', '_blank', 'noopener,noreferrer');
+                      }}
+                      className="group/b5 flex items-center gap-2 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-2xl bg-slate-900/90 hover:bg-amber-950/80 border border-amber-500/40 hover:border-amber-300 shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="5. Uygulama: Olcico Sudoku (Google Play'de Aç)"
+                    >
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-xl bg-slate-950 p-0.5 flex items-center justify-center border border-amber-400/40 shadow-sm shrink-0 overflow-hidden">
+                        <img 
+                          src="/olcicosu.png" 
+                          alt="Olcico Sudoku" 
+                          className="w-full h-full object-cover rounded-lg group-hover/b5:scale-105 transition-transform" 
+                        />
+                      </div>
+                      <div className="text-left hidden xs:block">
+                        <div className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider">5. Uygulama</div>
+                        <div className="text-[11px] sm:text-xs md:text-[13px] font-bold text-slate-100 group-hover/b5:text-amber-200 leading-tight">Olcico Sudoku</div>
+                      </div>
+                    </div>
+
                     <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-md border border-emerald-300/40 group-hover:scale-105 transition-transform">
                       <span>Tümü</span>
                       <span className="text-emerald-200">→</span>
@@ -10494,6 +10524,9 @@ export default function App() {
         playMp3={playMp3}
         syncMode={cloudSyncMode}
         onSyncModeChange={handleUpdateSyncMode}
+        onStudentsUpdated={(updated) => setStudents(updated)}
+        onCountersUpdated={(updated) => setCountersData(updated)}
+        selectedStudentIds={selectedStudentIds}
       />
 
       {/* 3D GEOMETRY INTERACTIVE LAB MODAL */}

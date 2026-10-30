@@ -78,6 +78,19 @@ const FEATURED_APPS: AndroidAppItem[] = [
     image: '/ekranlogo.webp?v=3',
     badge: '4. Uygulama',
     playStoreUrl: 'https://play.google.com/store/apps/details?id=com.olcico.ekransuresi'
+  },
+  {
+    id: 'olcico_sudoku',
+    title: 'Olcico Sudoku',
+    category: 'Zeka & Mantık • Sudoku',
+    description: 'Görselli 4x4 ve 6x6 çocuk sudokusu ile 9x9 klasik seviyeleri barındıran eğlenceli zeka ve akıl oyunu.',
+    rating: '5.0',
+    downloads: 'Google Play',
+    iconBg: 'from-amber-500 via-orange-500 to-indigo-600',
+    iconEmoji: '🧩',
+    image: '/olcicosu.png',
+    badge: '5. Uygulama',
+    playStoreUrl: 'https://play.google.com/store/apps/details?id=com.olcico.sudoku1'
   }
 ];
 
