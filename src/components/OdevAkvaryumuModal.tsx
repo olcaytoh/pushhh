@@ -114,6 +114,7 @@ interface FishState {
   nextStageName: string | null;
   animationDuration: string;
   animationDelay: string;
+  isSquid: boolean;
 }
 
 // Akvaryumda aşağıdan yukarı hızlı ve dinamik şekilde yükselen gerçekçi hava kabarcıkları
@@ -126,7 +127,7 @@ const BUBBLE_LIST = Array.from({ length: 36 }).map((_, idx) => {
   return { id: idx, size, left, duration, delay };
 });
 
-// Akıllı tahta CPU'sunu sıfıra indiren yüksek performanslı fizik nesnesi (Ref içinde saklanır)
+// Akıllı tahta CPU'sunu sıfıra indiren yüksek performanslı akıcı fizik nesnesi (Ref içinde saklanır)
 interface FishPhysics {
   id: string;
   x: number; // 0 - 100 (%)
@@ -137,6 +138,10 @@ interface FishPhysics {
   prevDirection: 1 | -1 | 0;
   nativeFacing: 'left' | 'right';
   currentScaleX: number;
+  pitch: number; // Su altında burun eğim açısı (-12deg .. +12deg)
+  phase: number; // Sinüzoidal doğal salınım fazı
+  speedBase: number;
+  isSquid: boolean;
 }
 
 interface OdevAkvaryumuModalProps {
@@ -317,7 +322,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       // Eşit sayıda mevcut ve yeni balık dağıtımı için sınıf sıra indeksi (i) kullanılır:
       // Çift indeksler (0, 2, 4) mevcut cutouts, tek indeksler (1, 3, 5) yeni cutouts2 balıklarıdır
       const modelIndex = i;
-      const cutout = getCutoutFishInfo(modelIndex, data.homeworkCount || 0);
+      const cutout = getCutoutFishInfo(modelIndex, data.homeworkCount || 0, st.id || st.name);
+      const isSquid = cutout.speciesId === 'murekkep_baligi';
       const imageSrc = cutout.imageSrc;
       const nativeFacing: 'left' = 'left';
       const fishWidth = cutout.calculatedWidth;
@@ -325,10 +331,14 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       // Akvaryumda rastgele başlangıç koordinatları
       const x = 12 + ((i * 19) % 74);
       const y = 18 + ((i * 23) % 62);
-      const vx = (Math.random() > 0.5 ? 1 : -1) * (0.035 + Math.random() * 0.04);
-      const vy = (Math.random() > 0.5 ? 1 : -1) * (0.02 + Math.random() * 0.03);
-      const dir: 1 | -1 = vx >= 0 ? 1 : -1;
-      const initialScaleX = dir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
+      // Hız %20 yavaşlatıldı (0.8x çarpanı): Mürekkep balığı ve balıklar daha huzurlu ve asil yüzer
+      const speedBase = (isSquid
+        ? 0.025 + (i % 3) * 0.005
+        : 0.033 + (i % 5) * 0.006) * 0.8;
+      const initialDir: 1 | -1 = (i % 2 === 0) ? 1 : -1;
+      const vx = initialDir * speedBase;
+      const vy = (i % 3 === 0 ? 1 : -1) * (0.012 * 0.8);
+      const initialScaleX = initialDir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
 
       physicsList.push({
         id: st.id,
@@ -336,10 +346,14 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         y,
         vx,
         vy,
-        direction: dir,
-        prevDirection: 0,
+        direction: initialDir,
+        prevDirection: initialDir,
         nativeFacing,
-        currentScaleX: initialScaleX
+        currentScaleX: initialScaleX,
+        pitch: 0,
+        phase: (i * 1.35) % (Math.PI * 2),
+        speedBase,
+        isSquid
       });
 
       return {
@@ -358,8 +372,9 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         badge: cutout.badge,
         neededForNext: cutout.neededForNext,
         nextStageName: cutout.nextStageName,
-        animationDuration: `${1.3 + (i % 5) * 0.22}s`,
-        animationDelay: `-${(i * 0.35) % 2}s`
+        animationDuration: isSquid ? `${3.2 + (i % 3) * 0.35}s` : `${1.75 + (i % 5) * 0.28}s`,
+        animationDelay: `-${(i * 0.35) % 2}s`,
+        isSquid
       };
     });
 
@@ -384,9 +399,9 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         return;
       }
 
-      // Akıllı tahta CPU optimizasyonu: 30 FPS hız limiti ile balık fiziği
-      if (!lastTime || now - lastTime >= 33) {
-        const dt = Math.min(now - (lastTime || now), 64); // Frame drop durumunda fırlamayı önle
+      // Akıllı tahta CPU optimizasyonu: ~30-40 FPS akıcı fizikle balık simülasyonu
+      if (!lastTime || now - lastTime >= 30) {
+        const dt = Math.min(now - (lastTime || now), 60); // Frame drop durumunda fırlamayı önle
         lastTime = now;
         const speedFactor = dt / 16.666; // Normalize hız çarpanı
 
@@ -399,35 +414,69 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
         for (let i = 0; i < list.length; i++) {
           const f = list[i];
+
+          // 1. Kenarlarda Yumuşak Dönüş Manevrası (%20 daha sakin dönüş)
+          if (f.x > 82 && f.vx > 0) {
+            f.vx -= 0.0018 * speedFactor;
+            if (f.x >= 88) {
+              f.x = 88;
+              f.vx = -Math.max(0.013, Math.abs(f.vx));
+            }
+          } else if (f.x < 14 && f.vx < 0) {
+            f.vx += 0.0018 * speedFactor;
+            if (f.x <= 8) {
+              f.x = 8;
+              f.vx = Math.max(0.013, Math.abs(f.vx));
+            }
+          } else {
+            // Açık suda balığın doğal seyir hızına yumuşak kavuşması
+            const targetVx = f.direction * f.speedBase;
+            f.vx += (targetVx - f.vx) * 0.02 * speedFactor;
+          }
+
+          // Dikey Sınırlar (%16 - %78): Yumuşak süzülüş ve yönelme (%20 daha sakin)
+          if (f.y > 76 && f.vy > 0) {
+            f.vy -= 0.0010 * speedFactor;
+            if (f.y >= 80) {
+              f.y = 80;
+              f.vy = -Math.max(0.0065, Math.abs(f.vy));
+            }
+          } else if (f.y < 18 && f.vy < 0) {
+            f.vy += 0.0010 * speedFactor;
+            if (f.y <= 14) {
+              f.y = 14;
+              f.vy = Math.max(0.0065, Math.abs(f.vy));
+            }
+          } else {
+            // Doğal hafif dikey akıntı salınımı (%20 daha sakin)
+            if (Math.random() < 0.01) {
+              f.vy += (Math.random() - 0.5) * 0.0096;
+              f.vy = Math.max(-0.021, Math.min(0.021, f.vy));
+            }
+          }
+
+          // Sinüzoidal su altı doğal yüzme dalgalanması (Floating wave - %20 daha sakin)
+          const wave = Math.sin((now * 0.0013) + f.phase) * (f.isSquid ? 0.0056 : 0.0036) * speedFactor;
+
           let newX = f.x + f.vx * speedFactor;
-          let newY = f.y + f.vy * speedFactor;
+          let newY = f.y + f.vy * speedFactor + wave;
 
-          // X sınırları (%8 - %88)
-          if (newX <= 8) {
-            newX = 8;
-            f.vx = Math.abs(f.vx);
-          } else if (newX >= 88) {
-            newX = 88;
-            f.vx = -Math.abs(f.vx);
-          }
-
-          // Y sınırları (%14 - %80)
-          if (newY <= 14) {
-            newY = 14;
-            f.vy = Math.abs(f.vy);
-          } else if (newY >= 80) {
-            newY = 80;
-            f.vy = -Math.abs(f.vy);
-          }
-
-          // Minik organik dalgalanmalar
-          if (Math.random() < 0.012) {
-            f.vy = (Math.random() - 0.5) * 0.05;
-          }
+          newX = Math.max(8, Math.min(88, newX));
+          newY = Math.max(14, Math.min(80, newY));
 
           f.x = newX;
           f.y = newY;
-          f.direction = f.vx >= 0 ? 1 : -1;
+
+          // Yön kontrolü: f.vx açıkça sıfırı aştığında yön karar verilir
+          if (f.vx > 0.004) {
+            f.direction = 1;
+          } else if (f.vx < -0.004) {
+            f.direction = -1;
+          }
+
+          // Akıcı Burun Açısı (Pitch tilt): Balık yüzerken suyun akışına göre burnun zarif eğimi
+          const targetPitch = Math.max(-10, Math.min(10, f.vy * 260));
+          f.pitch += (targetPitch - f.pitch) * 0.05 * speedFactor;
 
           // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
           const el = domMap.get(f.id);
@@ -437,14 +486,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
           }
 
-          // Balığın her zaman yüzdüğü yöne bakması (Balık asla geri geri yüzmez!)
-          if (f.direction !== f.prevDirection) {
-            f.prevDirection = f.direction;
+          // Balığın yüzdüğü yöne bakması ve organik su altı derinlik eğimi
+          const bodyEl = bodyMap.get(f.id);
+          if (bodyEl) {
             f.currentScaleX = f.direction === 1 ? -1 : 1;
-            const bodyEl = bodyMap.get(f.id);
-            if (bodyEl) {
-              bodyEl.style.transform = `scaleX(${f.currentScaleX})`;
-            }
+            const effectiveTilt = f.direction === 1 ? -f.pitch : f.pitch;
+            bodyEl.style.transform = `scaleX(${f.currentScaleX}) rotate(${effectiveTilt.toFixed(1)}deg)`;
           }
         }
       }
@@ -513,7 +560,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
       const studentIdx = currentGradeStudents.findIndex(st => st.id === fish.studentId);
       const modelIndex = studentIdx >= 0 ? studentIdx : fishes.findIndex(item => item.studentId === fish.studentId);
-      const newCutout = getCutoutFishInfo(modelIndex, res.newCount);
+      const newCutout = getCutoutFishInfo(modelIndex, res.newCount, fish.studentId || fish.name);
       const isEvolved = newCutout.stageIndex > fish.stageIndex;
 
       if (isEvolved && soundEnabled && playMp3) {
@@ -534,7 +581,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               badge: newCutout.badge,
               neededForNext: newCutout.neededForNext,
               nextStageName: newCutout.nextStageName,
-              isHappy: true
+              isHappy: true,
+              isSquid: newCutout.speciesId === 'murekkep_baligi'
             };
           }
           return item;
@@ -582,7 +630,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             const nextCount = Math.max(0, f.homeworkCount - 1);
             const studentIdx = currentGradeStudents.findIndex(st => st.id === studentId);
             const modelIndex = studentIdx >= 0 ? studentIdx : prev.findIndex(item => item.studentId === studentId);
-            const rolledCutout = getCutoutFishInfo(modelIndex, nextCount);
+            const rolledCutout = getCutoutFishInfo(modelIndex, nextCount, f.studentId || f.name);
             return {
               ...f,
               homeworkCount: nextCount,
@@ -593,7 +641,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
               badge: rolledCutout.badge,
               neededForNext: rolledCutout.neededForNext,
               nextStageName: rolledCutout.nextStageName,
-              lastCompletedDate: undefined
+              lastCompletedDate: undefined,
+              isSquid: rolledCutout.speciesId === 'murekkep_baligi'
             };
           }
           return f;
@@ -627,7 +676,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
     const studentIdx = currentGradeStudents.findIndex(student => student.id === fish.studentId);
     const modelIndex = studentIdx >= 0 ? studentIdx : fishes.findIndex(item => item.studentId === fish.studentId);
-    const updatedCutout = getCutoutFishInfo(modelIndex, result.newCount);
+    const updatedCutout = getCutoutFishInfo(modelIndex, result.newCount, fish.studentId || fish.name);
     setFishes(prev => prev.map(item => item.studentId === fish.studentId ? {
       ...item,
       homeworkCount: result.newCount,
@@ -638,7 +687,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       stageIndex: updatedCutout.stageIndex,
       badge: updatedCutout.badge,
       neededForNext: updatedCutout.neededForNext,
-      nextStageName: updatedCutout.nextStageName
+      nextStageName: updatedCutout.nextStageName,
+      isSquid: updatedCutout.speciesId === 'murekkep_baligi'
     } : item));
 
     setActivePopup({
@@ -858,23 +908,56 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
           </div>
         </div>
 
-        {/* CSS KEYFRAMES: GERÇEKÇİ KUYRUK SALLAMA VE AŞAĞIDAN YUKARI BALONCUK YÜKSELME */}
+        {/* CSS KEYFRAMES: AKICI BALIK DALGALANMASI, MÜREKKEP BALIĞI SİFON İTİŞİ VE YÜKSELEN BALONCUKLAR */}
         <style>{`
-          @keyframes fishTailWag {
+          /* Gerçekçi Balık Akıcı Yüzme Dalgası (Fluid Spine Wave & Buoyancy) */
+          @keyframes fishFluidSwim {
             0% {
-              transform: rotate(0deg) skewY(0deg);
+              transform: rotate(0deg) skewY(0deg) translateY(0px);
             }
             25% {
-              transform: rotate(3deg) skewY(1.8deg) scaleY(0.98);
+              transform: rotate(2.4deg) skewY(1.4deg) translateY(-1.4px) scaleY(0.985);
             }
             50% {
-              transform: rotate(0deg) skewY(0deg) scaleY(1);
+              transform: rotate(0deg) skewY(0deg) translateY(0px) scaleY(1);
             }
             75% {
-              transform: rotate(-3deg) skewY(-1.8deg) scaleY(0.98);
+              transform: rotate(-2.4deg) skewY(-1.4deg) translateY(1.4px) scaleY(0.985);
             }
             100% {
-              transform: rotate(0deg) skewY(0deg);
+              transform: rotate(0deg) skewY(0deg) translateY(0px);
+            }
+          }
+
+          /* Mürekkep Balığı (Kalamar) Sifon Kasılması ve Zarif İleri Süzülüşü (Squid Jet Pulse & Glide) */
+          @keyframes squidJetSwim {
+            0% {
+              transform: scale(1, 1) rotate(0deg) translateY(0px);
+            }
+            18% {
+              /* Sifon su fışkırtma & kasılma */
+              transform: scale(1.04, 0.93) rotate(-1.5deg) translateY(-2px);
+            }
+            42% {
+              /* Zarif ileri süzülme ve kolların arkada akıcı dalgalanması */
+              transform: scale(0.96, 1.03) rotate(1.2deg) translateY(-3.8px);
+            }
+            72% {
+              /* Süzülmenin yumuşaması */
+              transform: scale(0.99, 1.01) rotate(-0.4deg) translateY(-1.2px);
+            }
+            100% {
+              transform: scale(1, 1) rotate(0deg) translateY(0px);
+            }
+          }
+
+          /* Mürekkep Balığı Biyolüminesans (Işıldama) Efekti */
+          @keyframes squidBioPulse {
+            0%, 100% {
+              filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+            }
+            50% {
+              filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.7)) drop-shadow(0 0 22px rgba(56, 189, 248, 0.55)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
             }
           }
 
@@ -990,7 +1073,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   )}
                 </div>
 
-                {/* Balık Gövdesi: Kuyruk Sallama (Tail Wag), Dönüş Geçişi ve Gölge */}
+                {/* Balık / Mürekkep Balığı Gövdesi: Akıcı Dönüş Geçişi, Derinlik Gölgesi ve Işıldama */}
                 <div
                   ref={(el) => {
                     if (el) {
@@ -1007,19 +1090,25 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   }`}
                   style={{
                     width: `${fish.fishWidth}px`,
-                    transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)',
+                    transition: 'transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1)',
                     willChange: 'transform',
                     filter: isCompletedToday
                       ? 'drop-shadow(0 2px 7px rgba(34, 197, 94, 0.85)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5))'
+                      : fish.isSquid
+                      ? undefined
                       : 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55))'
                   }}
                 >
-                  {/* Gerçekçi Balık Kuyruk Yüzme Animasyonu (Baştan Kuyruğa Dalgalanma) */}
+                  {/* Gerçekçi Balık / Mürekkep Balığı Yüzme Animasyonu */}
                   <div
                     className="w-full h-full relative"
                     style={{
-                      transformOrigin: '22% 50%',
-                      animation: teacherMode ? 'none' : `fishTailWag ${fish.animationDuration} ease-in-out infinite`,
+                      transformOrigin: fish.isSquid ? '42% 50%' : '22% 50%',
+                      animation: teacherMode
+                        ? 'none'
+                        : fish.isSquid
+                        ? `squidJetSwim ${fish.animationDuration} ease-in-out infinite, squidBioPulse 3.5s ease-in-out infinite`
+                        : `fishFluidSwim ${fish.animationDuration} ease-in-out infinite`,
                       animationDelay: fish.animationDelay,
                       willChange: 'transform'
                     }}

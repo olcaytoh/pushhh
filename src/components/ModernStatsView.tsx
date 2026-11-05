@@ -28,6 +28,7 @@ import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types'
 import { Student } from '../types/student';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { StudentTopicStatsDetail } from './StudentTopicStatsDetail';
+import { StudentPerformanceChart } from './StudentPerformanceChart';
 import { resetSingleStudentStat, resetSingleStudentTopicStat, deduplicateStudents } from '../utils/studentStore';
 import { loadHomeworkData, getTodayDateString } from '../utils/homeworkStore';
 import { topics1stGrade } from '../data/topics1stGrade';
@@ -300,8 +301,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
     }
   }, [activeGrade]);
 
-  // View mode: 'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler'
-  const [viewMode, setViewMode] = useState<'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler'>('tek_kisilik');
+  // View mode: 'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler' | 'gelisim_grafigi'
+  const [viewMode, setViewMode] = useState<'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler' | 'gelisim_grafigi'>('tek_kisilik');
 
   const [localStudents, setLocalStudents] = useState<Student[]>(() => deduplicateStudents(students || []));
   useEffect(() => {
@@ -823,6 +824,22 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               )}
             </button>
 
+            <button
+              onClick={() => {
+                setViewMode('gelisim_grafigi');
+                setExpandedStudentId(null);
+              }}
+              className={`px-2.5 py-1 rounded-md font-black text-[10px] sm:text-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'gelisim_grafigi'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow ring-2 ring-cyan-300 scale-105'
+                  : 'text-cyan-200/90 hover:text-white bg-cyan-950/40 border border-cyan-400/30 hover:bg-cyan-900/40'
+              }`}
+              title="Öğrencilerin Zaman İçindeki Gelişim Grafiğini Gör (recharts)"
+            >
+              <TrendingUp size={13} className="text-cyan-300 shrink-0" />
+              <span>📈 Gelişim Grafiği</span>
+            </button>
+
             {localStudents.length > 0 && (
               <button
                 disabled={isPdfExporting}
@@ -1059,7 +1076,14 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
         {/* 4. MAIN SCROLLABLE CONTENT: EXPANDED TOPIC LIST WITH MIN-H-0 */}
         <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-2 space-y-2">
           
-          {viewMode === 'ogrenciler' ? (
+          {viewMode === 'gelisim_grafigi' ? (
+            <div className="py-1">
+              <StudentPerformanceChart
+                students={localStudents}
+                initialGrade={currentGrade}
+              />
+            </div>
+          ) : viewMode === 'ogrenciler' ? (
             <div className="space-y-2.5 pb-2">
               {/* TOP ACTIONS & SEARCH */}
               <div className="flex items-center justify-between flex-wrap gap-2 px-1">

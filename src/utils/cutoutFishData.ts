@@ -201,10 +201,71 @@ export const CUTOUT_FISH_SPECIES: CutoutSpecies[] = [
       },
     ],
   },
+  // 7. Mürekkep Balığı Ailesi (Kalamar / Bioluminescent & Giant Squid)
+  {
+    id: 'murekkep_baligi',
+    name: 'Mürekkep Balığı Ailesi',
+    stages: [
+      {
+        minHomework: 0,
+        stageIndex: 1,
+        imageSrc: '/cutouts/murekkep_baligi_yavru.png',
+        stageName: 'Yavru Mürekkep Balığı',
+        badge: '🦑',
+        baseWidth: 62,
+      },
+      {
+        minHomework: 3,
+        stageIndex: 2,
+        imageSrc: '/cutouts/murekkep_baligi_genc.png',
+        stageName: 'Genç Parlayan Mürekkep Balığı',
+        badge: '✨🦑',
+        baseWidth: 80,
+      },
+      {
+        minHomework: 7,
+        stageIndex: 3,
+        imageSrc: '/cutouts/murekkep_baligi_yetiskin.png',
+        stageName: 'Yetişkin Dev Mürekkep Balığı',
+        badge: '👑🦑',
+        baseWidth: 104,
+      },
+    ],
+  },
 ];
 
-export function getCutoutFishInfo(modelIndex: number = 0, homeworkCount: number = 0) {
-  const speciesIdx = Math.abs(modelIndex) % CUTOUT_FISH_SPECIES.length;
+// 23 kişilik sınıfta mürekkep balığına sahip 3 kız öğrenci (Aybüke Yaylak, Elif Su Tekin, Zeynep Koç)
+export const SQUID_GIRL_STUDENT_IDS = new Set(['std_g2_1', 'std_g2_7', 'std_g2_22']);
+
+export function isSquidGirlStudent(studentIdOrName?: string | null): boolean {
+  if (!studentIdOrName) return false;
+  const clean = studentIdOrName.trim().toLocaleLowerCase('tr');
+  if (SQUID_GIRL_STUDENT_IDS.has(clean)) return true;
+  return (
+    clean === 'aybüke' || clean === 'aybuke' || clean.startsWith('aybüke ') || clean.startsWith('aybuke ') ||
+    clean === 'elif su' || clean.startsWith('elif su ') || clean.startsWith('elif su') ||
+    clean === 'zeynep koç' || clean === 'zeynep koc' || clean.startsWith('zeynep koç') || clean.startsWith('zeynep koc')
+  );
+}
+
+export function getCutoutFishInfo(
+  modelIndex: number = 0, 
+  homeworkCount: number = 0,
+  studentIdOrName?: string | null
+) {
+  const squidIdx = CUTOUT_FISH_SPECIES.findIndex(s => s.id === 'murekkep_baligi'); // 6
+  // Normal balık türleri: Mürekkep balığı hariç İLK 6 TÜR (0..5)
+  const regularSpeciesCount = squidIdx !== -1 ? squidIdx : 6;
+
+  // Varsayılan balık türü: SADECE ilk 6 normal balık türü arasında döner.
+  // Miraç (13 % 6 = 1), Umut (20 % 6 = 2), Efekan (6 % 6 = 0) ASLA mürekkep balığı olamaz!
+  let speciesIdx = Math.abs(modelIndex) % regularSpeciesCount;
+
+  // YALNIZCA ve SADECE 3 kız öğrenci (Aybüke, Elif Su, Zeynep Koç) özel Mürekkep Balığı modelini alır
+  if (isSquidGirlStudent(studentIdOrName) && squidIdx !== -1) {
+    speciesIdx = squidIdx;
+  }
+
   const species = CUTOUT_FISH_SPECIES[speciesIdx];
   const count = Math.max(0, homeworkCount || 0);
 
@@ -230,8 +291,6 @@ export function getCutoutFishInfo(modelIndex: number = 0, homeworkCount: number 
 
   // Balık boyutu üzerindeki sayı (ödev puanı) ile KESİNLİKLE DOĞRU ORANTILI:
   // Her 1 ödev puanı balığı düzenli (+6.5px) büyütür.
-  // 10 puandaki bir balık (127px), 8 puandaki bir balıktan (114px) daima büyüktür.
-  // Hiçbir balık kendisinden daha az puana sahip bir balıktan küçük olamaz.
   const BASE_WIDTH = 62;
   const GROWTH_PER_POINT = 6.5;
   const calculatedWidth = Math.min(260, Math.round(BASE_WIDTH + count * GROWTH_PER_POINT));

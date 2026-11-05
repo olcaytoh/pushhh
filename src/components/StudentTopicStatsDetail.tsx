@@ -10,11 +10,13 @@ import {
   Calendar,
   Sparkles,
   Search,
-  RotateCcw
+  RotateCcw,
+  TrendingUp
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { getTopicInfo, getCurriculumTopicsForGrade } from '../utils/topicHelper';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
+import { StudentPerformanceChart } from './StudentPerformanceChart';
 
 interface StudentTopicStatsDetailProps {
   student: Student;
@@ -36,6 +38,7 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmResetTopicKey, setConfirmResetTopicKey] = useState<string | null>(null);
+  const [showPerformanceChart, setShowPerformanceChart] = useState(false);
 
   const topicEntries = Object.entries(student.topicStats || {});
   const curriculumTopics = getCurriculumTopicsForGrade(student.grade);
@@ -172,6 +175,20 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
         <div className="flex items-center gap-2 ml-auto">
           <button
             type="button"
+            onClick={() => setShowPerformanceChart(!showPerformanceChart)}
+            className={`px-2.5 py-1 rounded-xl font-black text-xs flex items-center gap-1.5 shadow transition cursor-pointer active:scale-95 border ${
+              showPerformanceChart
+                ? 'bg-cyan-500 text-slate-950 border-cyan-300'
+                : 'bg-cyan-950/70 hover:bg-cyan-900 border-cyan-500/40 text-cyan-200'
+            }`}
+            title={`${student.name} için zaman içindeki başarı ve gelişim grafiğini aç (recharts)`}
+          >
+            <TrendingUp size={12} className={showPerformanceChart ? 'text-slate-950' : 'text-cyan-300'} />
+            <span>{showPerformanceChart ? 'Grafiği Gizle' : 'Gelişim Grafiği'}</span>
+          </button>
+
+          <button
+            type="button"
             disabled={isGeneratingPdf}
             onClick={handlePdfExport}
             className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black text-xs flex items-center gap-1.5 shadow shadow-rose-950/50 cursor-pointer active:scale-95 disabled:opacity-50 transition"
@@ -217,6 +234,18 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
           )}
         </div>
       </div>
+
+      {/* 1.5. ZAMAN İÇİNDEKİ GELİŞİM GRAFİĞİ (RECHARTS) */}
+      {showPerformanceChart && (
+        <div className="pt-2 animate-in fade-in duration-200">
+          <StudentPerformanceChart
+            students={[student]}
+            initialSelectedStudentIds={[student.id]}
+            initialGrade={student.grade}
+            onClose={() => setShowPerformanceChart(false)}
+          />
+        </div>
+      )}
 
       {/* 2. FILTER & TOPIC TABS */}
       <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5">
