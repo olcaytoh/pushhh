@@ -1347,8 +1347,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
             selectedStudentIds={activeMode === 'quiz1' ? [selectedStudentId || null] : effectiveSelectedStudentIds}
             onSelectStudentForPlayer={(pIdx, studentId) => {
               if (activeMode === 'quiz1') {
-                onSelectStudent?.(studentId);
-                onSelectStudentForPlayer?.(0, studentId);
+                if (onSelectStudentForPlayer) {
+                  onSelectStudentForPlayer(0, studentId);
+                } else if (onSelectStudent) {
+                  onSelectStudent(studentId);
+                }
                 setSelectedStudentIds(prev => {
                   const updated = [...prev];
                   updated[0] = studentId;

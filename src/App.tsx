@@ -3220,7 +3220,7 @@ export default function App() {
           let finalStudents = userLocalStudents;
 
           if (cloudData && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
-            finalStudents = deduplicateStudents(cloudData.students, user.email);
+            finalStudents = mergeStudentLists(userLocalStudents, cloudData.students, user.email);
 
             if (cloudData.counters) {
               const cleanedCounters = sanitizeCountersForUser(cloudData.counters, user.email);
@@ -3401,8 +3401,9 @@ export default function App() {
       const cloudData = await loadUserDataFromCloud(currentUser.uid, currentUser.email);
       if (cloudData) {
         if (cloudData.students && Array.isArray(cloudData.students) && cloudData.students.length > 0) {
-          setStudents(cloudData.students);
-          saveStudents(cloudData.students, currentUser.uid);
+          const mergedStudents = mergeStudentLists(students, cloudData.students, currentUser.email);
+          setStudents(mergedStudents);
+          saveStudents(mergedStudents, currentUser.uid);
         }
         if (cloudData.homeworkData && Object.keys(cloudData.homeworkData).length > 0) {
           const currentLocal = loadHomeworkData(currentUser.uid, currentUser.email);
@@ -6006,16 +6007,27 @@ export default function App() {
 
     setSelectedOption(option);
     const isCorrect = option === currentQuestionData.correct;
+
+    // 1. Update class counters
+    const gradeCat: GradeCategoryKey = selectedGrade === 1 ? 'grade1' : selectedGrade === 3 ? 'grade3' : selectedGrade === 4 ? 'grade4' : 'grade2';
+    const updatedCounters = recordClassQuestionSolved(gradeCat, isCorrect);
+    setCountersData(updatedCounters);
+
+    // 2. Global & Single stats
     kaydetIstatistik(currentTopic, isCorrect);
     if (playerCountMode === 1) {
       kaydetSingleIstatistik(currentTopic, isCorrect);
     }
+
+    // 3. Student individual stats
     if (selectedStudentIds[0]) {
       setStudents(prev => {
         const updated = recordStudentAnswer(selectedStudentIds[0]!, currentTopic, isCorrect, prev, currentUser?.uid);
-        triggerImmediateCloudSync(updated);
+        triggerImmediateCloudSync(updated, updatedCounters);
         return updated;
       });
+    } else {
+      triggerImmediateCloudSync(students, updatedCounters);
     }
 
     if (isCorrect) {
@@ -6142,14 +6154,25 @@ export default function App() {
     if (targetPlayer.feedbackState !== 'none' || !targetPlayer.currentQuestionData || targetPlayer.lives <= 0) return;
 
     const isCorrect = option === targetPlayer.currentQuestionData.correct;
+
+    // 1. Update class counters
+    const gradeCat: GradeCategoryKey = selectedGrade === 1 ? 'grade1' : selectedGrade === 3 ? 'grade3' : selectedGrade === 4 ? 'grade4' : 'grade2';
+    const updatedCounters = recordClassQuestionSolved(gradeCat, isCorrect);
+    setCountersData(updatedCounters);
+
+    // 2. Global & Group stats
     kaydetIstatistik(currentTopic, isCorrect);
     kaydetGrupIstatistik(pIndex, currentTopic, isCorrect);
+
+    // 3. Student individual stats
     if (selectedStudentIds[pIndex]) {
       setStudents(prev => {
         const updated = recordStudentAnswer(selectedStudentIds[pIndex]!, currentTopic, isCorrect, prev, currentUser?.uid);
-        triggerImmediateCloudSync(updated);
+        triggerImmediateCloudSync(updated, updatedCounters);
         return updated;
       });
+    } else {
+      triggerImmediateCloudSync(students, updatedCounters);
     }
 
     if (isCorrect) {
