@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -583,6 +583,12 @@ g4Diger.forEach(key => {
 // GENEL DİĞER OYUNLAR & İNGİLİZCE (Tüm Hub Listesi - 20 Özel Oyun Sıralı)
 // ==========================================
 export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
+  {
+    id: 'other_kodlama_mutfagi',
+    type: 'kodlama_mutfagi',
+    title: 'Kodlama & Algoritma Mutfağı',
+    categoryLabel: 'Diğer Oyunlar'
+  },
   {
     id: 'other_sozluk_sirala',
     type: 'sozluk_sirala',

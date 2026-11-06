@@ -38,6 +38,7 @@ interface OtherGamesHubProps {
   onOpenKesirDuvariPizza?: () => void;
   onOpenEsSesli?: () => void;
   onOpenDengeTerazisi?: () => void;
+  onOpenKodlamaMutfagi?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -76,6 +77,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenKesirDuvariPizza,
   onOpenEsSesli,
   onOpenDengeTerazisi,
+  onOpenKodlamaMutfagi,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -85,6 +87,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'kodlama_mutfagi',
+      title: 'Kodlama & Algoritma Mutfağı',
+      subtitle: 'Tarifi Sırala & Hata Ayıkla',
+      icon: '/MENUIKON/grid_icon_27.webp',
+      sound: '/coin.mp3',
+      isNew: true,
+      action: () => {
+        if (onOpenKodlamaMutfagi) onOpenKodlamaMutfagi();
+      },
+    },
     {
       id: 'sozluk_sirala',
       title: 'Sözlük Sıralama',
@@ -427,6 +440,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
           {games.map((game, index) => {
+            const isNew = (game as any).isNew;
             return (
               <button
                 key={game.id}
@@ -434,10 +448,22 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   triggerSound(game.sound);
                   game.action();
                 }}
-                className={`group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-500/70 border-l-4 border-l-pink-400 hover:border-pink-400 rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 h-[74px] sm:h-[82px] md:h-[90px] min-h-[74px] sm:min-h-[82px] md:min-h-[90px] max-h-[74px] sm:max-h-[82px] md:max-h-[90px] flex items-center gap-2.5 sm:gap-3.5 shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left ${
+                className={`group relative w-full ${
+                  isNew
+                    ? 'bg-gradient-to-r from-[#2c1d0a] via-[#422912] to-[#2c1d0a] hover:from-[#3a270f] hover:via-[#523318] hover:to-[#3a270f] border-2 border-amber-400 border-l-4 border-l-amber-300 hover:border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55)]'
+                    : 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-500/70 border-l-4 border-l-pink-400 hover:border-pink-400 shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)]'
+                } rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 h-[74px] sm:h-[82px] md:h-[90px] min-h-[74px] sm:min-h-[82px] md:min-h-[90px] max-h-[74px] sm:max-h-[82px] md:max-h-[90px] flex items-center gap-2.5 sm:gap-3.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left ${
                   index === games.length - 1 && games.length % 2 === 1 ? 'sm:col-span-2 sm:max-w-xl sm:mx-auto' : ''
                 }`}
               >
+                {/* SAĞ ÜST KÖŞE: GÖZ ALICI VE BELİRGİN "YENİ" İBARESİ */}
+                {isNew && (
+                  <div className="absolute top-0 right-0 z-30 flex items-center gap-1 px-3 py-0.5 sm:py-1 rounded-bl-2xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_2px_12px_rgba(239,68,68,0.7)] border-b-2 border-l-2 border-yellow-300 animate-pulse select-none pointer-events-none">
+                    <span className="text-yellow-200">✨</span>
+                    <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">YENİ</span>
+                  </div>
+                )}
+
                 {/* Left 3D Icon - Enlarged 100%, pure 3D borderless icon with rich depth shadow */}
                 <div className="relative shrink-0 z-10 flex items-center justify-center w-13 h-13 sm:w-15 sm:h-15 md:w-17 md:h-17 -my-1">
                   <img
@@ -449,12 +475,16 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
 
                 {/* Center Text Body - Exactly same as classroom topic buttons */}
                 <div className="flex-1 text-left min-w-0 py-0.5 z-10">
-                  <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide truncate">
-                    {game.title}
-                  </h4>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide truncate">
+                      {game.title}
+                    </h4>
+                  </div>
                   <div className="mt-1 flex items-center">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/35 border border-pink-400/30 text-pink-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs truncate max-w-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block shrink-0" />
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/35 border ${
+                      isNew ? 'border-amber-400/40 text-amber-300' : 'border-pink-400/30 text-pink-300'
+                    } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs truncate max-w-full`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isNew ? 'bg-amber-400' : 'bg-pink-400'} inline-block shrink-0`} />
                       <span className="truncate">{game.subtitle}</span>
                     </span>
                   </div>
@@ -462,10 +492,10 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
 
                 {/* Right Action: Clean BAŞLA Action badge - Exactly same as classroom topic buttons */}
                 <div className="z-10 shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-black/25 group-hover:bg-black/40 border border-white/15 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all">
-                  <span className="font-black text-[10px] sm:text-xs text-pink-300 tracking-wider uppercase drop-shadow">
+                  <span className={`font-black text-[10px] sm:text-xs ${isNew ? 'text-amber-300' : 'text-pink-300'} tracking-wider uppercase drop-shadow`}>
                     BAŞLA
                   </span>
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg ${isNew ? 'bg-amber-400' : 'bg-pink-400'} text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform`}>
                     ▶
                   </div>
                 </div>
