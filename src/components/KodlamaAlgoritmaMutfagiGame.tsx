@@ -867,12 +867,15 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
       {/* 3. ANA MUTFAK SAHNESİ - ARKA PLANLI VE GÖZ ALICI */}
       <div className="relative flex-1 flex flex-col justify-between p-2 sm:p-4 md:p-5 overflow-hidden">
         {/* Arka plan görseli (Sıcak Çizgi Mutfak) */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#2a1708] via-[#1a120b] to-[#120d08]">
           <img
-            src="/src/assets/images/kitchen_cozy_bg_1793996482368.jpg"
+            src="/mutfak/kitchen_bg.jpg"
             alt="Mutfak Arka Planı"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center filter brightness-[0.94]"
+            onError={(e) => {
+              // Görsel gecikirse veya yüklenemezse kırık ikon gösterme, şık arka plan degrade tonunu koru
+              (e.target as HTMLImageElement).style.opacity = '0';
+            }}
+            className="w-full h-full object-cover object-center filter brightness-[0.94] transition-opacity duration-300"
           />
           {/* Hafif sıcak güneş tonu katmanı */}
           <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-stone-900/20 to-transparent pointer-events-none" />
@@ -885,9 +888,11 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
             {/* ŞEF KARAKTERİ (Şirin Çizgi Şef Kızı) */}
             <div className="relative shrink-0 flex items-end">
               <img
-                src="/src/assets/images/kid_chef_character_1793996483436.jpg"
+                src="/mutfak/chef_girl.jpg"
                 alt="Şef Karakteri"
-                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
                 className={`w-24 h-32 sm:w-32 sm:h-44 md:w-40 md:h-52 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.4)] transition-transform duration-300 ${
                   chefEmotion === 'happy' ? 'scale-105 animate-bounce' : chefEmotion === 'cooking' ? 'scale-105 -rotate-2' : ''
                 }`}
