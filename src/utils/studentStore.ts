@@ -214,6 +214,29 @@ export function calculateStudentListTotalSolved(list: Student[]): number {
   }, 0);
 }
 
+/**
+ * Returns total correct, wrong, and overall answered questions for a student,
+ * combining direct total counters with individual topicStats.
+ */
+export function getStudentTotals(student?: Student | null): { correct: number; wrong: number; total: number } {
+  if (!student) return { correct: 0, wrong: 0, total: 0 };
+  let topicCorrect = 0;
+  let topicWrong = 0;
+  if (student.topicStats && typeof student.topicStats === 'object') {
+    Object.values(student.topicStats).forEach(ts => {
+      topicCorrect += ts.correct || 0;
+      topicWrong += ts.wrong || 0;
+    });
+  }
+  const correct = Math.max(student.totalCorrect || 0, topicCorrect);
+  const wrong = Math.max(student.totalWrong || 0, topicWrong);
+  return {
+    correct,
+    wrong,
+    total: correct + wrong
+  };
+}
+
 export function normalizeStudentName(name: string): string {
   if (!name) return '';
   return name
