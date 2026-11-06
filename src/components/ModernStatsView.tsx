@@ -104,6 +104,9 @@ interface ModernStatsViewProps {
   currentUser?: User | null;
   onOpenCloudSync?: () => void;
   onOpenOdevAkvaryumu?: () => void;
+  onManualSyncDown?: () => Promise<void> | void;
+  lastCloudSyncedAt?: string | null;
+  isCloudSyncing?: boolean;
 }
 
 const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; icon?: string }> = {
@@ -285,7 +288,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   onClose,
   currentUser,
   onOpenCloudSync,
-  onOpenOdevAkvaryumu
+  onOpenOdevAkvaryumu,
+  onManualSyncDown,
+  lastCloudSyncedAt,
+  isCloudSyncing = false
 }) => {
   // Active grade tab: defaults to currently chosen grade in the app, or 2nd grade
   const initialGrade = (activeGrade && [1, 2, 3, 4].includes(activeGrade)) ? activeGrade : 2;
@@ -295,14 +301,14 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   useEffect(() => {
     if (activeGrade && [1, 2, 3, 4].includes(activeGrade)) {
       setCurrentGrade(activeGrade);
-      setViewMode('tek_kisilik');
+      setViewMode('ogrenciler');
       setCategoryFilter('hepsi');
       setConfirmReset(false);
     }
   }, [activeGrade]);
 
   // View mode: 'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler' | 'gelisim_grafigi'
-  const [viewMode, setViewMode] = useState<'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler' | 'gelisim_grafigi'>('tek_kisilik');
+  const [viewMode, setViewMode] = useState<'tek_kisilik' | 'dogru_yanlis' | 'gruplar' | 'ogrenciler' | 'gelisim_grafigi'>('ogrenciler');
 
   const [localStudents, setLocalStudents] = useState<Student[]>(() => deduplicateStudents(students || []));
   useEffect(() => {
@@ -725,13 +731,35 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1 sm:p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-all cursor-pointer shrink-0 border border-white/20 active:scale-95 shadow"
-            title="Kapat"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onManualSyncDown && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await onManualSyncDown();
+                  } catch (e) {
+                    console.error('Manual sync from stats error:', e);
+                  }
+                }}
+                disabled={isCloudSyncing}
+                className="px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg bg-emerald-500/25 hover:bg-emerald-500/40 border border-emerald-400/40 text-emerald-200 hover:text-white text-[10px] sm:text-xs font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95 shadow"
+                title="Okul bilgisayarı ve akıllı tahtada çözülen en güncel istatistikleri buluttan anında çek ve yenile"
+              >
+                <Cloud size={13} className={isCloudSyncing ? 'animate-spin text-emerald-300' : 'text-emerald-300'} />
+                <span className="hidden sm:inline">{isCloudSyncing ? 'Eşitleniyor...' : 'Buluttan Canlı Çek'}</span>
+                <span className="sm:hidden">{isCloudSyncing ? '...' : 'Canlı Çek'}</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="p-1 sm:p-1.5 rounded-lg bg-white/10 hover:bg-white/25 text-white transition-all cursor-pointer shrink-0 border border-white/20 active:scale-95 shadow"
+              title="Kapat"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* 1. ROW: 4 GRADE SELECTOR TABS (COMPACT) */}
@@ -1255,6 +1283,24 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
             </div>
           ) : (
             <>
+              {/* ÖĞRENCİ SORU BİLDİRİMİ & GEÇİŞ BANDI */}
+              {studentTotalQuestions > 0 && (
+                <div
+                  onClick={() => setViewMode('ogrenciler')}
+                  className="bg-gradient-to-r from-amber-500/20 via-purple-600/30 to-amber-500/20 border border-amber-400/50 hover:border-amber-300 rounded-xl p-2 flex items-center justify-between gap-2 cursor-pointer transition shadow-sm shrink-0 mb-1"
+                >
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-base">🎓</span>
+                    <span className="text-amber-200">
+                      Öğrencilerinizin isim seçerek çözdüğü <strong>{studentTotalQuestions} soruluk</strong> karneleri görmek için tıklayın:
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] shrink-0 shadow">
+                    Öğrenci Karnelerine Git →
+                  </span>
+                </div>
+              )}
+
               {/* CATEGORY FILTER PILLS */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
             {categories.map(cat => (

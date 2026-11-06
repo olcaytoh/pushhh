@@ -16,6 +16,11 @@ import {
   signOutUser,
   saveUserDataToCloud,
   loadUserDataFromCloud,
+  subscribeToUserDataInCloud,
+  loadLocalGameStats,
+  mergeSingleStats,
+  mergeStatsRecords,
+  mergeGroupStats,
   getLocalLastSyncedAt,
   isFirestoreQuotaExceeded,
   getCloudSyncMode,
@@ -3184,6 +3189,7 @@ export default function App() {
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const isInitialCloudSyncDone = useRef(false);
   const currentLoadedUserRef = useRef<string | null>(null);
+  const cloudSubscriptionRef = useRef<(() => void) | null>(null);
 
   // Check for Google redirect sign-in result and listen to Firebase Auth state
   useEffect(() => {
@@ -3239,6 +3245,33 @@ export default function App() {
               const mergedHw = mergeHomeworkData(localHw, cleanedCloudHw);
               saveHomeworkData(mergedHw, user.uid, user.email);
             }
+            if (cloudData.singleStatsData) {
+              setSingleStatsData(prev => {
+                const merged = mergeSingleStats(prev, cloudData.singleStatsData);
+                try {
+                  localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+            if (cloudData.statsData) {
+              setStatsData(prev => {
+                const merged = mergeStatsRecords(prev, cloudData.statsData);
+                try {
+                  localStorage.setItem('mathGameStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+            if (cloudData.groupStatsData) {
+              setGroupStatsData(prev => {
+                const merged = mergeGroupStats(prev, cloudData.groupStatsData);
+                try {
+                  localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
             if (cloudData.lastSyncedAt) {
               setLastCloudSyncedAt(cloudData.lastSyncedAt);
             }
@@ -3268,8 +3301,82 @@ export default function App() {
           setIsCloudSyncing(false);
           isInitialCloudSyncDone.current = true;
         }
+
+        // 4. Attach real-time cloud listener so smartboard, school PC, and home MacBook stay 100% in sync
+        if (cloudSubscriptionRef.current) {
+          cloudSubscriptionRef.current();
+          cloudSubscriptionRef.current = null;
+        }
+        cloudSubscriptionRef.current = subscribeToUserDataInCloud(
+          user.uid,
+          user.email,
+          (incomingCloudData) => {
+            if (!auth.currentUser || auth.currentUser.uid !== user.uid) return;
+
+            if (incomingCloudData.students && Array.isArray(incomingCloudData.students) && incomingCloudData.students.length > 0) {
+              setStudents(prev => {
+                const merged = mergeStudentLists(prev, incomingCloudData.students, user.email);
+                saveStudents(merged, user.uid);
+                return merged;
+              });
+            }
+
+            if (incomingCloudData.counters) {
+              const cleanedCounters = sanitizeCountersForUser(incomingCloudData.counters, user.email);
+              setCountersData(cleanedCounters);
+              saveCounters(cleanedCounters);
+              try {
+                localStorage.setItem(`olcico_class_counters_user_${user.uid}`, JSON.stringify(cleanedCounters));
+              } catch {}
+            }
+
+            if (incomingCloudData.singleStatsData) {
+              setSingleStatsData(prev => {
+                const merged = mergeSingleStats(prev, incomingCloudData.singleStatsData);
+                try {
+                  localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+
+            if (incomingCloudData.statsData) {
+              setStatsData(prev => {
+                const merged = mergeStatsRecords(prev, incomingCloudData.statsData);
+                try {
+                  localStorage.setItem('mathGameStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+
+            if (incomingCloudData.groupStatsData) {
+              setGroupStatsData(prev => {
+                const merged = mergeGroupStats(prev, incomingCloudData.groupStatsData);
+                try {
+                  localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+
+            if (incomingCloudData.homeworkData) {
+              const curHw = loadHomeworkData(user.uid, user.email);
+              const mergedHw = mergeHomeworkData(curHw, incomingCloudData.homeworkData);
+              saveHomeworkData(mergedHw, user.uid, user.email);
+            }
+
+            if (incomingCloudData.lastSyncedAt) {
+              setLastCloudSyncedAt(incomingCloudData.lastSyncedAt);
+            }
+          }
+        );
       } else {
-        // User logged out: switch store to guest
+        // User logged out: switch store to guest and cancel subscription
+        if (cloudSubscriptionRef.current) {
+          cloudSubscriptionRef.current();
+          cloudSubscriptionRef.current = null;
+        }
         setActiveStoreUser(null, null);
         setActiveStoreHomeworkUser(null, null);
         setActiveCounterEmail(null);
@@ -3298,9 +3405,70 @@ export default function App() {
 
     return () => {
       unsubscribe();
+      if (cloudSubscriptionRef.current) {
+        cloudSubscriptionRef.current();
+        cloudSubscriptionRef.current = null;
+      }
       window.removeEventListener('odev_akvaryumu_saved', handleHwSaved);
       if (hwSyncTimeoutRef.current) clearTimeout(hwSyncTimeoutRef.current);
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, []);
+
+  // Otomatik sekme odaklanma kontrolü:
+  // Okul akıllı tahtası veya okul bilgisayarında soru çözüldüğünde, evdeki MacBook sekmesi öne geldiğinde
+  // veya ekran kilidi açıldığında buluttan en son verileri anında ve sessizce günceller.
+  useEffect(() => {
+    const handleTabReactivation = () => {
+      if (document.visibilityState === 'visible' && auth.currentUser) {
+        const u = auth.currentUser;
+        loadUserDataFromCloud(u.uid, u.email).then(cData => {
+          if (!cData) return;
+          if (cData.students && Array.isArray(cData.students) && cData.students.length > 0) {
+            setStudents(prev => {
+              const merged = mergeStudentLists(prev, cData.students, u.email);
+              saveStudents(merged, u.uid);
+              return merged;
+            });
+          }
+          if (cData.counters) {
+            const cleaned = sanitizeCountersForUser(cData.counters, u.email);
+            setCountersData(cleaned);
+            saveCounters(cleaned);
+          }
+          if (cData.singleStatsData) {
+            setSingleStatsData(prev => {
+              const merged = mergeSingleStats(prev, cData.singleStatsData);
+              try { localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(merged)); } catch {}
+              return merged;
+            });
+          }
+          if (cData.statsData) {
+            setStatsData(prev => {
+              const merged = mergeStatsRecords(prev, cData.statsData);
+              try { localStorage.setItem('mathGameStats_v1', JSON.stringify(merged)); } catch {}
+              return merged;
+            });
+          }
+          if (cData.groupStatsData) {
+            setGroupStatsData(prev => {
+              const merged = mergeGroupStats(prev, cData.groupStatsData);
+              try { localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(merged)); } catch {}
+              return merged;
+            });
+          }
+          if (cData.lastSyncedAt) {
+            setLastCloudSyncedAt(cData.lastSyncedAt);
+          }
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleTabReactivation);
+    window.addEventListener('focus', handleTabReactivation);
+    return () => {
+      window.removeEventListener('visibilitychange', handleTabReactivation);
+      window.removeEventListener('focus', handleTabReactivation);
     };
   }, []);
 
@@ -3342,7 +3510,20 @@ export default function App() {
       if (isFirestoreQuotaExceeded()) return;
       try {
         setIsCloudSyncing(true);
-        const syncTime = await saveUserDataToCloud(targetUid, sList, cData, selIds, email, hwData, false);
+        const syncTime = await saveUserDataToCloud(
+          targetUid, 
+          sList, 
+          cData, 
+          selIds, 
+          email, 
+          hwData, 
+          false,
+          {
+            singleStats: singleStatsData,
+            statsData: statsData,
+            groupStats: groupStatsData
+          }
+        );
         setLastCloudSyncedAt(syncTime);
       } catch (err) {
         console.error('Debounced cloud sync error:', err);
@@ -3377,7 +3558,20 @@ export default function App() {
     setIsCloudSyncing(true);
     try {
       const hwData = loadHomeworkData(currentUser.uid, currentUser.email);
-      const syncTime = await saveUserDataToCloud(currentUser.uid, students, countersData, selectedStudentIds, currentUser.email, hwData, true);
+      const syncTime = await saveUserDataToCloud(
+        currentUser.uid, 
+        students, 
+        countersData, 
+        selectedStudentIds, 
+        currentUser.email, 
+        hwData, 
+        true,
+        {
+          singleStats: singleStatsData,
+          statsData: statsData,
+          groupStats: groupStatsData
+        }
+      );
       setLastCloudSyncedAt(syncTime);
       setActivityToast('Buluta başarıyla yedeklendi! ☁️');
       setTimeout(() => setActivityToast(null), 3000);
@@ -3411,11 +3605,39 @@ export default function App() {
           saveHomeworkData(mergedHw, currentUser.uid, currentUser.email);
         }
         if (cloudData.counters) {
-          setCountersData(cloudData.counters);
-          saveCounters(cloudData.counters);
+          const cleanedCounters = sanitizeCountersForUser(cloudData.counters, currentUser.email);
+          setCountersData(cleanedCounters);
+          saveCounters(cleanedCounters);
           try {
-            localStorage.setItem(`olcico_class_counters_user_${currentUser.uid}`, JSON.stringify(cloudData.counters));
+            localStorage.setItem(`olcico_class_counters_user_${currentUser.uid}`, JSON.stringify(cleanedCounters));
           } catch {}
+        }
+        if (cloudData.singleStatsData) {
+          setSingleStatsData(prev => {
+            const merged = mergeSingleStats(prev, cloudData.singleStatsData);
+            try {
+              localStorage.setItem('mathGameSingleStats_v1', JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+        if (cloudData.statsData) {
+          setStatsData(prev => {
+            const merged = mergeStatsRecords(prev, cloudData.statsData);
+            try {
+              localStorage.setItem('mathGameStats_v1', JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+        if (cloudData.groupStatsData) {
+          setGroupStatsData(prev => {
+            const merged = mergeGroupStats(prev, cloudData.groupStatsData);
+            try {
+              localStorage.setItem('mathGameGroupStats_v1', JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
         }
         if (cloudData.selectedStudentIds && Array.isArray(cloudData.selectedStudentIds)) {
           setSelectedStudentIds(cloudData.selectedStudentIds);
@@ -3423,7 +3645,7 @@ export default function App() {
         if (cloudData.lastSyncedAt) {
           setLastCloudSyncedAt(cloudData.lastSyncedAt);
         }
-        setActivityToast('Buluttan hesabınıza ait veriler başarıyla geri yüklendi! 📥');
+        setActivityToast('Buluttan tüm veriler ve soru çözümleri başarıyla güncellendi! 📥');
         setTimeout(() => setActivityToast(null), 3000);
       } else {
         setActivityToast('Bulutta henüz kayıtlı veri bulunamadı.');
@@ -10397,6 +10619,9 @@ export default function App() {
               setShowStatsModal(false);
               setShowOdevAkvaryumu(true);
             }}
+            onManualSyncDown={handleManualSyncDown}
+            lastCloudSyncedAt={lastCloudSyncedAt}
+            isCloudSyncing={isCloudSyncing}
           />
         );
       })()}

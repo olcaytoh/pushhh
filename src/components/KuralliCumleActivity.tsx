@@ -1528,10 +1528,14 @@ const FitTrain: React.FC<{
   );
 };
 
+// Tren görselleri: Kullanıcı tarafından yüklenen yeni lokomotif ve vagon grafikleri
+const LOCOMOTIVE_IMG = '/assets/aistudio/lok_2280098a.png';
+const WAGON_IMG = '/assets/aistudio/vag_9a344345.png';
+
 // Çok oyunculu mod: vagon boyutu (doğal) ve kelime uzunluğuna göre yazı boyutu
 const MULTI_CAR_H = 120;
 const multiCarFont = (text: string) =>
-  text.length <= 6 ? 22 : text.length <= 9 ? 19 : text.length <= 11 ? 16 : 14;
+  text.length <= 5 ? 22 : text.length <= 8 ? 19 : text.length <= 11 ? 16 : 13;
 
 const PLAYER_THEMES = {
   p1: {
@@ -2183,13 +2187,13 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 <div className="relative flex flex-col items-center justify-end select-none pb-0.5">
                   <div className="relative">
                     <TrimmedImg
-                      src="/loko.webp"
+                      src={LOCOMOTIVE_IMG}
                       alt="Lokomotif"
                       style={{ height: MULTI_CAR_H }}
                       className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
                       draggable={false}
                     />
-                    <div className="absolute -top-2 left-4 px-1.5 py-0.5 bg-black/75 rounded-full border border-amber-400/50 text-[8.5px] font-black text-amber-300 shadow flex items-center gap-0.5">
+                    <div className="absolute -top-2 left-3 px-1.5 py-0.5 bg-black/75 rounded-full border border-amber-400/50 text-[8.5px] font-black text-amber-300 shadow flex items-center gap-0.5">
                       <span>💨</span>
                       <span>LOKO</span>
                     </div>
@@ -2249,13 +2253,16 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                     </div>
                     <div className="relative flex items-center justify-center">
                       <TrimmedImg
-                        src="/vago.webp"
+                        src={WAGON_IMG}
                         alt={`Vagon ${idx + 1}`}
                         style={{ height: MULTI_CAR_H }}
                         className="w-auto object-contain select-none pointer-events-none block"
                         draggable={false}
                       />
-                      <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
+                      <div
+                        style={{ top: '21%', bottom: '40%', left: '10%', right: '10%' }}
+                        className="absolute flex items-center justify-center pointer-events-none px-1"
+                      >
                         <span
                           style={{ fontSize: multiCarFont(word.text) }}
                           className="text-slate-950 font-black text-center leading-tight tracking-tight whitespace-nowrap"
@@ -2305,7 +2312,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                 }`}>
                   {/* Bilgilendirme */}
                   <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-black/40 border border-amber-400/40 text-[10px] sm:text-xs font-bold text-amber-200 text-center shrink-0">
-                    <img src="/loko.webp" alt="Lokomotif" className="w-4 h-auto object-contain inline-block" />
+                    <img src={LOCOMOTIVE_IMG} alt="Lokomotif" className="w-5 h-auto object-contain inline-block" />
                     <span>Vagonları sürükleyerek veya tıklayarak doğru sıraya diz!</span>
                   </div>
 
@@ -2422,8 +2429,8 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                   {
                     key: `${p.key}-loko`,
                     node: (
-                      <img
-                        src="/loko.webp"
+                      <TrimmedImg
+                        src={LOCOMOTIVE_IMG}
                         alt="Lokomotif"
                         style={{ height: MULTI_CAR_H }}
                         className="w-auto object-contain select-none pointer-events-none drop-shadow-md block"
@@ -2474,14 +2481,17 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
                         >
                           <div className={`text-[11px] font-black uppercase mb-0.5 ${t.labelText}`}>#{idx + 1}</div>
                           <div className="relative flex items-center justify-center">
-                            <img
-                              src="/vago.webp"
+                            <TrimmedImg
+                              src={WAGON_IMG}
                               alt={`Vagon ${idx + 1}`}
                               style={{ height: MULTI_CAR_H }}
                               className="w-auto object-contain select-none pointer-events-none block"
                               draggable={false}
                             />
-                            <div className="absolute top-[20%] inset-x-2 bottom-[36%] flex items-center justify-center pointer-events-none px-1">
+                            <div
+                              style={{ top: '21%', bottom: '40%', left: '10%', right: '10%' }}
+                              className="absolute flex items-center justify-center pointer-events-none px-1"
+                            >
                               <span
                                 style={{ fontSize: multiCarFont(word.text) }}
                                 className="text-slate-950 font-black text-center leading-tight tracking-tight whitespace-nowrap"

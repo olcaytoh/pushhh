@@ -37,7 +37,8 @@ import {
   restoreDefaultStudentsForGrade,
   deduplicateStudents,
   promoteStudentsGrade,
-  upgradeOlcaytoStudentNames
+  normalizeStudentName,
+  getStudentTotals
 } from '../utils/studentStore';
 import { exportStudentsToPDF } from '../utils/studentPdfExport';
 import { downloadDataToPC } from '../utils/backupFileService';
@@ -84,18 +85,6 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
       setExpandedStudentId(null);
     }
   }, [isOpen, currentGrade]);
-
-  // Otomatik olarak eksik soyadları ve 2. isimleri tamamla ve kaydet
-  useEffect(() => {
-    if (isOpen && Array.isArray(students) && students.length > 0) {
-      const upgraded = upgradeOlcaytoStudentNames(students, currentUser?.email);
-      const isDifferent = upgraded.some((s, i) => s.name !== students[i]?.name || s.className !== students[i]?.className);
-      if (isDifferent) {
-        saveStudents(upgraded, currentUser?.uid);
-        onStudentsUpdated(upgraded);
-      }
-    }
-  }, [isOpen, students, currentUser]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState<string>('ALL');
@@ -192,8 +181,8 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   });
 
   // Seçili sekmenin istatistikleri
-  const totalCorrect = gradeStudents.reduce((acc, s) => acc + s.totalCorrect, 0);
-  const totalWrong = gradeStudents.reduce((acc, s) => acc + s.totalWrong, 0);
+  const totalCorrect = gradeStudents.reduce((acc, s) => acc + getStudentTotals(s).correct, 0);
+  const totalWrong = gradeStudents.reduce((acc, s) => acc + getStudentTotals(s).wrong, 0);
   const totalAnswers = totalCorrect + totalWrong;
   const successRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0;
 
@@ -235,6 +224,12 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
     const targetGrade = newStudentGrade;
     const targetClass = newStudentClass.trim() || `${targetGrade}-A`;
 
+    if (students.some(x => x.grade === targetGrade && normalizeStudentName(x.name) === normalizeStudentName(newStudentName))) {
+      setSuccessNotice(`⚠️ "${newStudentName.trim()}" adlı öğrenci ${targetGrade}. sınıfta zaten var.`);
+      setTimeout(() => setSuccessNotice(null), 4000);
+      return;
+    }
+
     const newStd: Student = {
       id: `std_g${targetGrade}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: newStudentName.trim(),
@@ -262,6 +257,11 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
   // Öğrenci düzenleme kaydı
   const handleSaveEdit = (studentId: string) => {
     if (!editingName.trim()) return;
+    if (students.some(x => x.id !== studentId && x.grade === editingGrade && normalizeStudentName(x.name) === normalizeStudentName(editingName))) {
+      setSuccessNotice(`⚠️ "${editingName.trim()}" adlı başka bir öğrenci ${editingGrade}. sınıfta zaten var.`);
+      setTimeout(() => setSuccessNotice(null), 4000);
+      return;
+    }
     playMp3?.('/op.mp3');
     const updated = students.map(s => {
       if (s.id !== studentId) return s;
@@ -1136,8 +1136,9 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
             </div>
           ) : (
             filteredStudents.map((student) => {
-              const totalAnswers = student.totalCorrect + student.totalWrong;
-              const studentSuccessRate = totalAnswers > 0 ? Math.round((student.totalCorrect / totalAnswers) * 100) : 0;
+              const stTotals = getStudentTotals(student);
+              const totalAnswers = stTotals.correct + stTotals.wrong;
+              const studentSuccessRate = totalAnswers > 0 ? Math.round((stTotals.correct / totalAnswers) * 100) : 0;
               const isEditing = editingStudentId === student.id;
               const isExpanded = expandedStudentId === student.id;
               const topicEntries = Object.entries(student.topicStats || {});
@@ -1258,7 +1259,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                         title="Tüm konu istatistiklerini görmek için tıkla"
                       >
                         <CheckCircle2 size={13} />
-                        <span>{student.totalCorrect}</span>
+                        <span>{getStudentTotals(student).correct}</span>
                       </div>
 
                       {/* YANLIŞ */}
@@ -1268,7 +1269,7 @@ export const StudentRosterModal: React.FC<StudentRosterModalProps> = ({
                         title="Tüm konu istatistiklerini görmek için tıkla"
                       >
                         <XCircle size={13} />
-                        <span>{student.totalWrong}</span>
+                        <span>{getStudentTotals(student).wrong}</span>
                       </div>
 
                       {/* % BAŞARI */}

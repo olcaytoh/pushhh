@@ -694,12 +694,12 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
 
                       {/* UPPER TARGET ROW: SLOTS */}
                       <div className="relative z-10 w-full my-auto flex flex-col items-center gap-2 sm:gap-3">
-                        <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full gap-2 sm:gap-3`}>
+                        <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-4'} items-center justify-center w-full gap-2 sm:gap-3`}>
                           {player.upperSlots.map((word, slotIdx) => (
                             <div
                               key={`single_upper_${slotIdx}`}
                               onClick={() => handleTapUpperSlot(0, slotIdx)}
-                              className={`min-w-0 w-full min-h-[50px] sm:min-h-[64px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-2 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
+                              className={`min-w-0 w-full min-h-[46px] sm:min-h-[58px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-2 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
                                 word
                                   ? 'bg-gradient-to-b from-emerald-500 to-teal-600 text-white border-emerald-300 shadow-xl scale-102'
                                   : 'bg-white/5 border-dashed border-white/30 text-white/30 hover:border-white/60'
@@ -735,13 +735,13 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                         </div>
 
                         {/* LOWER SOURCE ROW: AVAILABLE WORDS */}
-                        <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full gap-2 sm:gap-3`}>
+                        <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-4'} items-center justify-center w-full gap-2 sm:gap-3`}>
                           {Array.from({ length: wordCount }).map((_, wordIdx) => {
                             const word = player.availableWords[wordIdx];
                             return (
                               <div
                                 key={`single_source_${wordIdx}`}
-                                className="w-full min-w-0 min-h-[50px] sm:min-h-[64px] flex items-center justify-center"
+                                className="w-full min-w-0 min-h-[46px] sm:min-h-[58px] flex items-center justify-center"
                               >
                                 {word ? (
                                   <div
@@ -762,12 +762,21 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       </div>
 
                       {/* BOTTOM: CONTROLS */}
-                      <div className="relative z-10 w-full shrink-0 flex items-center justify-center gap-2 pt-1">
+                      <div className="relative z-10 w-full shrink-0 flex items-center justify-center gap-3 pt-2 pb-0.5">
+                        <button
+                          onClick={() => handleExecuteCheck(0)}
+                          disabled={roundWinner !== null}
+                          className="px-8 py-2.5 sm:py-3 rounded-full font-black text-sm sm:text-base tracking-wider uppercase transition-all cursor-pointer bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-white shadow-[0_4px_16px_rgba(16,185,129,0.5)] border-2 border-emerald-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <CheckCircle2 className="w-5 h-5 text-white" />
+                          <span>KONTROL ET</span>
+                        </button>
                         <button
                           onClick={() => handleResetPlayerSlots(0)}
-                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
+                          className="px-4 py-2.5 sm:py-3 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer active:scale-95 flex items-center gap-1.5"
                         >
-                          Temizle
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Temizle</span>
                         </button>
                       </div>
                     </div>
@@ -846,7 +855,7 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                     {/* Glassy Light Card holding Upper Target Slots and Lower Tray */}
                     <div className={`w-full rounded-2xl border shadow-xl flex flex-col ${playerMode === 3 ? 'p-1.5 gap-1' : 'p-2 sm:p-2.5 gap-1.5'} ${theme.cardBg}`}>
                       {/* UPPER TARGET ROW: BLANK / PLACED SLOTS FOR DICTIONARY ORDER */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {player.upperSlots.map((word, slotIdx) => (
                           <div
                             key={`upper_${slotIdx}`}
@@ -855,13 +864,13 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                             onClick={() => handleTapUpperSlot(pIdx, slotIdx)}
                             draggable={word !== null}
                             onDragStart={(e) => word && handleDragStartTarget(e, pIdx, word, slotIdx)}
-                            className={`min-w-0 w-full min-h-[46px] xs:min-h-[52px] sm:min-h-[62px] md:min-h-[72px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
+                            className={`min-w-0 w-full min-h-[40px] xs:min-h-[44px] sm:min-h-[52px] md:min-h-[58px] rounded-xl sm:rounded-2xl border-2 sm:border-3 flex flex-col items-center justify-center p-1 transition-all cursor-pointer font-black select-none text-center overflow-hidden ${
                               word 
                                 ? `${theme.slotFilled} hover:scale-105 active:scale-95 shadow-md` 
                                 : `${theme.slotEmpty} border-dashed`
                             }`}
                           >
-                            <span className={`text-[8.5px] xs:text-[9px] sm:text-[10px] uppercase font-extrabold leading-none mb-0.5 shrink-0 ${word ? 'opacity-90 text-white' : 'text-slate-500'}`}>
+                            <span className={`text-[8px] xs:text-[8.5px] sm:text-[9.5px] uppercase font-extrabold leading-none mb-0.5 shrink-0 ${word ? 'opacity-90 text-white' : 'text-slate-500'}`}>
                               {slotIdx + 1}. Sözcük
                             </span>
                             {word ? (
@@ -893,20 +902,20 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       </div>
 
                       {/* LOWER SOURCE ROW: SCRAMBLED WORDS AVAILABLE */}
-                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
+                      <div className={`grid ${wordCount === 3 ? 'grid-cols-3' : 'grid-cols-4'} items-center justify-center w-full ${playerMode === 3 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'}`}>
                         {Array.from({ length: wordCount }).map((_, wordIdx) => {
                           const word = player.availableWords[wordIdx];
                           return (
                             <div
                               key={`source_slot_${wordIdx}`}
-                              className="w-full min-w-0 min-h-[46px] xs:min-h-[52px] sm:min-h-[62px] md:min-h-[72px] flex items-center justify-center"
+                              className="w-full min-w-0 min-h-[40px] xs:min-h-[44px] sm:min-h-[52px] md:min-h-[58px] flex items-center justify-center"
                             >
                               {word ? (
                                 <div
                                   draggable
                                   onDragStart={(e) => handleDragStartSource(e, pIdx, word, wordIdx)}
                                   onClick={() => handleTapSourceWord(pIdx, word, wordIdx)}
-                                  className={`w-full min-w-0 h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-[2.5px] border-slate-200/90 shadow-[0_4px_10px_rgba(0,0,0,0.08)] hover:scale-105 hover:border-slate-400 active:scale-95 transition-all flex items-center justify-center p-1 sm:p-1.5 font-black uppercase cursor-pointer select-none text-center overflow-hidden ${
+                                  className={`w-full min-w-0 h-full rounded-xl sm:rounded-2xl bg-white text-slate-900 border-2 sm:border-[2.5px] border-slate-200/90 shadow-[0_4px_10px_rgba(0,0,0,0.08)] hover:scale-105 hover:border-slate-400 active:scale-95 transition-all flex items-center justify-center p-1 font-black uppercase cursor-pointer select-none text-center overflow-hidden ${
                                     word.length >= 7 ? 'tracking-normal' : 'tracking-wide'
                                   }`}
                                 >
@@ -929,15 +938,16 @@ export const KelimeSiralaGame: React.FC<KelimeSiralaGameProps> = ({
                       disabled={roundWinner !== null}
                       className={`w-full ${playerMode === 1 ? 'max-w-sm' : 'max-w-xs'} ${
                         playerMode === 3 
-                          ? 'py-1 sm:py-1.5 px-3 text-[11px] sm:text-xs' 
-                          : 'py-1.5 sm:py-2 px-5 text-xs sm:text-sm'
-                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 shrink-0 ${
+                          ? 'py-1.5 px-3 text-xs' 
+                          : 'py-2 px-5 text-xs sm:text-sm'
+                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 shadow-md active:scale-95 shrink-0 flex items-center justify-center gap-1.5 ${
                         theme.runBtn
                       } ${
                         roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     >
-                      KONTROL ET
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>KONTROL ET</span>
                     </button>
                   </div>
                 </div>

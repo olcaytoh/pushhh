@@ -32,9 +32,10 @@ import { MUSHAT_EMAIL, MUSHAT_3C_STUDENTS } from '../data/mushat3cStudents';
 import { BANU_EMAIL, BANU_2A_STUDENTS } from '../data/banu2aStudents';
 
 export const OLCAYTO_EMAIL = 'olcaytohokul@gmail.com';
+export const MERTHAYAT_EMAIL = 'merthayat8004@gmail.com';
 export { MUSHAT_EMAIL, BANU_EMAIL };
 
-// 23 ÖĞRENCİLİK 2-C SINIFI LİSTESİ (olcaytohokul@gmail.com HESABINA AİT GERÇEK SINIF VE İSTATİSTİKLER: 1932 DOĞRU / 532 YANLIŞ)
+// 23 ÖĞRENCİLİK 2-C SINIFI LİSTESİ (olcaytohokul@gmail.com ve merthayat8004@gmail.com HESABINA AİT GERÇEK SINIF VE İSTATİSTİKLER)
 export { OLCAYTO_2C_STUDENTS, MUSHAT_3C_STUDENTS, BANU_2A_STUDENTS };
 export const OLCAYTO_2A_STUDENTS: Student[] = OLCAYTO_2C_STUDENTS;
 
@@ -44,7 +45,12 @@ export const OLCAYTO_2A_NAMES_SET = new Set(
 
 export function isOlcaytoUser(userEmail?: string | null): boolean {
   const email = (userEmail || currentStoreUserEmail || '').trim().toLowerCase();
-  return email === OLCAYTO_EMAIL;
+  return (
+    email === OLCAYTO_EMAIL || 
+    email === MERTHAYAT_EMAIL || 
+    email.includes('olcayto') || 
+    email.includes('merthayat')
+  );
 }
 
 export function isMushatUser(userEmail?: string | null): boolean {

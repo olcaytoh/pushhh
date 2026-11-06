@@ -9,8 +9,9 @@ import {
   db, 
   User 
 } from '../firebase';
-import { doc, getDoc, getDocFromServer, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocFromServer, setDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { Student } from '../types/student';
+import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types';
 import { ClassCountersData, loadCounters, sanitizeCountersForUser } from '../utils/counterStorage';
 import { StudentHomeworkData } from '../types/homeworkAquarium';
 import { loadHomeworkData, calculateTotalHomework, sanitizeHomeworkForUser } from '../utils/homeworkStore';
@@ -29,7 +30,131 @@ export interface CloudClassroomData {
   counters: ClassCountersData;
   selectedStudentIds?: (string | null)[] | Record<string, any>;
   homeworkData?: Record<string, StudentHomeworkData>;
+  singleStatsData?: SinglePlayerStatsRecord;
+  statsData?: Record<string, StatRecord>;
+  groupStatsData?: GroupStatsRecord;
   lastSyncedAt: string;
+}
+
+export function loadLocalGameStats(): {
+  singleStats: SinglePlayerStatsRecord;
+  statsData: Record<string, StatRecord>;
+  groupStats: GroupStatsRecord;
+} {
+  let singleStats: SinglePlayerStatsRecord = { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+  let statsData: Record<string, StatRecord> = {};
+  let groupStats: GroupStatsRecord = {};
+
+  try {
+    const rawSingle = localStorage.getItem('mathGameSingleStats_v1');
+    if (rawSingle) singleStats = JSON.parse(rawSingle);
+  } catch {}
+
+  try {
+    const rawStats = localStorage.getItem('mathGameStats_v1');
+    if (rawStats) statsData = JSON.parse(rawStats);
+  } catch {}
+
+  try {
+    const rawGroup = localStorage.getItem('mathGameGroupStats_v1');
+    if (rawGroup) groupStats = JSON.parse(rawGroup);
+  } catch {}
+
+  return { singleStats, statsData, groupStats };
+}
+
+export function mergeSingleStats(
+  a: SinglePlayerStatsRecord | undefined,
+  b: SinglePlayerStatsRecord | undefined
+): SinglePlayerStatsRecord {
+  if (!a) return b || { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+  if (!b) return a;
+
+  const mergedTopicStats: Record<string, StatRecord> = { ...(a.topicStats || {}) };
+  if (b.topicStats) {
+    Object.entries(b.topicStats).forEach(([key, statB]) => {
+      const statA = mergedTopicStats[key];
+      if (!statA) {
+        mergedTopicStats[key] = { ...statB };
+      } else {
+        mergedTopicStats[key] = {
+          dogru: Math.max(statA.dogru || 0, statB.dogru || 0),
+          yanlis: Math.max(statA.yanlis || 0, statB.yanlis || 0)
+        };
+      }
+    });
+  }
+
+  let totalDogru = 0;
+  let totalYanlis = 0;
+  Object.values(mergedTopicStats).forEach(s => {
+    totalDogru += s.dogru || 0;
+    totalYanlis += s.yanlis || 0;
+  });
+
+  return {
+    dogru: Math.max(totalDogru, Math.max(a.dogru || 0, b.dogru || 0)),
+    yanlis: Math.max(totalYanlis, Math.max(a.yanlis || 0, b.yanlis || 0)),
+    wins: Math.max(a.wins || 0, b.wins || 0),
+    topicStats: mergedTopicStats
+  };
+}
+
+export function mergeStatsRecords(
+  a: Record<string, StatRecord> | undefined,
+  b: Record<string, StatRecord> | undefined
+): Record<string, StatRecord> {
+  const result: Record<string, StatRecord> = { ...(a || {}) };
+  if (!b) return result;
+  Object.entries(b).forEach(([key, statB]) => {
+    const statA = result[key];
+    if (!statA) {
+      result[key] = { ...statB };
+    } else {
+      result[key] = {
+        dogru: Math.max(statA.dogru || 0, statB.dogru || 0),
+        yanlis: Math.max(statA.yanlis || 0, statB.yanlis || 0)
+      };
+    }
+  });
+  return result;
+}
+
+export function mergeGroupStats(
+  a: GroupStatsRecord | undefined,
+  b: GroupStatsRecord | undefined
+): GroupStatsRecord {
+  const result: GroupStatsRecord = { ...(a || {}) };
+  if (!b) return result;
+  Object.entries(b).forEach(([grpKey, grpB]) => {
+    const grpA = result[grpKey];
+    if (!grpA) {
+      result[grpKey] = { ...grpB };
+    } else {
+      const mergedTopics: Record<string, any> = { ...(grpA.topicStats || {}) };
+      if (grpB.topicStats) {
+        Object.entries(grpB.topicStats).forEach(([topKey, tB]) => {
+          const tA = mergedTopics[topKey];
+          if (!tA) {
+            mergedTopics[topKey] = { ...tB };
+          } else {
+            mergedTopics[topKey] = {
+              dogru: Math.max(tA.dogru || 0, tB.dogru || 0),
+              yanlis: Math.max(tA.yanlis || 0, tB.yanlis || 0)
+            };
+          }
+        });
+      }
+      result[grpKey] = {
+        ...grpA,
+        dogru: Math.max(grpA.dogru || 0, grpB.dogru || 0),
+        yanlis: Math.max(grpA.yanlis || 0, grpB.yanlis || 0),
+        wins: Math.max(grpA.wins || 0, grpB.wins || 0),
+        topicStats: mergedTopics
+      };
+    }
+  });
+  return result;
 }
 
 export interface SyncStatus {
@@ -223,6 +348,11 @@ export function setLastSyncedDataSignature(sig: string | null): void {
  * ALWAYS merges with existing cloud data first to prevent ANY possibility of overwriting
  * populated classrooms with empty/default student lists.
  */
+/**
+ * Saves classroom data (students, stats/counters, selected students, and all game stats) to Firestore cloud.
+ * ALWAYS merges with existing cloud data first to prevent ANY possibility of overwriting
+ * populated classrooms with empty/default student lists.
+ */
 export async function saveUserDataToCloud(
   userId: string,
   students: Student[],
@@ -230,7 +360,12 @@ export async function saveUserDataToCloud(
   selectedStudentIds?: (string | null)[] | Record<string, any>,
   userEmail?: string | null,
   homeworkData?: Record<string, StudentHomeworkData>,
-  force: boolean = false
+  force: boolean = false,
+  extraStats?: {
+    singleStats?: SinglePlayerStatsRecord;
+    statsData?: Record<string, StatRecord>;
+    groupStats?: GroupStatsRecord;
+  }
 ): Promise<string> {
   const timestamp = new Date().toISOString();
 
@@ -251,12 +386,21 @@ export async function saveUserDataToCloud(
     saveToMultiUserVault(userEmail.toLowerCase(), studentsToPersist, { userId, userEmail });
   }
 
+  // Load and bundle all game statistics so other open devices (MacBook, PC, smartboard) see every solved question
+  const localStats = loadLocalGameStats();
+  const singleStatsToPersist = extraStats?.singleStats || localStats.singleStats;
+  const statsDataToPersist = extraStats?.statsData || localStats.statsData;
+  const groupStatsToPersist = extraStats?.groupStats || localStats.groupStats;
+
   const payload: Record<string, any> = {
     userId,
     userEmail: userEmail || '',
     studentsJson: JSON.stringify(studentsToPersist),
     countersJson: JSON.stringify(counters),
     selectedStudentIdsJson: selectedStudentIds ? JSON.stringify(selectedStudentIds) : '[]',
+    singleStatsJson: JSON.stringify(singleStatsToPersist),
+    statsJson: JSON.stringify(statsDataToPersist),
+    groupStatsJson: JSON.stringify(groupStatsToPersist),
     lastSyncedAt: timestamp
   };
 
@@ -271,7 +415,7 @@ export async function saveUserDataToCloud(
   }
 
   // Dirty-Checking (Kota Tasarrufu)
-  const currentSignature = `${userId}::${payload.studentsJson}::${payload.selectedStudentIdsJson}::${payload.homeworkJson || ''}`;
+  const currentSignature = `${userId}::${payload.studentsJson}::${payload.singleStatsJson}::${payload.statsJson}::${payload.groupStatsJson}::${payload.selectedStudentIdsJson}::${payload.homeworkJson || ''}`;
   if (!force && lastSyncedDataSignature && currentSignature === lastSyncedDataSignature) {
     return getLocalLastSyncedAt(userId) || timestamp;
   }
@@ -305,7 +449,7 @@ export async function saveUserDataToCloud(
 /**
  * Loads classroom data from Firestore cloud.
  * Thoroughly searches UID doc, Email doc, Root user doc, and Root email doc,
- * intelligently merging all discovered student rosters and homework data.
+ * intelligently merging all discovered student rosters, game statistics, and homework data.
  */
 export async function loadUserDataFromCloud(
   userId: string, 
@@ -332,6 +476,9 @@ export async function loadUserDataFromCloud(
   let mergedCounters: ClassCountersData | null = null;
   let mergedSelectedStudentIds: (string | null)[] | undefined = undefined;
   let mergedHomeworkData: Record<string, StudentHomeworkData> = {};
+  let mergedSingleStats: SinglePlayerStatsRecord = { dogru: 0, yanlis: 0, wins: 0, topicStats: {} };
+  let mergedStatsData: Record<string, StatRecord> = {};
+  let mergedGroupStats: GroupStatsRecord = {};
   let latestTimestamp = '';
   let foundAnyDoc = false;
 
@@ -360,6 +507,8 @@ export async function loadUserDataFromCloud(
       if (Array.isArray(docStudents) && docStudents.length > 0) {
         if (mergedStudents.length === 0) {
           mergedStudents = deduplicateStudents(docStudents, cleanEmail);
+        } else {
+          mergedStudents = mergeStudentLists(mergedStudents, docStudents, cleanEmail);
         }
       }
     } catch (e) {
@@ -395,6 +544,42 @@ export async function loadUserDataFromCloud(
       }
     } catch (e) {
       console.warn('Could not parse cloud selectedStudentIds', e);
+    }
+
+    // Parse single player stats
+    try {
+      if (data.singleStatsJson) {
+        const parsed = JSON.parse(data.singleStatsJson);
+        if (parsed && typeof parsed === 'object') {
+          mergedSingleStats = mergeSingleStats(mergedSingleStats, parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse cloud singleStats', e);
+    }
+
+    // Parse global statsData
+    try {
+      if (data.statsJson) {
+        const parsed = JSON.parse(data.statsJson);
+        if (parsed && typeof parsed === 'object') {
+          mergedStatsData = mergeStatsRecords(mergedStatsData, parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse cloud statsData', e);
+    }
+
+    // Parse group stats
+    try {
+      if (data.groupStatsJson) {
+        const parsed = JSON.parse(data.groupStatsJson);
+        if (parsed && typeof parsed === 'object') {
+          mergedGroupStats = mergeGroupStats(mergedGroupStats, parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse cloud groupStats', e);
     }
 
     // Parse homework data
@@ -446,8 +631,110 @@ export async function loadUserDataFromCloud(
     counters: mergedCounters || loadCounters(cleanEmail),
     selectedStudentIds: mergedSelectedStudentIds,
     homeworkData: Object.keys(mergedHomeworkData).length > 0 ? mergedHomeworkData : undefined,
+    singleStatsData: (mergedSingleStats.dogru > 0 || mergedSingleStats.yanlis > 0 || Object.keys(mergedSingleStats.topicStats || {}).length > 0) ? mergedSingleStats : undefined,
+    statsData: Object.keys(mergedStatsData).length > 0 ? mergedStatsData : undefined,
+    groupStatsData: Object.keys(mergedGroupStats).length > 0 ? mergedGroupStats : undefined,
     lastSyncedAt: latestTimestamp || new Date().toISOString()
   };
+}
+
+/**
+ * Subscribes in real-time to Firestore classroom document changes.
+ * Allows multiple open devices (e.g. school computer, smartboard, and home MacBook)
+ * to instantly reflect questions solved on any device without requiring a manual refresh.
+ */
+export function subscribeToUserDataInCloud(
+  userId: string,
+  userEmail: string | null | undefined,
+  onData: (data: CloudClassroomData) => void,
+  onError?: (err: any) => void
+): Unsubscribe {
+  const cleanEmail = userEmail ? userEmail.trim().toLowerCase() : null;
+  const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
+
+  return onSnapshot(
+    classroomRef,
+    (snapshot) => {
+      if (!snapshot.exists()) return;
+      const data = snapshot.data();
+      if (!data) return;
+
+      try {
+        let docStudents: Student[] = [];
+        if (data.studentsJson) {
+          docStudents = JSON.parse(data.studentsJson);
+        } else if (Array.isArray(data.students)) {
+          docStudents = data.students;
+        }
+        const cleanedStudents = deduplicateStudents(sanitizeStudentsForUser(docStudents, cleanEmail), cleanEmail);
+
+        let counters: ClassCountersData | null = null;
+        if (data.countersJson) {
+          counters = JSON.parse(data.countersJson);
+        } else if (data.counters && typeof data.counters === 'object') {
+          counters = data.counters;
+        }
+        const cleanedCounters = sanitizeCountersForUser(counters || loadCounters(cleanEmail), cleanEmail);
+
+        let selectedStudentIds: (string | null)[] | undefined = undefined;
+        if (data.selectedStudentIdsJson) {
+          try {
+            const parsed = JSON.parse(data.selectedStudentIdsJson);
+            if (Array.isArray(parsed)) selectedStudentIds = parsed;
+          } catch {}
+        }
+
+        let homeworkData: Record<string, StudentHomeworkData> | undefined = undefined;
+        if (data.homeworkJson) {
+          try {
+            const parsedHw = JSON.parse(data.homeworkJson);
+            if (parsedHw && typeof parsedHw === 'object') {
+              homeworkData = sanitizeHomeworkForUser(parsedHw, cleanEmail);
+            }
+          } catch {}
+        }
+
+        let singleStatsData: SinglePlayerStatsRecord | undefined = undefined;
+        if (data.singleStatsJson) {
+          try {
+            singleStatsData = JSON.parse(data.singleStatsJson);
+          } catch {}
+        }
+
+        let statsData: Record<string, StatRecord> | undefined = undefined;
+        if (data.statsJson) {
+          try {
+            statsData = JSON.parse(data.statsJson);
+          } catch {}
+        }
+
+        let groupStatsData: GroupStatsRecord | undefined = undefined;
+        if (data.groupStatsJson) {
+          try {
+            groupStatsData = JSON.parse(data.groupStatsJson);
+          } catch {}
+        }
+
+        onData({
+          userId,
+          students: cleanedStudents,
+          counters: cleanedCounters,
+          selectedStudentIds,
+          homeworkData,
+          singleStatsData,
+          statsData,
+          groupStatsData,
+          lastSyncedAt: data.lastSyncedAt || new Date().toISOString()
+        });
+      } catch (err) {
+        console.warn('Realtime cloud sync parse error:', err);
+      }
+    },
+    (error) => {
+      console.warn('Realtime cloud sync listener warning:', error);
+      if (onError) onError(error);
+    }
+  );
 }
 
 /**

@@ -720,12 +720,21 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
 
                       {/* BOTTOM: CONTROLS */}
-                      <div className="relative z-10 w-full shrink-0 flex items-center justify-center gap-2 pt-1">
+                      <div className="relative z-10 w-full shrink-0 flex items-center justify-center gap-3 pt-2 pb-0.5">
+                        <button
+                          onClick={() => handleExecuteCheck(0)}
+                          disabled={roundWinner !== null}
+                          className="px-8 py-2.5 sm:py-3 rounded-full font-black text-sm sm:text-base tracking-wider uppercase transition-all cursor-pointer bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-white shadow-[0_4px_16px_rgba(16,185,129,0.5)] border-2 border-emerald-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          <CheckCircle2 className="w-5 h-5 text-white" />
+                          <span>KONTROL ET</span>
+                        </button>
                         <button
                           onClick={() => handleResetPlayerSlots(0)}
-                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
+                          className="px-4 py-2.5 sm:py-3 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer active:scale-95 flex items-center gap-1.5"
                         >
-                          Temizle
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Temizle</span>
                         </button>
                       </div>
                     </div>
@@ -886,21 +895,22 @@ export const SozlukSiralaGame: React.FC<SozlukSiralaGameProps> = ({
                       </div>
                     </div>
 
-                    {/* 3.3 BOTTOM ACTION BUTTON: "ÇALIŞTIR" */}
+                    {/* 3.3 BOTTOM ACTION BUTTON: "KONTROL ET" */}
                     <button
                       onClick={() => handleExecuteCheck(pIdx)}
                       disabled={roundWinner !== null}
                       className={`w-full ${playerMode === 1 ? 'max-w-sm' : 'max-w-xs'} ${
                         playerMode === 3 
-                          ? 'py-1 sm:py-1.5 px-3 text-[11px] sm:text-xs' 
-                          : 'py-1.5 sm:py-2 px-5 text-xs sm:text-sm'
-                      } rounded-full font-black tracking-widest uppercase transition-all cursor-pointer border-2 shrink-0 ${
+                          ? 'py-1.5 sm:py-2 px-3 text-xs sm:text-sm' 
+                          : 'py-2 sm:py-2.5 px-5 text-sm sm:text-base'
+                      } rounded-full font-black tracking-wider uppercase transition-all cursor-pointer border-2 shrink-0 shadow-lg flex items-center justify-center gap-1.5 active:scale-95 ${
                         theme.runBtn
                       } ${
                         roundWinner !== null ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     >
-                      ÇALIŞTIR
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>KONTROL ET</span>
                     </button>
                   </div>
                 </div>
