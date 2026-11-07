@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import { 
-  Sparkles, RotateCcw, Home, ChevronRight,
+  Sparkles, RotateCcw, Home, ChevronRight, ChevronLeft,
   Flame, CheckCircle2, XCircle, ArrowLeft, ArrowRight, HelpCircle, Bug,
   ChefHat, Play, Award, Shuffle, UtensilsCrossed, AlertTriangle, Lightbulb,
   Volume2, VolumeX, Maximize2, Minimize2, X, SlidersHorizontal, ListOrdered
@@ -575,8 +575,10 @@ export function isRecipeAlgorithmValid(recipeId: string, steps: (RecipeStep | nu
 
     if ([yogurt, tuz, su, cirp].includes(-1)) return false;
 
-    if (yogurt > cirp || tuz > cirp || su > cirp) return false;
-    if (cirp !== validSteps.length - 1) return false;
+    // Yoğurt ve su, çırpıp bardağa dökmeden önce kaba konmalıdır
+    if (yogurt > cirp || su > cirp) return false;
+    // Çırpıp bardağa dökme işlemi ya son adımdır ya da tuzu en son dökenler için sondan bir öncedir
+    if (cirp !== validSteps.length - 1 && tuz !== validSteps.length - 1) return false;
 
     return true;
   }
@@ -624,10 +626,14 @@ export function isRecipeAlgorithmValid(recipeId: string, steps: (RecipeStep | nu
 
     if ([kes, yag, domatesDilim, domatesDiz, peynir, kapat].includes(-1)) return false;
 
-    if (kes > yag) return false;
-    if (domatesDilim > domatesDiz) return false;
-    if (domatesDiz > kapat || peynir > kapat || yag > kapat) return false;
+    // 1. Ekmeği kapatma işlemi daima en son adım olmalıdır
     if (kapat !== validSteps.length - 1) return false;
+    // 2. Domatesi dilimlemeden domatesleri ekmeğe dizemezsin
+    if (domatesDilim > domatesDiz) return false;
+    // 3. Ekmeği ortadan kesmeden içine malzeme konamaz (tereyağı, domates dizme, peynir koyma)
+    if (kes > yag || kes > domatesDiz || kes > peynir) return false;
+    // 4. Tüm iç malzemeler kapatmadan önce yerleştirilmelidir
+    if (domatesDiz > kapat || peynir > kapat || yag > kapat) return false;
 
     return true;
   }
@@ -1007,38 +1013,79 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
   };
 
   return (
-    <div className="fixed inset-0 z-[250] flex flex-col font-sans select-none overflow-hidden bg-stone-900 text-stone-900">
+    <div 
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-stone-900 text-stone-900 animate-fadeIn"
+    >
       
-      {/* 1. ÜST HEADER BAR - ŞIK VE BASİT */}
-      <header className="relative z-20 px-3 sm:px-6 py-2 bg-stone-950/90 border-b-2 border-stone-800 flex items-center justify-between gap-2 shrink-0">
-        {/* Sol Rozet: Algoritma Mutfağı & Tarif İsmi */}
-        <div className="bg-white/95 text-stone-900 rounded-2xl px-3.5 py-1.5 border-2 border-stone-800 shadow-md flex items-center gap-2 sm:gap-3">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow">
-            🍳
-          </div>
-          <div className="flex flex-col">
-            <span className="font-black text-xs sm:text-sm text-stone-900 leading-tight">
-              Algoritma Mutfağı
-            </span>
-            <span className="text-[11px] font-bold text-amber-700 leading-none">
-              {currentRecipe.name} • {mode === 'sirala' ? 'Sırala' : mode === 'eksik_adim' ? 'Eksik Adım' : 'Hata Ayıkla'}
-            </span>
+      {/* 1. ÜST HEADER BAR - ETKİNLİK NAVİGASYONU & ŞIK KONTROLLER */}
+      <header className="relative z-30 px-2 sm:px-5 py-1.5 sm:py-2 bg-stone-950/95 border-b-2 border-stone-800 flex items-center justify-between gap-2 shrink-0 shadow-md">
+        {/* Sol Grup: Navigasyon Butonları & Rozet */}
+        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+          {onPrevActivity && (
+            <button
+              onClick={onPrevActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-95 text-amber-200 hover:text-white flex items-center justify-center border border-stone-700 transition cursor-pointer shadow-sm shrink-0"
+              title="Önceki Etkinlik"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-95 text-white flex items-center justify-center border border-stone-700 transition cursor-pointer shadow-sm shrink-0"
+            title="Geri Dön"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          {onGoHome && (
+            <button
+              onClick={onGoHome}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white flex items-center justify-center border border-emerald-500 transition cursor-pointer shadow-sm shrink-0"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={16} />
+            </button>
+          )}
+          {onNextActivity && (
+            <button
+              onClick={onNextActivity}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-stone-800 hover:bg-stone-700 active:scale-95 text-amber-200 hover:text-white flex items-center justify-center border border-stone-700 transition cursor-pointer shadow-sm shrink-0"
+              title="Sonraki Etkinlik"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+
+          {/* Rozet: Algoritma Mutfağı & Tarif İsmi */}
+          <div className="bg-white/95 text-stone-900 rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-1 sm:py-1.5 border-2 border-stone-800 shadow-md flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black text-xs sm:text-sm shadow shrink-0">
+              🍳
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-[11px] sm:text-xs text-stone-900 leading-tight truncate">
+                Algoritma Mutfağı
+              </span>
+              <span className="text-[10px] sm:text-[11px] font-bold text-amber-700 leading-none truncate">
+                {currentRecipe.name} • {mode === 'sirala' ? 'Sırala' : mode === 'eksik_adim' ? 'Eksik Adım' : 'Hata Ayıkla'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Sağ Butonlar Grubu: Mod Seçici, Ses, Tam Ekran, Kapat */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Sağ Butonlar Grubu: Mod Seçici, Ses, Tam Ekran, Çıkış */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {/* Mod Seçici Açılır Menü */}
           <div className="relative">
             <button
               onClick={() => setShowModeDropdown(!showModeDropdown)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-white hover:bg-stone-50 text-stone-900 font-black text-xs sm:text-sm rounded-xl border-2 border-stone-800 shadow cursor-pointer active:scale-95 transition-all"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-white hover:bg-stone-50 text-stone-900 font-black text-xs sm:text-sm rounded-xl border-2 border-stone-800 shadow cursor-pointer active:scale-95 transition-all"
             >
               <SlidersHorizontal size={14} className="text-amber-600" />
-              <span className="hidden xs:inline">
+              <span className="hidden md:inline">
                 {mode === 'sirala' ? 'Sırala • Sırayla' : mode === 'eksik_adim' ? 'Eksik Adımı Bul' : 'Hata Ayıkla'}
               </span>
-              <span className="xs:hidden">Mod</span>
+              <span className="md:hidden">Mod</span>
             </button>
 
             {showModeDropdown && (
@@ -1074,7 +1121,7 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
             className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border-2 border-stone-800 shadow cursor-pointer active:scale-95"
             title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
           >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
           </button>
 
           {/* Tam Ekran Butonu */}
@@ -1083,16 +1130,17 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
             className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border-2 border-stone-800 shadow cursor-pointer active:scale-95"
             title="Tam Ekran"
           >
-            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
           </button>
 
-          {/* Kapat (X) Butonu */}
+          {/* Belirgin Kapat / Çıkış Butonu */}
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white border-2 border-stone-800 shadow cursor-pointer active:scale-95"
-            title="Çıkış"
+            className="flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs sm:text-sm border-2 border-stone-900 shadow-md cursor-pointer transition-all"
+            title="Etkinlikten Çık"
           >
             <X size={16} />
+            <span className="hidden xs:inline">Çıkış</span>
           </button>
         </div>
       </header>
@@ -1263,12 +1311,10 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
                         <div className="w-full flex-1 flex items-center justify-center pt-1 pb-0.5 overflow-hidden">
                           <CookingStepGraphic actionType={step.actionType} emoji={step.emoji} image={step.image} altText={step.title} />
                         </div>
-                        {/* Sade, Az ve Öz Başlık (Görselde yazı yoksa fallback olarak gösterilir) */}
-                        {!step.image && (
-                          <span className="w-full font-black text-stone-900 text-[10px] sm:text-xs text-center leading-tight truncate px-0.5">
-                            {step.title}
-                          </span>
-                        )}
+                        {/* Sade, Az ve Öz Başlık */}
+                        <span className="w-full font-black text-stone-900 text-[10px] sm:text-xs text-center leading-tight truncate px-0.5 mt-0.5 bg-amber-50/80 rounded py-0.5">
+                          {step.title}
+                        </span>
                       </>
                     ) : isMissingSlot ? (
                       <div className="w-full h-full flex flex-col items-center justify-center text-amber-700">
@@ -1323,11 +1369,9 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
                 <div className="w-full flex-1 flex items-center justify-center p-0.5 group-hover:scale-105 transition-transform overflow-hidden">
                   <CookingStepGraphic actionType={step.actionType} emoji={step.emoji} image={step.image} altText={step.title} />
                 </div>
-                {!step.image && (
-                  <span className="w-full font-black text-stone-900 text-[10px] sm:text-xs md:text-sm text-center leading-tight px-0.5 truncate">
-                    {step.title}
-                  </span>
-                )}
+                <span className="w-full font-black text-stone-900 text-[10px] sm:text-xs md:text-sm text-center leading-tight px-0.5 truncate mt-0.5 bg-amber-50/80 rounded py-0.5">
+                  {step.title}
+                </span>
               </button>
             ))}
 
@@ -1344,11 +1388,9 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
                     <div className="w-full flex-1 flex items-center justify-center p-0.5 overflow-hidden">
                       <CookingStepGraphic actionType={opt.actionType} emoji={opt.emoji} image={opt.image} altText={opt.title} />
                     </div>
-                    {!opt.image && (
-                      <span className="font-black text-stone-900 text-xs text-center leading-tight">
-                        {opt.title}
-                      </span>
-                    )}
+                    <span className="w-full font-black text-stone-900 text-[10px] sm:text-xs text-center leading-tight truncate px-0.5 mt-0.5 bg-amber-50/80 rounded py-0.5">
+                      {opt.title}
+                    </span>
                   </button>
                 ))}
               </div>
