@@ -443,6 +443,214 @@ const CookingStepGraphic: React.FC<{ actionType: string; emoji: string; image?: 
   }
 };
 
+/**
+ * Algoritmik Doğruluk Kontrolü
+ * Hem standart 1..N sıra kontrolünü hem de gerçek hayattaki mantıksal mutfak önkoşullarını destekler.
+ * Örneğin Menemen için:
+ * - Ocağı yak ve Tavaya yağ koy (biri 1 diğeri 2 olabilir, ikisi de domateslerden önce olmalıdır)
+ * - Yumurtaları kâseye kırma işlemi tavaya dökmeden önce herhangi bir adımda yapılabilir
+ * - Karıştırma işlemi domatesler tavaya girdikten sonra veya yumurta döküldükten sonra yapılabilir
+ * - Tabağa alma en son adım olmalıdır
+ */
+export function isRecipeAlgorithmValid(recipeId: string, steps: (RecipeStep | null)[]): boolean {
+  if (!steps || steps.length === 0 || steps.some(s => s === null || s === undefined)) {
+    return false;
+  }
+
+  const validSteps = steps as RecipeStep[];
+
+  // 1. Standart katı sıra kontrolü (1, 2, 3... sırasıyla)
+  const isStrictMatch = validSteps.every((s, idx) => s.order === idx + 1);
+  if (isStrictMatch) return true;
+
+  // 2. Esnek Algoritmik Bağımlılık (Dependency) Kontrolü
+  const getIdx = (action: string) => validSteps.findIndex(s => s.actionType === action || s.id.includes(action));
+
+  if (recipeId === 'menemen') {
+    const ocak = getIdx('ocagi_yak');
+    const yag = getIdx('tavaya_yag_koy');
+    const domates = getIdx('domatesleri_tavaya_koy');
+    const kase = getIdx('yumurtalari_kaseye_kir');
+    const tavaDok = getIdx('yumurtalari_tavaya_dok');
+    const karistir = getIdx('karistir');
+    const tabak = getIdx('tabaga_al');
+
+    // Tüm 7 adım mevcut olmalı
+    if ([ocak, yag, domates, kase, tavaDok, karistir, tabak].includes(-1)) return false;
+
+    // Mantıksal önkoşullar:
+    // a) Ocağı yakma ve yağ koyma domateslerden önce olmalı
+    if (ocak > domates || yag > domates) return false;
+    // b) Yumurta kâseye kırılmadan tavaya dökülemez
+    if (kase > tavaDok) return false;
+    // c) Domatesler tavaya konmadan yumurta dökülmez
+    if (domates > tavaDok) return false;
+    // d) Karıştırma işlemi en azından domatesler konduktan sonra yapılmalı
+    if (karistir < domates) return false;
+    // e) Tabağa alma en son adım olmalı
+    if (tabak !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'cay' || recipeId === 'cay_demleme') {
+    const suDoldur = getIdx('caydanliga_su_doldur');
+    const ocakKoy = getIdx('caydanligi_ocaga_koy');
+    const ocakYak = getIdx('ocagi_yak');
+    const cayKoy = getIdx('demlige_cay_koy');
+    const suDok = getIdx('kaynar_suyu_demlige_dok');
+    const beklet = getIdx('demligi_uste_koy_beklet');
+    const bardak = getIdx('bardaga_cay_koy');
+
+    if ([suDoldur, ocakKoy, ocakYak, cayKoy, suDok, beklet, bardak].includes(-1)) return false;
+
+    if (suDoldur > suDok || ocakKoy > suDok || ocakYak > suDok || cayKoy > suDok) return false;
+    if (suDok > beklet) return false;
+    if (beklet > bardak) return false;
+    if (bardak !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'tost') {
+    const makineAc = getIdx('tost_makinesini_ac');
+    const peynirKoy = getIdx('ekmege_peynir_koy');
+    const ekmekKapat = getIdx('ustune_ekmek_kapat');
+    const tostuKoy = getIdx('tostu_makineye_koy');
+    const kapakKapat = getIdx('kapagi_kapat_bekle');
+    const tabak = getIdx('tabaga_al');
+
+    if ([makineAc, peynirKoy, ekmekKapat, tostuKoy, kapakKapat, tabak].includes(-1)) return false;
+
+    if (peynirKoy > ekmekKapat) return false;
+    if (ekmekKapat > tostuKoy) return false;
+    if (tostuKoy > kapakKapat) return false;
+    if (makineAc > kapakKapat) return false;
+    if (kapakKapat > tabak) return false;
+    if (tabak !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'limonata') {
+    const kes = getIdx('limonlari_ikiye_kes');
+    const sik = getIdx('limonlari_sik');
+    const su = getIdx('surahiye_su_doldur');
+    const seker = getIdx('seker_ekle');
+    const karistir = getIdx('karistir');
+    const bardak = getIdx('bardaklara_dok');
+
+    if ([kes, sik, su, seker, karistir, bardak].includes(-1)) return false;
+
+    if (kes > sik) return false;
+    if (sik > karistir || su > karistir || seker > karistir) return false;
+    if (karistir > bardak) return false;
+    if (bardak !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'meyve_salatasi') {
+    const yika = getIdx('meyveleri_yika');
+    const soy = getIdx('muzu_soy');
+    const dogra = getIdx('meyveleri_dogra');
+    const kase = getIdx('kaseye_koy');
+    const karistir = getIdx('karistir');
+
+    if ([yika, soy, dogra, kase, karistir].includes(-1)) return false;
+
+    if (yika > dogra) return false;
+    if (dogra > kase || soy > kase) return false;
+    if (kase > karistir) return false;
+    if (karistir !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'ayran') {
+    const yogurt = getIdx('yogurdu_kaba_koy');
+    const tuz = getIdx('bir_tutam_tuz_ekle');
+    const su = getIdx('su_ekle');
+    const cirp = getIdx('cirp_ve_bardaga_dok');
+
+    if ([yogurt, tuz, su, cirp].includes(-1)) return false;
+
+    if (yogurt > cirp || tuz > cirp || su > cirp) return false;
+    if (cirp !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'recelli_ekmek') {
+    const tahta = getIdx('ekmegi_tahtaya_koy');
+    const dilimle = getIdx('ekmegi_dilimle');
+    const kavanoz = getIdx('recel_kavanozunu_ac');
+    const sur = getIdx('receli_ekmege_sur');
+    const tabak = getIdx('tabaga_koy');
+
+    if ([tahta, dilimle, kavanoz, sur, tabak].includes(-1)) return false;
+
+    if (tahta > dilimle) return false;
+    if (dilimle > sur || kavanoz > sur) return false;
+    if (sur > tabak) return false;
+    if (tabak !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'misir') {
+    const yag = getIdx('tencereye_yag_koy');
+    const misir = getIdx('misir_tanelerini_koy');
+    const ocak = getIdx('ocagi_yak');
+    const kapak = getIdx('kapagi_kapat');
+    const kase = getIdx('kaseye_bosalt');
+
+    if ([yag, misir, ocak, kapak, kase].includes(-1)) return false;
+
+    if (yag > kapak || misir > kapak) return false;
+    if (kapak > kase || ocak > kase) return false;
+    if (kase !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'sandvic') {
+    const kes = getIdx('ekmegi_ortadan_kes');
+    const yag = getIdx('tereyagi_sur');
+    const domatesDilim = getIdx('domatesi_dilimle');
+    const domatesDiz = getIdx('domatesleri_diz');
+    const peynir = getIdx('peynir_koy');
+    const kapat = getIdx('ekmegi_kapat');
+
+    if ([kes, yag, domatesDilim, domatesDiz, peynir, kapat].includes(-1)) return false;
+
+    if (kes > yag) return false;
+    if (domatesDilim > domatesDiz) return false;
+    if (domatesDiz > kapat || peynir > kapat || yag > kapat) return false;
+    if (kapat !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  if (recipeId === 'sicak_cikolata') {
+    const sut = getIdx('tencereye_sut_koy');
+    const ocak = getIdx('ocagi_yak');
+    const kakao = getIdx('kakao_ekle');
+    const karistir = getIdx('karistir');
+    const kupa = getIdx('kupaya_dok');
+
+    if ([sut, ocak, kakao, karistir, kupa].includes(-1)) return false;
+
+    if (sut > karistir || kakao > karistir || ocak > karistir) return false;
+    if (karistir > kupa) return false;
+    if (kupa !== validSteps.length - 1) return false;
+
+    return true;
+  }
+
+  return false;
+}
+
 interface KodlamaAlgoritmaMutfagiGameProps {
   onClose: () => void;
   onGoHome?: () => void;
@@ -492,6 +700,10 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
   const [chefSpeech, setChefSpeech] = useState<string>('');
   const [resultStatus, setResultStatus] = useState<'idle' | 'success' | 'failure'>('idle');
 
+  // BAŞARI & OTOMATİK İLERLEME POPUP MODALI
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
+
   // EKSİK ADIM MODU İÇİN STATE
   const [missingSlotIndex, setMissingSlotIndex] = useState<number>(0);
   const [missingOptions, setMissingOptions] = useState<RecipeStep[]>([]);
@@ -537,6 +749,8 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
     setIsExecuting(false);
     setExecutingStepIndex(null);
     setResultStatus('idle');
+    setShowSuccessModal(false);
+    setAutoAdvanceCountdown(null);
     setChefEmotion('normal');
     setChefSpeech(currentRecipe.promptText);
 
@@ -586,6 +800,29 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
   useEffect(() => {
     resetRound();
   }, [resetRound]);
+
+  // Otomatik sonraki tarife ilerleme sayacı (Başarı modalı açıkken)
+  useEffect(() => {
+    if (!showSuccessModal) {
+      setAutoAdvanceCountdown(null);
+      return;
+    }
+
+    setAutoAdvanceCountdown(4);
+    const interval = setInterval(() => {
+      setAutoAdvanceCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          setShowSuccessModal(false);
+          setRecipeIndex(p => (p + 1) % KITCHEN_RECIPES.length);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showSuccessModal, recipeIndex]);
 
   // KARTI TEZGAHTAN SIRAYA YERLEŞTİR (Sırala Modu)
   const handlePlaceCard = (card: RecipeStep) => {
@@ -674,22 +911,24 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
     setIsExecuting(false);
     setExecutingStepIndex(null);
 
-    // Her bir slotun doğru sırada olup olmadığını denetle
-    const isCorrect = slots.every((step, idx) => step && step.order === idx + 1);
+    // Hem standart sırayı hem de mantıksal mutfak önkoşullarını denetle
+    const isCorrect = isRecipeAlgorithmValid(currentRecipe.id, slots);
 
     if (isCorrect) {
       playSound('/alkis.mp3');
       playSound('/dogru.mp3');
       setChefEmotion('happy');
       setResultStatus('success');
+      setShowSuccessModal(true);
       setChefSpeech(`Tebrikler! ${currentRecipe.name} tarifini eksiksiz hazırladın. Harika bir şefsin!`);
       setCompletedRecipesCount(prev => prev + 1);
       onQuestionAnswered?.(true);
+      onGameCompleted?.(0, 1);
 
       confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 }
+        particleCount: 90,
+        spread: 80,
+        origin: { y: 0.55 }
       });
     } else {
       playSound('/yanlis.mp3');
@@ -712,10 +951,12 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
       newSlots[missingSlotIndex] = picked;
       setSlots(newSlots);
       setResultStatus('success');
+      setShowSuccessModal(true);
       setChefEmotion('happy');
       setChefSpeech(`Harika! Eksik olan "${picked.title}" adımını başarıyla buldun!`);
       setCompletedRecipesCount(prev => prev + 1);
       onQuestionAnswered?.(true);
+      onGameCompleted?.(0, 1);
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
     } else {
       playSound('/yanlis.mp3');
@@ -732,6 +973,7 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
       playSound('/alkis.mp3');
       playSound('/dogru.mp3');
       setResultStatus('success');
+      setShowSuccessModal(true);
       setChefEmotion('happy');
       const trueStep = currentRecipe.steps[idx];
       const fixedSlots = [...slots];
@@ -740,6 +982,7 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
       setChefSpeech(`Hata ayıklandı (Debugged)! Mantıksız olan adımı yakaladın, doğrusu "${trueStep.title}" oldu.`);
       setCompletedRecipesCount(prev => prev + 1);
       onQuestionAnswered?.(true);
+      onGameCompleted?.(0, 1);
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
     } else {
       playSound('/yanlis.mp3');
@@ -752,10 +995,14 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
   // SONRAKİ / ÖNCEKİ TARİF
   const handleNextRecipe = () => {
     playSound('/op.mp3');
+    setShowSuccessModal(false);
+    setAutoAdvanceCountdown(null);
     setRecipeIndex(prev => (prev + 1) % KITCHEN_RECIPES.length);
   };
   const handlePrevRecipe = () => {
     playSound('/op.mp3');
+    setShowSuccessModal(false);
+    setAutoAdvanceCountdown(null);
     setRecipeIndex(prev => (prev - 1 + KITCHEN_RECIPES.length) % KITCHEN_RECIPES.length);
   };
 
@@ -1050,8 +1297,17 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
           {/* KARTLAR LİSTESİ */}
           <div className="flex-1 flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar py-1 px-1">
             {mode === 'sirala' && availableCards.length === 0 && (
-              <div className="w-full py-4 text-center text-amber-200 font-bold text-xs sm:text-sm">
-                Tüm kartlar tepsiye dizildi! Sağdaki <strong className="text-orange-400">"Pişir!"</strong> butonuna basarak algoritmayı çalıştırabilirsin.
+              <div className="w-full py-3 text-center font-bold text-xs sm:text-sm">
+                {resultStatus === 'success' ? (
+                  <span className="text-emerald-300 flex items-center justify-center gap-2">
+                    <Sparkles size={16} className="text-yellow-300 animate-spin" />
+                    <span>Harika! Tarif başarıyla tamamlandı. Sıradaki tarife geçebilirsiniz.</span>
+                  </span>
+                ) : (
+                  <span className="text-amber-200">
+                    Tüm kartlar tepsiye dizildi! Sağdaki <strong className="text-orange-400">"Pişir!"</strong> butonuna basarak algoritmayı çalıştırabilirsin.
+                  </span>
+                )}
               </div>
             )}
 
@@ -1112,34 +1368,46 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
           {/* SAĞ EYLEM BUTONLARI (PİŞİR! VE KARIŞTIR) */}
           {mode === 'sirala' && (
             <div className="flex sm:flex-col gap-2 shrink-0 justify-center">
-              {/* PİŞİR BUTONU */}
-              <button
-                onClick={handleExecuteCooking}
-                disabled={isExecuting || availableCards.length > 0}
-                className={`flex-1 sm:flex-initial px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl border-3 border-stone-950 font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-95 transition-all ${
-                  availableCards.length === 0
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:brightness-110 animate-pulse'
-                    : 'bg-[#e5e5e5] text-stone-700 hover:bg-[#d5d5d5]'
-                }`}
-              >
-                <Flame size={20} className={availableCards.length === 0 ? 'text-yellow-200' : 'text-orange-500'} />
-                <span>Pişir!</span>
-              </button>
+              {/* PİŞİR VEYA SONRAKİ TARİF BUTONU */}
+              {resultStatus === 'success' ? (
+                <button
+                  onClick={handleNextRecipe}
+                  className="flex-1 sm:flex-initial px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl border-3 border-stone-950 font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-95 transition-all bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 text-white hover:brightness-110 animate-bounce"
+                >
+                  <Sparkles size={20} className="text-yellow-200" />
+                  <span>Sonraki Tarif ▶</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleExecuteCooking}
+                  disabled={isExecuting || availableCards.length > 0}
+                  className={`flex-1 sm:flex-initial px-5 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl border-3 border-stone-950 font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-xl cursor-pointer active:scale-95 transition-all ${
+                    availableCards.length === 0
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:brightness-110 animate-pulse'
+                      : 'bg-[#e5e5e5] text-stone-700 hover:bg-[#d5d5d5]'
+                  }`}
+                >
+                  <Flame size={20} className={availableCards.length === 0 ? 'text-yellow-200' : 'text-orange-500'} />
+                  <span>Pişir!</span>
+                </button>
+              )}
 
               {/* KARIŞTIR BUTONU */}
-              <button
-                onClick={handleShuffle}
-                disabled={isExecuting || availableCards.length <= 1}
-                className="flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#f2e6d6] hover:bg-[#e4d4be] text-stone-900 border-2 sm:border-3 border-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow active:scale-95 cursor-pointer"
-              >
-                <Shuffle size={16} />
-                <span>Karıştır</span>
-              </button>
+              {resultStatus !== 'success' && (
+                <button
+                  onClick={handleShuffle}
+                  disabled={isExecuting || availableCards.length <= 1}
+                  className="flex-1 sm:flex-initial px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-[#f2e6d6] hover:bg-[#e4d4be] text-stone-900 border-2 sm:border-3 border-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow active:scale-95 cursor-pointer"
+                >
+                  <Shuffle size={16} />
+                  <span>Karıştır</span>
+                </button>
+              )}
             </div>
           )}
 
           {/* EKSİK ADIM VEYA HATALI BUL MODUNDA YENİDEN BAŞLAT / DEVAM BUTONU */}
-          {resultStatus === 'success' && (
+          {resultStatus === 'success' && mode !== 'sirala' && (
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={handleNextRecipe}
@@ -1152,6 +1420,69 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
           )}
         </div>
       </div>
+
+      {/* 4. BAŞARI & TEBRİKLER MODALI (MERKEZİ VE NET İLERLEME) */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="relative bg-[#fffdf5] border-4 border-amber-500 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+            {/* Üst Yıldızlar */}
+            <div className="flex items-center gap-2 text-3xl sm:text-4xl text-amber-400 mb-2">
+              <span className="animate-bounce" style={{ animationDelay: '0ms' }}>⭐</span>
+              <span className="animate-bounce text-4xl sm:text-5xl" style={{ animationDelay: '150ms' }}>⭐</span>
+              <span className="animate-bounce" style={{ animationDelay: '300ms' }}>⭐</span>
+            </div>
+
+            {/* Yemek Görseli */}
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-white border-2 border-amber-200 p-2 shadow-inner flex items-center justify-center my-2 overflow-hidden">
+              {currentRecipe.dishImage ? (
+                <img
+                  src={currentRecipe.dishImage}
+                  alt={currentRecipe.name}
+                  className="w-full h-full object-contain filter drop-shadow hover:scale-105 transition-transform"
+                />
+              ) : (
+                <span className="text-6xl">{currentRecipe.dishEmoji}</span>
+              )}
+            </div>
+
+            {/* Başlık ve Tebrik */}
+            <h3 className="text-xl sm:text-2xl font-black text-stone-900 mt-2 uppercase tracking-wide">
+              {currentRecipe.name} Hazırlandı! 🎉
+            </h3>
+            <p className="text-stone-700 font-bold text-xs sm:text-sm mt-1 px-2 leading-relaxed">
+              Algoritma adımlarını doğru sıraladın ve lezzetli bir menü çıkardın. Harika bir şefsin!
+            </p>
+
+            {/* Otomatik İlerleme Sayacı */}
+            {autoAdvanceCountdown !== null && (
+              <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" />
+                <span>{autoAdvanceCountdown} saniye sonra sonraki tarif açılıyor...</span>
+              </div>
+            )}
+
+            {/* Butonlar */}
+            <div className="w-full flex flex-col sm:flex-row gap-2.5 mt-5">
+              <button
+                onClick={handleNextRecipe}
+                className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 text-white font-black text-sm sm:text-base border-3 border-stone-900 shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles size={18} className="text-yellow-200" />
+                <span>Sonraki Tarife Geç ▶</span>
+              </button>
+              <button
+                onClick={() => {
+                  setAutoAdvanceCountdown(null);
+                  setShowSuccessModal(false);
+                }}
+                className="py-3 px-4 rounded-2xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs sm:text-sm border-2 border-stone-400 active:scale-95 transition-all cursor-pointer"
+              >
+                Kapat / İncele
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
