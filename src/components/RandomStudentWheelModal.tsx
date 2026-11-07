@@ -7,7 +7,8 @@ interface RandomStudentWheelModalProps {
   isOpen: boolean;
   onClose: () => void;
   students?: Student[];
-  currentGrade?: number;
+  currentGrade?: number | null;
+  isOtherGames?: boolean;
   playMp3?: (src: string) => void;
   onSelectStudent?: (studentId: string, studentName: string) => void;
 }
@@ -29,17 +30,65 @@ export const RandomStudentWheelModal: React.FC<RandomStudentWheelModalProps> = (
   onClose,
   students = [],
   currentGrade = 2,
+  isOtherGames = false,
   playMp3,
   onSelectStudent
 }) => {
-  // Sınıf öğrencilerini filtrele veya varsayılan isimleri al
+  // 1, 2, 3 ve 4. sınıflardaki öğrenci sayıları
+  const gradeCounts = React.useMemo(() => {
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    students.forEach(s => {
+      if (s.grade && counts[s.grade] !== undefined) {
+        counts[s.grade]++;
+      }
+    });
+    return counts;
+  }, [students]);
+
+  // 1, 2, 3 ve 4. sınıflar arasında EN ÇOK öğrenciye sahip sınıfı bul
+  const mostPopulatedGrade = React.useMemo(() => {
+    let best = 2;
+    let max = -1;
+    ([1, 2, 3, 4] as const).forEach(g => {
+      if (gradeCounts[g] > max) {
+        max = gradeCounts[g];
+        best = g;
+      }
+    });
+    return best;
+  }, [gradeCounts]);
+
+  // Kullanıcı giriş yapılan bir sınıfta mı (1..4) yoksa Diğer Oyunlar'da mı?
+  // - Diğer Oyunlar'da ise: En çok öğrenciye sahip sınıf listesi otomatik seçilir
+  // - Giriş yapılan bir sınıf (1..4) varsa: Giriş yapılan sınıfın listesi seçilir
+  const resolvedInitialGrade = React.useMemo(() => {
+    if (isOtherGames || !currentGrade || currentGrade < 1 || currentGrade > 4) {
+      return mostPopulatedGrade;
+    }
+    return currentGrade;
+  }, [isOtherGames, currentGrade, mostPopulatedGrade]);
+
+  const [activeGrade, setActiveGrade] = useState<number>(resolvedInitialGrade);
+
+  // Modal her açıldığında veya ortam değiştiğinde aktif sınıfı belirle
+  useEffect(() => {
+    if (isOpen) {
+      setActiveGrade(resolvedInitialGrade);
+      setWinner(null);
+    }
+  }, [isOpen, resolvedInitialGrade]);
+
+  // Aktif sınıfa ait öğrencileri al
+  const classStudents = React.useMemo(() => {
+    return students.filter(s => s.grade === activeGrade);
+  }, [students, activeGrade]);
+
   const initialList = React.useMemo(() => {
-    const gradeStudents = students.filter(s => !currentGrade || s.grade === currentGrade);
-    if (gradeStudents.length > 0) {
-      return gradeStudents.map(s => s.name);
+    if (classStudents.length > 0) {
+      return classStudents.map(s => s.name);
     }
     return FALLBACK_NAMES;
-  }, [students, currentGrade]);
+  }, [classStudents]);
 
   const [activeNames, setActiveNames] = useState<string[]>(initialList);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -48,15 +97,11 @@ export const RandomStudentWheelModal: React.FC<RandomStudentWheelModalProps> = (
   const [soundEnabled, setSoundEnabled] = useState(true);
   const wheelRef = useRef<SVGSVGElement>(null);
 
-  // Modal her açıldığında liste yenilensin (eğer sıfırlanmışsa)
+  // Aktif sınıf veya öğrenciler değiştiğinde çark isimlerini güncelle
   useEffect(() => {
-    if (isOpen) {
-      if (activeNames.length === 0) {
-        setActiveNames(initialList);
-      }
-      setWinner(null);
-    }
-  }, [isOpen, initialList]);
+    setActiveNames(initialList);
+    setWinner(null);
+  }, [initialList]);
 
   if (!isOpen) return null;
 
@@ -129,25 +174,69 @@ export const RandomStudentWheelModal: React.FC<RandomStudentWheelModalProps> = (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-lg bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-[#0f172a] border-2 border-amber-400 rounded-3xl p-4 sm:p-6 shadow-[0_0_35px_rgba(245,158,11,0.35)] flex flex-col items-center">
         {/* Üst Kapat ve Başlık */}
-        <div className="w-full flex items-center justify-between pb-3 border-b border-amber-400/30">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl animate-spin" style={{ animationDuration: '8s' }}>🎡</span>
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-white tracking-wide flex items-center gap-1.5">
+        <div className="w-full flex items-center justify-between pb-2 border-b border-amber-400/30">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-2xl animate-spin shrink-0" style={{ animationDuration: '8s' }}>🎡</span>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg md:text-xl font-black text-white tracking-wide truncate">
                 Rastgele Öğrenci Çarkı
               </h2>
-              <p className="text-[11px] text-amber-300/80 font-medium">
-                {currentGrade ? `${currentGrade}. Sınıf` : 'Sınıf'} Listesi • {count} Öğrenci
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-amber-300">
+                  {activeGrade}. Sınıf Listesi
+                </span>
+                {isOtherGames && activeGrade === mostPopulatedGrade && gradeCounts[activeGrade] > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/50 text-[10px] font-black flex items-center gap-0.5">
+                    <span>👑</span>
+                    <span>En Çok Öğrenci</span>
+                  </span>
+                )}
+                <span className="text-[11px] text-slate-400">
+                  • {activeNames.length} {classStudents.length === 0 ? 'Örnek İsim' : 'Öğrenci'}
+                </span>
+              </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full bg-slate-800/80 hover:bg-red-500/80 text-white transition-colors cursor-pointer border border-slate-600"
+            className="p-1.5 rounded-full bg-slate-800/80 hover:bg-red-500/80 text-white transition-colors cursor-pointer border border-slate-600 shrink-0 ml-2"
             title="Kapat"
           >
             <X size={20} />
           </button>
+        </div>
+
+        {/* SINIF DEĞİŞTİRME SEKMELERİ (1, 2, 3 ve 4. SINIFLAR) */}
+        <div className="w-full flex items-center justify-between gap-1.5 sm:gap-2 mt-2.5 p-1 bg-slate-900/90 rounded-2xl border border-slate-700/80 shadow-inner">
+          {([1, 2, 3, 4] as const).map(g => {
+            const isSelected = activeGrade === g;
+            const isMost = g === mostPopulatedGrade && gradeCounts[g] > 0;
+            const countForGrade = gradeCounts[g] || 0;
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => {
+                  setActiveGrade(g);
+                  setWinner(null);
+                }}
+                className={`flex-1 py-1 sm:py-1.5 px-1 sm:px-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1 border ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 border-white shadow-md scale-102 font-black'
+                    : 'bg-slate-800/80 text-slate-300 hover:text-white border-slate-700 hover:bg-slate-700'
+                }`}
+                title={`${g}. Sınıf Listesi (${countForGrade} öğrenci)`}
+              >
+                <span>{g}. Sınıf</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                  isSelected ? 'bg-amber-600 text-white font-black' : 'bg-slate-950 text-slate-400'
+                }`}>
+                  {countForGrade}
+                </span>
+                {isMost && <span className="text-[11px]" title="En kalabalık sınıf">👑</span>}
+              </button>
+            );
+          })}
         </div>
 
         {/* ÇARK GÖVลูก VE İBRE */}
@@ -242,7 +331,10 @@ export const RandomStudentWheelModal: React.FC<RandomStudentWheelModalProps> = (
               <button
                 type="button"
                 onClick={() => {
-                  const matched = students.find(s => s.name === winner || s.name.toLowerCase().includes(winner.toLowerCase()));
+                  const matched = students.find(s => 
+                    s.grade === activeGrade && 
+                    (s.name.trim().toLowerCase() === winner.trim().toLowerCase() || s.name.includes(winner))
+                  ) || students.find(s => s.name.trim().toLowerCase() === winner.trim().toLowerCase());
                   if (matched) {
                     onSelectStudent(matched.id, matched.name);
                   }

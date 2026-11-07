@@ -5078,6 +5078,7 @@ export default function App() {
     setShowKesirDuvariPizza(false);
     setShowEsSesli(false);
     setShowDengeTerazisi(false);
+    setShowKodlamaMutfagi(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -5426,6 +5427,15 @@ export default function App() {
       }
       setGameState('welcome');
       setShowDengeTerazisi(true);
+    } else if (entry.type === 'kodlama_mutfagi' || entry.id.includes('kodlama_mutfagi')) {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
+      }
+      setGameState('welcome');
+      setShowKodlamaMutfagi(true);
     }
 
     setActivityToast(`[${index + 1}/${ALL_ACTIVITIES_LIST.length}] ${entry.categoryLabel} ➜ ${entry.title}`);
@@ -5839,6 +5849,7 @@ export default function App() {
     setShowKesirDuvariPizza(false);
     setShowEsSesli(false);
     setShowDengeTerazisi(false);
+    setShowKodlamaMutfagi(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
     setShowTopicModal(false);
@@ -5937,6 +5948,9 @@ export default function App() {
     } else if (entry.type === 'denge_terazisi') {
       setGameState('welcome');
       setShowDengeTerazisi(true);
+    } else if (entry.type === 'kodlama_mutfagi') {
+      setGameState('welcome');
+      setShowKodlamaMutfagi(true);
     } else if (entry.type === 'grade_topic' && entry.topicKey) {
       selectTopicAndStart(entry.topicKey, grade);
     }
@@ -6036,6 +6050,7 @@ export default function App() {
     setShowKesirDuvariPizza(false);
     setShowEsSesli(false);
     setShowDengeTerazisi(false);
+    setShowKodlamaMutfagi(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -6750,6 +6765,7 @@ export default function App() {
                       setShowKesirDuvariPizza(false);
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
+                      setShowKodlamaMutfagi(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -6788,6 +6804,7 @@ export default function App() {
                       setShowKesirDuvariPizza(false);
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
+                      setShowKodlamaMutfagi(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -6829,6 +6846,7 @@ export default function App() {
                       setShowKesirDuvariPizza(false);
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
+                      setShowKodlamaMutfagi(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -12352,7 +12370,13 @@ export default function App() {
         isOpen={showStudentWheel}
         onClose={() => setShowStudentWheel(false)}
         students={students}
-        currentGrade={selectedGrade || 2}
+        currentGrade={selectedGrade}
+        isOtherGames={Boolean(
+          showOtherGamesModal ||
+          openedFromOtherGamesModal ||
+          selectedGrade === 5 ||
+          !selectedGrade
+        )}
         playMp3={playMp3}
         onSelectStudent={(studentId, studentName) => {
           setSelectedStudentIds(prev => [studentId, prev[1] || null, prev[2] || null]);
