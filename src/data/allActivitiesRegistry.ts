@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'onluk_yuvarlama_oyunu';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -17,7 +17,15 @@ export interface ActivityRegistryItem {
 }
 
 const resolveTitle = (key: string, grade?: number): string => {
+  if (key === 'ritmik_balon_3') return "3'er Ritmik Balon (3-30)";
+  if (key === 'ritmik_balon_4') return "4'er Ritmik Balon (4-40)";
+  if (key === 'ritmik_balon_5') return "5'er Ritmik Balon (5-50)";
+  if (key === 'ritmik_balon_6') return "6'şar Ritmik Balon (6-60)";
+  if (key === 'ritmik_balon_7') return "7'şer Ritmik Balon (7-70)";
+  if (key === 'ritmik_balon_8') return "8'er Ritmik Balon (8-80)";
+  if (key === 'ritmik_balon_9') return "9'ar Ritmik Balon (9-90)";
   if (key === 'sayi_basketi') return 'Sayı Basketi';
+  if (key === 'en_yakin_onluk_oyunu') return 'En Yakın Onluğa Yuvarlama Oyunu';
   if (key === 'saglikli_aliskanliklar') return 'Sağlıklı Alışkanlıklar';
   if (key === 'cisimler_acilimi') return 'Geometrik Cisimler Açılımı';
   if (key === 'sivi_tahmin_akvaryum') return 'Sıvı Ölçme Tahmini';
@@ -176,6 +184,7 @@ const g2Sayilar = [
   'nesne_sayisi',
   'sayi_basketi',
   'sayi_basamak_degeri',
+  'en_yakin_onluk_oyunu',
   'en_yakin_onluk',
   'deste_duzine',
   'kesirler',
@@ -184,6 +193,10 @@ const g2Sayilar = [
   'paralarimiz',
   'zaman_olcme',
   'uzunluk_olcme',
+  'ritmik_balon_3',
+  'ritmik_balon_4',
+  'ritmik_balon_5',
+  'ritmik_balon_6',
   'ritmik_ileri_2',
   'ritmik_ileri_3',
   'ritmik_ileri_4',
@@ -197,9 +210,14 @@ const g2Sayilar = [
   'saat_ceyrek_kala'
 ];
 g2Sayilar.forEach(key => {
+  let itemType: ActivityRegistryItem['type'] = 'grade_topic';
+  if (key === 'sayi_basketi') itemType = 'sayi_basketi';
+  else if (key.startsWith('ritmik_balon_')) itemType = 'ritmik_balon';
+  else if (key === 'en_yakin_onluk_oyunu') itemType = 'onluk_yuvarlama_oyunu';
+
   ALL_ACTIVITIES_LIST.push({
     id: `g2_${key}`,
-    type: key === 'sayi_basketi' ? 'sayi_basketi' : 'grade_topic',
+    type: itemType,
     grade: 2,
     topicKey: key,
     title: resolveTitle(key, 2),
@@ -381,6 +399,10 @@ const g3Tema1 = [
   'g3_en_yakin_onluga_yuvarlama_100',
   'g3_en_yakin_onluga_yuvarlama',
   'g3_en_yakin_yuzluge_yuvarlama',
+  'ritmik_balon_6',
+  'ritmik_balon_7',
+  'ritmik_balon_8',
+  'ritmik_balon_9',
   'g3_ritmik_6',
   'g3_ritmik_7',
   'g3_ritmik_8',
@@ -395,7 +417,7 @@ const g3Tema1 = [
 g3Tema1.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g3_${key}`,
-    type: 'grade_topic',
+    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : 'grade_topic',
     grade: 3,
     topicKey: key,
     title: resolveTitle(key, 3),
@@ -481,6 +503,10 @@ g3Diger.forEach(key => {
 // ==========================================
 // Tema 1: Sayılar ve Nicelikler (1)
 const g4Tema1 = [
+  'ritmik_balon_6',
+  'ritmik_balon_7',
+  'ritmik_balon_8',
+  'ritmik_balon_9',
   'g4_sayi_okuma_yazma',
   'g4_basamak_ve_cozumleme',
   'g4_sayi_siralama',
@@ -491,7 +517,7 @@ const g4Tema1 = [
 g4Tema1.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g4_${key}`,
-    type: 'grade_topic',
+    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : 'grade_topic',
     grade: 4,
     topicKey: key,
     title: resolveTitle(key, 4),
@@ -587,6 +613,13 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     id: 'other_kodlama_mutfagi',
     type: 'kodlama_mutfagi',
     title: 'Kodlama & Algoritma Mutfağı',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_ritmik_balon',
+    type: 'ritmik_balon',
+    topicKey: 'ritmik_balon_3',
+    title: 'Ritmik Balon Patlatma Düellosu',
     categoryLabel: 'Diğer Oyunlar'
   },
   {

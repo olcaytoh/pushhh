@@ -39,6 +39,7 @@ interface OtherGamesHubProps {
   onOpenEsSesli?: () => void;
   onOpenDengeTerazisi?: () => void;
   onOpenKodlamaMutfagi?: () => void;
+  onOpenRitmikBalon?: (step?: 3 | 4 | 5 | 6) => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -78,6 +79,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenEsSesli,
   onOpenDengeTerazisi,
   onOpenKodlamaMutfagi,
+  onOpenRitmikBalon,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -96,6 +98,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       isNew: true,
       action: () => {
         if (onOpenKodlamaMutfagi) onOpenKodlamaMutfagi();
+      },
+    },
+    {
+      id: 'ritmik_balon',
+      title: 'Ritmik Balon Patlatma Düellosu',
+      subtitle: '2 Kişilik Ritmik Sayma Yarışı (3, 4, 5, 6)',
+      icon: '/MENUIKON/grid_icon_03.webp',
+      sound: '/op.mp3',
+      isNew: true,
+      action: () => {
+        if (onOpenRitmikBalon) onOpenRitmikBalon(3);
       },
     },
     {
@@ -420,7 +433,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       <ActivityBackground theme="doga" />
 
       {/* 2. GAMES CONTAINER */}
-      <main className="relative z-10 flex-1 p-2 sm:p-4 max-w-4xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-2 sm:gap-2.5 pt-3 sm:pt-4 md:pt-5">
+      <main className="relative z-10 flex-1 p-2 sm:p-4 max-w-6xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-2 sm:gap-2.5 pt-3 sm:pt-4 md:pt-5">
         {/* GLOWING HEADER BADGE - 5. DİĞER OYUNLAR */}
         <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
           <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
@@ -438,7 +451,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2 md:gap-2.5 w-full">
           {games.map((game, index) => {
             const isNew = (game as any).isNew;
             return (
@@ -452,20 +465,18 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   isNew
                     ? 'bg-gradient-to-r from-[#2c1d0a] via-[#422912] to-[#2c1d0a] hover:from-[#3a270f] hover:via-[#523318] hover:to-[#3a270f] border-2 border-amber-400 border-l-4 border-l-amber-300 hover:border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_28px_rgba(245,158,11,0.55)]'
                     : 'bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] border-2 border-pink-500/70 border-l-4 border-l-pink-400 hover:border-pink-400 shadow-[0_0_16px_rgba(244,114,182,0.22)] hover:shadow-[0_0_22px_rgba(244,114,182,0.4)]'
-                } rounded-xl sm:rounded-2xl px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 h-[74px] sm:h-[82px] md:h-[90px] min-h-[74px] sm:min-h-[82px] md:min-h-[90px] max-h-[74px] sm:max-h-[82px] md:max-h-[90px] flex items-center gap-2.5 sm:gap-3.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left ${
-                  index === games.length - 1 && games.length % 2 === 1 ? 'sm:col-span-2 sm:max-w-xl sm:mx-auto' : ''
-                }`}
+                } rounded-xl px-2 sm:px-2.5 py-1.5 pr-2 sm:pr-2.5 h-[58px] sm:h-[62px] md:h-[66px] min-h-[58px] sm:min-h-[62px] md:min-h-[66px] max-h-[58px] sm:max-h-[62px] md:max-h-[66px] flex items-center gap-2 sm:gap-2.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden text-left `}
               >
                 {/* SAĞ ÜST KÖŞE: GÖZ ALICI VE BELİRGİN "YENİ" İBARESİ */}
                 {isNew && (
-                  <div className="absolute top-0 right-0 z-30 flex items-center gap-1 px-3 py-0.5 sm:py-1 rounded-bl-2xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_2px_12px_rgba(239,68,68,0.7)] border-b-2 border-l-2 border-yellow-300 animate-pulse select-none pointer-events-none">
+                  <div className="absolute top-0 right-0 z-30 flex items-center gap-1 px-2 py-0.5 rounded-bl-xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider shadow-[0_2px_12px_rgba(239,68,68,0.7)] border-b-2 border-l-2 border-yellow-300 animate-pulse select-none pointer-events-none">
                     <span className="text-yellow-200">✨</span>
                     <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">YENİ</span>
                   </div>
                 )}
 
                 {/* Left 3D Icon - Enlarged 100%, pure 3D borderless icon with rich depth shadow */}
-                <div className="relative shrink-0 z-10 flex items-center justify-center w-13 h-13 sm:w-15 sm:h-15 md:w-17 md:h-17 -my-1">
+                <div className="relative shrink-0 z-10 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 -my-0.5">
                   <img
                     src={game.icon}
                     alt={game.title}
@@ -476,14 +487,14 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                 {/* Center Text Body - Exactly same as classroom topic buttons */}
                 <div className="flex-1 text-left min-w-0 py-0.5 z-10">
                   <div className="flex items-center gap-1.5">
-                    <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide truncate">
+                    <h4 className="font-black text-[11px] sm:text-xs md:text-[13px] text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide truncate">
                       {game.title}
                     </h4>
                   </div>
-                  <div className="mt-1 flex items-center">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/35 border ${
+                  <div className="mt-0.5 flex items-center">
+                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-px rounded bg-black/35 border ${
                       isNew ? 'border-amber-400/40 text-amber-300' : 'border-pink-400/30 text-pink-300'
-                    } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs truncate max-w-full`}>
+                    } text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shadow-xs truncate max-w-full`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${isNew ? 'bg-amber-400' : 'bg-pink-400'} inline-block shrink-0`} />
                       <span className="truncate">{game.subtitle}</span>
                     </span>
@@ -491,11 +502,11 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                 </div>
 
                 {/* Right Action: Clean BAŞLA Action badge - Exactly same as classroom topic buttons */}
-                <div className="z-10 shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-black/25 group-hover:bg-black/40 border border-white/15 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all">
-                  <span className={`font-black text-[10px] sm:text-xs ${isNew ? 'text-amber-300' : 'text-pink-300'} tracking-wider uppercase drop-shadow`}>
+                <div className="z-10 shrink-0 flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-lg bg-black/25 group-hover:bg-black/40 border border-white/15 shadow-inner group-hover:scale-105 group-hover:translate-x-0.5 transition-all">
+                  <span className={`font-black hidden xl:inline text-[10px] ${isNew ? 'text-amber-300' : 'text-pink-300'} tracking-wider uppercase drop-shadow`}>
                     BAŞLA
                   </span>
-                  <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg ${isNew ? 'bg-amber-400' : 'bg-pink-400'} text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform`}>
+                  <div className={`w-5 h-5 rounded-md ${isNew ? 'bg-amber-400' : 'bg-pink-400'} text-slate-950 flex items-center justify-center font-black text-[10px] shadow group-hover:rotate-6 transition-transform`}>
                     ▶
                   </div>
                 </div>

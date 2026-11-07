@@ -36,6 +36,8 @@ import { XOXGame } from './components/XOXGame';
 import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OnuBulGame } from './components/OnuBulGame';
 import { YirmiyiBulGame } from './components/YirmiyiBulGame';
+import { RitmikBalonPatlatmaGame } from './components/RitmikBalonPatlatmaGame';
+import { EnYakinOnlugaYuvarlamaGame } from './components/EnYakinOnlugaYuvarlamaGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { HeceSayisiActivity } from './components/HeceSayisiActivity';
@@ -1749,6 +1751,7 @@ const CATEGORY_MAP = [
     icon: "/MENUIKON/grid_icon_09.webp",
     keys: [
       "nesne_sayisi", "sayi_basketi", "sira_sayilari", "cok_az_esit", "sayi_basamak_degeri", "onluk_birlik", "deste_duzine", "kesirler",
+      "ritmik_balon_3", "ritmik_balon_4", "ritmik_balon_5", "ritmik_balon_6",
       "ritmik_ileri_1", "ritmik_ileri_2", "ritmik_ileri_3", "ritmik_ileri_4", "ritmik_ileri_5", "ritmik_ileri_10",
       "ritmik_geri_1", "ritmik_geri_2", "ritmik_geri_10",
       "sayi_karsilastirma", "paralarimiz", "zaman_olcme",
@@ -2039,6 +2042,16 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   takvim_olcme: '/MENUIKON/grid_icon_32.webp',
   sayi_sekil_oruntusu: '/MENUIKON/grid_icon_19.webp',
   en_yakin_onluk: '/MENUIKON/grid_icon_09.webp',
+  en_yakin_onluk_oyunu: '/MENUIKON/grid_icon_20.webp',
+
+  // 2 Kişilik Ritmik Balon Patlatma Düellosu (2. Sınıf)
+  ritmik_balon_3: '/MENUIKON/grid_icon_03.webp',
+  ritmik_balon_4: '/MENUIKON/grid_icon_14.webp',
+  ritmik_balon_5: '/MENUIKON/grid_icon_05.webp',
+  ritmik_balon_6: '/MENUIKON/grid_icon_16.webp',
+  ritmik_balon_7: '/MENUIKON/grid_icon_05.webp',
+  ritmik_balon_8: '/MENUIKON/grid_icon_16.webp',
+  ritmik_balon_9: '/MENUIKON/grid_icon_38.webp',
 
   // Ritmik Saymalar (1. ve 2. Sınıf)
   ritmik_ileri_1: '/MENUIKON/grid_icon_09.webp',
@@ -2328,7 +2341,8 @@ const TopicButtonReferenceStyle: React.FC<{
   compact?: boolean;
   categoryTheme?: string;
   badgeText?: string;
-}> = ({ topicKey, title, onClick, compact, categoryTheme, badgeText }) => {
+  isNew?: boolean;
+}> = ({ topicKey, title, onClick, compact, categoryTheme, badgeText, isNew }) => {
   const iconUrl = TOPIC_3D_ICONS[topicKey] || '/MENUIKON/grid_icon_39.webp';
   const accent = getIconAccentColor(iconUrl);
 
@@ -2445,6 +2459,15 @@ const TopicButtonReferenceStyle: React.FC<{
           : 'px-2.5 sm:px-3.5 py-2 sm:py-2.5 pr-3 sm:pr-3.5 min-h-[72px] sm:min-h-[82px] md:min-h-[90px]'
       } flex items-center gap-2.5 sm:gap-3.5 hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer overflow-hidden`}
     >
+      {/* Top-Right "YENİ" Badge if isNew */}
+      {isNew && (
+        <div className="absolute top-1 right-1.5 sm:top-1.5 sm:right-2 z-20 pointer-events-none">
+          <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white font-black text-[8px] sm:text-[9px] md:text-[10px] tracking-wider shadow-lg animate-pulse border border-yellow-200/80 uppercase">
+            ✨ YENİ
+          </span>
+        </div>
+      )}
+
       {/* Left 3D Icon - Enlarged 100%, pure 3D borderless icon with rich depth shadow */}
       <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
         <img 
@@ -3072,6 +3095,8 @@ export default function App() {
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
   const [showOnuBul, setShowOnuBul] = useState(false);
   const [showYirmiyiBul, setShowYirmiyiBul] = useState(false);
+  const [showRitmikBalon, setShowRitmikBalon] = useState(false);
+  const [ritmikBalonStep, setRitmikBalonStep] = useState<3 | 4 | 5 | 6 | 7 | 8 | 9>(3);
   const [showKuralliCumle, setShowKuralliCumle] = useState(false);
   const [showHeceSayisi, setShowHeceSayisi] = useState(false);
   const [showSozlukSirala, setShowSozlukSirala] = useState(false);
@@ -3096,6 +3121,7 @@ export default function App() {
   const [showSiviTahminAkvaryum, setShowSiviTahminAkvaryum] = useState(false);
   const [showSiviOlcmeVideoModal, setShowSiviOlcmeVideoModal] = useState(false);
   const [showSayiBasketi, setShowSayiBasketi] = useState(false);
+  const [showOnlukYuvarlamaOyunu, setShowOnlukYuvarlamaOyunu] = useState(false);
   const [showSaatZaman, setShowSaatZaman] = useState(false);
   const [saatInitialMode, setSaatInitialMode] = useState<'tam' | 'yarim' | 'ceyrek' | 'hepsi'>('hepsi');
   const [showMarketKasasi, setShowMarketKasasi] = useState(false);
@@ -3117,6 +3143,7 @@ export default function App() {
     showAynisiniBul || 
     showOnuBul || 
     showYirmiyiBul || 
+    showRitmikBalon || 
     showXOXGame || 
     showKuralliCumle || 
     showHeceSayisi || 
@@ -3128,6 +3155,7 @@ export default function App() {
     showDedektif5N1K || 
     showOnlukBirlik || 
     showSayiBasketi ||
+    showOnlukYuvarlamaOyunu ||
     showSatirSonuHece ||
     showLessonVideo ||
     showNoktalamaAvcisi || 
@@ -4712,6 +4740,56 @@ export default function App() {
     }
   };
 
+  // 3. ve 4. sınıf: 2 Kişilik Ritmik Balon Patlatma Düellosu (6'şar, 7'şer, 8'er, 9'ar)
+  const renderRitmikBalonPanelForGrade = (gradeNo: 3 | 4) => (
+    <div className="p-2 sm:p-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#2c0f24]/90 via-[#3d1338]/85 to-[#2c0f24]/90 border-2 border-pink-500/50 shadow-[0_0_20px_rgba(236,72,153,0.25)] space-y-2 sm:space-y-2.5">
+      <div className="flex items-center justify-between px-1 sm:px-2 py-0.5">
+        <div className="flex items-center gap-2">
+          <span className="text-xl sm:text-2xl animate-bounce">🎈</span>
+          <div>
+            <h3 className="font-black text-xs sm:text-sm md:text-base text-pink-200 uppercase tracking-wide">
+              2 Kişilik Ritmik Balon Patlatma Düellosu
+            </h3>
+            <p className="text-[10px] sm:text-xs text-pink-300/80 hidden sm:block">
+              Karışık balonları sırayla patlat, ilk bitiren kazanır! (3 hata yapan yanar, 100s)
+            </p>
+          </div>
+        </div>
+        <span className="px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-lg border border-yellow-200">
+          ✨ YENİ
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+        {([
+          { key: 'ritmik_balon_6', step: 6, title: "6'şar Ritmik Balon (6-60)" },
+          { key: 'ritmik_balon_7', step: 7, title: "7'şer Ritmik Balon (7-70)" },
+          { key: 'ritmik_balon_8', step: 8, title: "8'er Ritmik Balon (8-80)" },
+          { key: 'ritmik_balon_9', step: 9, title: "9'ar Ritmik Balon (9-90)" },
+        ] as const).map(item => (
+          <TopicButtonReferenceStyle
+            key={item.key}
+            topicKey={item.key}
+            title={item.title}
+            badgeText="2 KİŞİLİK DÜELLO"
+            isNew={true}
+            onClick={() => {
+              playMp3('/op.mp3');
+              setRitmikBalonStep(item.step);
+              setShowRitmikBalon(true);
+              setGameState('welcome');
+              const idx = findActivityIndex('ritmik_balon', item.key, gradeNo);
+              if (idx !== -1) {
+                setCurrentActivityIndex(idx);
+              }
+            }}
+            categoryTheme="sayilar"
+            compact
+          />
+        ))}
+      </div>
+    </div>
+  );
+
   const selectTopicAndStart = (topicKey: string, gradeOverride?: 1 | 2 | 3 | 4, skipIndexUpdate?: boolean) => {
     playMp3('/op.mp3');
     if (gradeOverride !== undefined) {
@@ -4721,7 +4799,7 @@ export default function App() {
     const effectiveGrade = gradeOverride !== undefined ? gradeOverride : (selectedGrade || 1);
     if (!skipIndexUpdate) {
       const foundActivityIdx = findActivityIndex(
-        topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : topicKey === 'onluk_birlik' ? 'onluk_birlik' : topicKey === 'sayi_basketi' ? 'sayi_basketi' : 'grade_topic',
+        topicKey.startsWith('ritmik_balon_') ? 'ritmik_balon' : topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : topicKey === 'onluk_birlik' ? 'onluk_birlik' : topicKey === 'sayi_basketi' ? 'sayi_basketi' : topicKey === 'en_yakin_onluk_oyunu' ? 'onluk_yuvarlama_oyunu' : 'grade_topic',
         topicKey,
         effectiveGrade
       );
@@ -4741,6 +4819,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowOnuBul(false);
     setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -4751,6 +4830,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
     setShowNoktalamaAvcisi(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
@@ -4768,6 +4848,15 @@ export default function App() {
     setShowEsSesli(false);
     setShowDengeTerazisi(false);
     setWordGameType(null);
+
+    if (topicKey.startsWith('ritmik_balon_')) {
+      const parsedStep = Number(topicKey.replace('ritmik_balon_', ''));
+      const step = (parsedStep >= 3 && parsedStep <= 9 ? parsedStep : 3) as 3 | 4 | 5 | 6 | 7 | 8 | 9;
+      setRitmikBalonStep(step);
+      setShowRitmikBalon(true);
+      setGameState('welcome');
+      return;
+    }
 
     if (topicKey === 'zaman_olcme' || topicKey === 'saat_tam' || topicKey === 'saat_yarim' || topicKey === 'saat_ceyrek_gece' || topicKey === 'saat_ceyrek_kala' || topicKey === 'g3_zaman_olcme' || topicKey === 'saat_zaman') {
       setCurrentTopic('saat_zaman');
@@ -4809,6 +4898,11 @@ export default function App() {
     if (topicKey === 'onluk_birlik') {
       setCurrentTopic('onluk_birlik');
       setShowOnlukBirlik(true);
+      return;
+    }
+    if (topicKey === 'en_yakin_onluk_oyunu') {
+      setCurrentTopic('en_yakin_onluk');
+      setShowOnlukYuvarlamaOyunu(true);
       return;
     }
     if (topicKey === 'sayi_basketi') {
@@ -5049,6 +5143,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowOnuBul(false);
     setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -5059,6 +5154,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
@@ -5151,6 +5247,20 @@ export default function App() {
       }
       setGameState('welcome');
       setShowYirmiyiBul(true);
+    } else if (entry.type === 'ritmik_balon') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId(entry.grade === 3 ? 'g3_tema1' : entry.grade === 4 ? 'g4_tema1' : 'sayilar');
+      } else {
+        setSelectedGrade(2);
+      }
+      {
+        const ps = Number(String(entry.topicKey || '').replace('ritmik_balon_', ''));
+        setRitmikBalonStep((ps >= 3 && ps <= 9 ? ps : 3) as 3 | 4 | 5 | 6 | 7 | 8 | 9);
+      }
+      setGameState('welcome');
+      setShowRitmikBalon(true);
     } else if (entry.type === 'xox') {
       setSelectedGrade(null);
       setGameState('welcome');
@@ -5228,6 +5338,16 @@ export default function App() {
       }
       setGameState('welcome');
       setShowOnlukBirlik(true);
+    } else if (entry.type === 'onluk_yuvarlama_oyunu') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+        setSelectedCategoryId('sayilar');
+      } else {
+        setSelectedGrade(2);
+      }
+      setGameState('welcome');
+      setShowOnlukYuvarlamaOyunu(true);
     } else if (entry.type === 'sayi_basketi' || entry.topicKey === 'sayi_basketi' || entry.id.includes('sayi_basketi')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -5460,6 +5580,7 @@ export default function App() {
         if (showHeceMakasi && (cur.type === 'hece_makasi' || cur.id.includes('hece_makasi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showYazimDedektifi && (cur.type === 'yazim_dedektifi' || cur.id.includes('yazim_dedektifi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showOnlukBirlik && (cur.type === 'onluk_birlik' || cur.topicKey === 'onluk_birlik' || cur.id.includes('onluk_birlik'))) return currentActivityIndex;
+        if (showOnlukYuvarlamaOyunu && cur.type === 'onluk_yuvarlama_oyunu') return currentActivityIndex;
         if (showSayiBasketi && (cur.type === 'sayi_basketi' || cur.topicKey === 'sayi_basketi' || cur.id.includes('sayi_basketi'))) return currentActivityIndex;
         if (showDedektif5N1K && (cur.type === 'dedektif_5n1k' || cur.id.includes('dedektif_5n1k')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showLessonVideo && (cur.type === 'lesson_video' || cur.id.includes('video'))) return currentActivityIndex;
@@ -5480,6 +5601,7 @@ export default function App() {
         if (showAynisiniBul && cur.type === 'aynisini_bul' && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showOnuBul && cur.type === 'onu_bul' && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showYirmiyiBul && cur.type === 'yirmiyi_bul' && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showRitmikBalon && cur.type === 'ritmik_balon' && (cur.topicKey === `ritmik_balon_${ritmikBalonStep}` || cur.id.includes(`ritmik_balon_${ritmikBalonStep}`))) return currentActivityIndex;
         if (showGeometrikSekilleriBul && cur.type === 'geometrik_sekilleri_bul' && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showGeoboard && (cur.type === 'geoboard' || cur.topicKey === 'geometri_tahtasi' || cur.id.includes('geometri_tahtasi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showGeometricNets && (cur.type === 'geometric_nets' || cur.topicKey === 'cisimler_acilimi' || cur.id.includes('cisimler_acilimi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
@@ -5492,7 +5614,6 @@ export default function App() {
         if (showKodlamaMutfagi && (cur.type === 'kodlama_mutfagi' || cur.id.includes('kodlama_mutfagi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (wordGameType && cur.type === 'word_game' && cur.wordGameType === wordGameType && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (currentTopic && (gameState === 'playing' || gameState === 'gameover') && (cur.topicKey === currentTopic || cur.id === `g${selectedGrade}_${currentTopic}` || cur.id === currentTopic || cur.id.includes(currentTopic)) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
-        if (isInsideAnyGame && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
       }
     }
 
@@ -5568,12 +5689,20 @@ export default function App() {
       const idx = findActivityIndex('yirmiyi_bul', undefined, selectedGrade, null, isOther);
       if (idx !== -1) return idx;
     }
+    if (showRitmikBalon) {
+      const idx = findActivityIndex('ritmik_balon', `ritmik_balon_${ritmikBalonStep}`, selectedGrade || 2, null, isOther);
+      if (idx !== -1) return idx;
+    }
     if (showGeometrikSekilleriBul) {
       const idx = findActivityIndex('geometrik_sekilleri_bul', undefined, selectedGrade, null, isOther);
       if (idx !== -1) return idx;
     }
     if (showOnlukBirlik) {
       const idx = findActivityIndex('onluk_birlik', 'onluk_birlik', selectedGrade, null, isOther);
+      if (idx !== -1) return idx;
+    }
+    if (showOnlukYuvarlamaOyunu) {
+      const idx = findActivityIndex('onluk_yuvarlama_oyunu', 'en_yakin_onluk_oyunu', selectedGrade || 2, null, isOther);
       if (idx !== -1) return idx;
     }
     if (showSayiBasketi) {
@@ -5718,6 +5847,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowOnuBul(false);
     setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -5728,6 +5858,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
@@ -5795,6 +5926,10 @@ export default function App() {
     else if (entry.id === 'other_es_sesli') setShowEsSesli(true);
     else if (entry.id === 'other_denge_terazisi') setShowDengeTerazisi(true);
     else if (entry.id === 'other_kodlama_mutfagi') setShowKodlamaMutfagi(true);
+    else if (entry.id === 'other_ritmik_balon' || entry.type === 'ritmik_balon') {
+      setRitmikBalonStep(3);
+      setShowRitmikBalon(true);
+    }
 
     setActivityToast(`[${idx + 1}/${list.length}] Diğer Oyunlar ➜ ${entry.title}`);
     setTimeout(() => {
@@ -5820,6 +5955,7 @@ export default function App() {
     setShowAynisiniBul(false);
     setShowOnuBul(false);
     setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
     setShowKuralliCumle(false);
     setShowSozlukSirala(false);
     setShowKelimeSirala(false);
@@ -5830,6 +5966,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
@@ -5867,6 +6004,13 @@ export default function App() {
     } else if (entry.type === 'yirmiyi_bul') {
       setGameState('welcome');
       setShowYirmiyiBul(true);
+    } else if (entry.type === 'ritmik_balon') {
+      setGameState('welcome');
+      {
+        const ps = Number(String(entry.topicKey || '').replace('ritmik_balon_', ''));
+        setRitmikBalonStep((ps >= 3 && ps <= 9 ? ps : 3) as 3 | 4 | 5 | 6 | 7 | 8 | 9);
+      }
+      setShowRitmikBalon(true);
     } else if (entry.type === 'geometrik_sekilleri_bul') {
       setGameState('welcome');
       setShowGeometrikSekilleriBul(true);
@@ -5891,6 +6035,9 @@ export default function App() {
     } else if (entry.type === 'onluk_birlik') {
       setGameState('welcome');
       setShowOnlukBirlik(true);
+    } else if (entry.type === 'onluk_yuvarlama_oyunu') {
+      setGameState('welcome');
+      setShowOnlukYuvarlamaOyunu(true);
     } else if (entry.type === 'sayi_basketi' || entry.topicKey === 'sayi_basketi' || entry.id.includes('sayi_basketi')) {
       setGameState('welcome');
       setShowSayiBasketi(true);
@@ -5971,9 +6118,9 @@ export default function App() {
    * kesintisiz, sırayla bir önceki etkinliğe geçer.
    */
   const handlePrevActivity = () => {
-    let currentIdx = currentActivityIndex;
-    if (currentIdx < 0 || !isInsideAnyGame) {
-      currentIdx = getCurrentLiveActivityIndex();
+    let currentIdx = getCurrentLiveActivityIndex();
+    if (currentIdx < 0) {
+      currentIdx = currentActivityIndex >= 0 ? currentActivityIndex : 0;
     }
     if (!isInsideAnyGame && currentActivityIndex < 0) {
       switchToActivityByIndex(ALL_ACTIVITIES_LIST.length - 1);
@@ -5989,9 +6136,9 @@ export default function App() {
    * 1. Sınıf -> 2. Sınıf -> 3. Sınıf -> 4. Sınıf -> 5. Diğer Oyunlar -> 6. İngilizce Oyunlar -> 1. Sınıf
    */
   const handleNextActivity = () => {
-    let currentIdx = currentActivityIndex;
-    if (currentIdx < 0 || !isInsideAnyGame) {
-      currentIdx = getCurrentLiveActivityIndex();
+    let currentIdx = getCurrentLiveActivityIndex();
+    if (currentIdx < 0) {
+      currentIdx = currentActivityIndex >= 0 ? currentActivityIndex : 0;
     }
     // Eğer henüz bir etkinlikte değilsek doğrudan 1. Sınıfın ilk etkinliğinden başla
     if (!isInsideAnyGame && (currentActivityIndex < 0 || (currentActivityIndex === 0 && gameState === 'welcome'))) {
@@ -6031,6 +6178,7 @@ export default function App() {
     setShowDedektif5N1K(false);
     setShowOnlukBirlik(false);
     setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
@@ -6051,6 +6199,7 @@ export default function App() {
     setShowEsSesli(false);
     setShowDengeTerazisi(false);
     setShowKodlamaMutfagi(false);
+    setShowRitmikBalon(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -6601,6 +6750,7 @@ export default function App() {
     if (showAynisiniBul) return 'Aynısını Bul';
     if (showOnuBul) return "10'u Bul";
     if (showYirmiyiBul) return "20'yi Bul";
+    if (showRitmikBalon) return `${ritmikBalonStep}'${ritmikBalonStep === 6 ? 'şar' : ritmikBalonStep === 7 ? 'şer' : ritmikBalonStep === 9 ? 'ar' : 'er'} Ritmik Balon (${ritmikBalonStep}-${ritmikBalonStep * 10})`;
     if (showKuralliCumle) return 'Kurallı Cümle Oluştur';
     if (showHeceSayisi) return 'Kelimelerin Hece Sayısı';
     if (showSozlukSirala) return 'Sözlük Sıralama';
@@ -6609,6 +6759,7 @@ export default function App() {
     if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
     if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul';
     if (showOnlukBirlik) return 'Onluk - Birlik';
+    if (showOnlukYuvarlamaOyunu) return 'En Yakın Onluğa Yuvarlama Oyunu';
     if (showSayiBasketi) return 'Sayı Basketi';
     if (showDedektif5N1K) return '5N 1K Dedektifi';
     if (showLessonVideo) {
@@ -6716,8 +6867,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame));
               const iconSrc = `/icon_${g}.webp`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -6748,6 +6899,7 @@ export default function App() {
                       setShowDedektif5N1K(false);
                       setShowOnlukBirlik(false);
                       setShowSayiBasketi(false);
+                      setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
                       setShowHarfCorbasi(false);
@@ -6766,6 +6918,7 @@ export default function App() {
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
                       setShowKodlamaMutfagi(false);
+                      setShowRitmikBalon(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -6787,6 +6940,7 @@ export default function App() {
                       setShowDedektif5N1K(false);
                       setShowOnlukBirlik(false);
                       setShowSayiBasketi(false);
+                      setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
                       setShowHarfCorbasi(false);
@@ -6805,6 +6959,7 @@ export default function App() {
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
                       setShowKodlamaMutfagi(false);
+                      setShowRitmikBalon(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -6829,6 +6984,7 @@ export default function App() {
                       setShowDedektif5N1K(false);
                       setShowOnlukBirlik(false);
                       setShowSayiBasketi(false);
+                      setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
                       setShowHarfCorbasi(false);
@@ -6847,6 +7003,7 @@ export default function App() {
                       setShowEsSesli(false);
                       setShowDengeTerazisi(false);
                       setShowKodlamaMutfagi(false);
+                      setShowRitmikBalon(false);
                       setShowLessonVideo(false);
                       setWordGameType(null);
                       setShowStatsModal(false);
@@ -7016,6 +7173,15 @@ export default function App() {
               return;
             }
 
+            // If inside En Yakın Onluğa Yuvarlama Oyunu
+            if (showOnlukYuvarlamaOyunu) {
+              setShowOnlukYuvarlamaOyunu(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
             // If inside Sayı Basketi
             if (showSayiBasketi) {
               setShowSayiBasketi(false);
@@ -7028,6 +7194,15 @@ export default function App() {
             // 2.2. If inside 20'yi Bul Game
             if (showYirmiyiBul) {
               setShowYirmiyiBul(false);
+              if (openedFromOtherGamesModal || selectedGrade === null) {
+                setShowOtherGamesModal(true);
+              }
+              return;
+            }
+
+            // 2.3. If inside Ritmik Balon Patlatma Game
+            if (showRitmikBalon) {
+              setShowRitmikBalon(false);
               if (openedFromOtherGamesModal || selectedGrade === null) {
                 setShowOtherGamesModal(true);
               }
@@ -7435,6 +7610,11 @@ export default function App() {
             <span className="text-xs sm:text-sm">🎡</span>
             <span className="whitespace-nowrap">Öğrenci Çarkı</span>
           </button>
+
+          {/* Ritmik Balon: süre ve canlar oyun bileşeninden buraya taşınır */}
+          {showRitmikBalon && (
+            <div id="ritmik-status-slot" className="flex items-center gap-1 sm:gap-1.5 ml-1 sm:ml-2" />
+          )}
         </div>
       </div>
     )}
@@ -9108,9 +9288,11 @@ export default function App() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {(selectedGrade === 1
                         ? ['nesne_sayisi', 'sira_sayilari', 'cok_az_esit']
-                        : ['nesne_sayisi', 'sayi_basketi', 'sayi_basamak_degeri', 'onluk_birlik', 'en_yakin_onluk', 'deste_duzine', 'kesirler', 'sayi_karsilastirma', 'sira_sayilari', 'paralarimiz', 'zaman_olcme', 'uzunluk_olcme']
+                        : ['nesne_sayisi', 'sayi_basketi', 'sayi_basamak_degeri', 'onluk_birlik', 'en_yakin_onluk_oyunu', 'en_yakin_onluk', 'deste_duzine', 'kesirler', 'sayi_karsilastirma', 'sira_sayilari', 'paralarimiz', 'zaman_olcme', 'uzunluk_olcme']
                       ).map(key => {
-                        const t = topics[key];
+                        const t = key === 'en_yakin_onluk_oyunu'
+                          ? (selectedGrade === 1 ? null : { title: 'En Yakın Onluğa Yuvarlama Oyunu' })
+                          : topics[key];
                         if (!t) return null;
                         const isSpan = selectedGrade === 1 && key === 'cok_az_esit';
                         return (
@@ -9118,7 +9300,7 @@ export default function App() {
                             <TopicButtonReferenceStyle
                               topicKey={key}
                               title={t.title}
-                              badgeText={key === 'sayi_basketi' ? '1-2 KİŞİLİK YARIŞ' : undefined}
+                              badgeText={key === 'sayi_basketi' ? '1-2 KİŞİLİK YARIŞ' : key === 'en_yakin_onluk_oyunu' ? 'YENİ OYUN' : undefined}
                               onClick={() => selectTopicAndStart(key)}
                               categoryTheme="sayilar"
                             />
@@ -9126,6 +9308,55 @@ export default function App() {
                         );
                       })}
                     </div>
+
+                    {/* 2. SINIF RİTMİK BALON PATLATMA DÜELLOSU (3'er, 4'er, 5'er, 6'şar) - İLERİ 2'ŞER RİTMİK SAYMA ÖNCESİ */}
+                    {selectedGrade === 2 && (
+                      <div className="p-2 sm:p-3 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#2c0f24]/90 via-[#3d1338]/85 to-[#2c0f24]/90 border-2 border-pink-500/50 shadow-[0_0_20px_rgba(236,72,153,0.25)] space-y-2 sm:space-y-2.5">
+                        <div className="flex items-center justify-between px-1 sm:px-2 py-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl sm:text-2xl animate-bounce">🎈</span>
+                            <div>
+                              <h3 className="font-black text-xs sm:text-sm md:text-base text-pink-200 uppercase tracking-wide flex items-center gap-1.5">
+                                <span>2 Kişilik Ritmik Balon Patlatma Düellosu</span>
+                              </h3>
+                              <p className="text-[10px] sm:text-xs text-pink-300/80 hidden sm:block">
+                                Karışık balonları sırayla patlat, ilk bitiren kazanır! (3 hata yapan yanar, 100s)
+                              </p>
+                            </div>
+                          </div>
+                          <span className="px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-lg animate-pulse border border-yellow-200">
+                            ✨ YENİ
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                          {([
+                            { key: 'ritmik_balon_3', step: 3, title: "3'er Ritmik Balon (3-30)", badge: "2 KİŞİLİK DÜELLO" },
+                            { key: 'ritmik_balon_4', step: 4, title: "4'er Ritmik Balon (4-40)", badge: "2 KİŞİLİK DÜELLO" },
+                            { key: 'ritmik_balon_5', step: 5, title: "5'er Ritmik Balon (5-50)", badge: "2 KİŞİLİK DÜELLO" },
+                            { key: 'ritmik_balon_6', step: 6, title: "6'şar Ritmik Balon (6-60)", badge: "2 KİŞİLİK DÜELLO" },
+                          ] as const).map(item => (
+                            <TopicButtonReferenceStyle
+                              key={item.key}
+                              topicKey={item.key}
+                              title={item.title}
+                              badgeText={item.badge}
+                              isNew={true}
+                              onClick={() => {
+                                setRitmikBalonStep(item.step);
+                                setShowRitmikBalon(true);
+                                setGameState('welcome');
+                                const idx = findActivityIndex('ritmik_balon', item.key, 2);
+                                if (idx !== -1) {
+                                  setCurrentActivityIndex(idx);
+                                }
+                              }}
+                              categoryTheme="sayilar"
+                              compact
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Ritmik Saymalar Group Section */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
@@ -9398,6 +9629,9 @@ export default function App() {
                       })}
                     </div>
 
+                    {/* 3. SINIF: Ritmik Balon Düellosu (6'şar, 7'şer, 8'er, 9'ar) */}
+                    {renderRitmikBalonPanelForGrade(3)}
+
                     {/* Ritmik Saymalar Alt Başlığı & Konuları */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                       {[
@@ -9523,7 +9757,9 @@ export default function App() {
 
                 {/* 4. SINIF TEMA 1: SAYILAR VE NİCELİKLER (1) */}
                 {selectedCategoryId === 'g4_tema1' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
+                  <div className="space-y-3 sm:space-y-4">
+                    {renderRitmikBalonPanelForGrade(4)}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
                     {[
                       'g4_sayi_okuma_yazma',
                       'g4_basamak_ve_cozumleme',
@@ -9544,6 +9780,7 @@ export default function App() {
                         />
                       );
                     })}
+                    </div>
                   </div>
                 )}
 
@@ -10791,7 +11028,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -10831,6 +11068,12 @@ export default function App() {
           onOpenEsSesli={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_es_sesli'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenDengeTerazisi={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_denge_terazisi'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenKodlamaMutfagi={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_kodlama_mutfagi'); if (i !== -1) switchToOtherGameByIndex(i); }}
+          onOpenRitmikBalon={(step) => {
+            setRitmikBalonStep(step || 3);
+            setShowRitmikBalon(true);
+            setShowOtherGamesModal(false);
+            setOpenedFromOtherGamesModal(true);
+          }}
           playMp3={playMp3}
         />
       )}
@@ -11274,6 +11517,40 @@ export default function App() {
       )}
 
       {/* SAYI BASKETİ (İKİLİ YARIŞ / 2. SINIF SAYILAR VE NİCELİKLER) */}
+      {showOnlukYuvarlamaOyunu && (
+        <EnYakinOnlugaYuvarlamaGame
+          onClose={() => {
+            setShowOnlukYuvarlamaOyunu(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          soundEnabled={soundEnabled}
+          grade={selectedGrade || 2}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(g) => {
+            setRosterModalGrade(g || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('en_yakin_onluk', isCorrect, pIdx, 'grade2');
+          }}
+        />
+      )}
+
       {showSayiBasketi && (
         <SayiBasketiGame
           onClose={() => {
@@ -11882,6 +12159,50 @@ export default function App() {
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
             handleUniversalActivityAnswer('yirmiyi_bul', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* 2 KİŞİLİK RİTMİK BALON PATLATMA DÜELLOSU (3'er, 4'er, 5'er, 6'şar) */}
+      {showRitmikBalon && (
+        <RitmikBalonPatlatmaGame
+          initialStep={ritmikBalonStep}
+          onStepChange={(step) => {
+            setRitmikBalonStep(step);
+            const idx = findActivityIndex('ritmik_balon', `ritmik_balon_${step}`, selectedGrade || 2);
+            if (idx !== -1) {
+              setCurrentActivityIndex(idx);
+            }
+          }}
+          onClose={() => {
+            setShowRitmikBalon(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer(`ritmik_balon_${ritmikBalonStep}`, isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);

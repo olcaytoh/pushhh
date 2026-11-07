@@ -1688,6 +1688,26 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         };
       }
     },
+    ritmik_balon_3: {
+      title: "3'er Ritmik Balon (3-30)",
+      desc: "2 Kişilik Düello: 3'ten 30'a kadar karışık sayı balonlarını sırayla patlat!",
+      generate: () => ritmikIleriUret(3, 30)
+    },
+    ritmik_balon_4: {
+      title: "4'er Ritmik Balon (4-40)",
+      desc: "2 Kişilik Düello: 4'ten 40'a kadar karışık sayı balonlarını sırayla patlat!",
+      generate: () => ritmikIleriUret(4, 40)
+    },
+    ritmik_balon_5: {
+      title: "5'er Ritmik Balon (5-50)",
+      desc: "2 Kişilik Düello: 5'ten 50'ye kadar karışık sayı balonlarını sırayla patlat!",
+      generate: () => ritmikIleriUret(5, 50)
+    },
+    ritmik_balon_6: {
+      title: "6'şar Ritmik Balon (6-60)",
+      desc: "2 Kişilik Düello: 6'dan 60'a kadar karışık sayı balonlarını sırayla patlat!",
+      generate: () => ritmikIleriUret(6, 60)
+    },
     ritmik_ileri_2: {
       title: "İleri İkişer Sayma (2-30)",
       desc: "30'a kadar ikişer ritmik sayma zinciri tamamlama.",
