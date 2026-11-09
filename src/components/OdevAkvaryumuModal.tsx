@@ -306,6 +306,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     }
 
     // Balık fizik durumlarını ref'e hazırla
+    // ÖNEMLİ: Bu efekt, öğrenci listesi her güncellendiğinde (istatistik kaydı, bulut senkronu vb.)
+    // yeniden çalışır. Mevcut balıkların konum/hız bilgisi KORUNUR; aksi halde balıklar
+    // başlangıç noktalarına geri ışınlanır.
+    const prevPhysicsById = new Map<string, FishPhysics>(
+      fishesPhysicsRef.current.map(fp => [fp.id, fp] as [string, FishPhysics])
+    );
     const physicsList: FishPhysics[] = [];
 
     // React render nesnelerini oluştur (Sadece ödev değiştiğinde re-render)
@@ -339,7 +345,8 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const vy = (i % 3 === 0 ? 1 : -1) * 0.010;
       const initialScaleX = initialDir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
 
-      physicsList.push({
+      const existingPhysics = prevPhysicsById.get(st.id);
+      physicsList.push(existingPhysics || {
         id: st.id,
         x,
         y,
