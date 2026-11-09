@@ -134,19 +134,14 @@ interface FishPhysics {
   vx: number;
   vy: number;
   direction: 1 | -1;
-  prevDirection: 1 | -1 | 0;
   nativeFacing: 'left' | 'right';
   currentScaleX: number;
-  pitch: number; // Su altında burun eğim açısı (-12deg .. +12deg)
+  pitch: number; // Su altında burun eğim açısı
   phase: number; // Sinüzoidal doğal salınım fazı
   speedBase: number;
   isSquid: boolean;
-  radiusX: number; // Çarpışma / çakışma önleme yarıçapı X (%)
-  radiusY: number; // Çarpışma / çakışma önleme yarıçapı Y (%)
-  targetLaneY: number; // İçiçe girmeyi önleyen derinlik koridoru (%)
   lastScaleX: number; // DOM güncelleme optimizasyon önbelleği
   lastTilt: number; // DOM güncelleme optimizasyon önbelleği
-  turnCooldown: number; // Kenarlarda takılmayı önleyen zaman damgası
 }
 
 interface OdevAkvaryumuModalProps {
@@ -333,22 +328,16 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const nativeFacing: 'left' = 'left';
       const fishWidth = cutout.calculatedWidth;
 
-      // Akvaryumda dengeli başlangıç koordinatları (İçiçe başlamayı önleyen koridor dağılımı)
-      const targetLaneY = 18 + ((i * 17) % 60);
+      // Akvaryumda dengeli başlangıç koordinatları
       const x = 12 + ((i * 21) % 72);
-      const y = targetLaneY + ((i % 3) - 1) * 3;
-      // Hız %20 yavaşlatıldı (0.8x çarpanı): Mürekkep balığı ve balıklar daha huzurlu ve asil yüzer
-      const speedBase = (isSquid
-        ? 0.025 + (i % 3) * 0.005
-        : 0.033 + (i % 5) * 0.006) * 0.8;
+      const y = 18 + ((i * 17) % 60);
+      const speedBase = isSquid
+        ? 0.026 + (i % 3) * 0.005
+        : 0.034 + (i % 5) * 0.006;
       const initialDir: 1 | -1 = (i % 2 === 0) ? 1 : -1;
       const vx = initialDir * speedBase;
-      const vy = (i % 3 === 0 ? 1 : -1) * (0.012 * 0.8);
+      const vy = (i % 3 === 0 ? 1 : -1) * 0.010;
       const initialScaleX = initialDir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
-
-      // Yüzde 25 küçülen balık boyutuna göre çarpışma ve çakışma önleme sınırları
-      const radiusX = Math.max(3.2, Math.min(6.5, (fishWidth / 1000) * 100 * 0.52));
-      const radiusY = Math.max(2.8, Math.min(5.2, (fishWidth / 600) * 100 * 0.40));
 
       physicsList.push({
         id: st.id,
@@ -357,19 +346,14 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         vx,
         vy,
         direction: initialDir,
-        prevDirection: initialDir,
         nativeFacing,
         currentScaleX: initialScaleX,
         pitch: 0,
         phase: (i * 1.35) % (Math.PI * 2),
         speedBase,
         isSquid,
-        radiusX,
-        radiusY,
-        targetLaneY,
         lastScaleX: initialScaleX,
         lastTilt: 0,
-        turnCooldown: 0
       });
 
       return {
@@ -432,121 +416,57 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         const bodyMap = fishBodyDomMap.current;
         const count = list.length;
 
-        // 1. BALIKLAR ARASI İÇİÇE GEÇMEYİ ÖNLEYEN YUMUŞAK AYRILMA (Soft Relaxation - Sarsıntısız & Sıfır Titreme)
-        for (let i = 0; i < count; i++) {
-          const f1 = list[i];
-          for (let j = i + 1; j < count; j++) {
-            const f2 = list[j];
-            const dx = f1.x - f2.x;
-            const dy = f1.y - f2.y;
-            const minX = f1.radiusX + f2.radiusX;
-            const minY = f1.radiusY + f2.radiusY;
-
-            // Elips biçiminde mesafe hesabı (akvaryum yatayda daha geniştir)
-            const distSq = (dx * dx) / (minX * minX) + (dy * dy) / (minY * minY);
-            if (distSq < 1.0 && distSq > 0.0001) {
-              const dist = Math.sqrt(distSq);
-              const overlap = 1.0 - dist;
-
-              // Yumuşak pozisyonel ayrılma (Hıza darbe vurmaz, yönü tersine çevirmez, titreşimi sıfırlar)
-              const sepFactor = overlap * 0.035 * speedFactor;
-              const offsetX = (dx / dist) * minX * sepFactor;
-              const offsetY = (dy / dist) * minY * sepFactor;
-
-              f1.x += offsetX * 0.5;
-              f2.x -= offsetX * 0.5;
-              f1.y += offsetY * 0.5;
-              f2.y -= offsetY * 0.5;
-
-              // Karşılaşan balıklar dikeyde birbirinin üzerinden/altından zarifçe süzülerek geçsin
-              if (f1.direction !== f2.direction) {
-                const verticalDodge = 0.0004 * speedFactor;
-                if (f1.y < f2.y) {
-                  f1.vy -= verticalDodge;
-                  f2.vy += verticalDodge;
-                } else {
-                  f1.vy += verticalDodge;
-                  f2.vy -= verticalDodge;
-                }
-              } else {
-                // Aynı yönde yüzen balıklardan arkadaki öndekine çarpmamak için hızını çok hafif dengeler
-                const isF1Behind = f1.direction === 1 ? f1.x < f2.x : f1.x > f2.x;
-                if (isF1Behind) {
-                  f1.vx *= 0.985;
-                } else {
-                  f2.vx *= 0.985;
-                }
-              }
-            }
-          }
-        }
-
-        // 2. TEKİL BALIK HAREKETİ, KENAR DÖNÜŞLERİ VE DERİNLİK BANDI
+        // SERBEST VE ÖZGÜR BALIK YÜZÜŞÜ (Çakışma/itme olmadan, birbirinin içinden serbestçe geçerler)
         for (let i = 0; i < count; i++) {
           const f = list[i];
 
-          // Kenar sınırları: Yalnızca akvaryumun en uçlarına gelindiğinde yön tersine çevrilir.
-          // Cooldown sayesinde kenarda takılma veya titreme yaşanmaz.
-          if (f.x > 85 && f.direction === 1 && now > f.turnCooldown) {
+          // Kenar sınırlarından yumuşak dönüşler (Sol ve Sağ Duvarlar)
+          if (f.x > 86 && f.vx > 0) {
+            f.vx = -Math.abs(f.speedBase);
             f.direction = -1;
-            f.turnCooldown = now + 1600;
-          } else if (f.x < 13 && f.direction === -1 && now > f.turnCooldown) {
+          } else if (f.x < 12 && f.vx < 0) {
+            f.vx = Math.abs(f.speedBase);
             f.direction = 1;
-            f.turnCooldown = now + 1600;
           }
 
-          // Kendi seyir hızına yumuşak kavuşma (Yönü korur, titreşimi önler)
-          const targetVx = f.direction * f.speedBase;
-          f.vx += (targetVx - f.vx) * 0.035 * speedFactor;
-
-          // Dikey derinlik bandı (targetLaneY) - Salınım veya toplanma yapmayan sönümlü çekim
-          const laneDiff = f.targetLaneY - f.y;
-          f.vy += laneDiff * 0.00004 * speedFactor;
-
-          // Su direnci (Viscous damping) - Balıkların dikeyde harmonik yay gibi toplanıp dağılmasını tamamen engeller
-          f.vy *= Math.pow(0.95, speedFactor);
-
-          // Akvaryumun üst ve alt sınırları (%15 - %82)
-          if (f.y > 80) {
-            f.vy -= 0.0006 * speedFactor;
-          } else if (f.y < 16) {
-            f.vy += 0.0006 * speedFactor;
+          // Üst ve Alt sınırlar (Yüzey ve Zemin)
+          if (f.y > 80 && f.vy > 0) {
+            f.vy = -Math.abs(f.vy);
+          } else if (f.y < 16 && f.vy < 0) {
+            f.vy = Math.abs(f.vy);
+          } else {
+            // Suyun içinde serbestçe yukarı-aşağı süzülme (Doğal dalgalanma)
+            f.vy += Math.sin((now * 0.0009) + f.phase) * 0.00035 * speedFactor;
+            const maxVy = f.speedBase * 0.45;
+            f.vy = Math.max(-maxVy, Math.min(maxVy, f.vy));
           }
 
-          // Hız sınırları (titreme ve aşırı savrulmayı önler)
-          const maxVx = f.speedBase * 1.25;
-          f.vx = Math.max(-maxVx, Math.min(maxVx, f.vx));
-          f.vy = Math.max(-0.010, Math.min(0.010, f.vy));
-
-          // Koordinat güncellemesi (WAVE ARTIK ASLA KOORDİNATA EKLENMEZ - 3 saniyelik toplanıp dağılma döngüsü sıfırlandı!)
+          // Koordinatları ilerlet
           f.x += f.vx * speedFactor;
           f.y += f.vy * speedFactor;
 
           // Sınır koruması
-          f.x = Math.max(10, Math.min(87, f.x));
+          f.x = Math.max(10, Math.min(88, f.x));
           f.y = Math.max(14, Math.min(82, f.y));
 
-          // Yalnızca piksel render aşamasında uygulanan organik yüzme salınımı (Koordinatı bozmaz)
-          const visualBob = Math.sin((now * 0.0016) + f.phase) * (f.isSquid ? 2.4 : 1.8);
-
-          // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
+          // Doğrudan GPU translate3d (Sıfır reflow, sıfır repaint, sıfır kasma)
           const el = domMap.get(f.id);
           if (el) {
             const px = (f.x * w) / 100;
-            const py = (f.y * h) / 100 + visualBob;
+            const py = (f.y * h) / 100;
             el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) translate(-50%, -50%)`;
           }
 
-          // Balığın yön ve eğim dönüşü (Yalnızca değer değiştiğinde DOM güncellenir)
+          // Balığın yönü ve burun eğimi (Cutoutlar sola baktığı için sağa yüzerken scaleX(-1))
           const bodyEl = bodyMap.get(f.id);
           if (bodyEl) {
-            // Burun eğimi: Dikey hareket yönüne göre hafif, yumuşak bir eğim (maksimum ±5 derece)
-            const targetPitch = Math.max(-5, Math.min(5, (f.vy / 0.010) * 5));
-            f.pitch += (targetPitch - f.pitch) * 0.04 * speedFactor;
+            // Su akışına göre hafif doğal burun eğimi (maks ±8 derece)
+            const targetPitch = Math.max(-8, Math.min(8, (f.vy / (f.speedBase || 0.03)) * 6));
+            f.pitch += (targetPitch - f.pitch) * 0.05 * speedFactor;
 
             f.currentScaleX = f.direction === 1 ? -1 : 1;
             const effectiveTilt = f.direction === 1 ? -f.pitch : f.pitch;
-            if (f.currentScaleX !== f.lastScaleX || Math.abs(effectiveTilt - f.lastTilt) > 0.25) {
+            if (f.currentScaleX !== f.lastScaleX || Math.abs(effectiveTilt - f.lastTilt) > 0.3) {
               f.lastScaleX = f.currentScaleX;
               f.lastTilt = effectiveTilt;
               bodyEl.style.transform = `scaleX(${f.currentScaleX}) rotate(${effectiveTilt.toFixed(1)}deg)`;

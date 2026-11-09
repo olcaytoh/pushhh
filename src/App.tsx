@@ -11610,6 +11610,7 @@ export default function App() {
             const rc = getRoundingGameConfig(onlukYuvarlamaKey);
             handleUniversalActivityAnswer(rc.statsTopic, isCorrect, pIdx, rc.categoryKey);
           }}
+          playerCountMode={playerCountMode}
         />
       )}
 
