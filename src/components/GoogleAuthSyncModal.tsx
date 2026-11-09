@@ -1,0 +1,981 @@
+import React, { useState, useRef } from 'react';
+import { 
+  Cloud, 
+  CloudCheck, 
+  CloudUpload, 
+  CloudDownload, 
+  LogOut, 
+  X, 
+  CheckCircle2, 
+  AlertCircle, 
+  RefreshCw, 
+  ShieldCheck, 
+  Users, 
+  BarChart3,
+  Sparkles,
+  ExternalLink,
+  Copy,
+  Check,
+  AlertTriangle,
+  ArchiveRestore,
+  Download,
+  Upload,
+  HardDrive,
+  FileJson,
+  FileCheck,
+  FolderDown,
+  Layers,
+  Clock
+} from 'lucide-react';
+import { User } from '../firebase';
+import { 
+  signInWithGoogle, 
+  signInWithRedirectGoogle,
+  signOutUser, 
+  formatFriendlyDate,
+  isFirestoreQuotaExceeded,
+  clearFirestoreQuotaExceeded,
+  CloudSyncMode,
+  getCloudSyncMode,
+  saveUserDataToCloud
+} from '../services/cloudSyncService';
+import { getDailyBackupStatus } from '../services/autoDailyBackupService';
+import { Student } from '../types/student';
+import { ClassCountersData, loadCounters } from '../utils/counterStorage';
+import { 
+  DEFAULT_STUDENTS, 
+  saveStudents,
+  isOlcaytoUser,
+  OLCAYTO_2A_STUDENTS,
+  getDefaultStudentsForUser,
+  sanitizeStudentsForUser
+} from '../utils/studentStore';
+import { 
+  loadHomeworkData, 
+  saveHomeworkData, 
+  mergeHomeworkData, 
+  DEFAULT_CLASS_23_HOMEWORK_DATA,
+  sanitizeHomeworkForUser
+} from '../utils/homeworkStore';
+import { 
+  downloadDataToPC, 
+  parseBackupFileFromPC, 
+  applyBackupToSystem, 
+  ParsedBackupResult 
+} from '../utils/backupFileService';
+import firebaseConfigData from '../../firebase-applet-config.json';
+
+export interface GoogleAuthSyncModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentUser: User | null;
+  students: Student[];
+  counters?: ClassCountersData;
+  countersData?: ClassCountersData;
+  lastSyncedAt: string | null;
+  onManualSyncUp: () => Promise<void>;
+  onManualSyncDown: () => Promise<void>;
+  onSignIn?: () => Promise<void>;
+  onSignOut?: () => Promise<void>;
+  onRecoverStudents?: () => Promise<void>;
+  isSyncing?: boolean;
+  playMp3?: (src: string) => void;
+  syncMode?: CloudSyncMode;
+  onSyncModeChange?: (mode: CloudSyncMode) => void;
+  onStudentsUpdated?: (updated: Student[]) => void;
+  onCountersUpdated?: (updated: ClassCountersData) => void;
+  selectedStudentIds?: (string | null)[];
+}
+
+export const GoogleAuthSyncModal: React.FC<GoogleAuthSyncModalProps> = ({
+  isOpen,
+  onClose,
+  currentUser,
+  students,
+  counters,
+  countersData,
+  lastSyncedAt,
+  onManualSyncUp,
+  onManualSyncDown,
+  onSignIn,
+  onSignOut,
+  onRecoverStudents,
+  isSyncing,
+  playMp3,
+  syncMode,
+  onSyncModeChange,
+  onStudentsUpdated,
+  onCountersUpdated,
+  selectedStudentIds
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const [actionMessage, setActionMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
+
+  // PC Backup & Restore States
+  const [isDownloadingPC, setIsDownloadingPC] = useState(false);
+  const [isReadingPCFile, setIsReadingPCFile] = useState(false);
+  const [isApplyingRestore, setIsApplyingRestore] = useState(false);
+  const [pendingBackup, setPendingBackup] = useState<ParsedBackupResult | null>(null);
+  const [restoreMode, setRestoreMode] = useState<'merge' | 'overwrite'>('merge');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  if (!isOpen) return null;
+
+  const currentCounters: ClassCountersData = countersData || counters || loadCounters();
+
+  const handleSignIn = async () => {
+    setIsLoading(true);
+    setActionMessage(null);
+    setUnauthorizedDomain(null);
+    playMp3?.('/op.mp3');
+    try {
+      if (onSignIn) {
+        await onSignIn();
+      } else {
+        await signInWithGoogle();
+      }
+      playMp3?.('/coin.mp3');
+      setActionMessage({
+        text: 'Google ile başarıyla giriş yapıldı! Verileriniz buluta eşitlendi.',
+        type: 'success'
+      });
+    } catch (err: any) {
+      const code = err?.code || '';
+      const msg = err?.message || '';
+      if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+        setUnauthorizedDomain(domain || 'alan-adiniz.com');
+      } else {
+        setActionMessage({
+          text: err.message || 'Giriş yapılamadı. Lütfen tekrar deneyin.',
+          type: 'error'
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRedirectSignIn = async () => {
+    setIsLoading(true);
+    setActionMessage(null);
+    setUnauthorizedDomain(null);
+    playMp3?.('/op.mp3');
+    try {
+      await signInWithRedirectGoogle();
+    } catch (err: any) {
+      const code = err?.code || '';
+      const msg = err?.message || '';
+      if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+        setUnauthorizedDomain(domain || 'alan-adiniz.com');
+      } else {
+        setActionMessage({
+          text: err.message || 'Yönlendirme başlatılamadı. Lütfen tekrar deneyin.',
+          type: 'error'
+        });
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (!confirmSignOut) {
+      setConfirmSignOut(true);
+      return;
+    }
+    setIsLoading(true);
+    setActionMessage(null);
+    setConfirmSignOut(false);
+    playMp3?.('/op.mp3');
+    try {
+      if (onSignOut) {
+        await onSignOut();
+      } else {
+        await signOutUser();
+      }
+      setActionMessage({
+        text: 'Başarıyla çıkış yapıldı. Hesabınıza ait öğrenciler ve veriler hesabınızda güvenle korundu.',
+        type: 'info'
+      });
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Çıkış yapılırken bir hata oluştu.',
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    setIsLoading(true);
+    setActionMessage(null);
+    playMp3?.('/op.mp3');
+    try {
+      await onManualSyncUp();
+      playMp3?.('/coin.mp3');
+      setActionMessage({
+        text: 'Öğrenci listeniz ve istatistikleriniz başarıyla buluta yedeklendi!',
+        type: 'success'
+      });
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Buluta yedekleme başarısız oldu: ' + (err?.message || 'Bilinmeyen hata'),
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setIsLoading(true);
+    setActionMessage(null);
+    playMp3?.('/op.mp3');
+    try {
+      await onManualSyncDown();
+      playMp3?.('/coin.mp3');
+      setActionMessage({
+        text: 'Buluttaki veriler başarıyla bu cihaza aktarıldı!',
+        type: 'success'
+      });
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Buluttan veri çekilemedi: ' + (err?.message || 'Bilinmeyen hata'),
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // PC'ye Yedek İndirme (JSON formatında)
+  const handleDownloadToPC = async () => {
+    setIsDownloadingPC(true);
+    setActionMessage(null);
+    playMp3?.('/op.mp3');
+    try {
+      const res = await downloadDataToPC({
+        currentUser,
+        students,
+        counters: currentCounters,
+        selectedStudentIds
+      });
+      playMp3?.('/coin.mp3');
+      setActionMessage({
+        text: `💾 Yedek dosyanız (${res.filename}) bilgisayarınıza başarıyla indirildi! İçerik: ${res.summary.totalStudents} öğrenci, ${res.summary.totalQuestionsSolved} çözülen soru, ${res.summary.homeworkCount} ödev kaydı.`,
+        type: 'success'
+      });
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Yedek dosyası indirilirken bir hata oluştu: ' + (err?.message || 'Bilinmeyen hata'),
+        type: 'error'
+      });
+    } finally {
+      setIsDownloadingPC(false);
+    }
+  };
+
+  // PC'den Seçilen Yedek Dosyasını Okuma & Önizleme
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsReadingPCFile(true);
+    setActionMessage(null);
+    try {
+      const parsedResult = await parseBackupFileFromPC(file);
+      if (!parsedResult.valid || !parsedResult.data) {
+        setActionMessage({
+          text: parsedResult.error || 'Dosya okunamadı veya geçerli bir yedek dosyası değil.',
+          type: 'error'
+        });
+        setPendingBackup(null);
+      } else {
+        setPendingBackup(parsedResult);
+        playMp3?.('/op.mp3');
+      }
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Dosya okunurken bir hata oluştu: ' + (err?.message || 'Bilinmeyen hata'),
+        type: 'error'
+      });
+    } finally {
+      setIsReadingPCFile(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Önizlenen Yedeği Onaylayıp Sisteme Uygulama
+  const handleConfirmRestore = async () => {
+    if (!pendingBackup?.data) return;
+    setIsApplyingRestore(true);
+    setActionMessage(null);
+    playMp3?.('/op.mp3');
+    try {
+      const result = await applyBackupToSystem({
+        backupData: pendingBackup.data,
+        mode: restoreMode,
+        currentStudents: students,
+        currentCounters: currentCounters,
+        currentUser
+      });
+      onStudentsUpdated?.(result.restoredStudents);
+      onCountersUpdated?.(result.restoredCounters);
+      playMp3?.('/coin.mp3');
+      setActionMessage({
+        text: `🎉 Yedek başarıyla geri yüklendi! ${result.summaryText}`,
+        type: 'success'
+      });
+      setPendingBackup(null);
+    } catch (err: any) {
+      setActionMessage({
+        text: 'Yedek geri yüklenirken hata oluştu: ' + (err?.message || 'Bilinmeyen hata'),
+        type: 'error'
+      });
+    } finally {
+      setIsApplyingRestore(false);
+    }
+  };
+
+  const handleCancelRestore = () => {
+    setPendingBackup(null);
+  };
+
+  const q = currentCounters?.questions;
+  const totalQuestionsSolved = q
+    ? (q.grade1?.correct || 0) + (q.grade1?.wrong || 0) +
+      (q.grade2?.correct || 0) + (q.grade2?.wrong || 0) +
+      (q.grade3?.correct || 0) + (q.grade3?.wrong || 0) +
+      (q.grade4?.correct || 0) + (q.grade4?.wrong || 0) +
+      (q.otherGames?.correct || 0) + (q.otherGames?.wrong || 0) +
+      (q.englishGames?.correct || 0) + (q.englishGames?.wrong || 0)
+    : 0;
+
+  return (
+    <div 
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md animate-fade-in"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#0d1627] border border-slate-700/80 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-cyan-950/40 text-slate-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Glow Header Accent */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400" />
+        
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          title="Kapat"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Modal Title */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white">
+            <Cloud className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-2">
+              Google Bulut Senkronizasyonu
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                İsteğe Bağlı
+              </span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Öğrenci listeniz ve istatistiklerinize her cihazdan ulaşın
+            </p>
+          </div>
+        </div>
+
+        {/* Status Notification Alert */}
+        {actionMessage && (
+          <div className={`mb-4 p-3 rounded-2xl flex items-start gap-2.5 text-xs sm:text-sm border ${
+            actionMessage.type === 'success' 
+              ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-200' 
+              : actionMessage.type === 'error'
+              ? 'bg-rose-950/50 border-rose-500/40 text-rose-200'
+              : 'bg-blue-950/50 border-blue-500/40 text-blue-200'
+          }`}>
+            {actionMessage.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />}
+            {actionMessage.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />}
+            {actionMessage.type === 'info' && <ShieldCheck className="w-4 h-4 shrink-0 text-blue-400 mt-0.5" />}
+            <span>{actionMessage.text}</span>
+          </div>
+        )}
+
+        {/* Firestore Quota Notice */}
+        {isFirestoreQuotaExceeded() && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/50 border-2 border-amber-500/60 text-slate-100 shadow-xl space-y-2.5">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-amber-300">
+                    Günlük Ücretsiz Bulut Kotası Doldu
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Yerel Mod Aktif
+                  </span>
+                </div>
+                <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                  Firebase Firestore günlük ücretsiz yazma kotası (Spark planı) geçici olarak doldu. 
+                  <strong className="text-white block mt-0.5">Endişelenmeyin: Tüm öğrenci listeniz, puanlarınız ve ödevleriniz cihazınızın yerel hafızasında güvenle saklanmaya devam etmektedir.</strong>
+                </p>
+                <p className="text-[11px] text-amber-200/80 mt-1">
+                  Ücretsiz kota gece yarısı (UTC) otomatik sıfırlanacaktır. Dilerseniz kotanızı Firebase Konsolundan yükseltebilirsiniz:
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      clearFirestoreQuotaExceeded();
+                      playMp3?.('/coin.mp3');
+                      setActionMessage({
+                        text: 'Bulut kota kilidi sıfırlandı! Firestore bağlantısı yeniden deneniyor...',
+                        type: 'info'
+                      });
+                      if (currentUser) {
+                        try {
+                          await onManualSyncDown();
+                        } catch {}
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-all cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Kota Kilidini Sıfırla & Şimdi Yeniden Dene
+                  </button>
+                  <a
+                    href={`https://console.firebase.google.com/project/${firebaseConfigData.projectId}/firestore/databases/${firebaseConfigData.firestoreDatabaseId}/data?openUpgradeDialog=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Firebase Kotasını Yükselt
+                  </a>
+                  <a
+                    href="https://firebase.google.com/pricing#cloud-firestore"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+                  >
+                    Fiyatlandırma & Limitler
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Unauthorized Domain Guide Card */}
+        {unauthorizedDomain && (
+          <div className="mb-4 p-4 rounded-2xl bg-amber-950/40 border-2 border-amber-500/60 text-slate-100 shadow-xl space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-300">
+                  Firebase Yetkili Alan Adı İzni Gerekli
+                </h4>
+                <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                  Sitenizi kendi alan adınıza taşıdığınızda, Google OAuth güvenlik protokolü gereği bu alan adının Firebase paneline 1 kez eklenmesi gerekir.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-900/90 border border-amber-500/30 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[10px] text-slate-400 block font-medium">Eklenecek Alan Adınız:</span>
+                <span className="text-xs font-mono font-bold text-amber-200 truncate block select-all">
+                  {unauthorizedDomain}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(unauthorizedDomain);
+                  setCopiedDomain(true);
+                  setTimeout(() => setCopiedDomain(false), 2500);
+                }}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition-all cursor-pointer"
+              >
+                {copiedDomain ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedDomain ? 'Kopyalandı!' : 'Kopyala'}</span>
+              </button>
+            </div>
+
+            <div className="text-[11px] text-slate-300 space-y-1.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+              <p className="font-bold text-amber-300">
+                30 Saniyede Çözüm Adımları:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-300 leading-normal">
+                <li>Aşağıdaki mavi butona basarak <strong>Firebase Authentication Ayarları</strong>'nı açın.</li>
+                <li>Sayfadaki <strong>Authorized domains (Yetkili alan adları)</strong> bölümüne inin.</li>
+                <li><strong>"Add domain" (Alan adı ekle)</strong> butonuna tıklayıp kopyaladığınız adresi yapıştırın ve kaydedin.</li>
+              </ol>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <a
+                href={`https://console.firebase.google.com/project/${firebaseConfigData.projectId}/authentication/settings`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Firebase Ayarlarını Aç ({firebaseConfigData.projectId})
+              </a>
+              <button
+                type="button"
+                onClick={handleSignIn}
+                disabled={isLoading}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                Tekrar Giriş Yap
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentUser ? (
+          /* LOGGED IN USER VIEW */
+          <div className="space-y-4">
+            {/* User Profile Card */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-3.5">
+              {currentUser.photoURL ? (
+                <img 
+                  src={currentUser.photoURL} 
+                  alt={currentUser.displayName || 'Kullanıcı'} 
+                  className="w-13 h-13 rounded-full border-2 border-emerald-400/80 object-cover shadow-md"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-13 h-13 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-lg font-black text-white border-2 border-emerald-400/80">
+                  {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'Ö'}
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                    {currentUser.displayName || 'Öğretmen'}
+                  </h3>
+                  <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Bağlı
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 truncate">
+                  {currentUser.email}
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                  <CloudCheck className="w-3 h-3 text-cyan-400" />
+                  Son Senkron: {formatFriendlyDate(lastSyncedAt)}
+                </p>
+              </div>
+            </div>
+
+            {/* Account Isolation Notice */}
+            <div className="p-3 rounded-2xl bg-indigo-950/60 border border-indigo-500/30 text-indigo-200 text-xs flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-white">Hesaba Özel Öğrenci Alanı:</span> Eklediğiniz ve düzenlediğiniz öğrenciler sadece bu hesaba (<span className="text-amber-300 font-semibold">{currentUser.email}</span>) kaydedilir. Farklı bir mail ile giriş yaptığınızda sadece o mailin öğrencileri gözükür.
+              </div>
+            </div>
+
+            {/* Current Sync Stats Bento */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-2xl bg-[#131f38] border border-slate-700/60 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-base sm:text-lg font-black text-amber-300">
+                    {students.length}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-slate-400 font-medium">
+                    Kayıtlı Öğrenci
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-[#131f38] border border-slate-700/60 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                  <BarChart3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-base sm:text-lg font-black text-blue-300">
+                    {totalQuestionsSolved}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-slate-400 font-medium">
+                    Çözülen Soru
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Otomatik Saat 10:00 Yedekleme Bilgilendirme Kartı */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-teal-950/70 to-slate-900 border-2 border-emerald-500/50 text-emerald-200 shadow-lg space-y-2.5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center shrink-0 text-emerald-300 shadow-inner mt-0.5">
+                  <Clock className="w-5 h-5 text-emerald-400 animate-pulse" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-black text-white">⏰ Her Sabah Saat 10:00 Otomatik Yedekleme</span>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50">
+                      AKTİF & ÇALIŞIYOR
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-200/90 mt-1 leading-relaxed">
+                    Sınıf listeniz, çözülen sorular ve tüm verileriniz her sabah saat <strong>10:00</strong>'da hiçbir butona basmanıza gerek kalmadan otomatik olarak güvenle buluta ve cihazınıza yedeklenir.
+                  </p>
+                  {getDailyBackupStatus(currentUser?.uid).lastBackupTimeFormatted && (
+                    <div className="text-[11px] text-emerald-300/80 font-semibold mt-2 pt-1.5 border-t border-emerald-500/20 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Son Başarılı Yedekleme: <strong>{getDailyBackupStatus(currentUser?.uid).lastBackupTimeFormatted}</strong></span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-1">
+              {confirmSignOut ? (
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-200">
+                  <span className="text-[11px] font-semibold">Çıkış yapmak istediğinize emin misiniz?</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={handleSignOut}
+                      disabled={isLoading}
+                      className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Evet, Çık
+                    </button>
+                    <button
+                      onClick={() => setConfirmSignOut(false)}
+                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-all cursor-pointer"
+                    >
+                      İptal
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSignOut}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-transparent hover:bg-rose-950/30 border border-transparent hover:border-rose-900/50 text-rose-300/80 hover:text-rose-300 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Google Hesabından Çıkış Yap
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* LOGGED OUT VIEW */
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-[#101b33] to-slate-900 border border-blue-500/20 space-y-3">
+              <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                <Sparkles className="w-4 h-4" />
+                Neden Google ile Giriş Yapmalıyım?
+              </div>
+              <ul className="space-y-2 text-xs text-slate-300 leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>Her Yerden Erişim:</strong> Akıllı tahtada, evdeki bilgisayarda veya telefonunuzda aynı öğrenci listesini kullanın.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>Kayıp Riski Yok:</strong> Tarayıcı çerezleri silinse bile öğrenci listeniz ve <strong>Ödev Akvaryumu</strong> verileriniz güvenle bulutta saklanır, sıfırlanmaz.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>Ödev Takibi:</strong> Balıkların büyüme geçmişi ve günlük ödev kayıtları Google hesabınıza anlık eşitlenir.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span><strong>İsteğe Bağlı:</strong> Giriş yapmadan da tüm oyunları ve özellikleri tarayıcınızda kullanabilirsiniz.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Google Sign In Button */}
+            <button
+              onClick={handleSignIn}
+              disabled={isLoading}
+              className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-black text-sm flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+            >
+              {isLoading ? (
+                <RefreshCw className="w-5 h-5 animate-spin text-slate-600" />
+              ) : (
+                /* Google G Icon SVG */
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+              )}
+              <span>{isLoading ? 'Giriş Yapılıyor...' : 'Google ile Giriş Yap'}</span>
+            </button>
+
+            {/* Alternative Direct Redirect Login Button (Bypasses popup blockers) */}
+            <button
+              onClick={handleRedirectSignIn}
+              disabled={isLoading}
+              type="button"
+              className="w-full py-2.5 px-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-slate-600/80 text-cyan-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span>Pop-up açılmıyorsa: Sayfayı Yönlendirerek Giriş Yap</span>
+            </button>
+          </div>
+        )}
+
+        {/* BILGISAYARA (PC / FLASH BELLEK) YEDEKLEME VE GERI YUKLEME ALANI */}
+        <div className="mt-5 pt-4 border-t border-slate-800 space-y-3">
+          {/* Hidden File Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400">
+                <HardDrive className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-2">
+                  Bilgisayara Yedekleme & Geri Yükleme
+                  <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                    Flash Bellek / PC
+                  </span>
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Verilerinizi PC'ye .json dosyası olarak indirin veya daha önce aldığınız yedeği geri yükleyin.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons for PC Backup */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={handleDownloadToPC}
+              disabled={isDownloadingPC || isLoading}
+              className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-teal-950/40 hover:bg-teal-900/50 border border-teal-500/40 hover:border-teal-400 text-teal-200 text-xs sm:text-sm font-bold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer group"
+            >
+              <Download className={`w-4 h-4 text-teal-400 group-hover:translate-y-0.5 transition-transform ${isDownloadingPC ? 'animate-bounce' : ''}`} />
+              <div className="text-left">
+                <div className="text-white font-bold leading-tight">
+                  {isDownloadingPC ? 'İndiriliyor...' : 'PC\'ye Yedek İndir (.json)'}
+                </div>
+                <div className="text-[10px] text-teal-300/80 font-normal">
+                  {students.length} Öğrenci • Ödevler • Sayaçlar
+                </div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isReadingPCFile || isLoading}
+              className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-500 text-slate-200 text-xs sm:text-sm font-bold shadow-md transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer group"
+            >
+              <Upload className={`w-4 h-4 text-cyan-400 group-hover:-translate-y-0.5 transition-transform ${isReadingPCFile ? 'animate-bounce' : ''}`} />
+              <div className="text-left">
+                <div className="text-white font-bold leading-tight">
+                  {isReadingPCFile ? 'Okunuyor...' : 'PC\'den Yedek Yükle (.json)'}
+                </div>
+                <div className="text-[10px] text-slate-400 font-normal">
+                  Bilgisayardaki dosyayı seç
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Pending Backup Preview Drawer / Modal */}
+          {pendingBackup?.data && (
+            <div className="p-4 rounded-2xl bg-slate-900/95 border-2 border-teal-500/50 text-slate-100 shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <FileCheck className="w-5 h-5 text-teal-400" />
+                  <div>
+                    <h5 className="text-xs sm:text-sm font-black text-white">
+                      Yedek Dosyası İncelendi
+                    </h5>
+                    <span className="text-[11px] font-mono text-teal-300 truncate max-w-[200px] sm:max-w-xs block">
+                      {pendingBackup.fileName} ({pendingBackup.fileSizeFormatted})
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+                  Geçerli Yedek
+                </span>
+              </div>
+
+              {/* Backup Summary Pills */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                  <div className="text-base sm:text-lg font-black text-amber-300">
+                    {pendingBackup.data.summary.totalStudents}
+                  </div>
+                  <div className="text-[10px] text-slate-400">Öğrenci</div>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                  <div className="text-base sm:text-lg font-black text-blue-300">
+                    {pendingBackup.data.summary.totalQuestionsSolved}
+                  </div>
+                  <div className="text-[10px] text-slate-400">Çözülen Soru</div>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60">
+                  <div className="text-base sm:text-lg font-black text-emerald-300">
+                    {pendingBackup.data.summary.homeworkCount}
+                  </div>
+                  <div className="text-[10px] text-slate-400">Ödev Kaydı</div>
+                </div>
+              </div>
+
+              {/* Class Breakdown if any */}
+              {pendingBackup.data.summary.gradeCounts && (
+                <div className="flex flex-wrap gap-1.5 text-[11px] text-slate-300">
+                  <span className="text-slate-400 font-medium mr-1">Sınıf Dağılımı:</span>
+                  {[1, 2, 3, 4].map(g => {
+                    const count = pendingBackup.data?.summary.gradeCounts?.[g] || 0;
+                    if (count === 0) return null;
+                    return (
+                      <span key={g} className="px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-cyan-300 font-bold">
+                        {g}. Sınıf: {count}
+                      </span>
+                    );
+                  })}
+                  {pendingBackup.data.createdAtFormatted && (
+                    <span className="ml-auto text-[10px] text-slate-400 self-center">
+                      Tarih: {pendingBackup.data.createdAtFormatted}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Restore Mode Selection */}
+              <div className="space-y-2 pt-1">
+                <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-teal-400" />
+                  Yükleme Yöntemini Seçin:
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label 
+                    onClick={() => setRestoreMode('merge')}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      restoreMode === 'merge'
+                        ? 'bg-emerald-950/40 border-emerald-400 text-emerald-100 shadow-sm'
+                        : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="restoreMode" 
+                      checked={restoreMode === 'merge'} 
+                      onChange={() => setRestoreMode('merge')}
+                      className="mt-1 accent-emerald-400 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-white flex items-center gap-1">
+                        <span>Mevcutla Birleştir</span>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-normal">Tavsiye</span>
+                      </div>
+                      <div className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                        Mevcut öğrencileri silmez, eksikleri ekler, en yüksek puanları korur.
+                      </div>
+                    </div>
+                  </label>
+
+                  <label 
+                    onClick={() => setRestoreMode('overwrite')}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                      restoreMode === 'overwrite'
+                        ? 'bg-rose-950/40 border-rose-400 text-rose-100 shadow-sm'
+                        : 'bg-slate-800/40 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="restoreMode" 
+                      checked={restoreMode === 'overwrite'} 
+                      onChange={() => setRestoreMode('overwrite')}
+                      className="mt-1 accent-rose-400 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-rose-300 flex items-center gap-1">
+                        <span>Tümünün Üzerine Yaz</span>
+                      </div>
+                      <div className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+                        Mevcut listeyi tamamen siler, bu yedek dosyasını birebir yükler.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Confirm/Cancel buttons */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleConfirmRestore}
+                  disabled={isApplyingRestore}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                >
+                  <Check className={`w-4 h-4 ${isApplyingRestore ? 'animate-spin' : ''}`} />
+                  <span>{isApplyingRestore ? 'Geri Yükleniyor...' : 'Yedeği Sisteme Yükle'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelRestore}
+                  disabled={isApplyingRestore}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer info */}
+        <div className="mt-5 pt-3 border-t border-slate-800 text-center">
+          <p className="text-[11px] text-slate-500">
+            Kişisel verileriniz ve öğrenci listeleriniz sadece sizin Google hesabınıza özel olarak şifreli saklanır.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
