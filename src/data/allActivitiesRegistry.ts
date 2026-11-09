@@ -26,6 +26,10 @@ const resolveTitle = (key: string, grade?: number): string => {
   if (key === 'ritmik_balon_9') return "9'ar Ritmik Balon (9-90)";
   if (key === 'sayi_basketi') return 'Sayı Basketi';
   if (key === 'en_yakin_onluk_oyunu') return 'En Yakın Onluğa Yuvarlama Oyunu';
+  if (key === 'g3_onluk_yuvarlama_oyunu') return "En Yakın Onluğa Yuvarlama Oyunu (1000'e Kadar)";
+  if (key === 'g3_yuzluk_yuvarlama_oyunu') return "En Yakın Yüzlüğe Yuvarlama Oyunu (1000'e Kadar)";
+  if (key === 'g4_onluk_yuvarlama_oyunu') return 'En Yakın Onluğa Yuvarlama Oyunu (4 Basamaklı)';
+  if (key === 'g4_yuzluk_yuvarlama_oyunu') return 'En Yakın Yüzlüğe Yuvarlama Oyunu (4 Basamaklı)';
   if (key === 'saglikli_aliskanliklar') return 'Sağlıklı Alışkanlıklar';
   if (key === 'cisimler_acilimi') return 'Geometrik Cisimler Açılımı';
   if (key === 'sivi_tahmin_akvaryum') return 'Sıvı Ölçme Tahmini';
@@ -398,7 +402,9 @@ const g3Tema1 = [
   'g3_sayi_siralama_karsilastirma',
   'g3_en_yakin_onluga_yuvarlama_100',
   'g3_en_yakin_onluga_yuvarlama',
+  'g3_onluk_yuvarlama_oyunu',
   'g3_en_yakin_yuzluge_yuvarlama',
+  'g3_yuzluk_yuvarlama_oyunu',
   'ritmik_balon_6',
   'ritmik_balon_7',
   'ritmik_balon_8',
@@ -417,7 +423,7 @@ const g3Tema1 = [
 g3Tema1.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g3_${key}`,
-    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : 'grade_topic',
+    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : key.endsWith('_yuvarlama_oyunu') ? 'onluk_yuvarlama_oyunu' : 'grade_topic',
     grade: 3,
     topicKey: key,
     title: resolveTitle(key, 3),
@@ -511,13 +517,15 @@ const g4Tema1 = [
   'g4_basamak_ve_cozumleme',
   'g4_sayi_siralama',
   'g4_en_yakin_onluk_yuzluk',
+  'g4_onluk_yuvarlama_oyunu',
+  'g4_yuzluk_yuvarlama_oyunu',
   'g4_ritmik_yuzer_biner',
   'g4_sayi_sekil_oruntuleri'
 ];
 g4Tema1.forEach(key => {
   ALL_ACTIVITIES_LIST.push({
     id: `g4_${key}`,
-    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : 'grade_topic',
+    type: key.startsWith('ritmik_balon_') ? 'ritmik_balon' : key.endsWith('_yuvarlama_oyunu') ? 'onluk_yuvarlama_oyunu' : 'grade_topic',
     grade: 4,
     topicKey: key,
     title: resolveTitle(key, 4),

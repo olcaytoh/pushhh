@@ -117,13 +117,12 @@ interface FishState {
   isSquid: boolean;
 }
 
-// Akvaryumda aşağıdan yukarı hızlı ve dinamik şekilde yükselen gerçekçi hava kabarcıkları
-const BUBBLE_LIST = Array.from({ length: 36 }).map((_, idx) => {
-  const size = 5 + (idx % 6) * 3.2;
-  const left = 2 + ((idx * 3.4 + (idx % 5) * 2.3) % 96);
-  // Daha hızlı ve dinamik: 1.8s - 3.6s aralığı
-  const duration = 1.9 + (idx % 7) * 0.28;
-  const delay = -((idx * 0.42) % 3.5);
+// Akvaryumda yükselen hafif ve GPU dostu gerçekçi hava kabarcıkları (Kasmayı önlemek için 14 adet hafif baloncuk)
+const BUBBLE_LIST = Array.from({ length: 14 }).map((_, idx) => {
+  const size = 5 + (idx % 4) * 2.4;
+  const left = 3 + ((idx * 7.1 + (idx % 3) * 4.3) % 94);
+  const duration = 2.2 + (idx % 5) * 0.35;
+  const delay = -((idx * 0.55) % 3.0);
   return { id: idx, size, left, duration, delay };
 });
 
@@ -142,6 +141,11 @@ interface FishPhysics {
   phase: number; // Sinüzoidal doğal salınım fazı
   speedBase: number;
   isSquid: boolean;
+  radiusX: number; // Çarpışma / çakışma önleme yarıçapı X (%)
+  radiusY: number; // Çarpışma / çakışma önleme yarıçapı Y (%)
+  targetLaneY: number; // İçiçe girmeyi önleyen derinlik koridoru (%)
+  lastScaleX: number; // DOM güncelleme optimizasyon önbelleği
+  lastTilt: number; // DOM güncelleme optimizasyon önbelleği
 }
 
 interface OdevAkvaryumuModalProps {
@@ -328,9 +332,10 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const nativeFacing: 'left' = 'left';
       const fishWidth = cutout.calculatedWidth;
 
-      // Akvaryumda rastgele başlangıç koordinatları
-      const x = 12 + ((i * 19) % 74);
-      const y = 18 + ((i * 23) % 62);
+      // Akvaryumda dengeli başlangıç koordinatları (İçiçe başlamayı önleyen koridor dağılımı)
+      const targetLaneY = 18 + ((i * 17) % 60);
+      const x = 12 + ((i * 21) % 72);
+      const y = targetLaneY + ((i % 3) - 1) * 3;
       // Hız %20 yavaşlatıldı (0.8x çarpanı): Mürekkep balığı ve balıklar daha huzurlu ve asil yüzer
       const speedBase = (isSquid
         ? 0.025 + (i % 3) * 0.005
@@ -339,6 +344,10 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const vx = initialDir * speedBase;
       const vy = (i % 3 === 0 ? 1 : -1) * (0.012 * 0.8);
       const initialScaleX = initialDir === 1 ? -1 : 1; // Cutout görselleri doğal olarak sola bakar. Sağa giderken scaleX(-1) ile sağa çevrilir.
+
+      // Yüzde 25 küçülen balık boyutuna göre çarpışma ve çakışma önleme sınırları
+      const radiusX = Math.max(3.2, Math.min(6.5, (fishWidth / 1000) * 100 * 0.52));
+      const radiusY = Math.max(2.8, Math.min(5.2, (fishWidth / 600) * 100 * 0.40));
 
       physicsList.push({
         id: st.id,
@@ -353,7 +362,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         pitch: 0,
         phase: (i * 1.35) % (Math.PI * 2),
         speedBase,
-        isSquid
+        isSquid,
+        radiusX,
+        radiusY,
+        targetLaneY,
+        lastScaleX: initialScaleX,
+        lastTilt: 0
       });
 
       return {
@@ -383,11 +397,13 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   }, [isOpen, currentGradeStudents, selectedGrade]);
 
   // CANLI AKVARYUM FİZİĞİ - SIFIR REACT RERENDER, 100% GPU KOMPOZİTÖRÜ (translate3d)
+  // Akıllı tahta optimizasyonu: ~31 FPS hedefli akıcı simülasyon, sıfır kasma, içiçe geçmeyi önleyen ayrılma fizikleri
   useEffect(() => {
     if (!isOpen) return;
 
     let lastTime = performance.now();
     let isRunning = true;
+    const TARGET_INTERVAL = 32; // ~31.25 FPS - Tamamen akıcı, CPU ve GPU yükünü yarıya indirir
 
     const updatePhysics = (now: number) => {
       if (!isRunning) return;
@@ -399,11 +415,12 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         return;
       }
 
-      // Akıllı tahta CPU optimizasyonu: ~30-40 FPS akıcı fizikle balık simülasyonu
-      if (!lastTime || now - lastTime >= 30) {
-        const dt = Math.min(now - (lastTime || now), 60); // Frame drop durumunda fırlamayı önle
-        lastTime = now;
-        const speedFactor = dt / 16.666; // Normalize hız çarpanı
+      const elapsed = now - lastTime;
+      if (elapsed >= TARGET_INTERVAL) {
+        // Zaman sapmasını telafi et
+        lastTime = now - (elapsed % TARGET_INTERVAL);
+        const dt = Math.min(elapsed, 50);
+        const speedFactor = dt / 16.666; // Normalize edilmiş hız çarpanı
 
         const dims = aquariumDimsRef.current;
         const w = dims.w;
@@ -411,52 +428,97 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         const list = fishesPhysicsRef.current;
         const domMap = fishDomMap.current;
         const bodyMap = fishBodyDomMap.current;
+        const count = list.length;
 
-        for (let i = 0; i < list.length; i++) {
+        // 1. BALIKLAR ARASI İÇİÇE GEÇMEYİ ÖNLEYEN AYRILMA FİZİĞİ (Anti-Overlap / Flocking Separation)
+        for (let i = 0; i < count; i++) {
+          const f1 = list[i];
+          for (let j = i + 1; j < count; j++) {
+            const f2 = list[j];
+            const dx = f1.x - f2.x;
+            const dy = f1.y - f2.y;
+            const minX = f1.radiusX + f2.radiusX;
+            const minY = f1.radiusY + f2.radiusY;
+
+            // Elips biçiminde mesafe hesabı (akvaryum yatayda daha geniştir)
+            const distSq = (dx * dx) / (minX * minX) + (dy * dy) / (minY * minY);
+            if (distSq < 1.0 && distSq > 0.0001) {
+              const dist = Math.sqrt(distSq);
+              const overlap = 1.0 - dist; // 0..1 çakışma derinliği
+
+              // Balıkları zarafetle birbirinden uzaklaştıran itici akıntı kuvveti
+              const force = overlap * 0.0038 * speedFactor;
+              const pushX = (dx / dist) * force * minX;
+              const pushY = (dy / dist) * force * minY;
+
+              f1.vx += pushX;
+              f1.vy += pushY;
+              f2.vx -= pushX;
+              f2.vy -= pushY;
+
+              // Karşı karşıya gelen balıklar dikeyde birbirinin üzerinden/altından süzülerek geçsin
+              if ((f1.vx > 0 && f2.vx < 0) || (f1.vx < 0 && f2.vx > 0)) {
+                const veer = 0.0016 * speedFactor;
+                if (f1.y < f2.y) {
+                  f1.vy -= veer;
+                  f2.vy += veer;
+                } else {
+                  f1.vy += veer;
+                  f2.vy -= veer;
+                }
+              }
+            }
+          }
+        }
+
+        // 2. TEKİL BALIK HAREKETİ, KENARLAR VE DERİNLİK KORİDORLARI
+        for (let i = 0; i < count; i++) {
           const f = list[i];
 
-          // 1. Kenarlarda Yumuşak Dönüş Manevrası (%20 daha sakin dönüş)
-          if (f.x > 82 && f.vx > 0) {
-            f.vx -= 0.0018 * speedFactor;
+          // Kenarlarda Yumuşak Dönüş Manevrası
+          if (f.x > 84 && f.vx > 0) {
+            f.vx -= 0.0022 * speedFactor;
             if (f.x >= 88) {
               f.x = 88;
-              f.vx = -Math.max(0.013, Math.abs(f.vx));
+              f.vx = -Math.max(0.014, Math.abs(f.vx));
             }
-          } else if (f.x < 14 && f.vx < 0) {
-            f.vx += 0.0018 * speedFactor;
+          } else if (f.x < 12 && f.vx < 0) {
+            f.vx += 0.0022 * speedFactor;
             if (f.x <= 8) {
               f.x = 8;
-              f.vx = Math.max(0.013, Math.abs(f.vx));
+              f.vx = Math.max(0.014, Math.abs(f.vx));
             }
           } else {
-            // Açık suda balığın doğal seyir hızına yumuşak kavuşması
+            // Açık suda balığın kendi doğal seyir hızına yumuşak kavuşması
             const targetVx = f.direction * f.speedBase;
-            f.vx += (targetVx - f.vx) * 0.02 * speedFactor;
+            f.vx += (targetVx - f.vx) * 0.025 * speedFactor;
           }
 
-          // Dikey Sınırlar (%16 - %78): Yumuşak süzülüş ve yönelme (%20 daha sakin)
-          if (f.y > 76 && f.vy > 0) {
-            f.vy -= 0.0010 * speedFactor;
-            if (f.y >= 80) {
-              f.y = 80;
-              f.vy = -Math.max(0.0065, Math.abs(f.vy));
+          // Dikey Sınırlar (%14 - %80): Yumuşak süzülüş
+          if (f.y > 78 && f.vy > 0) {
+            f.vy -= 0.0012 * speedFactor;
+            if (f.y >= 82) {
+              f.y = 82;
+              f.vy = -Math.max(0.007, Math.abs(f.vy));
             }
-          } else if (f.y < 18 && f.vy < 0) {
-            f.vy += 0.0010 * speedFactor;
-            if (f.y <= 14) {
-              f.y = 14;
-              f.vy = Math.max(0.0065, Math.abs(f.vy));
+          } else if (f.y < 16 && f.vy < 0) {
+            f.vy += 0.0012 * speedFactor;
+            if (f.y <= 12) {
+              f.y = 12;
+              f.vy = Math.max(0.007, Math.abs(f.vy));
             }
           } else {
-            // Doğal hafif dikey akıntı salınımı (%20 daha sakin)
-            if (Math.random() < 0.01) {
-              f.vy += (Math.random() - 0.5) * 0.0096;
-              f.vy = Math.max(-0.021, Math.min(0.021, f.vy));
-            }
+            // Kendi derinlik koridoruna (targetLaneY) doğru nazik denge çekimi (Tüm balıklar tek hatta toplanmaz)
+            f.vy += (f.targetLaneY - f.y) * 0.00018 * speedFactor;
           }
 
-          // Sinüzoidal su altı doğal yüzme dalgalanması (Floating wave - %20 daha sakin)
-          const wave = Math.sin((now * 0.0013) + f.phase) * (f.isSquid ? 0.0056 : 0.0036) * speedFactor;
+          // Hız limitleri (titreme ve aşırı savrulmayı önler)
+          const maxVx = f.speedBase * 1.35;
+          f.vx = Math.max(-maxVx, Math.min(maxVx, f.vx));
+          f.vy = Math.max(-0.018, Math.min(0.018, f.vy));
+
+          // Sinüzoidal su altı doğal yüzme dalgalanması
+          const wave = Math.sin((now * 0.0012) + f.phase) * (f.isSquid ? 0.0045 : 0.003) * speedFactor;
 
           let newX = f.x + f.vx * speedFactor;
           let newY = f.y + f.vy * speedFactor + wave;
@@ -467,31 +529,35 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
           f.x = newX;
           f.y = newY;
 
-          // Yön kontrolü: f.vx açıkça sıfırı aştığında yön karar verilir
-          if (f.vx > 0.004) {
+          // Yön kontrolü: net yatay hareket yönüne göre karar verilir
+          if (f.vx > 0.003) {
             f.direction = 1;
-          } else if (f.vx < -0.004) {
+          } else if (f.vx < -0.003) {
             f.direction = -1;
           }
 
-          // Akıcı Burun Açısı (Pitch tilt): Balık yüzerken suyun akışına göre burnun zarif eğimi
-          const targetPitch = Math.max(-10, Math.min(10, f.vy * 260));
-          f.pitch += (targetPitch - f.pitch) * 0.05 * speedFactor;
+          // Burun eğim açısı (pitch tilt): Su akışına göre balığın burnunu hafif eğmesi
+          const targetPitch = Math.max(-9, Math.min(9, f.vy * 240));
+          f.pitch += (targetPitch - f.pitch) * 0.06 * speedFactor;
 
           // DOĞRUDAN GPU TRANSLATE3D İLE HAREKET ETTİR (Sıfır Reflow, Sıfır Repaint)
           const el = domMap.get(f.id);
           if (el) {
             const px = (newX * w) / 100;
             const py = (newY * h) / 100;
-            el.style.transform = `translate3d(${px}px, ${py}px, 0) translate(-50%, -50%)`;
+            el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) translate(-50%, -50%)`;
           }
 
-          // Balığın yüzdüğü yöne bakması ve organik su altı derinlik eğimi
+          // Balığın yön ve eğim dönüşü (Yalnızca değer değiştiğinde DOM güncellenir)
           const bodyEl = bodyMap.get(f.id);
           if (bodyEl) {
             f.currentScaleX = f.direction === 1 ? -1 : 1;
             const effectiveTilt = f.direction === 1 ? -f.pitch : f.pitch;
-            bodyEl.style.transform = `scaleX(${f.currentScaleX}) rotate(${effectiveTilt.toFixed(1)}deg)`;
+            if (f.currentScaleX !== f.lastScaleX || Math.abs(effectiveTilt - f.lastTilt) > 0.35) {
+              f.lastScaleX = f.currentScaleX;
+              f.lastTilt = effectiveTilt;
+              bodyEl.style.transform = `scaleX(${f.currentScaleX}) rotate(${effectiveTilt.toFixed(1)}deg)`;
+            }
           }
         }
       }
@@ -910,80 +976,55 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
 
         {/* CSS KEYFRAMES: AKICI BALIK DALGALANMASI, MÜREKKEP BALIĞI SİFON İTİŞİ VE YÜKSELEN BALONCUKLAR */}
         <style>{`
-          /* Gerçekçi Balık Akıcı Yüzme Dalgası (Fluid Spine Wave & Buoyancy) */
+          /* Gerçekçi Balık Akıcı Yüzme Dalgası (Hafif ve GPU dostu) */
           @keyframes fishFluidSwim {
-            0% {
-              transform: rotate(0deg) skewY(0deg) translateY(0px);
-            }
-            25% {
-              transform: rotate(2.4deg) skewY(1.4deg) translateY(-1.4px) scaleY(0.985);
+            0%, 100% {
+              transform: rotate(0deg) translateY(0px);
             }
             50% {
-              transform: rotate(0deg) skewY(0deg) translateY(0px) scaleY(1);
-            }
-            75% {
-              transform: rotate(-2.4deg) skewY(-1.4deg) translateY(1.4px) scaleY(0.985);
-            }
-            100% {
-              transform: rotate(0deg) skewY(0deg) translateY(0px);
+              transform: rotate(2deg) translateY(-1.2px);
             }
           }
 
-          /* Mürekkep Balığı (Kalamar) Sifon Kasılması ve Zarif İleri Süzülüşü (Squid Jet Pulse & Glide) */
+          /* Mürekkep Balığı (Kalamar) Sifon Kasılması ve Zarif İleri Süzülüşü */
           @keyframes squidJetSwim {
-            0% {
-              transform: scale(1, 1) rotate(0deg) translateY(0px);
+            0%, 100% {
+              transform: scale(1, 1) rotate(0deg);
             }
-            18% {
-              /* Sifon su fışkırtma & kasılma */
-              transform: scale(1.04, 0.93) rotate(-1.5deg) translateY(-2px);
+            25% {
+              transform: scale(1.025, 0.96) rotate(-1.2deg);
             }
-            42% {
-              /* Zarif ileri süzülme ve kolların arkada akıcı dalgalanması */
-              transform: scale(0.96, 1.03) rotate(1.2deg) translateY(-3.8px);
-            }
-            72% {
-              /* Süzülmenin yumuşaması */
-              transform: scale(0.99, 1.01) rotate(-0.4deg) translateY(-1.2px);
-            }
-            100% {
-              transform: scale(1, 1) rotate(0deg) translateY(0px);
+            65% {
+              transform: scale(0.975, 1.015) rotate(1deg);
             }
           }
 
           /* Mürekkep Balığı Biyolüminesans (Işıldama) Efekti */
           @keyframes squidBioPulse {
             0%, 100% {
-              filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+              filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.45));
             }
             50% {
-              filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.7)) drop-shadow(0 0 22px rgba(56, 189, 248, 0.55)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+              filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.65)) drop-shadow(0 0 16px rgba(56, 189, 248, 0.45));
             }
           }
 
           @keyframes bubbleRise {
             0% {
-              transform: translate3d(0, 0, 0) scale(0.6);
+              transform: translate3d(0, 0, 0) scale(0.65);
               opacity: 0;
             }
-            8% {
-              opacity: 0.9;
-            }
-            25% {
-              transform: translate3d(14px, -28vh, 0) scale(0.85);
+            10% {
+              opacity: 0.85;
             }
             50% {
-              transform: translate3d(-15px, -58vh, 0) scale(1.0);
+              transform: translate3d(-10px, -55vh, 0) scale(0.95);
             }
-            75% {
-              opacity: 0.8;
-              transform: translate3d(12px, -88vh, 0) scale(1.15);
-            }
-            95% {
-              opacity: 0.6;
+            85% {
+              opacity: 0.7;
             }
             100% {
-              transform: translate3d(-8px, -118vh, 0) scale(1.25);
+              transform: translate3d(6px, -115vh, 0) scale(1.15);
               opacity: 0;
             }
           }
@@ -1009,27 +1050,25 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
             <div className="absolute -top-10 left-3/4 w-36 h-[600px] bg-gradient-to-b from-cyan-200/30 via-sky-300/10 to-transparent rotate-12" />
           </div>
 
-          {/* Yükselen Gerçekçi Su Baloncukları (Aşağıdan Yukarı Sürekli Yükselir) */}
+          {/* Yükselen Gerçekçi Su Baloncukları (Aşağıdan Yukarı Sürekli Yükselir - Hafif & GPU Dostu) */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
             {BUBBLE_LIST.map((b) => (
               <div
                 key={b.id}
-                className="absolute rounded-full"
+                className="absolute rounded-full pointer-events-none"
                 style={{
                   left: `${b.left}%`,
                   bottom: '-25px',
                   width: `${b.size}px`,
                   height: `${b.size}px`,
-                  background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 28%, rgba(186, 230, 253, 0.15) 55%, rgba(255, 255, 255, 0.65) 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                  boxShadow: '0 0 6px rgba(255, 255, 255, 0.4), inset -1px -1px 3px rgba(56, 189, 248, 0.5)',
+                  background: 'radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9) 0%, rgba(186, 230, 253, 0.35) 60%, rgba(255, 255, 255, 0.7) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.65)',
+                  boxShadow: '0 0 4px rgba(255, 255, 255, 0.35)',
                   animation: `bubbleRise ${b.duration}s linear infinite`,
                   animationDelay: `${b.delay}s`,
-                  willChange: 'transform, opacity'
+                  willChange: 'transform'
                 }}
-              >
-                <div className="absolute top-[18%] left-[22%] w-[28%] h-[28%] bg-white rounded-full opacity-90 pointer-events-none" />
-              </div>
+              />
             ))}
           </div>
 
@@ -1090,13 +1129,10 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   }`}
                   style={{
                     width: `${fish.fishWidth}px`,
-                    transition: 'transform 0.65s cubic-bezier(0.34, 1.25, 0.64, 1)',
                     willChange: 'transform',
                     filter: isCompletedToday
-                      ? 'drop-shadow(0 2px 7px rgba(34, 197, 94, 0.85)) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5))'
-                      : fish.isSquid
-                      ? undefined
-                      : 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55))'
+                      ? 'drop-shadow(0 0 7px rgba(34, 197, 94, 0.85))'
+                      : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45))'
                   }}
                 >
                   {/* Gerçekçi Balık / Mürekkep Balığı Yüzme Animasyonu */}

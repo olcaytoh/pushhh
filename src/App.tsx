@@ -37,7 +37,7 @@ import { AynisiniBulGame } from './components/AynisiniBulGame';
 import { OnuBulGame } from './components/OnuBulGame';
 import { YirmiyiBulGame } from './components/YirmiyiBulGame';
 import { RitmikBalonPatlatmaGame } from './components/RitmikBalonPatlatmaGame';
-import { EnYakinOnlugaYuvarlamaGame } from './components/EnYakinOnlugaYuvarlamaGame';
+import { EnYakinOnlugaYuvarlamaGame, isRoundingGameKey, getRoundingGameConfig } from './components/EnYakinOnlugaYuvarlamaGame';
 import { OtherGamesHub } from './components/OtherGamesHub';
 import { KuralliCumleActivity } from './components/KuralliCumleActivity';
 import { HeceSayisiActivity } from './components/HeceSayisiActivity';
@@ -1812,7 +1812,9 @@ const CATEGORY_MAP = [
       "g3_sayi_siralama_karsilastirma",
       "g3_en_yakin_onluga_yuvarlama_100",
       "g3_en_yakin_onluga_yuvarlama",
+      "g3_onluk_yuvarlama_oyunu",
       "g3_en_yakin_yuzluge_yuvarlama",
+      "g3_yuzluk_yuvarlama_oyunu",
       "g3_ritmik_6",
       "g3_ritmik_7",
       "g3_ritmik_8",
@@ -1874,6 +1876,8 @@ const CATEGORY_MAP = [
       "g4_basamak_ve_cozumleme",
       "g4_sayi_siralama",
       "g4_en_yakin_onluk_yuzluk",
+      "g4_onluk_yuvarlama_oyunu",
+      "g4_yuzluk_yuvarlama_oyunu",
       "g4_ritmik_yuzer_biner",
       "g4_sayi_sekil_oruntuleri"
     ]
@@ -2156,6 +2160,10 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   g3_en_yakin_onluga_yuvarlama_100: '/MENUIKON/grid_icon_09.webp',
   g3_en_yakin_onluga_yuvarlama: '/MENUIKON/grid_icon_20.webp',
   g3_en_yakin_yuzluge_yuvarlama: '/MENUIKON/grid_icon_28.webp',
+  g3_onluk_yuvarlama_oyunu: '/MENUIKON/grid_icon_20.webp',
+  g3_yuzluk_yuvarlama_oyunu: '/MENUIKON/grid_icon_20.webp',
+  g4_onluk_yuvarlama_oyunu: '/MENUIKON/grid_icon_20.webp',
+  g4_yuzluk_yuvarlama_oyunu: '/MENUIKON/grid_icon_20.webp',
 
   // 3. Sınıf Ritmik Saymalar (HER BUTON FARKLI!)
   g3_ritmik_6: '/MENUIKON/grid_icon_03.webp',
@@ -2450,6 +2458,8 @@ const TopicButtonReferenceStyle: React.FC<{
     <button
       onClick={onClick}
       className={`group relative w-full ${
+        isNew ? 'ring-2 ring-amber-400/90 shadow-[0_0_22px_rgba(251,191,36,0.45)]' : ''
+      } ${
         activeTheme 
           ? `${activeTheme.bg} ${activeTheme.border} ${activeTheme.hoverBorder} ${activeTheme.shadow}`
           : `bg-[#121c2e] hover:bg-[#18263e] border-2 border-slate-700/80 border-l-4 ${accent.border} ${accent.hover} shadow-md hover:shadow-lg`
@@ -2462,7 +2472,7 @@ const TopicButtonReferenceStyle: React.FC<{
       {/* Top-Right "YENİ" Badge if isNew */}
       {isNew && (
         <div className="absolute top-1 right-1.5 sm:top-1.5 sm:right-2 z-20 pointer-events-none">
-          <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white font-black text-[8px] sm:text-[9px] md:text-[10px] tracking-wider shadow-lg animate-pulse border border-yellow-200/80 uppercase">
+          <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] md:text-[11px] tracking-wider shadow-[0_0_14px_rgba(244,63,94,0.7)] animate-pulse border-2 border-yellow-200 uppercase">
             ✨ YENİ
           </span>
         </div>
@@ -2486,14 +2496,16 @@ const TopicButtonReferenceStyle: React.FC<{
         <h4 className="font-black text-xs sm:text-sm md:text-base text-slate-100 group-hover:text-white transition-colors leading-snug drop-shadow-xs uppercase tracking-wide break-words">
           {title}
         </h4>
-        <div className="mt-1 flex items-center">
+        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
           <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md ${
-            activeTheme 
-              ? `${activeTheme.badgeBg} ${activeTheme.badgeBorder} ${activeTheme.badgeText}` 
-              : 'bg-[#091122] border border-slate-700/70 text-slate-300'
+            isNew
+              ? 'bg-gradient-to-r from-rose-950/80 to-amber-950/80 border border-amber-400/60 text-amber-300 font-extrabold shadow-[0_0_10px_rgba(251,191,36,0.2)]'
+              : activeTheme 
+                ? `${activeTheme.badgeBg} ${activeTheme.badgeBorder} ${activeTheme.badgeText}` 
+                : 'bg-[#091122] border border-slate-700/70 text-slate-300'
           } text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-xs`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${activeTheme ? activeTheme.dot : accent.dot} inline-block shrink-0`} />
-            <span>{badgeText || 'Alıştırma & Oyun'}</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isNew ? 'bg-amber-400 animate-ping' : activeTheme ? activeTheme.dot : accent.dot} inline-block shrink-0`} />
+            <span>{badgeText || (isNew ? '✨ YENİ' : 'Alıştırma & Oyun')}</span>
           </span>
         </div>
       </div>
@@ -3122,6 +3134,7 @@ export default function App() {
   const [showSiviOlcmeVideoModal, setShowSiviOlcmeVideoModal] = useState(false);
   const [showSayiBasketi, setShowSayiBasketi] = useState(false);
   const [showOnlukYuvarlamaOyunu, setShowOnlukYuvarlamaOyunu] = useState(false);
+  const [onlukYuvarlamaKey, setOnlukYuvarlamaKey] = useState<string>('en_yakin_onluk_oyunu');
   const [showSaatZaman, setShowSaatZaman] = useState(false);
   const [saatInitialMode, setSaatInitialMode] = useState<'tam' | 'yarim' | 'ceyrek' | 'hepsi'>('hepsi');
   const [showMarketKasasi, setShowMarketKasasi] = useState(false);
@@ -4799,7 +4812,7 @@ export default function App() {
     const effectiveGrade = gradeOverride !== undefined ? gradeOverride : (selectedGrade || 1);
     if (!skipIndexUpdate) {
       const foundActivityIdx = findActivityIndex(
-        topicKey.startsWith('ritmik_balon_') ? 'ritmik_balon' : topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : topicKey === 'onluk_birlik' ? 'onluk_birlik' : topicKey === 'sayi_basketi' ? 'sayi_basketi' : topicKey === 'en_yakin_onluk_oyunu' ? 'onluk_yuvarlama_oyunu' : 'grade_topic',
+        topicKey.startsWith('ritmik_balon_') ? 'ritmik_balon' : topicKey === 'geometri_tahtasi' ? 'geoboard' : topicKey === 'cisimler_acilimi' ? 'geometric_nets' : topicKey === 'onluk_birlik' ? 'onluk_birlik' : topicKey === 'sayi_basketi' ? 'sayi_basketi' : isRoundingGameKey(topicKey) ? 'onluk_yuvarlama_oyunu' : 'grade_topic',
         topicKey,
         effectiveGrade
       );
@@ -4900,8 +4913,9 @@ export default function App() {
       setShowOnlukBirlik(true);
       return;
     }
-    if (topicKey === 'en_yakin_onluk_oyunu') {
-      setCurrentTopic('en_yakin_onluk');
+    if (isRoundingGameKey(topicKey)) {
+      setOnlukYuvarlamaKey(topicKey);
+      setCurrentTopic(getRoundingGameConfig(topicKey).statsTopic);
       setShowOnlukYuvarlamaOyunu(true);
       return;
     }
@@ -5342,10 +5356,11 @@ export default function App() {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
         setLastSelectedGrade(entry.grade);
-        setSelectedCategoryId('sayilar');
+        setSelectedCategoryId(entry.grade === 3 ? 'g3_tema1' : entry.grade === 4 ? 'g4_tema1' : 'sayilar');
       } else {
         setSelectedGrade(2);
       }
+      setOnlukYuvarlamaKey(entry.topicKey || 'en_yakin_onluk_oyunu');
       setGameState('welcome');
       setShowOnlukYuvarlamaOyunu(true);
     } else if (entry.type === 'sayi_basketi' || entry.topicKey === 'sayi_basketi' || entry.id.includes('sayi_basketi')) {
@@ -5580,7 +5595,7 @@ export default function App() {
         if (showHeceMakasi && (cur.type === 'hece_makasi' || cur.id.includes('hece_makasi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showYazimDedektifi && (cur.type === 'yazim_dedektifi' || cur.id.includes('yazim_dedektifi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showOnlukBirlik && (cur.type === 'onluk_birlik' || cur.topicKey === 'onluk_birlik' || cur.id.includes('onluk_birlik'))) return currentActivityIndex;
-        if (showOnlukYuvarlamaOyunu && cur.type === 'onluk_yuvarlama_oyunu') return currentActivityIndex;
+        if (showOnlukYuvarlamaOyunu && cur.type === 'onluk_yuvarlama_oyunu' && cur.topicKey === onlukYuvarlamaKey) return currentActivityIndex;
         if (showSayiBasketi && (cur.type === 'sayi_basketi' || cur.topicKey === 'sayi_basketi' || cur.id.includes('sayi_basketi'))) return currentActivityIndex;
         if (showDedektif5N1K && (cur.type === 'dedektif_5n1k' || cur.id.includes('dedektif_5n1k')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showLessonVideo && (cur.type === 'lesson_video' || cur.id.includes('video'))) return currentActivityIndex;
@@ -5702,7 +5717,7 @@ export default function App() {
       if (idx !== -1) return idx;
     }
     if (showOnlukYuvarlamaOyunu) {
-      const idx = findActivityIndex('onluk_yuvarlama_oyunu', 'en_yakin_onluk_oyunu', selectedGrade || 2, null, isOther);
+      const idx = findActivityIndex('onluk_yuvarlama_oyunu', onlukYuvarlamaKey, getRoundingGameConfig(onlukYuvarlamaKey).grade, null, isOther);
       if (idx !== -1) return idx;
     }
     if (showSayiBasketi) {
@@ -6036,6 +6051,7 @@ export default function App() {
       setGameState('welcome');
       setShowOnlukBirlik(true);
     } else if (entry.type === 'onluk_yuvarlama_oyunu') {
+      setOnlukYuvarlamaKey(entry.topicKey || 'en_yakin_onluk_oyunu');
       setGameState('welcome');
       setShowOnlukYuvarlamaOyunu(true);
     } else if (entry.type === 'sayi_basketi' || entry.topicKey === 'sayi_basketi' || entry.id.includes('sayi_basketi')) {
@@ -6759,7 +6775,7 @@ export default function App() {
     if (showYazimDedektifi) return 'Yazım Yanlışı Dedektifi';
     if (showGeometrikSekilleriBul) return 'Geometrik Cisimleri Bul';
     if (showOnlukBirlik) return 'Onluk - Birlik';
-    if (showOnlukYuvarlamaOyunu) return 'En Yakın Onluğa Yuvarlama Oyunu';
+    if (showOnlukYuvarlamaOyunu) return getRoundingGameConfig(onlukYuvarlamaKey).title;
     if (showSayiBasketi) return 'Sayı Basketi';
     if (showDedektif5N1K) return '5N 1K Dedektifi';
     if (showLessonVideo) {
@@ -7593,9 +7609,23 @@ export default function App() {
       <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-2 shrink-0 animate-fadeIn z-20">
         <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400">
           <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
-          <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            {currentActivityTitle}
-          </h1>
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              {currentActivityTitle}
+            </h1>
+            {(showOnlukYuvarlamaOyunu || showRitmikBalon || (currentTopic && (
+              currentTopic.includes('yuvarlama') ||
+              currentTopic === 'en_yakin_onluk' ||
+              currentTopic === 'g4_en_yakin_onluk_yuzluk' ||
+              currentTopic === 'g3_en_yakin_onluga_yuvarlama' ||
+              currentTopic === 'g3_en_yakin_yuzluge_yuvarlama' ||
+              currentTopic === 'g3_en_yakin_onluga_yuvarlama_100'
+            ))) && (
+              <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                ✨ YENİ
+              </span>
+            )}
+          </div>
           <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
 
           {/* Sınıf İçi Tahta Araçları: Rastgele Öğrenci Çarkı */}
@@ -8100,9 +8130,14 @@ export default function App() {
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          1. Sayılar ve Nicelikler (1)
-                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            1. Sayılar ve Nicelikler (1)
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                        </div>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           4-6 Basamaklı Sayılar, Çözümleme & Yuvarlama
                         </p>
@@ -8251,11 +8286,16 @@ export default function App() {
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          1. Sayılar ve Nicelikler (1)
-                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            1. Sayılar ve Nicelikler (1)
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                        </div>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
-                          1000'e Kadar Sayılar, Çözümleme & Ritmik
+                          1000'e Kadar Sayılar, Çözümleme & Yuvarlama
                         </p>
                       </div>
 
@@ -8955,9 +8995,14 @@ export default function App() {
                       </div>
 
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          2. Sayılar ve Nicelikler
-                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            2. Sayılar ve Nicelikler
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                        </div>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           Ritmik Sayma & Basamak Değeri
                         </p>
@@ -9300,7 +9345,8 @@ export default function App() {
                             <TopicButtonReferenceStyle
                               topicKey={key}
                               title={t.title}
-                              badgeText={key === 'sayi_basketi' ? '1-2 KİŞİLİK YARIŞ' : key === 'en_yakin_onluk_oyunu' ? 'YENİ OYUN' : undefined}
+                              badgeText={key === 'sayi_basketi' ? '1-2 KİŞİLİK YARIŞ' : key === 'en_yakin_onluk_oyunu' ? 'YENİ OYUN' : key === 'en_yakin_onluk' ? 'YENİ ETKİNLİK' : undefined}
+                              isNew={key === 'en_yakin_onluk_oyunu' || key === 'en_yakin_onluk'}
                               onClick={() => selectTopicAndStart(key)}
                               categoryTheme="sayilar"
                             />
@@ -9613,15 +9659,22 @@ export default function App() {
                         'g3_sayi_siralama_karsilastirma',
                         'g3_en_yakin_onluga_yuvarlama_100',
                         'g3_en_yakin_onluga_yuvarlama',
-                        'g3_en_yakin_yuzluge_yuvarlama'
+                        'g3_onluk_yuvarlama_oyunu',
+                        'g3_en_yakin_yuzluge_yuvarlama',
+                        'g3_yuzluk_yuvarlama_oyunu'
                       ].map(key => {
-                        const t = topics[key];
+                        const isRoundingGame = isRoundingGameKey(key);
+                        const isRoundingTopic = key === 'g3_en_yakin_onluga_yuvarlama' || key === 'g3_en_yakin_yuzluge_yuvarlama' || key === 'g3_en_yakin_onluga_yuvarlama_100';
+                        const isNew = isRoundingGame || isRoundingTopic;
+                        const t = isRoundingGame ? { title: getRoundingGameConfig(key).title } : topics[key];
                         if (!t) return null;
                         return (
                           <TopicButtonReferenceStyle
                             key={key}
                             topicKey={key}
                             title={t.title}
+                            badgeText={isRoundingGame ? 'YENİ OYUN' : isRoundingTopic ? 'YENİ ETKİNLİK' : undefined}
+                            isNew={isNew}
                             onClick={() => selectTopicAndStart(key)}
                             categoryTheme="sayilar"
                           />
@@ -9765,16 +9818,23 @@ export default function App() {
                       'g4_basamak_ve_cozumleme',
                       'g4_sayi_siralama',
                       'g4_en_yakin_onluk_yuzluk',
+                      'g4_onluk_yuvarlama_oyunu',
+                      'g4_yuzluk_yuvarlama_oyunu',
                       'g4_ritmik_yuzer_biner',
                       'g4_sayi_sekil_oruntuleri'
                     ].map(key => {
-                      const t = topics[key];
+                      const isRoundingGame = isRoundingGameKey(key);
+                      const isRoundingTopic = key === 'g4_en_yakin_onluk_yuzluk';
+                      const isNew = isRoundingGame || isRoundingTopic;
+                      const t = isRoundingGame ? { title: getRoundingGameConfig(key).title } : topics[key];
                       if (!t) return null;
                       return (
                         <TopicButtonReferenceStyle
                           key={key}
                           topicKey={key}
                           title={t.title}
+                          badgeText={isRoundingGame ? 'YENİ OYUN' : isRoundingTopic ? 'YENİ ETKİNLİK' : undefined}
+                          isNew={isNew}
                           onClick={() => selectTopicAndStart(key)}
                           categoryTheme="sayilar"
                         />
@@ -11530,7 +11590,8 @@ export default function App() {
           onNextActivity={handleNextActivity}
           playMp3={playMp3}
           soundEnabled={soundEnabled}
-          grade={selectedGrade || 2}
+          topicKey={onlukYuvarlamaKey}
+          grade={selectedGrade || getRoundingGameConfig(onlukYuvarlamaKey).grade}
           students={students}
           selectedStudentIds={selectedStudentIds}
           onSelectStudentForPlayer={(pIdx, id) => {
@@ -11542,11 +11603,12 @@ export default function App() {
             if (id) playMp3?.('/ding.mp3');
           }}
           onOpenRosterModal={(g) => {
-            setRosterModalGrade(g || selectedGrade || 2);
+            setRosterModalGrade(g || selectedGrade || getRoundingGameConfig(onlukYuvarlamaKey).grade);
             setShowStudentRosterModal(true);
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
-            handleUniversalActivityAnswer('en_yakin_onluk', isCorrect, pIdx, 'grade2');
+            const rc = getRoundingGameConfig(onlukYuvarlamaKey);
+            handleUniversalActivityAnswer(rc.statsTopic, isCorrect, pIdx, rc.categoryKey);
           }}
         />
       )}

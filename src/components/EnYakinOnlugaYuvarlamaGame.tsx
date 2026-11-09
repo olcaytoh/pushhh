@@ -13,6 +13,8 @@ interface EnYakinOnlugaYuvarlamaGameProps {
   playMp3?: (src: string, onEnded?: () => void) => void;
   soundEnabled?: boolean;
   grade?: number;
+  /** Hangi yuvarlama sürümü (sınıf + onluk/yüzlük); yoksa 2. sınıf onluk */
+  topicKey?: string;
   students?: Student[];
   selectedStudentIds?: (string | null)[];
   onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
@@ -36,24 +38,68 @@ interface Question {
   correctSide: 'left' | 'right';
 }
 
-// 2. sınıf kazanımı: 11-99 arası, sonu 0 olmayan sayılar. 5 ile biten sayılar yukarı yuvarlanır.
-function generateQuestion(previousTarget?: number): Question {
-  let target = 0;
-  do {
-    const baseTen = Math.floor(Math.random() * 9 + 1) * 10; // 10..90
-    const offset = Math.floor(Math.random() * 9) + 1; // 1..9
-    target = Math.min(99, baseTen + offset);
-  } while (target === previousTarget);
+export interface RoundingGameConfig {
+  topicKey: string;
+  unit: 10 | 100;
+  grade: 2 | 3 | 4;
+  min: number;
+  max: number;
+  title: string;
+  /** İstatistiklerin yazılacağı mevcut konu anahtarı */
+  statsTopic: string;
+  categoryKey: 'grade2' | 'grade3' | 'grade4';
+}
 
-  const leftTen = Math.floor(target / 10) * 10;
-  const rightTen = leftTen + 10;
-  const diffLeft = target - leftTen;
-  const diffRight = rightTen - target;
+const ROUNDING_CONFIGS: Record<string, RoundingGameConfig> = {
+  en_yakin_onluk_oyunu: {
+    topicKey: 'en_yakin_onluk_oyunu', unit: 10, grade: 2, min: 11, max: 99,
+    title: 'En Yakın Onluğa Yuvarlama Oyunu', statsTopic: 'en_yakin_onluk', categoryKey: 'grade2',
+  },
+  g3_onluk_yuvarlama_oyunu: {
+    topicKey: 'g3_onluk_yuvarlama_oyunu', unit: 10, grade: 3, min: 101, max: 999,
+    title: "En Yakın Onluğa Yuvarlama Oyunu (1000'e Kadar)", statsTopic: 'g3_en_yakin_onluga_yuvarlama', categoryKey: 'grade3',
+  },
+  g3_yuzluk_yuvarlama_oyunu: {
+    topicKey: 'g3_yuzluk_yuvarlama_oyunu', unit: 100, grade: 3, min: 101, max: 999,
+    title: "En Yakın Yüzlüğe Yuvarlama Oyunu (1000'e Kadar)", statsTopic: 'g3_en_yakin_yuzluge_yuvarlama', categoryKey: 'grade3',
+  },
+  g4_onluk_yuvarlama_oyunu: {
+    topicKey: 'g4_onluk_yuvarlama_oyunu', unit: 10, grade: 4, min: 1001, max: 9999,
+    title: 'En Yakın Onluğa Yuvarlama Oyunu (4 Basamaklı)', statsTopic: 'g4_en_yakin_onluk_yuzluk', categoryKey: 'grade4',
+  },
+  g4_yuzluk_yuvarlama_oyunu: {
+    topicKey: 'g4_yuzluk_yuvarlama_oyunu', unit: 100, grade: 4, min: 1001, max: 9999,
+    title: 'En Yakın Yüzlüğe Yuvarlama Oyunu (4 Basamaklı)', statsTopic: 'g4_en_yakin_onluk_yuzluk', categoryKey: 'grade4',
+  },
+};
+
+export function isRoundingGameKey(key?: string | null): boolean {
+  return !!key && Object.prototype.hasOwnProperty.call(ROUNDING_CONFIGS, key);
+}
+
+export function getRoundingGameConfig(key?: string | null): RoundingGameConfig {
+  return (key && ROUNDING_CONFIGS[key]) || ROUNDING_CONFIGS.en_yakin_onluk_oyunu;
+}
+
+const fmt = (n: number) => (n >= 1000 ? n.toLocaleString('tr-TR') : String(n));
+
+// Sonu 0 olmayan (onluk için) / 00 olmayan (yüzlük için) sayı üretir. Yarıdan itibaren yukarı yuvarlanır.
+function generateQuestion(cfg: RoundingGameConfig, previousTarget?: number): Question {
+  const { unit, min, max } = cfg;
+  let target = 0;
+  let guard = 0;
+  do {
+    target = Math.floor(Math.random() * (max - min + 1)) + min;
+    guard++;
+  } while ((target % unit === 0 || target === previousTarget) && guard < 200);
+
+  const leftTen = Math.floor(target / unit) * unit;
+  const rightTen = leftTen + unit;
   return {
     target,
     leftTen,
     rightTen,
-    correctSide: diffLeft < diffRight ? 'left' : 'right',
+    correctSide: target - leftTen < rightTen - target ? 'left' : 'right',
   };
 }
 
@@ -64,13 +110,19 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
   onNextActivity,
   playMp3,
   grade = 2,
+  topicKey,
   students,
   selectedStudentIds,
   onSelectStudentForPlayer,
   onOpenRosterModal,
   onQuestionAnswered,
 }) => {
-  const [question, setQuestion] = useState<Question>(() => generateQuestion());
+  const cfg = getRoundingGameConfig(topicKey);
+  const unitWord = cfg.unit === 10 ? 'Onluk' : 'Yüzlük';
+  const unitDat = cfg.unit === 10 ? 'onluğuna' : 'yüzlüğüne';
+  const unitDatQ = cfg.unit === 10 ? 'onluğa' : 'yüzlüğe';
+  const bigNumbers = cfg.max >= 1000;
+  const [question, setQuestion] = useState<Question>(() => generateQuestion(cfg));
   const [questionNo, setQuestionNo] = useState(1);
   const [correctCount, setCorrectCount] = useState(0);
   const [score, setScore] = useState(0);
@@ -131,10 +183,10 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
         finishGame('done');
         return prev;
       }
-      setQuestion(q => generateQuestion(q.target));
+      setQuestion(q => generateQuestion(cfg, q.target));
       return prev + 1;
     });
-  }, [finishGame]);
+  }, [finishGame, cfg]);
 
   const handleAnswer = (side: 'left' | 'right') => {
     if (lockRef.current || finished) return;
@@ -169,7 +221,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
   const handleRestart = () => {
     clearTimer();
     lockRef.current = false;
-    setQuestion(generateQuestion());
+    setQuestion(generateQuestion(cfg));
     setQuestionNo(1);
     setCorrectCount(0);
     setScore(0);
@@ -184,8 +236,10 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
 
   const { target, leftTen, rightTen, correctSide } = question;
   const correctTen = correctSide === 'left' ? leftTen : rightTen;
+  const step = cfg.unit / 10;
   const ticks: number[] = [];
-  for (let i = leftTen; i <= rightTen; i++) ticks.push(i);
+  for (let k = 0; k <= 10; k++) ticks.push(leftTen + k * step);
+  const targetPct = ((target - leftTen) / (rightTen - leftTen)) * 100;
 
   const optionClasses = (side: 'left' | 'right') => {
     const base =
@@ -257,7 +311,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
         </div>
         <div className="mt-1 px-3 py-0.5 rounded-full bg-black/60 backdrop-blur-xs border border-white/20 text-[10px] sm:text-xs font-bold text-white shadow-md tracking-wide flex items-center gap-1.5">
           <Sparkles size={11} className="text-amber-300" />
-          <span>Hangi onluğa daha yakın? • 3 hata yaparsan elenirsin • 100 saniye</span>
+          <span>Hangi {unitDatQ} daha yakın? • 3 hata yaparsan elenirsin • 100 saniye</span>
         </div>
       </div>
 
@@ -265,22 +319,22 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
       <div className="relative z-30 flex-1 min-h-0 flex flex-col items-center justify-center gap-3 sm:gap-5 px-2 sm:px-6">
         <div className="w-full max-w-4xl flex items-center justify-center gap-2 sm:gap-6 md:gap-10">
           <button onClick={() => handleAnswer('left')} disabled={!!feedback} className={optionClasses('left')}>
-            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80 mb-0.5">Sol Onluk</span>
-            <span className="text-4xl sm:text-6xl md:text-7xl leading-none drop-shadow">{leftTen}</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80 mb-0.5">Sol {unitWord}</span>
+            <span className={`${bigNumbers ? 'text-3xl sm:text-5xl md:text-6xl' : 'text-4xl sm:text-6xl md:text-7xl'} leading-none drop-shadow tabular-nums`}>{fmt(leftTen)}</span>
           </button>
 
           <div className="shrink-0 w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-yellow-300 via-amber-400 to-orange-400 shadow-2xl border-4 sm:border-8 border-white flex flex-col items-center justify-center relative z-10">
             <span className="text-[9px] sm:text-xs uppercase font-black tracking-widest text-amber-900 mb-0.5 bg-white/70 px-2.5 py-0.5 rounded-full">
               Sayı
             </span>
-            <span className="text-5xl sm:text-7xl md:text-8xl font-black text-amber-950 tracking-tighter leading-none drop-shadow">
-              {target}
+            <span className={`${bigNumbers ? 'text-4xl sm:text-6xl md:text-7xl' : 'text-5xl sm:text-7xl md:text-8xl'} font-black text-amber-950 tracking-tighter leading-none drop-shadow tabular-nums`}>
+              {fmt(target)}
             </span>
           </div>
 
           <button onClick={() => handleAnswer('right')} disabled={!!feedback} className={optionClasses('right')}>
-            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80 mb-0.5">Sağ Onluk</span>
-            <span className="text-4xl sm:text-6xl md:text-7xl leading-none drop-shadow">{rightTen}</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-80 mb-0.5">Sağ {unitWord}</span>
+            <span className={`${bigNumbers ? 'text-3xl sm:text-5xl md:text-6xl' : 'text-4xl sm:text-6xl md:text-7xl'} leading-none drop-shadow tabular-nums`}>{fmt(rightTen)}</span>
           </button>
         </div>
 
@@ -296,14 +350,14 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
                 <>
                   <span className="text-xl">⭐</span>
                   <span className="font-black text-sm sm:text-base">
-                    Harika! {target} sayısı {correctTen} onluğuna daha yakın.
+                    Harika! {fmt(target)} sayısı {fmt(correctTen)} {unitDat} daha yakın.
                   </span>
                 </>
               ) : (
                 <>
                   <Lightbulb size={20} className="text-amber-300 shrink-0" />
                   <span className="font-bold text-xs sm:text-sm">
-                    Dikkat! {target} sayısı sayı doğrusunda <b className="text-amber-300">{correctTen}</b> onluğuna daha yakın.
+                    Dikkat! {fmt(target)} sayısı sayı doğrusunda <b className="text-amber-300">{fmt(correctTen)}</b> {unitDat} daha yakın.
                   </span>
                   <button
                     onClick={() => {
@@ -330,38 +384,46 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
             </div>
             <span className="hidden sm:block text-xs text-white/90 font-bold">Sayı nerede duruyor? Bak ve karar ver!</span>
           </div>
-          <div className="relative pt-9 pb-1 px-1">
-            <div className="absolute top-[calc(2.25rem+6px)] left-3 right-3 h-2 sm:h-2.5 bg-white/50 rounded-full" />
-            <div className="relative flex justify-between items-start w-full">
-              {ticks.map(i => {
-                const isTarget = i === target;
-                const isExtreme = i === leftTen || i === rightTen;
-                return (
-                  <div key={i} className="relative flex flex-col items-center min-w-0 flex-1">
-                    {isTarget && (
-                      <div className="absolute -top-9 bg-red-500 text-white font-black text-[10px] sm:text-xs px-1.5 py-0.5 rounded-lg shadow-md animate-bounce whitespace-nowrap z-20">
-                        {i} 📍
-                      </div>
-                    )}
+          <div className="relative mx-7 sm:mx-12 mt-10 mb-7 sm:mb-8 h-6">
+            {/* çizgi */}
+            <div className="absolute left-0 right-0 top-[7px] h-2.5 bg-white/50 rounded-full" />
+            {/* çentikler */}
+            {ticks.map((v, k) => {
+              const isExtreme = k === 0 || k === 10;
+              return (
+                <div
+                  key={v}
+                  className="absolute top-0 -translate-x-1/2 flex flex-col items-center"
+                  style={{ left: `${k * 10}%` }}
+                >
+                  <div className="h-6 flex items-center">
                     <div
-                      className={`rounded-full border-2 border-white shadow z-10 ${
-                        isTarget
-                          ? 'w-5 h-5 sm:w-6 sm:h-6 bg-red-500'
-                          : isExtreme
-                          ? 'w-4 h-4 sm:w-5 sm:h-5 bg-amber-300'
-                          : 'w-3 h-3 sm:w-3.5 sm:h-3.5 bg-white'
+                      className={`rounded-full border-2 border-white shadow ${
+                        isExtreme ? 'w-4 h-4 sm:w-5 sm:h-5 bg-amber-300' : 'w-3 h-3 sm:w-3.5 sm:h-3.5 bg-white'
                       }`}
                     />
-                    <span
-                      className={`mt-0.5 font-black text-[10px] sm:text-sm ${
-                        isTarget ? 'text-yellow-200 drop-shadow' : isExtreme ? 'text-amber-200 drop-shadow' : 'text-white/90 font-bold'
-                      }`}
-                    >
-                      {i}
-                    </span>
                   </div>
-                );
-              })}
+                  <span
+                    className={`mt-0.5 font-black tabular-nums whitespace-nowrap ${
+                      bigNumbers ? 'text-[9px] sm:text-xs' : 'text-[10px] sm:text-sm'
+                    } ${isExtreme ? 'text-amber-200 drop-shadow' : 'text-white/90 font-bold'}`}
+                  >
+                    {fmt(v)}
+                  </span>
+                </div>
+              );
+            })}
+            {/* aranan sayı işareti */}
+            <div
+              className="absolute top-0 -translate-x-1/2 flex flex-col items-center z-20"
+              style={{ left: `${targetPct}%` }}
+            >
+              <div className="absolute -top-9 bg-red-500 text-white font-black text-[10px] sm:text-xs px-1.5 py-0.5 rounded-lg shadow-md animate-bounce whitespace-nowrap">
+                {fmt(target)} 📍
+              </div>
+              <div className="h-6 flex items-center">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-red-500 border-2 border-white shadow-lg" />
+              </div>
             </div>
           </div>
         </div>
