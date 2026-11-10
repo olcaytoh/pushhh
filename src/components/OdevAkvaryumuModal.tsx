@@ -334,9 +334,14 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
       const nativeFacing: 'left' = 'left';
       const fishWidth = cutout.calculatedWidth;
 
-      // Akvaryumda dengeli başlangıç koordinatları
-      const x = 12 + ((i * 21) % 72);
-      const y = 18 + ((i * 17) % 60);
+      // Akvaryumda dengeli başlangıç koordinatları (Öğrencilerin balıklarının başlangıçta üst üste gelmesini önler)
+      const totalSt = Math.max(1, currentGradeStudents.length);
+      const cols = Math.ceil(Math.sqrt(totalSt * 1.5));
+      const rows = Math.ceil(totalSt / cols);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = 14 + (cols > 1 ? (col / (cols - 1)) * 68 : 34) + ((i % 3) - 1) * 2;
+      const y = 20 + (rows > 1 ? (row / (rows - 1)) * 52 : 26) + ((i % 2) - 0.5) * 3;
       const speedBase = isSquid
         ? 0.026 + (i % 3) * 0.005
         : 0.034 + (i % 5) * 0.006;
@@ -390,7 +395,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
   }, [isOpen, currentGradeStudents, selectedGrade]);
 
   // CANLI AKVARYUM FİZİĞİ - SIFIR REACT RERENDER, 100% GPU KOMPOZİTÖRÜ (translate3d)
-  // Akıllı tahta optimizasyonu: ~31 FPS hedefli akıcı simülasyon, sıfır kasma, içiçe geçmeyi önleyen ayrılma fizikleri
+  // Akıllı tahta optimizasyonu: ~31 FPS hedefli akıcı simülasyon, sıfır kasma, içiçe geçmeyi ve yanlış balığa basmayı önleyen yumuşak ayrılma fizikleri
   useEffect(() => {
     if (!isOpen) return;
 
@@ -423,7 +428,42 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
         const bodyMap = fishBodyDomMap.current;
         const count = list.length;
 
-        // SERBEST VE ÖZGÜR BALIK YÜZÜŞÜ (Çakışma/itme olmadan, birbirinin içinden serbestçe geçerler)
+        // BALIKLARIN BİRBİRİNE ÇOK YAKLAŞMASINI ÖNLEYEN YUMUŞAK KİŞİSEL MESAFE (Soft Repulsion / Flocking)
+        // Çocukların kendi balığı yerine yanındaki arkadaşının balığına yanlışlıkla basmasını engeller.
+        // Asla takılma veya titreme yapmaz; balıklar birbirine yaklaşınca zarifçe rotalarını açarak teğet geçerler.
+        const MIN_DIST = 13.5; // % cinsinden asgari konforlu ayrılma mesafesi (~110-140px)
+        for (let i = 0; i < count; i++) {
+          const f1 = list[i];
+          for (let j = i + 1; j < count; j++) {
+            const f2 = list[j];
+            const dx = f1.x - f2.x;
+            const dy = (f1.y - f2.y) * 1.35; // Dikey düzlemde biraz daha geniş ayrılma alanı
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < MIN_DIST * MIN_DIST && distSq > 0.001) {
+              const dist = Math.sqrt(distSq);
+              const overlap = (MIN_DIST - dist) / MIN_DIST; // 0..1 arası yakınlık oranı
+              const push = overlap * 0.00075 * speedFactor;
+              const pushX = (dx / dist) * push;
+              const pushY = (dy / dist) * push;
+
+              // Karşılıklı yumuşak itme kuvveti
+              f1.vx += pushX;
+              f1.vy += pushY;
+              f2.vx -= pushX;
+              f2.vy -= pushY;
+
+              // Eğer dikeyde çok yakın hizada karşılaşıyorlarsa biri hafif yukarı, diğeri hafif aşağı süzülsün
+              if (Math.abs(f1.y - f2.y) < 5) {
+                const laneSeparation = (f1.y <= f2.y ? -1 : 1) * 0.0004 * speedFactor;
+                f1.vy += laneSeparation;
+                f2.vy -= laneSeparation;
+              }
+            }
+          }
+        }
+
+        // HER BİR BALIĞIN HAREKET VE GÖRÜNTÜ GÜNCELLEMESİ
         for (let i = 0; i < count; i++) {
           const f = list[i];
 
@@ -444,9 +484,18 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
           } else {
             // Suyun içinde serbestçe yukarı-aşağı süzülme (Doğal dalgalanma)
             f.vy += Math.sin((now * 0.0009) + f.phase) * 0.00035 * speedFactor;
-            const maxVy = f.speedBase * 0.45;
-            f.vy = Math.max(-maxVy, Math.min(maxVy, f.vy));
           }
+
+          // Hız limitleri ve yumuşak hız normalizasyonu (Ayrılma gücünün balığı aşırı hızlandırmasını veya durdurmasını önler)
+          const currentDir = f.vx >= 0 ? 1 : -1;
+          f.direction = currentDir;
+          const minVx = f.speedBase * 0.75;
+          const maxVx = f.speedBase * 1.35;
+          const absVx = Math.min(maxVx, Math.max(minVx, Math.abs(f.vx)));
+          f.vx = currentDir * absVx;
+
+          const maxVy = f.speedBase * 0.45;
+          f.vy = Math.max(-maxVy, Math.min(maxVy, f.vy));
 
           // Koordinatları ilerlet
           f.x += f.vx * speedFactor;
@@ -1006,7 +1055,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
                   else fishDomMap.current.delete(fish.studentId);
                 }}
                 onClick={(e) => handleFishClick(fish, e)}
-                className="absolute top-0 left-0 z-20 flex flex-col items-center cursor-pointer select-none group"
+                className="absolute top-0 left-0 z-20 flex flex-col items-center cursor-pointer select-none group hover:z-30 active:z-40 touch-manipulation"
                 style={{
                   // İlk render pozisyonu (Sonrasında requestAnimationFrame translate3d ile kontrol eder)
                   transform: 'translate3d(0, 0, 0) translate(-50%, -50%)',
