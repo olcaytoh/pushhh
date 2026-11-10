@@ -491,13 +491,32 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                       {game.title}
                     </h4>
                   </div>
-                  <div className="mt-0.5 flex items-center">
-                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-px rounded bg-black/35 border ${
-                      isNew ? 'border-amber-400/40 text-amber-300' : 'border-pink-400/30 text-pink-300'
-                    } text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shadow-xs truncate max-w-full`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${isNew ? 'bg-amber-400' : 'bg-pink-400'} inline-block shrink-0`} />
-                      <span className="truncate">{game.subtitle}</span>
-                    </span>
+                  <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    {game.id === 'ritmik_balon' && onOpenRitmikBalon ? (
+                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
+                        {([3, 4, 5, 6] as const).map(step => (
+                          <button
+                            key={step}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerSound('/op.mp3');
+                              onOpenRitmikBalon(step);
+                            }}
+                            className="px-1.5 py-0.5 rounded bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-[10px] shadow cursor-pointer transition-all border border-amber-200"
+                            title={`${step}'${step === 6 ? 'şar' : 'er'} Ritmik Balon`}
+                          >
+                            {step}'{step === 6 ? 'şar' : 'er'}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1.5 px-1.5 py-px rounded bg-black/35 border ${
+                        isNew ? 'border-amber-400/40 text-amber-300' : 'border-pink-400/30 text-pink-300'
+                      } text-[9px] sm:text-[10px] font-bold uppercase tracking-wide shadow-xs truncate max-w-full`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isNew ? 'bg-amber-400' : 'bg-pink-400'} inline-block shrink-0`} />
+                        <span className="truncate">{game.subtitle}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 

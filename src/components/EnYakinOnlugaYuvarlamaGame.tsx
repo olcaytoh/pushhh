@@ -94,6 +94,7 @@ interface EnYakinOnlugaYuvarlamaGameProps {
   playerCountMode?: 1 | 2 | 3;
 }
 
+const TARGET_CORRECT = 7;
 const TOTAL_QUESTIONS = 7;
 const MAX_MISTAKES = 3;
 const TIME_LIMIT = 100;
@@ -218,35 +219,43 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
   }, [timeLeft, gameOver, playMp3]);
 
   // Oyun Sonu Hesaplama
-  const finishGame = useCallback((reason: 'done' | 'lives' | 'time') => {
+  const finishGame = useCallback((reason: 'done' | 'lives' | 'time', winnerOverride?: 'p1' | 'p2' | 'tie') => {
     clearTimers();
     setEndReason(reason);
     setGameOver(true);
 
     if (playerMode === 2) {
-      // 2 Kişilik Düelloda Kazananı Belirle
-      setP1(currP1 => {
-        setP2(currP2 => {
-          let win: 'p1' | 'p2' | 'tie' = 'tie';
-          if (currP1.isEliminated && !currP2.isEliminated) {
-            win = 'p2';
-          } else if (currP2.isEliminated && !currP1.isEliminated) {
-            win = 'p1';
-          } else if (currP1.score > currP2.score) {
-            win = 'p1';
-          } else if (currP2.score > currP1.score) {
-            win = 'p2';
-          } else {
-            win = 'tie';
-          }
-          setDuelWinner(win);
-          try {
-            confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
-          } catch {}
-          return currP2;
+      if (winnerOverride) {
+        setDuelWinner(winnerOverride);
+      } else {
+        // 2 Kişilik Düelloda Kazananı Belirle
+        setP1(currP1 => {
+          setP2(currP2 => {
+            let win: 'p1' | 'p2' | 'tie' = 'tie';
+            if (currP1.isEliminated && !currP2.isEliminated) {
+              win = 'p2';
+            } else if (currP2.isEliminated && !currP1.isEliminated) {
+              win = 'p1';
+            } else if (currP1.isFinished && !currP2.isFinished) {
+              win = 'p1';
+            } else if (currP2.isFinished && !currP1.isFinished) {
+              win = 'p2';
+            } else if (currP1.score > currP2.score) {
+              win = 'p1';
+            } else if (currP2.score > currP1.score) {
+              win = 'p2';
+            } else {
+              win = 'tie';
+            }
+            setDuelWinner(win);
+            return currP2;
+          });
+          return currP1;
         });
-        return currP1;
-      });
+      }
+      try {
+        confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+      } catch {}
     } else {
       try {
         confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
@@ -260,7 +269,9 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
 
     const isCorrect = side === p1.question.correctSide;
     const newMistakes = isCorrect ? p1.mistakes : p1.mistakes + 1;
+    const newCorrectCount = isCorrect ? p1.correctCount + 1 : p1.correctCount;
     const isEliminated = newMistakes >= MAX_MISTAKES;
+    const isFinished = newCorrectCount >= TARGET_CORRECT;
 
     setP1(prev => ({
       ...prev,
@@ -269,43 +280,41 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
       shakeSide: isCorrect ? null : side,
       mistakes: newMistakes,
       isEliminated,
+      isFinished,
       score: isCorrect ? prev.score + 10 : prev.score,
-      correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
+      correctCount: newCorrectCount,
     }));
 
     onQuestionAnswered?.(isCorrect, 0);
 
     if (isCorrect) {
       playMp3?.('/ding.mp3');
-      p1TimerRef.current = window.setTimeout(() => {
-        setP1(prev => {
-          if (prev.questionNo >= TOTAL_QUESTIONS) {
-            const updated = { ...prev, isFinished: true, isLocked: true, feedback: null };
-            if (playerMode === 1 || p2.isFinished || p2.isEliminated) {
-              finishGame('done');
-            }
-            return updated;
-          }
-          const usedTargets = [...prev.usedTargets, prev.question.target];
-          return {
-            ...prev,
-            questionNo: prev.questionNo + 1,
-            question: generateQuestion(cfg, usedTargets),
-            usedTargets,
-            feedback: null,
-            shakeSide: null,
-            isLocked: false,
-          };
-        });
-      }, 750);
+      if (isFinished) {
+        p1TimerRef.current = window.setTimeout(() => {
+          finishGame('done', playerMode === 2 ? 'p1' : undefined);
+        }, 600);
+      } else {
+        p1TimerRef.current = window.setTimeout(() => {
+          setP1(prev => {
+            const usedTargets = [...prev.usedTargets, prev.question.target];
+            return {
+              ...prev,
+              questionNo: prev.questionNo + 1,
+              question: generateQuestion(cfg, usedTargets),
+              usedTargets,
+              feedback: null,
+              shakeSide: null,
+              isLocked: false,
+            };
+          });
+        }, 700);
+      }
     } else {
       playMp3?.('/hata.mp3');
       if (isEliminated) {
         p1TimerRef.current = window.setTimeout(() => {
-          if (playerMode === 1 || p2.isFinished || p2.isEliminated) {
-            finishGame('lives');
-          }
-        }, 1200);
+          finishGame('lives', playerMode === 2 ? 'p2' : undefined);
+        }, 800);
       } else {
         p1TimerRef.current = window.setTimeout(() => {
           setP1(prev => {
@@ -316,11 +325,11 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
               shakeSide: null,
               isLocked: false,
               feedback: null,
-              questionNo: prev.questionNo < TOTAL_QUESTIONS ? prev.questionNo + 1 : prev.questionNo,
+              questionNo: prev.questionNo + 1,
               question: generateQuestion(cfg, usedTargets),
             };
           });
-        }, 1100);
+        }, 900);
       }
     }
   };
@@ -331,7 +340,9 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
 
     const isCorrect = side === p2.question.correctSide;
     const newMistakes = isCorrect ? p2.mistakes : p2.mistakes + 1;
+    const newCorrectCount = isCorrect ? p2.correctCount + 1 : p2.correctCount;
     const isEliminated = newMistakes >= MAX_MISTAKES;
+    const isFinished = newCorrectCount >= TARGET_CORRECT;
 
     setP2(prev => ({
       ...prev,
@@ -340,43 +351,41 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
       shakeSide: isCorrect ? null : side,
       mistakes: newMistakes,
       isEliminated,
+      isFinished,
       score: isCorrect ? prev.score + 10 : prev.score,
-      correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
+      correctCount: newCorrectCount,
     }));
 
     onQuestionAnswered?.(isCorrect, 1);
 
     if (isCorrect) {
       playMp3?.('/ding.mp3');
-      p2TimerRef.current = window.setTimeout(() => {
-        setP2(prev => {
-          if (prev.questionNo >= TOTAL_QUESTIONS) {
-            const updated = { ...prev, isFinished: true, isLocked: true, feedback: null };
-            if (p1.isFinished || p1.isEliminated) {
-              finishGame('done');
-            }
-            return updated;
-          }
-          const usedTargets = [...prev.usedTargets, prev.question.target];
-          return {
-            ...prev,
-            questionNo: prev.questionNo + 1,
-            question: generateQuestion(cfg, usedTargets),
-            usedTargets,
-            feedback: null,
-            shakeSide: null,
-            isLocked: false,
-          };
-        });
-      }, 750);
+      if (isFinished) {
+        p2TimerRef.current = window.setTimeout(() => {
+          finishGame('done', 'p2');
+        }, 600);
+      } else {
+        p2TimerRef.current = window.setTimeout(() => {
+          setP2(prev => {
+            const usedTargets = [...prev.usedTargets, prev.question.target];
+            return {
+              ...prev,
+              questionNo: prev.questionNo + 1,
+              question: generateQuestion(cfg, usedTargets),
+              usedTargets,
+              feedback: null,
+              shakeSide: null,
+              isLocked: false,
+            };
+          });
+        }, 700);
+      }
     } else {
       playMp3?.('/hata.mp3');
       if (isEliminated) {
         p2TimerRef.current = window.setTimeout(() => {
-          if (p1.isFinished || p1.isEliminated) {
-            finishGame('lives');
-          }
-        }, 1200);
+          finishGame('lives', 'p1');
+        }, 800);
       } else {
         p2TimerRef.current = window.setTimeout(() => {
           setP2(prev => {
@@ -387,11 +396,11 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
               shakeSide: null,
               isLocked: false,
               feedback: null,
-              questionNo: prev.questionNo < TOTAL_QUESTIONS ? prev.questionNo + 1 : prev.questionNo,
+              questionNo: prev.questionNo + 1,
               question: generateQuestion(cfg, usedTargets),
             };
           });
-        }, 1100);
+        }, 900);
       }
     }
   };
@@ -548,6 +557,9 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
 
         {/* Orta: Süre ve Oyun Bilgisi */}
         <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-950/80 border border-emerald-500/40 text-xs font-black text-emerald-300 shadow">
+            <span>🎯 7 Doğru Yapan Bitirir • 3 Hata Yapan Yanar</span>
+          </div>
           <div className="flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-800 border border-slate-700 shadow">
             <Clock size={16} className={timeLeft <= 15 ? 'text-red-400 animate-pulse' : 'text-cyan-400'} />
             <span className={`font-black text-sm sm:text-base tabular-nums ${timeLeft <= 15 ? 'text-red-400' : 'text-white'}`}>
@@ -609,10 +621,10 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
               )}
             </div>
 
-            {/* Soru */}
-            <div className="flex items-center gap-1 font-black text-sm sm:text-base text-cyan-300">
-              <span>Soru:</span>
-              <span className="text-lg sm:text-xl text-white tabular-nums">{p1.questionNo} / {TOTAL_QUESTIONS}</span>
+            {/* Doğru Hedefi */}
+            <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-emerald-300 bg-emerald-950/70 border border-emerald-500/40 px-3 py-1 rounded-xl">
+              <span>🎯 Hedef:</span>
+              <span className="text-base sm:text-lg text-white tabular-nums">{p1.correctCount} / {TARGET_CORRECT} Doğru</span>
             </div>
 
             {/* Puan */}
@@ -702,7 +714,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
                 )}
               </div>
               <div className="font-black text-xs text-amber-300">
-                {p1.score} P <span className="text-slate-400 font-normal">({p1.questionNo}/7)</span>
+                {p1.score} P <span className="text-emerald-300 font-bold">({p1.correctCount}/{TARGET_CORRECT} Doğru)</span>
               </div>
             </div>
 
@@ -760,7 +772,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
             )}
             {p1.isFinished && !p1.isEliminated && (
               <div className="py-1 px-2 rounded-lg bg-emerald-950/90 border border-emerald-500/60 text-center text-emerald-200 text-xs font-bold">
-                ⭐ 7 Soru Bitti! Tebrikler!
+                ⭐ 7 Doğru Tamamlandı! Tebrikler!
               </div>
             )}
           </div>
@@ -783,7 +795,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
                 )}
               </div>
               <div className="font-black text-xs text-amber-300">
-                {p2.score} P <span className="text-slate-400 font-normal">({p2.questionNo}/7)</span>
+                {p2.score} P <span className="text-emerald-300 font-bold">({p2.correctCount}/{TARGET_CORRECT} Doğru)</span>
               </div>
             </div>
 
@@ -841,7 +853,7 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
             )}
             {p2.isFinished && !p2.isEliminated && (
               <div className="py-1 px-2 rounded-lg bg-emerald-950/90 border border-emerald-500/60 text-center text-emerald-200 text-xs font-bold">
-                ⭐ 7 Soru Bitti! Tebrikler!
+                ⭐ 7 Doğru Tamamlandı! Tebrikler!
               </div>
             )}
           </div>
@@ -881,7 +893,11 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
                     : '🤝 Berabere!'}
                 </h2>
                 <p className="text-xs text-slate-300 mb-3">
-                  {endReason === 'time' ? '100 Saniye Süre Doldu!' : '2 Kişilik Kapışma Tamamlandı!'}
+                  {endReason === 'lives'
+                    ? `💔 ${duelWinner === 'p1' ? p2Name : p1Name} 3 hata yaparak elendi!`
+                    : endReason === 'done'
+                    ? `⚡ ${duelWinner === 'p1' ? p1Name : p2Name} 7 doğru cevaba ilk ulaşarak kazandı!`
+                    : '⏰ 100 Saniye Süre Doldu!'}
                 </p>
 
                 {/* Skor Karşılaştırması */}
@@ -901,21 +917,21 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
             ) : (
               <>
                 <div className="inline-block px-3 py-0.5 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 font-bold text-xs uppercase mb-1.5">
-                  {endReason === 'done' ? '7 Soru Tamamlandı' : endReason === 'lives' ? '3 Hata Yapıldı' : '100 Saniye Doldu'}
+                  {endReason === 'done' ? '7 Doğru Tamamlandı' : endReason === 'lives' ? '3 Hata Yapıldı' : '100 Saniye Doldu'}
                 </div>
                 <h2 className="text-2xl font-black mb-1">
                   {endReason === 'lives'
                     ? '💔 Elendin!'
                     : endReason === 'time'
                     ? '⏰ Süre Bitti!'
-                    : p1.correctCount === TOTAL_QUESTIONS
-                    ? '🌟 Muhteşem!'
+                    : p1.correctCount >= TARGET_CORRECT
+                    ? '🌟 Harika! 7 Doğru Tamam!'
                     : '👏 Çok İyi!'}
                 </h2>
                 <div className="bg-slate-900 border border-slate-700 rounded-2xl p-3 mb-4 flex items-center justify-around">
                   <div className="text-center">
                     <div className="text-[10px] text-emerald-400 font-bold uppercase">Doğru</div>
-                    <div className="text-xl font-black">{p1.correctCount} / {TOTAL_QUESTIONS}</div>
+                    <div className="text-xl font-black text-emerald-400">{p1.correctCount} / {TARGET_CORRECT}</div>
                   </div>
                   <div className="w-px h-8 bg-slate-700" />
                   <div className="text-center">

@@ -7608,10 +7608,10 @@ export default function App() {
     {/* OYUNA GİRİNCE: ÜSTTEKİ BUTONLARIN HEMEN ALTINDA ORTADA ETKİNLİK ADI (BAŞLIK) VE ÇERÇEVESİ */}
     {isInsideAnyGame && currentActivityTitle && (
       <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-2 shrink-0 animate-fadeIn z-20">
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-5 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 max-w-full overflow-x-auto no-scrollbar flex-wrap justify-center">
           <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
           <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
               {currentActivityTitle}
             </h1>
             {(showOnlukYuvarlamaOyunu || showRitmikBalon || (currentTopic && (
@@ -7629,22 +7629,24 @@ export default function App() {
           </div>
           <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
 
-          {/* Sınıf İçi Tahta Araçları: Rastgele Öğrenci Çarkı */}
-          <button
-            onClick={() => {
-              playMp3('/op.mp3');
-              setShowStudentWheel(true);
-            }}
-            className="ml-1 sm:ml-2.5 px-2 sm:px-2.5 py-0.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:brightness-110 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white"
-            title="Sıradaki soruyu yanıtlayacak öğrenciyi seçmek için çarkı çevir"
-          >
-            <span className="text-xs sm:text-sm">🎡</span>
-            <span className="whitespace-nowrap">Öğrenci Çarkı</span>
-          </button>
+          {/* Sınıf İçi Tahta Araçları: Rastgele Öğrenci Çarkı (Ritmik Balon hariç, onda alt dock mevcut) */}
+          {!showRitmikBalon && (
+            <button
+              onClick={() => {
+                playMp3('/op.mp3');
+                setShowStudentWheel(true);
+              }}
+              className="ml-1 sm:ml-2.5 px-2 sm:px-2.5 py-0.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:brightness-110 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white"
+              title="Sıradaki soruyu yanıtlayacak öğrenciyi seçmek için çarkı çevir"
+            >
+              <span className="text-xs sm:text-sm">🎡</span>
+              <span className="whitespace-nowrap">Öğrenci Çarkı</span>
+            </button>
+          )}
 
-          {/* Ritmik Balon: süre ve canlar oyun bileşeninden buraya taşınır */}
+          {/* Ritmik Balon: süre, canlar ve 3'er, 4'er, 5'er, 6'şar geçiş butonları */}
           {showRitmikBalon && (
-            <div id="ritmik-status-slot" className="flex items-center gap-1 sm:gap-1.5 ml-1 sm:ml-2" />
+            <div id="ritmik-status-slot" className="flex items-center gap-1 sm:gap-1.5 ml-1 sm:ml-2 shrink-0 flex-wrap" />
           )}
         </div>
       </div>

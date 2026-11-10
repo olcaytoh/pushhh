@@ -286,6 +286,18 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
     setWinReason(null);
   }, [currentStep]);
 
+  const handleSelectStep = (step: RitmikStep) => {
+    if (step === currentStep) return;
+    setCurrentStep(step);
+    onStepChange?.(step);
+    setupRound(step);
+    triggerSound('click');
+  };
+
+  const quickSteps: RitmikStep[] = currentStep > 6
+    ? [3, 4, 5, 6, currentStep]
+    : [3, 4, 5, 6];
+
   // İlk yüklemede ve mod değişiminde turu hazırla
   useEffect(() => {
     setupRound(currentStep);
@@ -505,6 +517,31 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
             })}
           </div>
 
+          {/* Canların Sağ Tarafına: 3'er, 4'er, 5'er, 6'şar Ritmik Balon Geçiş Butonları */}
+          <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 p-0.5 sm:p-1 rounded-xl border border-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.35)] ml-1 sm:ml-2 shrink-0" title="Ritmik sayma balon etkinliğini seç">
+            <span className="text-[10px] sm:text-xs font-black text-amber-300 uppercase px-1 hidden md:inline tracking-wider">
+              RİTMİK:
+            </span>
+            {quickSteps.map(step => {
+              const isActive = currentStep === step;
+              const label = `${step}'${step === 6 ? 'şar' : step === 9 ? 'ar' : 'er'}`;
+              return (
+                <button
+                  key={step}
+                  onClick={() => handleSelectStep(step)}
+                  className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 shadow-md ring-2 ring-white scale-105'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-600 hover:border-amber-400'
+                  }`}
+                  title={`${step}'${step === 6 ? 'şar' : step === 9 ? 'ar' : 'er'} Ritmik Balon (${step} - ${step * 10})`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
             </>,
             statusSlot
           )
@@ -542,6 +579,31 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
                 <HeartCrack key={heartIdx} size={14} className="text-rose-300 opacity-40 animate-pulse" />
               ) : (
                 <Heart key={heartIdx} size={14} className="text-blue-400 fill-blue-400 drop-shadow" />
+              );
+            })}
+          </div>
+
+          {/* Canların Sağ Tarafına: 3'er, 4'er, 5'er, 6'şar Ritmik Balon Geçiş Butonları */}
+          <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 p-0.5 sm:p-1 rounded-xl border border-amber-400/80 shadow-[0_0_14px_rgba(245,158,11,0.35)] ml-1 sm:ml-2 shrink-0" title="Ritmik sayma balon etkinliğini seç">
+            <span className="text-[10px] sm:text-xs font-black text-amber-300 uppercase px-1 hidden md:inline tracking-wider">
+              RİTMİK:
+            </span>
+            {quickSteps.map(step => {
+              const isActive = currentStep === step;
+              const label = `${step}'${step === 6 ? 'şar' : step === 9 ? 'ar' : 'er'}`;
+              return (
+                <button
+                  key={step}
+                  onClick={() => handleSelectStep(step)}
+                  className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 shadow-md ring-2 ring-white scale-105'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-600 hover:border-amber-400'
+                  }`}
+                  title={`${step}'${step === 6 ? 'şar' : step === 9 ? 'ar' : 'er'} Ritmik Balon (${step} - ${step * 10})`}
+                >
+                  {label}
+                </button>
               );
             })}
           </div>
