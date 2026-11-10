@@ -16,6 +16,18 @@
   background: transparent;
 }
  
+/* AKILLI TAHTA ÇOKLU DOKUNMA VE SAĞ TIK KORUMASI */
+html, body, #root, * {
+  -webkit-touch-callout: none !important; /* iOS & Chromium touch hold menülerini engeller */
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+input, textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
 * {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */

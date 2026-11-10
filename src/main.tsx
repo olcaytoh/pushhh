@@ -35,6 +35,40 @@ if (typeof window !== 'undefined') {
     const img = new Image();
     img.src = src;
   });
+
+  // Akıllı tahtalarda 2 veya 3 çocuk aynı anda dokunduğunda browser'ın sağ tık menüsünü açmasını tamamen engelle
+  const blockContextMenu = (e: Event) => {
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return; // Metin giriş kutularında izin ver
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  window.addEventListener('contextmenu', blockContextMenu, { capture: true, passive: false });
+  document.addEventListener('contextmenu', blockContextMenu, { capture: true, passive: false });
+
+  // Dokunmatik ekranda basılı tutma / çoklu parmakla sağ tık emülasyonunu engelle
+  window.addEventListener('pointerdown', (e: PointerEvent) => {
+    if (e.pointerType === 'touch' && e.button === 2) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, { capture: true, passive: false });
+
+  // İkincil tıklama (auxclick: sağ tık / orta tuş) engelleme
+  window.addEventListener('auxclick', (e: MouseEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+    if (e.button === 2) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, { capture: true, passive: false });
 }
 
 interface ErrorBoundaryProps {

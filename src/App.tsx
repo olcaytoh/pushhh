@@ -6847,7 +6847,16 @@ export default function App() {
   const currentActivityTitle = isInsideAnyGame ? getCurrentActivityTitle() : '';
 
   return (
-    <div className="relative h-[100dvh] bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden select-none">
+    <div 
+      onContextMenu={(e) => {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+      }}
+      className="relative h-[100dvh] bg-gradient-to-br from-sky-100 via-blue-50 to-amber-50/70 dark:from-[#0B132B] dark:via-blue-950 dark:to-slate-950 text-blue-950 dark:text-gray-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden select-none"
+    >
       {/* ÇOCUKLAR İÇİN CANLI, EĞLENCELİ ETKİNLİK VE KARŞILAMA ARKA PLANI (1. SINIFTAKİ GİBİ DAİMA GÖRSELİMİZ GÖRÜNÜR) */}
       {(gameState === 'playing' || gameState === 'gameover' || showTopicModal) ? (
         <ActivityBackground 
