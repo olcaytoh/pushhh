@@ -40,6 +40,7 @@ interface OtherGamesHubProps {
   onOpenDengeTerazisi?: () => void;
   onOpenKodlamaMutfagi?: () => void;
   onOpenRitmikBalon?: (step?: 3 | 4 | 5 | 6) => void;
+  onOpenCarpimBalon?: (step?: 2 | 3 | 4 | 5 | 6) => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
 }
 
@@ -80,6 +81,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenDengeTerazisi,
   onOpenKodlamaMutfagi,
   onOpenRitmikBalon,
+  onOpenCarpimBalon,
   playMp3
 }) => {
   const triggerSound = (src: string) => {
@@ -109,6 +111,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       isNew: true,
       action: () => {
         if (onOpenRitmikBalon) onOpenRitmikBalon(3);
+      },
+    },
+    {
+      id: 'carpim_balon',
+      title: 'Çarpım Tablosu Balon Düellosu',
+      subtitle: "2'den 6'ya Çarpım Tablosu (2, 3, 4, 5, 6)",
+      icon: '/MENUIKON/grid_icon_15.webp',
+      sound: '/op.mp3',
+      isNew: true,
+      action: () => {
+        if (onOpenCarpimBalon) onOpenCarpimBalon(2);
       },
     },
     {
@@ -506,6 +519,23 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                             title={`${step}'${step === 6 ? 'şar' : 'er'} Ritmik Balon`}
                           >
                             {step}'{step === 6 ? 'şar' : 'er'}
+                          </button>
+                        ))}
+                      </div>
+                    ) : game.id === 'carpim_balon' && onOpenCarpimBalon ? (
+                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
+                        {([2, 3, 4, 5, 6] as const).map(step => (
+                          <button
+                            key={step}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerSound('/op.mp3');
+                              onOpenCarpimBalon(step);
+                            }}
+                            className="px-1.5 py-0.5 rounded bg-emerald-400 hover:bg-emerald-300 active:scale-95 text-slate-950 font-black text-[10px] shadow cursor-pointer transition-all border border-emerald-200"
+                            title={`${step}'${step === 6 ? 'lar' : 'ler'} Çarpım Tablosu Balonu`}
+                          >
+                            {step}'{step === 6 ? 'lar' : 'ler'}
                           </button>
                         ))}
                       </div>

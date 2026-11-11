@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'onluk_yuvarlama_oyunu';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -24,6 +24,11 @@ const resolveTitle = (key: string, grade?: number): string => {
   if (key === 'ritmik_balon_7') return "7'şer Ritmik Balon (7-70)";
   if (key === 'ritmik_balon_8') return "8'er Ritmik Balon (8-80)";
   if (key === 'ritmik_balon_9') return "9'ar Ritmik Balon (9-90)";
+  if (key === 'carpim_balon_2') return "2'ler Çarpım Tablosu Balon";
+  if (key === 'carpim_balon_3') return "3'ler Çarpım Tablosu Balon";
+  if (key === 'carpim_balon_4') return "4'ler Çarpım Tablosu Balon";
+  if (key === 'carpim_balon_5') return "5'ler Çarpım Tablosu Balon";
+  if (key === 'carpim_balon_6') return "6'lar Çarpım Tablosu Balon";
   if (key === 'sayi_basketi') return 'Sayı Basketi';
   if (key === 'en_yakin_onluk_oyunu') return 'En Yakın Onluğa Yuvarlama Oyunu';
   if (key === 'g3_onluk_yuvarlama_oyunu') return "En Yakın Onluğa Yuvarlama Oyunu (1000'e Kadar)";
@@ -628,6 +633,13 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     type: 'ritmik_balon',
     topicKey: 'ritmik_balon_3',
     title: 'Ritmik Balon Patlatma Düellosu',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_carpim_balon',
+    type: 'carpim_balon',
+    topicKey: 'carpim_balon_2',
+    title: 'Çarpım Tablosu Balon Düellosu',
     categoryLabel: 'Diğer Oyunlar'
   },
   {
