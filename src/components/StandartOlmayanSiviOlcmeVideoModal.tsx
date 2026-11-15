@@ -3,6 +3,8 @@ import {
   X, Play, Pause, RotateCcw, Volume2, VolumeX, Maximize2, 
   BookOpen, ArrowRight, Video
 } from 'lucide-react';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface StandartOlmayanSiviOlcmeVideoModalProps {
   onClose: () => void;
@@ -10,6 +12,11 @@ interface StandartOlmayanSiviOlcmeVideoModalProps {
   onStartSiviTahmin?: () => void;
   playMp3?: (src: string, onEnded?: () => void) => void;
   soundEnabled?: boolean;
+  students?: Student[];
+  currentGrade?: number;
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 export const StandartOlmayanSiviOlcmeVideoModal: React.FC<StandartOlmayanSiviOlcmeVideoModalProps> = ({
@@ -17,7 +24,12 @@ export const StandartOlmayanSiviOlcmeVideoModal: React.FC<StandartOlmayanSiviOlc
   onStartSiviOlcme,
   onStartSiviTahmin,
   playMp3,
-  soundEnabled = true
+  soundEnabled = true,
+  students = [],
+  currentGrade = 2,
+  selectedStudentIds = [],
+  onSelectStudentForPlayer,
+  onOpenRosterModal
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isMuted, setIsMuted] = useState<boolean>(!soundEnabled);
@@ -153,7 +165,7 @@ export const StandartOlmayanSiviOlcmeVideoModal: React.FC<StandartOlmayanSiviOlc
     <div 
       ref={containerRef}
       style={{ top: 'var(--app-header-height, 60px)' }}
-      className="fixed inset-x-0 bottom-0 z-40 flex flex-col items-center justify-between bg-slate-950/95 backdrop-blur-md text-white select-none overflow-hidden animate-fadeIn p-2 sm:p-4"
+      className="fixed inset-x-0 bottom-0 z-[200] flex flex-col items-center justify-between bg-slate-950/95 backdrop-blur-md text-white select-none overflow-hidden animate-fadeIn p-2 sm:p-4"
     >
       {/* 1. TOP HEADER BANNER */}
       <div className="w-full max-w-5xl flex items-center justify-between gap-2 px-3 py-2 bg-gradient-to-r from-cyan-950/90 via-slate-900/90 to-cyan-950/90 border border-cyan-500/40 rounded-2xl shadow-xl shrink-0">
@@ -588,6 +600,20 @@ export const StandartOlmayanSiviOlcmeVideoModal: React.FC<StandartOlmayanSiviOlc
           )}
         </div>
       </div>
+
+      {onOpenRosterModal && (
+        <div className="w-full max-w-5xl shrink-0 z-20 pt-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={currentGrade}
+            playerCount={1}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };

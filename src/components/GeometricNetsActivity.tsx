@@ -6,6 +6,8 @@ import {
   Layers, Box, Eye, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { ActivityBackground } from './ActivityBackground';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 export interface GeometricNetsActivityProps {
   onClose: () => void;
@@ -14,6 +16,11 @@ export interface GeometricNetsActivityProps {
   playMp3?: (src: string, onEnded?: () => void) => void;
   initialShapeId?: string;
   onQuestionAnswered?: (isCorrect: boolean) => void;
+  students?: Student[];
+  currentGrade?: number;
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 interface SolidDefinition {
@@ -134,7 +141,12 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
   onNextActivity,
   playMp3,
   initialShapeId = 'cube',
-  onQuestionAnswered
+  onQuestionAnswered,
+  students = [],
+  currentGrade = 2,
+  selectedStudentIds = [],
+  onSelectStudentForPlayer,
+  onOpenRosterModal
 }) => {
   const [selectedSolid, setSelectedSolid] = useState<SolidDefinition>(() => {
     return SOLIDS.find(s => s.id === initialShapeId) || SOLIDS[0];
@@ -905,11 +917,12 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
           
           {/* Top Stage Indicator / Hint */}
-          <div className="absolute top-2 left-2 right-2 z-20 flex items-center justify-between pointer-events-none">
-            <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-xl border border-slate-700/80 shadow-md text-xs font-semibold text-slate-200 pointer-events-auto flex items-center gap-2">
+          <div className="absolute top-2 left-2 right-2 z-20 flex items-center justify-between gap-2 pointer-events-none">
+            <div className="bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-xl border border-amber-400/50 shadow-md text-xs font-semibold text-slate-200 pointer-events-auto flex items-center gap-2">
               <span className="text-base">{selectedSolid.emoji}</span>
-              <span className="font-extrabold text-amber-300">{selectedSolid.name}</span>
-              <span className="text-slate-400 text-[11px]">| {selectedSolid.curriculumGrade}</span>
+              <span className="font-black text-amber-300 uppercase">Geometrik Cisimler Açılımı:</span>
+              <span className="font-extrabold text-white">{selectedSolid.name}</span>
+              <span className="text-slate-400 text-[11px] hidden sm:inline">| {selectedSolid.curriculumGrade}</span>
             </div>
 
             <div className="bg-slate-900/85 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-700/80 text-[11px] text-slate-300 flex items-center gap-1.5 pointer-events-auto">
@@ -1129,6 +1142,20 @@ export const GeometricNetsActivity: React.FC<GeometricNetsActivityProps> = ({
         </div>
 
       </div>
+
+      {onOpenRosterModal && (
+        <div className="relative z-20 shrink-0 pb-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={currentGrade}
+            playerCount={1}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };

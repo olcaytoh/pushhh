@@ -512,7 +512,8 @@ export const GuvenliInternetGame: React.FC<GuvenliInternetGameProps> = ({
   return (
     <div 
       onContextMenu={(e) => e.preventDefault()}
-      className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white select-none overflow-hidden"
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col bg-slate-950 text-white select-none overflow-hidden"
     >
       <ActivityBackground theme="uzay" opacity={0.65} dimCenter={true} />
 
@@ -616,21 +617,6 @@ export const GuvenliInternetGame: React.FC<GuvenliInternetGameProps> = ({
         </div>
       </header>
 
-      {/* STUDENT AVATAR DOCK */}
-      {students.length > 0 && onSelectStudentForPlayer && onOpenRosterModal && (
-        <div className="relative z-20 shrink-0 bg-slate-900/60 border-b border-slate-800/80 px-2 py-1">
-          <StudentAvatarDock
-            students={students}
-            currentGrade={2}
-            playerCount={playerMode}
-            selectedStudentIds={selectedStudentIds}
-            onSelectStudentForPlayer={onSelectStudentForPlayer}
-            onOpenRosterModal={onOpenRosterModal}
-            playMp3={playMp3}
-          />
-        </div>
-      )}
-
       {/* SCORE & TURN INDICATORS (MULTI-PLAYER) */}
       {playerMode > 1 && (
         <div className="relative z-10 flex items-center justify-center gap-3 sm:gap-6 py-2 px-3 bg-black/40 border-b border-cyan-500/20 shrink-0">
@@ -660,7 +646,7 @@ export const GuvenliInternetGame: React.FC<GuvenliInternetGameProps> = ({
       )}
 
       {/* MAIN GAMEPLAY CONTENT AREA */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-3 sm:p-5 overflow-y-auto">
+      <main className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center p-3 sm:p-5 overflow-y-auto">
         {!gameOver ? (
           <div className="w-full max-w-3xl flex flex-col items-center gap-3 sm:gap-4">
             {/* QUESTION PROGRESS & BADGE */}
@@ -820,6 +806,21 @@ export const GuvenliInternetGame: React.FC<GuvenliInternetGameProps> = ({
           </div>
         )}
       </main>
+
+      {/* STUDENT AVATAR DOCK (BOTTOM) */}
+      {onOpenRosterModal && (
+        <div className="relative z-20 shrink-0 bg-slate-950/90 border-t border-cyan-500/20 px-1 py-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            playerCount={playerMode}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };

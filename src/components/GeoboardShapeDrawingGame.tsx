@@ -5,6 +5,8 @@ import {
   Lightbulb, Sparkles, Award, RefreshCw, X, Play, Info, HelpCircle
 } from 'lucide-react';
 import { Cute3DStarMascotSVG } from './ModernStatsView';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 // ==========================================
 // 1. TEMEL VERİ TİPLERİ VE GÖREV LİSTESİ
@@ -354,6 +356,10 @@ export interface GeoboardShapeDrawingGameProps {
   playMp3?: (sound: string) => void;
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
+  students?: Student[];
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> = ({
@@ -361,7 +367,11 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   onClose,
   playMp3,
   onPrevActivity,
-  onNextActivity
+  onNextActivity,
+  students = [],
+  selectedStudentIds = [],
+  onSelectStudentForPlayer,
+  onOpenRosterModal
 }) => {
   const [missionIndex, setMissionIndex] = useState<number>(0);
   const [drawnPoints, setDrawnPoints] = useState<Point[]>([]);
@@ -668,7 +678,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[9999] isolate bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-4 text-white select-none overflow-y-auto"
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] isolate bg-slate-950 flex flex-col items-center justify-between p-2 sm:p-3 text-white select-none overflow-hidden"
     >
       {/* Background Image /dere3.webp */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
@@ -719,8 +729,10 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
         </div>
       </div>
 
+      {/* ORTA OYUN ALANI */}
+      <div className="relative z-10 w-full flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-between gap-1 py-1">
       {/* SADE GÖREV ADI */}
-      <div className="relative z-20 w-full max-w-sm my-1 sm:my-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_16px_rgba(245,158,11,0.3)] flex items-center justify-center gap-2 shrink-0">
+      <div className="relative z-20 w-full max-w-sm my-1 px-3 py-2 rounded-xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_16px_rgba(245,158,11,0.3)] flex items-center justify-center gap-2 shrink-0">
         <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">
           {currentMission.title}
         </h2>
@@ -984,7 +996,7 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
         </div>
 
         {/* Aksiyon Butonları (Geri Al, Temizle, Kontrol Et) */}
-        <div className="sticky bottom-0 z-30 w-full max-w-2xl p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border-2 border-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.45)] shrink-0">
+        <div className="z-30 w-full max-w-2xl p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border-2 border-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.45)] shrink-0">
           <div className="grid grid-cols-3 gap-2">
           <button
             onClick={handleUndo}
@@ -1014,6 +1026,21 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
           </div>
         </div>
       </div>
+      </div>
+
+      {onOpenRosterModal && (
+        <div className="relative z-20 w-full shrink-0 pt-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={grade}
+            playerCount={1}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
 
       {/* TÜM GÖREVLER BİTTİĞİNDE TEBRİK MODALI */}
       {isGameCompleted && (

@@ -660,7 +660,10 @@ export const SiviMiktariTahminGame: React.FC<SiviMiktariTahminGameProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#091022] text-white flex flex-col select-none overflow-hidden font-sans">
+    <div
+      style={{ top: 'var(--app-header-height, 74px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] bg-[#091022] text-white flex flex-col select-none overflow-hidden font-sans"
+    >
       {/* ÇOCUKLAR İÇİN BÜYÜLÜ AKVARYUM ARKA PLANI */}
       <ActivityBackground theme="akvaryum" />
 

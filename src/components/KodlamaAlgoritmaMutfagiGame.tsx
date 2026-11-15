@@ -1145,22 +1145,8 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
         </div>
       </header>
 
-      {/* 2. ÖĞRENCİ SEÇİM ŞERİDİ (AKILLI TAHTA) */}
-      {students.length > 0 && (
-        <div className="relative z-10 px-2 py-0.5 bg-stone-900 border-b border-stone-800 shrink-0">
-          <StudentAvatarDock
-            students={students}
-            selectedStudentIds={selectedStudentIds}
-            playerCount={1}
-            onSelectStudentForPlayer={(pIdx, id) => onSelectStudentForPlayer?.(pIdx, id)}
-            onOpenRosterModal={() => onOpenRosterModal?.(2)}
-            playMp3={playMp3}
-          />
-        </div>
-      )}
-
-      {/* 3. ANA MUTFAK SAHNESİ - ARKA PLANLI VE GÖZ ALICI */}
-      <div className="relative flex-1 flex flex-col justify-between p-2 sm:p-4 md:p-5 overflow-hidden">
+      {/* 2. ANA MUTFAK SAHNESİ - ARKA PLANLI VE GÖZ ALICI */}
+      <div className="relative flex-1 min-h-0 flex flex-col justify-between p-2 sm:p-4 md:p-5 overflow-y-auto">
         {/* Arka plan görseli (Sıcak Çizgi Mutfak) */}
         <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#2a1708] via-[#1a120b] to-[#120d08]">
           <img
@@ -1462,6 +1448,21 @@ export const KodlamaAlgoritmaMutfagiGame: React.FC<KodlamaAlgoritmaMutfagiGamePr
           )}
         </div>
       </div>
+
+      {/* ALT ÖĞRENCİ SEÇİM ŞERİDİ (AKILLI TAHTA) */}
+      {onOpenRosterModal && (
+        <div className="relative z-20 px-2 py-1 bg-stone-950/95 border-t border-stone-800 shrink-0">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={2}
+            selectedStudentIds={selectedStudentIds}
+            playerCount={1}
+            onSelectStudentForPlayer={(pIdx, id) => onSelectStudentForPlayer?.(pIdx, id)}
+            onOpenRosterModal={(grade) => onOpenRosterModal(grade || 2)}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
 
       {/* 4. BAŞARI & TEBRİKLER MODALI (MERKEZİ VE NET İLERLEME) */}
       {showSuccessModal && (

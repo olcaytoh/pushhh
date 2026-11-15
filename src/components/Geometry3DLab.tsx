@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RotateCcw, Eye, Sparkles, Box, Info, Play, CheckCircle2, RefreshCw, Layers } from 'lucide-react';
 import { ActivityBackground } from './ActivityBackground';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface Shape3D {
   id: string;
@@ -89,9 +91,26 @@ export interface Geometry3DLabProps {
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
   onQuestionAnswered?: (isCorrect: boolean) => void;
+  playMp3?: (src: string) => void;
+  students?: Student[];
+  currentGrade?: number;
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
-export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevActivity, onNextActivity, onQuestionAnswered }) => {
+export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({
+  onClose,
+  onPrevActivity,
+  onNextActivity,
+  onQuestionAnswered,
+  playMp3,
+  students = [],
+  currentGrade = 2,
+  selectedStudentIds = [],
+  onSelectStudentForPlayer,
+  onOpenRosterModal
+}) => {
   const [selectedShape, setSelectedShape] = useState<Shape3D>(SHAPES[0]);
   const [wireframe, setWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -298,12 +317,13 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
   return (
     <div 
       style={{ top: 'var(--app-header-height, 74px)' }}
-      className="fixed inset-0 top-[52px] xs:top-[60px] sm:top-[74px] md:top-[80px] bg-slate-950/95 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
+      className="fixed inset-x-0 bottom-0 bg-slate-950/95 z-[200] flex flex-col justify-between overflow-hidden"
     >
       {/* ÇOCUKLAR İÇİN CANLI, EĞLENCELİ 3D GEOMETRİ ATÖLYESİ ARKA PLANI (DOĞA GÖRSELİMİZ) */}
       <ActivityBackground theme="doga" />
 
-      <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 border-3 border-amber-400/80 rounded-3xl max-w-4xl w-full p-2.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-white flex flex-col max-h-[calc(100vh-90px)] sm:max-h-[calc(100vh-100px)] overflow-hidden relative z-10">
+      <div className="flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4 overflow-y-auto relative z-10">
+      <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 border-3 border-amber-400/80 rounded-3xl max-w-4xl w-full p-2.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-white flex flex-col max-h-full overflow-hidden relative z-10">
         
         {/* HEADER BAR */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-2.5 shrink-0">
@@ -580,6 +600,21 @@ export const Geometry3DLab: React.FC<Geometry3DLabProps> = ({ onClose, onPrevAct
         </div>
 
       </div>
+      </div>
+
+      {onOpenRosterModal && (
+        <div className="relative z-20 shrink-0 pb-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={currentGrade}
+            playerCount={1}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };

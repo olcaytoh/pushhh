@@ -61,6 +61,7 @@ import { GuvenliInternetGame } from './components/GuvenliInternetGame';
 import { SaglikliBuyumeGame } from './components/SaglikliBuyumeGame';
 import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
 import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
+import { AdresimiBiliyorumGame } from './components/AdresimiBiliyorumGame';
 import { AblukaGame } from './components/AblukaGame';
 import { SudokuGame } from './components/SudokuGame';
 import { GorselliSudokuGame } from './components/GorselliSudokuGame';
@@ -3135,6 +3136,7 @@ export default function App() {
   const [showSaglikliBuyume, setShowSaglikliBuyume] = useState(false);
   const [showIstekIhtiyac, setShowIstekIhtiyac] = useState(false);
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
+  const [showAdresimiBiliyorum, setShowAdresimiBiliyorum] = useState(false);
   const [showAblukaGame, setShowAblukaGame] = useState(false);
   const [showSudokuGame, setShowSudokuGame] = useState(false);
   const [showGorselliSudoku, setShowGorselliSudoku] = useState(false);
@@ -3190,6 +3192,7 @@ export default function App() {
     showSaglikliBuyume ||
     showIstekIhtiyac || 
     showMevsimGardirobu || 
+    showAdresimiBiliyorum ||
     showAblukaGame ||
     showSudokuGame ||
     showGorselliSudoku ||
@@ -4866,6 +4869,7 @@ export default function App() {
     setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -5197,6 +5201,7 @@ export default function App() {
     setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -5956,6 +5961,7 @@ export default function App() {
     setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -6072,6 +6078,7 @@ export default function App() {
     setShowSaglikliTabak(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -6224,13 +6231,27 @@ export default function App() {
     }, 2800);
   };
 
+  // 2. Sınıf Hayat Bilgisi sıralı geçiş listesi (Adresimi Biliyorum registry'de yoksa sona eklenir)
+  const HB_ADRESIMI_ID = 'g2_hb_adresimi_biliyorum';
+  const G2_HB_ACTIVITIES_WITH_ADRES = (G2_HAYAT_BILGISI_ACTIVITIES as any[]).some(
+    (a: any) => a.id === HB_ADRESIMI_ID || a.type === 'adresimi_biliyorum'
+  )
+    ? G2_HAYAT_BILGISI_ACTIVITIES
+    : [
+        ...G2_HAYAT_BILGISI_ACTIVITIES,
+        { id: HB_ADRESIMI_ID, type: 'adresimi_biliyorum', title: 'Adresimi Biliyorum', grade: 2, topicKey: 'adresimi_biliyorum' } as unknown as (typeof G2_HAYAT_BILGISI_ACTIVITIES)[number]
+      ];
+  const HB_ADRES_INDEX = G2_HB_ACTIVITIES_WITH_ADRES.findIndex(
+    (a: any) => a.id === HB_ADRESIMI_ID || a.type === 'adresimi_biliyorum'
+  );
+
   /**
    * 2. Sınıf Hayat Bilgisi Etkinlikleri Arasında Sıralı Geçiş
    * (Güvenli İnternet Dünyası -> Sağlıklı Büyüme ve Alışkanlıklar -> Sağlıklı Tabak Şefi -> Geri Dönüşüm Kahramanı -> İstek mi, İhtiyaç mı? -> Mevsim Gardırobu)
    */
   const switchToHayatBilgisiActivityByIndex = (hbIndex: number) => {
-    if (hbIndex < 0 || hbIndex >= G2_HAYAT_BILGISI_ACTIVITIES.length) return;
-    const entry = G2_HAYAT_BILGISI_ACTIVITIES[hbIndex];
+    if (hbIndex < 0 || hbIndex >= G2_HB_ACTIVITIES_WITH_ADRES.length) return;
+    const entry = G2_HB_ACTIVITIES_WITH_ADRES[hbIndex];
     if (!entry) return;
 
     playFarkliLvlSound();
@@ -6271,6 +6292,7 @@ export default function App() {
     setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -6302,6 +6324,8 @@ export default function App() {
       setShowIstekIhtiyac(true);
     } else if (entry.id === 'g2_hb_mevsim_gardirobu' || entry.type === 'mevsim_gardirobu') {
       setShowMevsimGardirobu(true);
+    } else if (entry.id === HB_ADRESIMI_ID || entry.type === 'adresimi_biliyorum') {
+      setShowAdresimiBiliyorum(true);
     } else if (entry.id === 'g2_hb_karar_alma_video' || (entry.type === 'lesson_video' && entry.topicKey === 'karar_alma')) {
       const idx = findActivityIndex('lesson_video', 'karar_alma', 2);
       if (idx !== -1) setCurrentActivityIndex(idx);
@@ -6317,7 +6341,7 @@ export default function App() {
       setCurrentActivityIndex(allIdx);
     }
 
-    setActivityToast(`[${hbIndex + 1}/${G2_HAYAT_BILGISI_ACTIVITIES.length}] 2. Sınıf Hayat Bilgisi ➜ ${entry.title}`);
+    setActivityToast(`[${hbIndex + 1}/${G2_HB_ACTIVITIES_WITH_ADRES.length}] 2. Sınıf Hayat Bilgisi ➜ ${entry.title}`);
     setTimeout(() => {
       setActivityToast(null);
     }, 2800);
@@ -6333,7 +6357,7 @@ export default function App() {
     const isInsideHayatBilgisi =
       showGuvenliInternet ||
       showSaglikliBuyume ||
-      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
+      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu || showAdresimiBiliyorum) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
       (showLessonVideo && selectedSubject === 'hayat_bilgisi');
 
     if (isInsideHayatBilgisi) {
@@ -6344,6 +6368,7 @@ export default function App() {
       else if (showGeriDonusum) curHbIdx = 3;
       else if (showIstekIhtiyac) curHbIdx = 4;
       else if (showMevsimGardirobu) curHbIdx = 5;
+      else if (showAdresimiBiliyorum) curHbIdx = HB_ADRES_INDEX >= 0 ? HB_ADRES_INDEX : 8;
       else if (showLessonVideo) {
         const act = ALL_ACTIVITIES_LIST[currentActivityIndex];
         if (act?.topicKey === 'saglikli_aliskanliklar' || act?.id?.includes('saglikli_aliskanliklar')) {
@@ -6353,7 +6378,7 @@ export default function App() {
         }
       }
 
-      const prevHbIdx = (curHbIdx - 1 + G2_HAYAT_BILGISI_ACTIVITIES.length) % G2_HAYAT_BILGISI_ACTIVITIES.length;
+      const prevHbIdx = (curHbIdx - 1 + G2_HB_ACTIVITIES_WITH_ADRES.length) % G2_HB_ACTIVITIES_WITH_ADRES.length;
       switchToHayatBilgisiActivityByIndex(prevHbIdx);
       return;
     }
@@ -6380,7 +6405,7 @@ export default function App() {
     const isInsideHayatBilgisi =
       showGuvenliInternet ||
       showSaglikliBuyume ||
-      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
+      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu || showAdresimiBiliyorum) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
       (showLessonVideo && selectedSubject === 'hayat_bilgisi');
 
     if (isInsideHayatBilgisi) {
@@ -6391,6 +6416,7 @@ export default function App() {
       else if (showGeriDonusum) curHbIdx = 3;
       else if (showIstekIhtiyac) curHbIdx = 4;
       else if (showMevsimGardirobu) curHbIdx = 5;
+      else if (showAdresimiBiliyorum) curHbIdx = HB_ADRES_INDEX >= 0 ? HB_ADRES_INDEX : 8;
       else if (showLessonVideo) {
         const act = ALL_ACTIVITIES_LIST[currentActivityIndex];
         if (act?.topicKey === 'saglikli_aliskanliklar' || act?.id?.includes('saglikli_aliskanliklar')) {
@@ -6400,7 +6426,7 @@ export default function App() {
         }
       }
 
-      const nextHbIdx = (curHbIdx + 1) % G2_HAYAT_BILGISI_ACTIVITIES.length;
+      const nextHbIdx = (curHbIdx + 1) % G2_HB_ACTIVITIES_WITH_ADRES.length;
       switchToHayatBilgisiActivityByIndex(nextHbIdx);
       return;
     }
@@ -6459,6 +6485,7 @@ export default function App() {
     setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
@@ -7036,12 +7063,16 @@ export default function App() {
     if (showOnlukYuvarlamaOyunu) return getRoundingGameConfig(onlukYuvarlamaKey).title;
     if (showSayiBasketi) return 'Sayı Basketi';
     if (showDedektif5N1K) return '5N 1K Dedektifi';
+    if (showSatirSonuHece) return 'Satır Sonu Hece Ayırma';
     if (showLessonVideo) {
       const currentAct = ALL_ACTIVITIES_LIST[currentActivityIndex];
-      if (currentAct && currentAct.type === 'lesson_video') {
-        return currentAct.title;
-      }
-      return 'Karar Alma Süreci';
+      const fallbackVideo =
+        (currentAct && currentAct.type === 'lesson_video'
+          ? currentAct
+          : ALL_ACTIVITIES_LIST.find(a => a.type === 'lesson_video' && a.id === 'g2_turkce_saglikli_aliskanliklar_video') ||
+            ALL_ACTIVITIES_LIST.find(a => a.type === 'lesson_video' && a.id === 'g2_turkce_karar_alma_video') ||
+            ALL_ACTIVITIES_LIST.find(a => a.type === 'lesson_video')) || null;
+      return fallbackVideo?.title || 'Konu Anlatım Videosu';
     }
     if (showNoktalamaAvcisi) return 'Noktalama İşareti Avcısı';
     if (showNoktalamaSurukle) return 'Noktalama İşaretleri (Sürükle Bırak)';
@@ -7052,6 +7083,10 @@ export default function App() {
     if (showSaglikliTabak) return 'Sağlıklı Tabak Şefi';
     if (showIstekIhtiyac) return 'İstek mi, İhtiyaç mı?';
     if (showMevsimGardirobu) return 'Mevsim Gardırobu';
+    if (showAdresimiBiliyorum) return 'Adresimi Biliyorum';
+    if (showAblukaGame) return 'Abluka Strateji Oyunu';
+    if (showSudokuGame) return 'Sudoku Zeka Oyunu';
+    if (showGorselliSudoku) return 'Görselli Sudoku';
     if (showSchoolLifeGame) return 'School Life';
     if (showSiviOlcmeVideoModal) return 'Standart Olmayan Sıvı Ölçme Araçları';
     if (showSiviTahminAkvaryum) return 'Sıvı Ölçme Tahmini';
@@ -7195,6 +7230,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
@@ -7238,6 +7274,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
@@ -7284,6 +7321,7 @@ export default function App() {
                       setShowSaglikliTabak(false);
                       setShowIstekIhtiyac(false);
                       setShowMevsimGardirobu(false);
+                      setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
@@ -7899,7 +7937,7 @@ export default function App() {
             <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
               {currentActivityTitle}
             </h1>
-            {(showOnlukYuvarlamaOyunu || showRitmikBalon || showCarpimBalon || showNoktalamaSurukle || showGuvenliInternet || showSaglikliBuyume || (currentTopic && (
+            {(showOnlukYuvarlamaOyunu || showRitmikBalon || showCarpimBalon || showNoktalamaSurukle || showGuvenliInternet || showSaglikliBuyume || showAdresimiBiliyorum || (currentTopic && (
               currentTopic.includes('yuvarlama') ||
               currentTopic === 'en_yakin_onluk' ||
               currentTopic === 'g4_en_yakin_onluk_yuzluk' ||
@@ -9508,6 +9546,41 @@ export default function App() {
                       <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
                         <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">İZLE</span>
                         <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 9: ADRESİMİ BİLİYORUM (SÜRÜKLE BIRAK) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowAdresimiBiliyorum(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#3a1420] via-[#5a1f33] to-[#3a1420] hover:from-[#4a1a2a] hover:via-[#6e2840] hover:to-[#4a1a2a] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.25)] hover:shadow-[0_0_25px_rgba(251,113,133,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_34.webp" alt="Adresimi Biliyorum" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                          <span className="bg-rose-500/30 text-rose-200 border border-rose-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">10. HAFTA</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">SÜRÜKLE BIRAK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          9. Adresimi Biliyorum
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
+                          Adres Sıralaması, Ev Adresi ve Güvenlik Kuralları
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-rose-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-rose-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
                           ▶
                         </div>
                       </div>
@@ -11616,6 +11689,22 @@ export default function App() {
           onQuestionAnswered={(isCorrect) => {
             handleUniversalActivityAnswer('other_3d_lab', isCorrect, 0, 'otherGames');
           }}
+          playMp3={playMp3}
+          students={students}
+          currentGrade={activeGradeNumber}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || activeGradeNumber);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 
@@ -11632,6 +11721,20 @@ export default function App() {
           playMp3={playMp3}
           onPrevActivity={handlePrevActivity}
           onNextActivity={handleNextActivity}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || activeGradeNumber);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 
@@ -11649,11 +11752,27 @@ export default function App() {
           onQuestionAnswered={(isCorrect) => {
             handleUniversalActivityAnswer('cisimler_acilimi', isCorrect, 0, 'otherGames');
           }}
+          playMp3={playMp3}
+          students={students}
+          currentGrade={activeGradeNumber}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || activeGradeNumber);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAdresimiBiliyorum && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -12253,6 +12372,21 @@ export default function App() {
             onPrevActivity={handlePrevActivity}
             onNextActivity={handleNextActivity}
             playMp3={playMp3}
+            students={students}
+            currentGrade={activeGradeNumber}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={(pIdx, id) => {
+              setSelectedStudentIds(prev => {
+                const updated = [...prev];
+                updated[pIdx] = id;
+                return updated;
+              });
+              if (id) playMp3?.('/ding.mp3');
+            }}
+            onOpenRosterModal={(grade) => {
+              setRosterModalGrade(grade || activeGradeNumber);
+              setShowStudentRosterModal(true);
+            }}
           />
         );
       })()}
@@ -12678,6 +12812,7 @@ export default function App() {
         <MevsimGardirobuGame
           onClose={() => {
             setShowMevsimGardirobu(false);
+            setShowAdresimiBiliyorum(false);
             if (openedFromOtherGamesModal || selectedGrade === null) {
               setShowOtherGamesModal(true);
             }
@@ -12713,6 +12848,54 @@ export default function App() {
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
             handleUniversalActivityAnswer('mevsim_gardirobu', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* ADRESİMİ BİLİYORUM (SÜRÜKLE BIRAK - 2. SINIF HAYAT BİLGİSİ) */}
+      {showAdresimiBiliyorum && (
+        <AdresimiBiliyorumGame
+          onClose={() => {
+            setShowAdresimiBiliyorum(false);
+            setShowAdresimiBiliyorum(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={students}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('adresimi_biliyorum', isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);
@@ -13094,6 +13277,21 @@ export default function App() {
           }}
           playMp3={playMp3}
           soundEnabled={soundEnabled}
+          students={students}
+          currentGrade={activeGradeNumber}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || activeGradeNumber);
+            setShowStudentRosterModal(true);
+          }}
         />
       )}
 

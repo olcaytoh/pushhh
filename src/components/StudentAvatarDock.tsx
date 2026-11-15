@@ -135,7 +135,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
             </button>
           </div>
         ) : (
-          /* TÜM LİSTE ALTA, TEK SIRA - İSİMLER ASLA KISALTILMAZ */
+          /* TÜM LİSTE ALTA, İSİMLER KISALTILMADAN VE HEPSİ GÖRÜNECEK ŞEKİLDE */
           <div className="w-full flex flex-row flex-nowrap items-center justify-between gap-1 sm:gap-1.5 py-0.5 min-w-0">
             {/* SOL: SINIF BİLGİ ROZETİ */}
             <button
@@ -151,9 +151,9 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
               <span>{effectiveGrade}. Sınıf ({sortedStudents.length})</span>
             </button>
 
-            {/* ORTA: TÜM ÖĞRENCİLER - İSİMLER KISALTILMADAN TAM GÖRÜNÜR */}
-            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar px-0.5">
-              <div className="flex flex-row flex-nowrap items-center justify-center gap-1 sm:gap-1.5 min-w-full w-max py-0.5">
+            {/* ORTA: TÜM ÖĞRENCİLER - İSİMLER KISALTILMADAN HEPSİ GÖRÜNÜR */}
+            <div className="flex-1 min-w-0 px-0.5">
+              <div className="flex flex-row flex-wrap items-center justify-center gap-x-1 sm:gap-x-1.5 gap-y-0.5 py-0.5">
                 {sortedStudents.map((student) => {
                   const assignedGIdx = selectedStudentIds.findIndex(id => id === student.id);
                   const isAssigned = assignedGIdx !== -1 && assignedGIdx < playerCount;
@@ -165,7 +165,7 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
                       key={student.id}
                       type="button"
                       onClick={() => handleAvatarClick(student)}
-                      className={`group relative flex flex-col items-center justify-center shrink-0 py-0.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer active:scale-90 ${
+                      className={`group relative flex flex-col items-center justify-center shrink-0 py-0.5 px-1 sm:px-1.5 rounded-xl transition-all cursor-pointer active:scale-90 ${
                         isAssigned
                           ? 'bg-slate-800/90 scale-105 shadow-md'
                           : 'hover:bg-slate-800/60'

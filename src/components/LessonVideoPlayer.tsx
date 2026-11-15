@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Home, X } from 'lucide-react';
+import { Student } from '../types/student';
+import { StudentAvatarDock } from './StudentAvatarDock';
 
 interface LessonVideoPlayerProps {
   title: string;
@@ -10,6 +12,11 @@ interface LessonVideoPlayerProps {
   onPrevActivity?: () => void;
   onNextActivity?: () => void;
   playMp3?: (src: string) => void;
+  students?: Student[];
+  currentGrade?: number;
+  selectedStudentIds?: (string | null)[];
+  onSelectStudentForPlayer?: (playerIndex: number, studentId: string | null) => void;
+  onOpenRosterModal?: (grade?: number) => void;
 }
 
 /**
@@ -26,6 +33,11 @@ export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
   onPrevActivity,
   onNextActivity,
   playMp3,
+  students = [],
+  currentGrade = 2,
+  selectedStudentIds = [],
+  onSelectStudentForPlayer,
+  onOpenRosterModal,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -100,6 +112,20 @@ export const LessonVideoPlayer: React.FC<LessonVideoPlayerProps> = ({
           />
         </div>
       </div>
+
+      {onOpenRosterModal && (
+        <div className="relative z-20 shrink-0 pb-1">
+          <StudentAvatarDock
+            students={students}
+            currentGrade={currentGrade}
+            playerCount={1}
+            selectedStudentIds={selectedStudentIds}
+            onSelectStudentForPlayer={onSelectStudentForPlayer || (() => {})}
+            onOpenRosterModal={onOpenRosterModal}
+            playMp3={playMp3}
+          />
+        </div>
+      )}
     </div>
   );
 };
