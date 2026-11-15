@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Trophy, RotateCcw, X, SkipBack, SkipForward, Sparkles, Star, Heart, HeartCrack, Clock, Lightbulb, Users, User, Zap } from 'lucide-react';
+import { Trophy, RotateCcw, X, SkipBack, SkipForward, Sparkles, Star, Heart, HeartCrack, Clock, Lightbulb, Users, User, Zap, Home } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
@@ -116,6 +116,7 @@ interface PlayerState {
 
 export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProps> = ({
   onClose,
+  onGoHome,
   onPrevActivity,
   onNextActivity,
   playMp3,
@@ -570,6 +571,19 @@ export const EnYakinOnlugaYuvarlamaGame: React.FC<EnYakinOnlugaYuvarlamaGameProp
 
         {/* Sağ: Kontrol Butonları */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {onGoHome && (
+            <button
+              onClick={() => {
+                playMp3?.('/op.mp3');
+                onGoHome();
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs flex items-center gap-1 shadow border border-amber-200 transition-all cursor-pointer active:scale-95"
+              title="Ana Sayfaya Dön"
+            >
+              <Home size={15} />
+              <span className="hidden sm:inline">Ana Sayfa</span>
+            </button>
+          )}
           <button
             onClick={handleRestart}
             className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition-all cursor-pointer"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, RotateCcw, X, Clock, SkipBack, SkipForward, Sparkles, Heart, HeartCrack, Volume2, Flame } from 'lucide-react';
+import { Trophy, RotateCcw, X, Clock, SkipBack, SkipForward, Sparkles, Heart, HeartCrack, Volume2, Flame, Home } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
@@ -171,6 +171,7 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
   initialStep = 3,
   onStepChange,
   onClose,
+  onGoHome,
   onPrevActivity,
   onNextActivity,
   playMp3,
@@ -542,6 +543,45 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
             })}
           </div>
 
+          {/* Hızlı Butonlar: Yeniden, Ana Sayfa, Kapat */}
+          <div className="flex items-center gap-1 ml-1 sm:ml-2 shrink-0">
+            <button
+              onClick={() => {
+                triggerSound('click');
+                setupRound(currentStep);
+              }}
+              className="p-1 sm:p-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+              title="Yeniden Başlat"
+            >
+              <RotateCcw size={13} />
+            </button>
+
+            {onGoHome && (
+              <button
+                onClick={() => {
+                  triggerSound('click');
+                  onGoHome();
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+                title="Ana Sayfaya Dön"
+              >
+                <Home size={13} />
+                <span className="hidden lg:inline text-[11px]">Ana Sayfa</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                triggerSound('click');
+                onClose();
+              }}
+              className="p-1 sm:p-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+              title="Kapat"
+            >
+              <X size={13} />
+            </button>
+          </div>
+
             </>,
             statusSlot
           )
@@ -606,6 +646,45 @@ export const RitmikBalonPatlatmaGame: React.FC<RitmikBalonPatlatmaGameProps> = (
                 </button>
               );
             })}
+          </div>
+
+          {/* Hızlı Butonlar: Yeniden, Ana Sayfa, Kapat */}
+          <div className="flex items-center gap-1 ml-1 sm:ml-2 shrink-0">
+            <button
+              onClick={() => {
+                triggerSound('click');
+                setupRound(currentStep);
+              }}
+              className="p-1 sm:p-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+              title="Yeniden Başlat"
+            >
+              <RotateCcw size={13} />
+            </button>
+
+            {onGoHome && (
+              <button
+                onClick={() => {
+                  triggerSound('click');
+                  onGoHome();
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+                title="Ana Sayfaya Dön"
+              >
+                <Home size={13} />
+                <span className="hidden lg:inline text-[11px]">Ana Sayfa</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                triggerSound('click');
+                onClose();
+              }}
+              className="p-1 sm:p-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+              title="Kapat"
+            >
+              <X size={13} />
+            </button>
           </div>
 
           </div>

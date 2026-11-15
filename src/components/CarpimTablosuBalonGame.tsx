@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Trophy, RotateCcw, X, Clock, SkipBack, SkipForward, Sparkles, Heart, HeartCrack, Volume2, Flame } from 'lucide-react';
+import { Trophy, RotateCcw, X, Clock, SkipBack, SkipForward, Sparkles, Heart, HeartCrack, Volume2, Flame, Home } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
@@ -155,6 +155,7 @@ export const CarpimTablosuBalonGame: React.FC<CarpimTablosuBalonGameProps> = ({
   initialStep = 2,
   onStepChange,
   onClose,
+  onGoHome,
   onPrevActivity,
   onNextActivity,
   playMp3,
@@ -450,9 +451,14 @@ export const CarpimTablosuBalonGame: React.FC<CarpimTablosuBalonGameProps> = ({
 
   const [statusSlot, setStatusSlot] = useState<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const el = document.getElementById('activity-status-controls-slot') || document.getElementById('ritmik-status-slot');
-    setStatusSlot(el);
+  useLayoutEffect(() => {
+    const find = () => document.getElementById('ritmik-status-slot') || document.getElementById('activity-status-controls-slot');
+    setStatusSlot(find());
+    const t = window.setInterval(() => {
+      const el = find();
+      setStatusSlot(prev => (prev === el ? prev : el));
+    }, 400);
+    return () => window.clearInterval(t);
   }, []);
 
   const renderStatusControls = () => (
@@ -528,88 +534,63 @@ export const CarpimTablosuBalonGame: React.FC<CarpimTablosuBalonGameProps> = ({
           );
         })}
       </div>
+
+      {/* Hızlı Butonlar: Yeniden, Ana Sayfa, Kapat */}
+      <div className="flex items-center gap-1 ml-1 sm:ml-2 shrink-0">
+        <button
+          onClick={() => {
+            triggerSound('click');
+            setupRound(currentStep);
+          }}
+          className="p-1 sm:p-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+          title="Yeniden Başlat"
+        >
+          <RotateCcw size={13} />
+        </button>
+
+        {onGoHome && (
+          <button
+            onClick={() => {
+              triggerSound('click');
+              onGoHome();
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+            title="Ana Sayfaya Dön"
+          >
+            <Home size={13} />
+            <span className="hidden lg:inline text-[11px]">Ana Sayfa</span>
+          </button>
+        )}
+
+        <button
+          onClick={() => {
+            triggerSound('click');
+            onClose();
+          }}
+          className="p-1 sm:p-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition-all cursor-pointer active:scale-95 shadow"
+          title="Kapat"
+        >
+          <X size={13} />
+        </button>
+      </div>
     </>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-950 text-white select-none overflow-hidden touch-manipulation">
-      <ActivityBackground theme="oyun" />
+    <div 
+      style={{ top: 'var(--app-header-height, 60px)' }}
+      className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col bg-[#070d19] text-white select-none overflow-hidden touch-manipulation font-sans"
+    >
+      <ActivityBackground theme="oyun" opacity={0.35} />
 
-      {/* ÜST BAŞLIK & KONTROL BARI */}
-      <header className="relative z-30 flex items-center justify-between px-3 sm:px-6 py-2 bg-slate-900/90 border-b border-cyan-500/30 backdrop-blur-md shadow-md shrink-0 flex-wrap gap-2">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xl sm:text-2xl animate-bounce">🎈</span>
-            <div>
-              <h1 className="font-black text-sm sm:text-lg md:text-xl text-amber-300 drop-shadow flex items-center gap-1.5">
-                <span>{activeConfig.title}</span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] sm:text-xs font-black">
-                  2 KİŞİLİK DÜELLO
-                </span>
-              </h1>
-              <p className="text-[10px] sm:text-xs text-slate-400 hidden lg:block">
-                {activeConfig.subtitle}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Portal yoksa durum kontrolleri doğrudan başlıkta */}
-        {!statusSlot && (
-          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+      {/* SÜRE + CANLAR: başlık çubuğundaki yuvaya taşınır; yuva yoksa oyunun sağ üstünde gösterilir */}
+      {statusSlot
+        ? createPortal(renderStatusControls(), statusSlot)
+        : (
+          <div className="absolute top-1 right-2 z-30 flex items-center gap-1 sm:gap-1.5">
             {renderStatusControls()}
           </div>
         )}
-
-        {/* Sağ Butonlar */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {onPrevActivity && (
-            <button
-              onClick={onPrevActivity}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer active:scale-95 shadow"
-              title="Önceki Etkinlik"
-            >
-              <SkipBack size={16} />
-            </button>
-          )}
-
-          {onNextActivity && (
-            <button
-              onClick={onNextActivity}
-              className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer active:scale-95 shadow"
-              title="Sonraki Etkinlik"
-            >
-              <SkipForward size={16} />
-            </button>
-          )}
-
-          <button
-            onClick={() => {
-              triggerSound('click');
-              setupRound();
-            }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer active:scale-95 shadow border border-amber-300"
-            title="Yeniden Başlat"
-          >
-            <RotateCcw size={14} />
-            <span className="hidden sm:inline">Yeniden</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerSound('click');
-              onClose();
-            }}
-            className="p-1.5 sm:p-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black border border-rose-400 transition-all cursor-pointer active:scale-95 shadow"
-            title="Kapat"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* PORTAL VARSA STATUS BARI AKTİVİTE BAŞLIĞINDAKİ SLOTA PORTALLA */}
-      {statusSlot ? createPortal(renderStatusControls(), statusSlot) : null}
       <div className="flex-1 min-h-0 w-full flex flex-row relative overflow-hidden">
         {/* ----------------- SOL YARI: 1. OYUNCU (KIRMIZI ALAN) ----------------- */}
         <div className="w-1/2 h-full bg-gradient-to-b from-[#b91c1c]/90 via-[#991b1b]/80 to-[#7f1d1d]/90 flex flex-col items-center justify-between p-1.5 sm:p-2 border-r-2 sm:border-r-4 border-black/40 relative overflow-hidden">

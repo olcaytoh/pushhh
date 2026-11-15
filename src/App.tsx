@@ -53,9 +53,12 @@ import { SayiBasketiGame } from './components/SayiBasketiGame';
 import { SatirSonuHeceGame } from './components/SatirSonuHeceGame';
 import { LessonVideoPlayer } from './components/LessonVideoPlayer';
 import { NoktalamaAvcisiGame } from './components/NoktalamaAvcisiGame';
+import { NoktalamaSurukleBirakGame } from './components/NoktalamaSurukleBirakGame';
 import { HarfCorbasiGame } from './components/HarfCorbasiGame';
 import { GeriDonusumGame } from './components/GeriDonusumGame';
 import { SaglikliTabakGame } from './components/SaglikliTabakGame';
+import { GuvenliInternetGame } from './components/GuvenliInternetGame';
+import { SaglikliBuyumeGame } from './components/SaglikliBuyumeGame';
 import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
 import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
 import { AblukaGame } from './components/AblukaGame';
@@ -146,7 +149,7 @@ import { topics3rdGrade } from './data/topics3rdGrade';
 import { topics4thGrade } from './data/topics4thGrade';
 import { halatCekmeTopics, sureliExtraTopics } from './data/halatCekmeTopics';
 import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA } from './data/wordPairsData';
-import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, getGradeOtherGamesList } from './data/allActivitiesRegistry';
+import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, getGradeOtherGamesList, G2_HAYAT_BILGISI_ACTIVITIES } from './data/allActivitiesRegistry';
 
 // --- TOPICS FOR OTHER WORD GAMES (STANDARDIZED WITH ALL OTHER ACTIVITIES) ---
 const topicsWordGames: Record<string, { title: string; desc: string; icon?: string; generate: () => QuestionData }> = {
@@ -2774,7 +2777,7 @@ export default function App() {
   });
   const [gameState, setGameState] = useState<'welcome' | 'playing' | 'gameover'>('welcome');
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<'matematik' | 'turkce'>('matematik');
+  const [selectedSubject, setSelectedSubject] = useState<'matematik' | 'turkce' | 'hayat_bilgisi'>('matematik');
   const [lastSelectedGrade, setLastSelectedGrade] = useState<number | null>(1);
   const [showIntro, setShowIntro] = useState(true);
   const introVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -3124,9 +3127,12 @@ export default function App() {
   const [showSatirSonuHece, setShowSatirSonuHece] = useState(false);
   const [showLessonVideo, setShowLessonVideo] = useState(false);
   const [showNoktalamaAvcisi, setShowNoktalamaAvcisi] = useState(false);
+  const [showNoktalamaSurukle, setShowNoktalamaSurukle] = useState(false);
   const [showHarfCorbasi, setShowHarfCorbasi] = useState(false);
   const [showGeriDonusum, setShowGeriDonusum] = useState(false);
   const [showSaglikliTabak, setShowSaglikliTabak] = useState(false);
+  const [showGuvenliInternet, setShowGuvenliInternet] = useState(false);
+  const [showSaglikliBuyume, setShowSaglikliBuyume] = useState(false);
   const [showIstekIhtiyac, setShowIstekIhtiyac] = useState(false);
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
   const [showAblukaGame, setShowAblukaGame] = useState(false);
@@ -3176,9 +3182,12 @@ export default function App() {
     showSatirSonuHece ||
     showLessonVideo ||
     showNoktalamaAvcisi || 
+    showNoktalamaSurukle ||
     showHarfCorbasi || 
     showGeriDonusum || 
     showSaglikliTabak || 
+    showGuvenliInternet ||
+    showSaglikliBuyume ||
     showIstekIhtiyac || 
     showMevsimGardirobu || 
     showAblukaGame ||
@@ -4849,9 +4858,12 @@ export default function App() {
     setShowSayiBasketi(false);
     setShowOnlukYuvarlamaOyunu(false);
     setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
     setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
@@ -5177,9 +5189,12 @@ export default function App() {
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
     setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
@@ -5431,6 +5446,12 @@ export default function App() {
       }
       setGameState('welcome');
       setShowNoktalamaAvcisi(true);
+    } else if (entry.type === 'noktalama_surukle' || entry.id.includes('noktalama_surukle')) {
+      setSelectedGrade(2);
+      setLastSelectedGrade(2);
+      setSelectedSubject('turkce');
+      setGameState('welcome');
+      setShowNoktalamaSurukle(true);
     } else if (entry.type === 'harf_corbasi' || entry.id.includes('harf_corbasi')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -5590,6 +5611,16 @@ export default function App() {
       }
       setGameState('welcome');
       setShowKodlamaMutfagi(true);
+    } else if (entry.type === 'guvenli_internet' || entry.id.includes('guvenli_internet')) {
+      setSelectedGrade(2);
+      setSelectedSubject('hayat_bilgisi');
+      setGameState('welcome');
+      setShowGuvenliInternet(true);
+    } else if (entry.type === 'saglikli_buyume' || entry.id.includes('saglikli_buyume')) {
+      setSelectedGrade(2);
+      setSelectedSubject('hayat_bilgisi');
+      setGameState('welcome');
+      setShowSaglikliBuyume(true);
     }
 
     setActivityToast(`[${index + 1}/${ALL_ACTIVITIES_LIST.length}] ${entry.categoryLabel} ➜ ${entry.title}`);
@@ -5620,9 +5651,12 @@ export default function App() {
         if (showLessonVideo && (cur.type === 'lesson_video' || cur.id.includes('video'))) return currentActivityIndex;
         if (showSatirSonuHece && (cur.type === 'satir_sonu_hece' || cur.id.includes('satir_sonu_hece')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showNoktalamaAvcisi && (cur.type === 'noktalama_avcisi' || cur.id.includes('noktalama_avcisi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showNoktalamaSurukle && (cur.type === 'noktalama_surukle' || cur.id.includes('noktalama_surukle'))) return currentActivityIndex;
         if (showHarfCorbasi && (cur.type === 'harf_corbasi' || cur.id.includes('harf_corbasi')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showGeriDonusum && (cur.type === 'geri_donusum' || cur.id.includes('geri_donusum')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showSaglikliTabak && (cur.type === 'saglikli_tabak' || cur.id.includes('saglikli_tabak')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showGuvenliInternet && (cur.type === 'guvenli_internet' || cur.id.includes('guvenli_internet'))) return currentActivityIndex;
+        if (showSaglikliBuyume && (cur.type === 'saglikli_buyume' || cur.id.includes('saglikli_buyume'))) return currentActivityIndex;
         if (showIstekIhtiyac && (cur.type === 'istek_ihtiyac' || cur.id.includes('istek_ihtiyac')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showMevsimGardirobu && (cur.type === 'mevsim_gardirobu' || cur.id.includes('mevsim_gardirobu')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showAblukaGame && (cur.type === 'abluka' || cur.id.includes('abluka')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
@@ -5784,6 +5818,10 @@ export default function App() {
       const idx = findActivityIndex('noktalama_avcisi', 'noktalama_avcisi', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
     }
+    if (showNoktalamaSurukle) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_noktalama_surukle' || a.type === 'noktalama_surukle');
+      if (idx !== -1) return idx;
+    }
     if (showHarfCorbasi) {
       const idx = findActivityIndex('harf_corbasi', 'harf_corbasi', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
@@ -5794,6 +5832,14 @@ export default function App() {
     }
     if (showSaglikliTabak) {
       const idx = findActivityIndex('saglikli_tabak', 'saglikli_tabak', selectedGrade, null, isOther);
+      if (idx !== -1) return idx;
+    }
+    if (showGuvenliInternet) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_hb_guvenli_internet' || a.type === 'guvenli_internet');
+      if (idx !== -1) return idx;
+    }
+    if (showSaglikliBuyume) {
+      const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_hb_saglikli_buyume' || a.type === 'saglikli_buyume');
       if (idx !== -1) return idx;
     }
     if (showIstekIhtiyac) {
@@ -5902,9 +5948,12 @@ export default function App() {
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
     setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
@@ -5956,6 +6005,8 @@ export default function App() {
     else if (entry.id === 'other_saglikli_tabak') setShowSaglikliTabak(true);
     else if (entry.id === 'other_istek_ihtiyac') setShowIstekIhtiyac(true);
     else if (entry.id === 'other_mevsim_gardirobu') setShowMevsimGardirobu(true);
+    else if (entry.id === 'other_guvenli_internet' || entry.type === 'guvenli_internet' || entry.id === 'g2_hb_guvenli_internet') setShowGuvenliInternet(true);
+    else if (entry.id === 'other_saglikli_buyume' || entry.type === 'saglikli_buyume' || entry.id === 'g2_hb_saglikli_buyume') setShowSaglikliBuyume(true);
     else if (entry.id === 'other_abluka') setShowAblukaGame(true);
     else if (entry.id === 'other_sudoku') setShowSudokuGame(true);
     else if (entry.id === 'other_gorselli_sudoku') setShowGorselliSudoku(true);
@@ -6015,6 +6066,7 @@ export default function App() {
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
     setShowSaglikliTabak(false);
@@ -6121,6 +6173,12 @@ export default function App() {
     } else if (entry.type === 'mevsim_gardirobu') {
       setGameState('welcome');
       setShowMevsimGardirobu(true);
+    } else if (entry.type === 'guvenli_internet') {
+      setGameState('welcome');
+      setShowGuvenliInternet(true);
+    } else if (entry.type === 'saglikli_buyume') {
+      setGameState('welcome');
+      setShowSaglikliBuyume(true);
     } else if (entry.type === 'abluka') {
       setGameState('welcome');
       setShowAblukaGame(true);
@@ -6167,10 +6225,139 @@ export default function App() {
   };
 
   /**
+   * 2. Sınıf Hayat Bilgisi Etkinlikleri Arasında Sıralı Geçiş
+   * (Güvenli İnternet Dünyası -> Sağlıklı Büyüme ve Alışkanlıklar -> Sağlıklı Tabak Şefi -> Geri Dönüşüm Kahramanı -> İstek mi, İhtiyaç mı? -> Mevsim Gardırobu)
+   */
+  const switchToHayatBilgisiActivityByIndex = (hbIndex: number) => {
+    if (hbIndex < 0 || hbIndex >= G2_HAYAT_BILGISI_ACTIVITIES.length) return;
+    const entry = G2_HAYAT_BILGISI_ACTIVITIES[hbIndex];
+    if (!entry) return;
+
+    playFarkliLvlSound();
+    setSelectedGrade(2);
+    setSelectedSubject('hayat_bilgisi');
+    setGameState('welcome');
+    setOpenedFromOtherGamesModal(false);
+
+    // Tüm diğer oyunları kapat
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowOnuBul(false);
+    setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
+    setShowCarpimBalon(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowOnlukBirlik(false);
+    setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
+    setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
+    setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setShowAblukaGame(false);
+    setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
+    setShowSchoolLifeGame(false);
+    setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
+    setShowSaatZaman(false);
+    setShowMarketKasasi(false);
+    setShowKesirDuvariPizza(false);
+    setShowEsSesli(false);
+    setShowDengeTerazisi(false);
+    setShowKodlamaMutfagi(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setWordGameType(null);
+
+    // Seçilen Hayat Bilgisi etkinliğini aç
+    if (entry.id === 'g2_hb_guvenli_internet' || entry.type === 'guvenli_internet') {
+      setShowGuvenliInternet(true);
+    } else if (entry.id === 'g2_hb_saglikli_buyume' || entry.type === 'saglikli_buyume') {
+      setShowSaglikliBuyume(true);
+    } else if (entry.id === 'g2_hb_saglikli_tabak' || entry.type === 'saglikli_tabak') {
+      setShowSaglikliTabak(true);
+    } else if (entry.id === 'g2_hb_geri_donusum' || entry.type === 'geri_donusum') {
+      setShowGeriDonusum(true);
+    } else if (entry.id === 'g2_hb_istek_ihtiyac' || entry.type === 'istek_ihtiyac') {
+      setShowIstekIhtiyac(true);
+    } else if (entry.id === 'g2_hb_mevsim_gardirobu' || entry.type === 'mevsim_gardirobu') {
+      setShowMevsimGardirobu(true);
+    } else if (entry.id === 'g2_hb_karar_alma_video' || (entry.type === 'lesson_video' && entry.topicKey === 'karar_alma')) {
+      const idx = findActivityIndex('lesson_video', 'karar_alma', 2);
+      if (idx !== -1) setCurrentActivityIndex(idx);
+      setShowLessonVideo(true);
+    } else if (entry.id === 'g2_hb_saglikli_aliskanliklar_video' || (entry.type === 'lesson_video' && entry.topicKey === 'saglikli_aliskanliklar')) {
+      const idx = findActivityIndex('lesson_video', 'saglikli_aliskanliklar', 2);
+      if (idx !== -1) setCurrentActivityIndex(idx);
+      setShowLessonVideo(true);
+    }
+
+    const allIdx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === entry.id);
+    if (allIdx !== -1) {
+      setCurrentActivityIndex(allIdx);
+    }
+
+    setActivityToast(`[${hbIndex + 1}/${G2_HAYAT_BILGISI_ACTIVITIES.length}] 2. Sınıf Hayat Bilgisi ➜ ${entry.title}`);
+    setTimeout(() => {
+      setActivityToast(null);
+    }, 2800);
+  };
+
+  /**
    * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
    * kesintisiz, sırayla bir önceki etkinliğe geçer.
+   * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handlePrevActivity = () => {
+    // 2. Sınıf Hayat Bilgisi İçindeyken Sıralı Geçiş
+    const isInsideHayatBilgisi =
+      showGuvenliInternet ||
+      showSaglikliBuyume ||
+      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
+      (showLessonVideo && selectedSubject === 'hayat_bilgisi');
+
+    if (isInsideHayatBilgisi) {
+      let curHbIdx = 0;
+      if (showGuvenliInternet) curHbIdx = 0;
+      else if (showSaglikliBuyume) curHbIdx = 1;
+      else if (showSaglikliTabak) curHbIdx = 2;
+      else if (showGeriDonusum) curHbIdx = 3;
+      else if (showIstekIhtiyac) curHbIdx = 4;
+      else if (showMevsimGardirobu) curHbIdx = 5;
+      else if (showLessonVideo) {
+        const act = ALL_ACTIVITIES_LIST[currentActivityIndex];
+        if (act?.topicKey === 'saglikli_aliskanliklar' || act?.id?.includes('saglikli_aliskanliklar')) {
+          curHbIdx = 7;
+        } else {
+          curHbIdx = 6;
+        }
+      }
+
+      const prevHbIdx = (curHbIdx - 1 + G2_HAYAT_BILGISI_ACTIVITIES.length) % G2_HAYAT_BILGISI_ACTIVITIES.length;
+      switchToHayatBilgisiActivityByIndex(prevHbIdx);
+      return;
+    }
+
     let currentIdx = getCurrentLiveActivityIndex();
     if (currentIdx < 0) {
       currentIdx = currentActivityIndex >= 0 ? currentActivityIndex : 0;
@@ -6186,9 +6373,38 @@ export default function App() {
   /**
    * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
    * kesintisiz, sırayla bir sonraki etkinliğe geçer.
-   * 1. Sınıf -> 2. Sınıf -> 3. Sınıf -> 4. Sınıf -> 5. Diğer Oyunlar -> 6. İngilizce Oyunlar -> 1. Sınıf
+   * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handleNextActivity = () => {
+    // 2. Sınıf Hayat Bilgisi İçindeyken Sıralı Geçiş
+    const isInsideHayatBilgisi =
+      showGuvenliInternet ||
+      showSaglikliBuyume ||
+      ((showSaglikliTabak || showGeriDonusum || showIstekIhtiyac || showMevsimGardirobu) && (!openedFromOtherGamesModal || selectedSubject === 'hayat_bilgisi')) ||
+      (showLessonVideo && selectedSubject === 'hayat_bilgisi');
+
+    if (isInsideHayatBilgisi) {
+      let curHbIdx = 0;
+      if (showGuvenliInternet) curHbIdx = 0;
+      else if (showSaglikliBuyume) curHbIdx = 1;
+      else if (showSaglikliTabak) curHbIdx = 2;
+      else if (showGeriDonusum) curHbIdx = 3;
+      else if (showIstekIhtiyac) curHbIdx = 4;
+      else if (showMevsimGardirobu) curHbIdx = 5;
+      else if (showLessonVideo) {
+        const act = ALL_ACTIVITIES_LIST[currentActivityIndex];
+        if (act?.topicKey === 'saglikli_aliskanliklar' || act?.id?.includes('saglikli_aliskanliklar')) {
+          curHbIdx = 7;
+        } else {
+          curHbIdx = 6;
+        }
+      }
+
+      const nextHbIdx = (curHbIdx + 1) % G2_HAYAT_BILGISI_ACTIVITIES.length;
+      switchToHayatBilgisiActivityByIndex(nextHbIdx);
+      return;
+    }
+
     let currentIdx = getCurrentLiveActivityIndex();
     if (currentIdx < 0) {
       currentIdx = currentActivityIndex >= 0 ? currentActivityIndex : 0;
@@ -6235,9 +6451,12 @@ export default function App() {
     setShowSatirSonuHece(false);
     setShowLessonVideo(false);
     setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
     setShowHarfCorbasi(false);
     setShowGeriDonusum(false);
     setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
     setShowIstekIhtiyac(false);
     setShowMevsimGardirobu(false);
     setShowAblukaGame(false);
@@ -6253,6 +6472,7 @@ export default function App() {
     setShowDengeTerazisi(false);
     setShowKodlamaMutfagi(false);
     setShowRitmikBalon(false);
+    setShowCarpimBalon(false);
     setWordGameType(null);
     setSelectedGrade(null);
   };
@@ -6824,6 +7044,9 @@ export default function App() {
       return 'Karar Alma Süreci';
     }
     if (showNoktalamaAvcisi) return 'Noktalama İşareti Avcısı';
+    if (showNoktalamaSurukle) return 'Noktalama İşaretleri (Sürükle Bırak)';
+    if (showGuvenliInternet) return 'Güvenli İnternet Dünyası';
+    if (showSaglikliBuyume) return 'Sağlıklı Büyüme ve Alışkanlıklar';
     if (showHarfCorbasi) return 'Harf Çorbası';
     if (showGeriDonusum) return 'Geri Dönüşüm Kahramanı';
     if (showSaglikliTabak) return 'Sağlıklı Tabak Şefi';
@@ -6931,8 +7154,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
             {[1, 2, 3, 4, 5, 6].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame));
               const iconSrc = `/icon_${g}.webp`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
@@ -6966,6 +7189,7 @@ export default function App() {
                       setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
+                      setShowNoktalamaSurukle(false);
                       setShowHarfCorbasi(false);
                       setShowGeriDonusum(false);
                       setShowSaglikliTabak(false);
@@ -7008,6 +7232,7 @@ export default function App() {
                       setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
+                      setShowNoktalamaSurukle(false);
                       setShowHarfCorbasi(false);
                       setShowGeriDonusum(false);
                       setShowSaglikliTabak(false);
@@ -7053,6 +7278,7 @@ export default function App() {
                       setShowOnlukYuvarlamaOyunu(false);
                       setShowSatirSonuHece(false);
                       setShowNoktalamaAvcisi(false);
+                      setShowNoktalamaSurukle(false);
                       setShowHarfCorbasi(false);
                       setShowGeriDonusum(false);
                       setShowSaglikliTabak(false);
@@ -7673,7 +7899,7 @@ export default function App() {
             <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
               {currentActivityTitle}
             </h1>
-            {(showOnlukYuvarlamaOyunu || showRitmikBalon || showCarpimBalon || (currentTopic && (
+            {(showOnlukYuvarlamaOyunu || showRitmikBalon || showCarpimBalon || showNoktalamaSurukle || showGuvenliInternet || showSaglikliBuyume || (currentTopic && (
               currentTopic.includes('yuvarlama') ||
               currentTopic === 'en_yakin_onluk' ||
               currentTopic === 'g4_en_yakin_onluk_yuzluk' ||
@@ -7737,18 +7963,20 @@ export default function App() {
             <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
               {/* 1. ÜST BAŞLIK (BUTONLARIN ÜSTÜNDE / HEADER'IN HEMEN ALTINDA) */}
               <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
-                <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
-                  <div className="flex items-center gap-2 sm:gap-3.5">
-                    <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                      SINIFINI SEÇ VE BAŞLA
+                <div className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-5 sm:px-9 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#0e1729] via-[#1b2e52] to-[#0e1729] border-2 border-amber-400/95 border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.38)]">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-amber-400/10 via-sky-400/10 to-emerald-400/10" />
+                  <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">🎓</span>
+                  <div className="relative flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+                    <h2 className="font-black text-sm sm:text-base md:text-lg lg:text-xl uppercase tracking-wider drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center text-center">
+                      <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black tracking-widest shadow-[0_0_12px_rgba(251,191,36,0.55)] border border-yellow-100">
+                        TYMM
+                      </span>
+                      <span className="bg-gradient-to-r from-white via-amber-100 to-yellow-300 bg-clip-text text-transparent">
+                        Uyumlu Sınıf Etkinlikleri
+                      </span>
                     </h2>
-                    <span className="text-amber-400/60 font-bold">•</span>
-                    <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                      Çalışmak istediğin sınıfa dokun
-                    </span>
                   </div>
-                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
+                  <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">✨</span>
                 </div>
               </div>
 
@@ -7789,9 +8017,9 @@ export default function App() {
                   </div>
                 </button>
 
-                {/* 2. SINIF ESKİ YERİNDE 2'YE BÖLÜNEN ALAN: SOLDA MATEMATİK, SAĞDA TÜRKÇE (2. SINIF YAZISI SİLİNDİ, TÜM KELİME 3 NOKTASIZ GÖRÜNÜR) */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
-                  {/* SOL BUTON: MATEMATİK */}
+                {/* 2. SINIF ALANI: MATEMATİK, TÜRKÇE VE HAYAT BİLGİSİ (3 BUTON EŞİT GENİŞLİKTE DAĞITILMIŞ) */}
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
+                  {/* 1. BUTON: MATEMATİK */}
                   <button
                     onClick={() => {
                       playMp3('/op.mp3');
@@ -7800,29 +8028,29 @@ export default function App() {
                       setLastSelectedGrade(2);
                       handleClassClick('grade2');
                     }}
-                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-1.5 xs:p-2 sm:p-2.5 md:p-3 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2 md:gap-3 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                   >
                     <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
                       <img 
                         src="/icon_2.webp" 
                         alt="Matematik" 
-                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
+                        className="w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-13 md:h-13 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" 
                       />
                     </div>
                     <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                       <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                        <span className="text-amber-400 text-[8px] xs:text-[9px] sm:text-xs">★★☆☆</span>
                       </div>
-                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                      <h3 className="font-black text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
                         MATEMATİK
                       </h3>
-                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                      <p className="text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] md:text-xs text-slate-400 mt-0.5 truncate leading-tight">
                         Sayılar, İşlemler, Geometri
                       </p>
                     </div>
                   </button>
 
-                  {/* SAĞ BUTON: TÜRKÇE */}
+                  {/* 2. BUTON: TÜRKÇE */}
                   <button
                     onClick={() => {
                       playMp3('/op.mp3');
@@ -7831,25 +8059,60 @@ export default function App() {
                       setLastSelectedGrade(2);
                       handleClassClick('grade2');
                     }}
-                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 xs:p-2.5 sm:p-3 md:p-3.5 border-2 border-slate-700/80 border-l-4 border-l-orange-400 hover:border-orange-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2.5 md:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-1.5 xs:p-2 sm:p-2.5 md:p-3 border-2 border-slate-700/80 border-l-4 border-l-rose-400 hover:border-rose-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2 md:gap-3 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
                   >
                     <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
                       <img 
                         src="/icon_2.webp" 
                         alt="Türkçe" 
-                        className="w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(295deg)_saturate(1.3)]" 
+                        className="w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-13 md:h-13 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(295deg)_saturate(1.3)]" 
                       />
-                      <span className="absolute -bottom-1 -right-1 text-xs sm:text-sm drop-shadow">📖</span>
+                      <span className="absolute -bottom-1 -right-1 text-[9px] xs:text-[10px] sm:text-xs drop-shadow">📖</span>
                     </div>
                     <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                       <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-amber-400 text-[10px] sm:text-xs">★★☆☆</span>
+                        <span className="text-amber-400 text-[8px] xs:text-[9px] sm:text-xs">★★☆☆</span>
                       </div>
-                      <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                      <h3 className="font-black text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
                         TÜRKÇE
                       </h3>
-                      <p className="text-[9px] xs:text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                      <p className="text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] md:text-xs text-slate-400 mt-0.5 truncate leading-tight">
                         Sözcük, Cümle, Hece
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* 3. BUTON: HAYAT BİLGİSİ (YENİ!) */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(2);
+                      setSelectedSubject('hayat_bilgisi');
+                      setLastSelectedGrade(2);
+                      handleClassClick('grade2');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-1.5 xs:p-2 sm:p-2.5 md:p-3 border-2 border-slate-700/80 border-l-4 border-l-emerald-400 hover:border-emerald-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center gap-1.5 sm:gap-2 md:gap-3 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img 
+                        src="/icon_2.webp" 
+                        alt="Hayat Bilgisi" 
+                        className="w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-13 md:h-13 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(95deg)_saturate(1.4)]" 
+                      />
+                      <span className="absolute -bottom-1 -right-1 text-[9px] xs:text-[10px] sm:text-xs drop-shadow">🌱</span>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1 mb-0.5 flex-wrap">
+                        <span className="text-amber-400 text-[8px] xs:text-[9px] sm:text-xs">★★☆☆</span>
+                        <span className="px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[7px] xs:text-[8px] sm:text-[9px] tracking-wider uppercase shadow-sm border border-yellow-200/80 shrink-0">
+                          ✨ YENİ
+                        </span>
+                      </div>
+                      <h3 className="font-black text-[10px] xs:text-xs sm:text-sm md:text-base lg:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide whitespace-nowrap drop-shadow-sm transition-colors">
+                        HAYAT BİLGİSİ
+                      </h3>
+                      <p className="text-[7.5px] xs:text-[8.5px] sm:text-[9.5px] md:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Okul, Sağlık, Doğa
                       </p>
                     </div>
                   </button>
@@ -8136,44 +8399,48 @@ export default function App() {
             /* CATEGORY CARDS SCREEN */
             <div className="max-w-6xl w-full mx-auto flex flex-col items-center py-0">
               {/* GLOWING HEADER BADGE - 1, 2, 3, 4. SINIF */}
-              <div className="w-full relative flex max-[699px]:flex-col max-[699px]:gap-1.5 items-center justify-center mb-0 px-2 shrink-0 z-20">
-                <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
-                  <div className="flex items-center gap-2 sm:gap-3.5">
-                    <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
-                      {selectedGrade === 1
-                        ? '1. SINIF MATEMATİK'
-                        : selectedGrade === 2
-                          ? (selectedSubject === 'turkce' ? '2. SINIF TÜRKÇE' : '2. SINIF MATEMATİK')
-                          : selectedGrade === 3
-                            ? '3. SINIF MATEMATİK'
-                            : '4. SINIF MATEMATİK'}
-                    </h2>
-                    <span className="text-amber-400/60 font-bold">•</span>
-                    <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
-                      Tema ve Konunu Seç
-                    </span>
+              {[1, 2, 3, 4].includes(selectedGrade) && (
+                <div className="w-full relative flex max-[699px]:flex-col max-[699px]:gap-1.5 items-center justify-center mb-0 px-2 shrink-0 z-20">
+                  <div className="flex items-center gap-2.5 sm:gap-4 px-6 sm:px-10 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+                    <span className="text-amber-400 text-lg sm:text-2xl shrink-0">🎓</span>
+                    <div className="flex items-center gap-2 sm:gap-3.5">
+                      <h2 className="font-black text-xs sm:text-sm md:text-base text-white uppercase tracking-wider drop-shadow-sm">
+                        {selectedGrade === 1
+                          ? '1. SINIF MATEMATİK'
+                          : selectedGrade === 2
+                            ? (selectedSubject === 'turkce'
+                                ? '2. SINIF TÜRKÇE'
+                                : selectedSubject === 'hayat_bilgisi'
+                                  ? '2. SINIF HAYAT BİLGİSİ'
+                                  : '2. SINIF MATEMATİK')
+                            : selectedGrade === 3
+                              ? '3. SINIF MATEMATİK'
+                              : '4. SINIF MATEMATİK'}
+                      </h2>
+                      <span className="text-amber-400/60 font-bold">•</span>
+                      <span className="text-[10px] sm:text-xs text-amber-300 font-bold uppercase tracking-wide">
+                        Tema ve Konunu Seç
+                      </span>
+                    </div>
+                    <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
                   </div>
-                  <span className="text-amber-400 text-lg sm:text-2xl shrink-0">✨</span>
-                </div>
 
-                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
-                {[1, 2, 3, 4].includes(selectedGrade) && (
-                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center">
+                  {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ARKASI ÇERÇEVELİ ÖDEV KONTROL AKVARYUM BUTONU */}
+                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center p-1.5 sm:px-2 sm:py-1.5 rounded-2xl bg-[#091526]/95 border-2 border-cyan-400/90 shadow-[0_4px_20px_rgba(0,0,0,0.65),0_0_18px_rgba(34,211,238,0.3)]">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setShowOdevAkvaryumu(true);
                       }}
-                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-200/80 active:scale-95 transition-all cursor-pointer group"
                       title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
                     >
                       <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
                       <span className="tracking-tight drop-shadow font-extrabold text-[11px] sm:text-xs">Ödev Akvaryumu</span>
                     </button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* 4. SINIF: 4 MAIN THEME CARDS (2x2 GRID) */}
               {selectedGrade === 4 ? (
@@ -8680,7 +8947,42 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 1: SÖZLÜK SIRALAMA PORTALI */}
+                    {/* CARD 2: NOKTALAMA İŞARETLERİ (SÜRÜKLE BIRAK) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        const idx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === 'g2_turkce_noktalama_surukle');
+                        if (idx !== -1) setCurrentActivityIndex(idx);
+                        setShowNoktalamaSurukle(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0b16] via-[#451123] to-[#2c0b16] hover:from-[#3b0e1e] hover:via-[#5a162d] hover:to-[#3b0e1e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-red-400/90 border-l-4 border-l-red-400 shadow-[0_0_20px_rgba(239,68,68,0.25)] hover:shadow-[0_0_25px_rgba(239,68,68,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_25.webp" alt="Noktalama İşaretleri Sürükle Bırak" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                          <span className="bg-red-500/30 text-red-200 border border-red-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">SÜRÜKLE BIRAK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-red-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Noktalama İşaretleri Etkinliği
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-red-200/75 mt-0.5 break-words leading-tight">
+                          5 Cümle Alt Alta • Kırmızı Karelere Sürükle Bırak
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-red-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-red-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-red-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: SÖZLÜK SIRALAMA PORTALI */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8695,7 +8997,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-purple-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          2. Sözlük Sıralama
+                          3. Sözlük Sıralama
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-purple-200/70 mt-0.5 break-words leading-tight">
                           Alfabe Portalı (1, 2 & 3 Kişilik Yarış)
@@ -8709,7 +9011,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 2: KELİME SIRALAMA (SÖZLÜK SIRASI) */}
+                    {/* CARD 4: KELİME SIRALAMA (SÖZLÜK SIRASI) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8727,7 +9029,7 @@ export default function App() {
                           <span className="bg-indigo-500/30 text-indigo-200 border border-indigo-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ ETKİNLİK</span>
                         </div>
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-indigo-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          3. Kelime Sıralama
+                          4. Kelime Sıralama
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-indigo-200/70 mt-0.5 break-words leading-tight">
                           Sözlük Sırasına Göre Dizme (1, 2 & 3 Kişilik)
@@ -8741,7 +9043,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 3: ZIT ANLAMLI KELİMELER */}
+                    {/* CARD 5: ZIT ANLAMLI KELİMELER */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8756,7 +9058,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          4. Zıt Anlamlı Kelimeler
+                          5. Zıt Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/70 mt-0.5 break-words leading-tight">
                           Karşıt Anlamlar & Çok Oyunculu Düello
@@ -8770,7 +9072,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 4: EŞ ANLAMLI KELİMELER */}
+                    {/* CARD 6: EŞ ANLAMLI KELİMELER */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8785,7 +9087,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          5. Eş Anlamlı Kelimeler
+                          6. Eş Anlamlı Kelimeler
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Anlamdaş Kelimeleri Bulma & Yarışma
@@ -8799,7 +9101,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 5: KURALLI CÜMLE OLUŞTURMA */}
+                    {/* CARD 7: KURALLI CÜMLE OLUŞTURMA */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8814,7 +9116,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          6. Kurallı Cümle Oluşturma
+                          7. Kurallı Cümle Oluşturma
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
                           Kelimeleri Kurallı ve Anlamlı Sıraya Dizme
@@ -8828,7 +9130,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 6: KELİMELERİN HECE SAYISINI BELİRLEME */}
+                    {/* CARD 8: KELİMELERİN HECE SAYISINI BELİRLEME */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8843,7 +9145,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          7. Kelimelerin Hece Sayısı
+                          8. Kelimelerin Hece Sayısı
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Sözcükleri Hecelerine Ayırma & Sesli Harf Kuralı
@@ -8857,7 +9159,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 7: HECE MAKASI (Hecelere Ayırma & Makasla Kesme) */}
+                    {/* CARD 9: HECE MAKASI (Hecelere Ayırma & Makasla Kesme) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8872,7 +9174,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          8. Hece Makası
+                          9. Hece Makası
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
                           Sözcükleri Hecelerine Ayırma & Makasla Kesme
@@ -8886,7 +9188,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 8: YAZIM YANLIŞI DEDEKTİFİ */}
+                    {/* CARD 10: YAZIM YANLIŞI DEDEKTİFİ */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8901,7 +9203,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          9. Yazım Yanlışı Dedektifi
+                          10. Yazım Yanlışı Dedektifi
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
                           Hatalı Sözcüğü Yakala & Doğru Yazılışını Çöz
@@ -8915,7 +9217,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 9: 5N 1K DEDEKTİFİ */}
+                    {/* CARD 11: 5N 1K DEDEKTİFİ */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8930,7 +9232,7 @@ export default function App() {
                       </div>
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          10. 5N 1K Dedektifi
+                          11. 5N 1K Dedektifi
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
                           Kim, Ne, Nerede, Ne Zaman, Nasıl, Niçin Sorularını Çöz
@@ -8943,8 +9245,211 @@ export default function App() {
                         </div>
                       </div>
                     </button>
+                  </div>
+                </div>
+              ) : selectedGrade === 2 && selectedSubject === 'hayat_bilgisi' ? (
+                /* MAIN CATEGORY CARDS - 2. SINIF HAYAT BİLGİSİ */
+                <div className="w-full max-w-6xl mx-auto space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    {/* CARD 1: GÜVENLİ İNTERNET DÜNYASI (9. HAFTA PDF) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowGuvenliInternet(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c2a38] via-[#124257] to-[#0c2a38] hover:from-[#0e3547] hover:via-[#17546e] hover:to-[#0e3547] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-cyan-400/90 border-l-4 border-l-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_28px_rgba(34,211,238,0.55)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_35.webp" alt="Güvenli İnternet Dünyası" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                          <span className="bg-cyan-500/30 text-cyan-200 border border-cyan-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">9. HAFTA DERS NOTU</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-cyan-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          1. Güvenli İnternet Dünyası
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-cyan-200/70 mt-0.5 break-words leading-tight">
+                          Kişisel Bilgi Güvenliği, Güvenli İnternet Kuralları & Dedektiflik
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-cyan-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-cyan-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-cyan-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
 
-                    {/* CARD 11: KARAR ALMA SÜRECİ (SUNUM / DERS VİDEOSU) */}
+                    {/* CARD 2: SAĞLIKLI BÜYÜME VE ALIŞKANLIKLAR (8. HAFTA PDF) */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowSaglikliBuyume(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2e1b] via-[#15462a] to-[#0d2e1b] hover:from-[#113c23] hover:via-[#1c5a36] hover:to-[#113c23] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_28px_rgba(16,185,129,0.55)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_27.webp" alt="Sağlıklı Büyüme ve Alışkanlıklar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
+                          <span className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">8. HAFTA DERS NOTU</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          2. Sağlıklı Büyüme ve Alışkanlıklar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Sağlık Çantası, Faydalı & Zararlı Besinler, Büyüme İlkeleri
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 3: SAĞLIKLI TABAK ŞEFİ */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowSaglikliTabak(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2822] via-[#143a31] to-[#0d2822] hover:from-[#11352e] hover:via-[#1a4a3f] hover:to-[#11352e] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-emerald-400/90 border-l-4 border-l-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:shadow-[0_0_25px_rgba(16,185,129,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_27.webp" alt="Sağlıklı Tabak Şefi" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">SAĞLIKLI HAYAT</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          3. Sağlıklı Tabak Şefi
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
+                          Dengeli Beslenme & Sağlıklı Besin Grupları Tabağı
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-emerald-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-emerald-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-emerald-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 4: GERİ DÖNÜŞÜM KAHRAMANI */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowGeriDonusum(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0d2a29] via-[#154240] to-[#0d2a29] hover:from-[#113735] hover:via-[#1c5553] hover:to-[#113735] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-teal-400/90 border-l-4 border-l-teal-400 shadow-[0_0_20px_rgba(45,212,191,0.25)] hover:shadow-[0_0_25px_rgba(45,212,191,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_29.webp" alt="Geri Dönüşüm Kahramanı" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-teal-500/30 text-teal-200 border border-teal-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">DOĞADA HAYAT</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-teal-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          4. Geri Dönüşüm Kahramanı
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-teal-200/70 mt-0.5 break-words leading-tight">
+                          Kağıt, Plastik, Cam & Metal Ayrıştırma ve Doğa Bilinci
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-teal-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-teal-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 5: İSTEK Mİ, İHTİYAÇ MI? */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowIstekIhtiyac(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2e1c0d] via-[#452a14] to-[#2e1c0d] hover:from-[#3a2311] hover:via-[#57351a] hover:to-[#3a2311] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-amber-400/90 border-l-4 border-l-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_31.webp" alt="İstek mi, İhtiyaç mı?" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">EVİMİZDE HAYAT</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. İstek mi, İhtiyaç mı?
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-amber-200/70 mt-0.5 break-words leading-tight">
+                          Bilinçli Tüketici, Harçlık & Kaynaklarımızı Verimli Kullanma
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-amber-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-amber-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 6: MEVSİM GARDIROBU */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setOpenedFromOtherGamesModal(false);
+                        setShowMevsimGardirobu(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#0c243f] via-[#12365e] to-[#0c243f] hover:from-[#103053] hover:via-[#184577] hover:to-[#103053] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-sky-400/90 border-l-4 border-l-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:shadow-[0_0_25px_rgba(56,189,248,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_33.webp" alt="Mevsim Gardırobu" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="bg-sky-500/30 text-sky-200 border border-sky-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">DOĞADA HAYAT</span>
+                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">1-2-3 KİŞİLİK</span>
+                        </div>
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          6. Mevsim Gardırobu
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-sky-200/70 mt-0.5 break-words leading-tight">
+                          Hava Durumuna ve Mevsim Şartlarına Uygun Giysi Seçimi
+                        </p>
+                      </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-sky-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-sky-300 tracking-wider uppercase drop-shadow">OYNA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* CARD 7: KARAR ALMA SÜRECİ (DERS ANLATIMI) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8960,10 +9465,9 @@ export default function App() {
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="bg-violet-500/30 text-violet-200 border border-violet-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">KONU ANLATIMI</span>
-                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ</span>
                         </div>
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-violet-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          11. Karar Alma Süreci
+                          7. Karar Alma Süreci
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-violet-200/70 mt-0.5 break-words leading-tight">
                           Karar Alma Süreci Konu Anlatımı ve Sunum Videosu
@@ -8977,7 +9481,7 @@ export default function App() {
                       </div>
                     </button>
 
-                    {/* CARD 12: SAĞLIKLI ALIŞKANLIKLAR (KONU ANLATIM / TANITIM VİDEOSU) */}
+                    {/* CARD 8: SAĞLIKLI ALIŞKANLIKLAR (DERS ANLATIMI) */}
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
@@ -8993,10 +9497,9 @@ export default function App() {
                       <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">KONU ANLATIMI</span>
-                          <span className="bg-amber-500/30 text-amber-200 border border-amber-400/50 text-[9px] px-1.5 py-0.2 rounded font-bold uppercase">YENİ</span>
                         </div>
                         <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                          12. Sağlıklı Alışkanlıklar
+                          8. Sağlıklı Alışkanlıklar
                         </h3>
                         <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-emerald-200/70 mt-0.5 break-words leading-tight">
                           Sağlıklı Alışkanlıklar Konu Anlatımı ve Tanıtım Videosu
@@ -9344,15 +9847,15 @@ export default function App() {
                   );
                 })()}
 
-                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ÖDEV KONTROL AKVARYUM BUTONU */}
+                {/* 1, 2, 3 ve 4. SINIF: BAŞLIĞI KENARA KAYDIRMAYACAK ŞEKİLDE ARKASI ÇERÇEVELİ ÖDEV KONTROL AKVARYUM BUTONU */}
                 {[1, 2, 3, 4].includes(selectedGrade) && (
-                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center">
+                  <div className="min-[700px]:absolute min-[700px]:right-3 md:right-6 min-[700px]:top-1/2 min-[700px]:-translate-y-1/2 flex items-center p-1.5 sm:px-2 sm:py-1.5 rounded-2xl bg-[#091526]/95 border-2 border-cyan-400/90 shadow-[0_4px_20px_rgba(0,0,0,0.65),0_0_18px_rgba(34,211,238,0.3)]">
                     <button
                       onClick={() => {
                         playMp3('/op.mp3');
                         setShowOdevAkvaryumu(true);
                       }}
-                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-300/70 active:scale-95 transition-all cursor-pointer group"
+                      className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600 via-sky-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white font-black text-[11px] sm:text-xs shadow-[0_0_15px_rgba(6,182,212,0.4)] border border-cyan-200/80 active:scale-95 transition-all cursor-pointer group"
                       title={`${selectedGrade}. Sınıf Ödev Kontrol Akvaryumunu Aç`}
                     >
                       <span className="text-sm sm:text-base group-hover:scale-125 transition-transform animate-bounce">🐠</span>
@@ -11848,6 +12351,46 @@ export default function App() {
         />
       )}
 
+      {/* NOKTALAMA İŞARETLERİ SÜRÜKLE BIRAK (2. SINIF TÜRKÇE) */}
+      {showNoktalamaSurukle && (
+        <NoktalamaSurukleBirakGame
+          onClose={() => setShowNoktalamaSurukle(false)}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('noktalama_surukle', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
       {/* HARF ÇORBASI / ANAGRAM (1, 2, 3 KİŞİLİK) */}
       {showHarfCorbasi && (
         <HarfCorbasiGame
@@ -11935,6 +12478,100 @@ export default function App() {
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
             handleUniversalActivityAnswer('geri_donusum', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* GÜVENLİ İNTERNET DÜNYASI (9. HAFTA PDF - 1, 2, 3 KİŞİLİK) */}
+      {showGuvenliInternet && (
+        <GuvenliInternetGame
+          onClose={() => {
+            setShowGuvenliInternet(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={students}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('guvenli_internet', isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* SAĞLIKLI BÜYÜME VE ALIŞKANLIKLAR (8. HAFTA PDF - 1, 2, 3 KİŞİLİK) */}
+      {showSaglikliBuyume && (
+        <SaglikliBuyumeGame
+          onClose={() => {
+            setShowSaglikliBuyume(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          playerCountMode={playerCountMode}
+          onSwitchPlayerCountMode={switchPlayerCountMode}
+          students={students}
+          selectedStudentId={selectedStudentIds[0] || null}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudent={(id) => {
+            setSelectedStudentIds(prev => [
+              prev[0] === id ? null : id,
+              prev[1] || null,
+              prev[2] || null
+            ]);
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer('saglikli_buyume', isCorrect, pIdx, 'otherGames');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);

@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'abluka' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -290,6 +290,13 @@ ALL_ACTIVITIES_LIST.push({
   videoSrc: '/noktalama_isaretleri.mp4'
 });
 ALL_ACTIVITIES_LIST.push({
+  id: 'g2_turkce_noktalama_surukle',
+  type: 'noktalama_surukle',
+  grade: 2,
+  title: 'Noktalama İşaretleri (Sürükle Bırak)',
+  categoryLabel: '2. Sınıf Türkçe'
+});
+ALL_ACTIVITIES_LIST.push({
   id: 'g2_turkce_sozluk_sirala',
   type: 'sozluk_sirala',
   grade: 2,
@@ -361,24 +368,80 @@ ALL_ACTIVITIES_LIST.push({
   title: 'Satır Sonu Hece Ayırma',
   categoryLabel: '2. Sınıf Türkçe'
 });
-ALL_ACTIVITIES_LIST.push({
-  id: 'g2_turkce_karar_alma_video',
-  type: 'lesson_video',
-  topicKey: 'karar_alma',
-  grade: 2,
-  title: 'Karar Alma Süreci',
-  categoryLabel: '2. Sınıf Türkçe',
-  videoSrc: '/karar_alma_sunum.mp4'
-});
-ALL_ACTIVITIES_LIST.push({
-  id: 'g2_turkce_saglikli_aliskanliklar_video',
-  type: 'lesson_video',
-  topicKey: 'saglikli_aliskanliklar',
-  grade: 2,
-  title: 'Sağlıklı Alışkanlıklar',
-  categoryLabel: '2. Sınıf Türkçe',
-  videoSrc: '/saglikli_aliskanliklar_tanitim.mp4'
-});
+
+// ==========================================
+// 2. SINIF HAYAT BİLGİSİ DERSİ ETKİNLİKLERİ
+// ==========================================
+export const G2_HAYAT_BILGISI_ACTIVITIES: ActivityRegistryItem[] = [
+  {
+    id: 'g2_hb_guvenli_internet',
+    type: 'guvenli_internet',
+    grade: 2,
+    topicKey: 'hb_guvenli_internet',
+    title: 'Güvenli İnternet Dünyası',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_saglikli_buyume',
+    type: 'saglikli_buyume',
+    grade: 2,
+    topicKey: 'hb_saglikli_buyume',
+    title: 'Sağlıklı Büyüme ve Alışkanlıklar',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_saglikli_tabak',
+    type: 'saglikli_tabak',
+    grade: 2,
+    topicKey: 'saglikli_tabak',
+    title: 'Sağlıklı Tabak Şefi',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_geri_donusum',
+    type: 'geri_donusum',
+    grade: 2,
+    topicKey: 'geri_donusum',
+    title: 'Geri Dönüşüm Kahramanı',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_istek_ihtiyac',
+    type: 'istek_ihtiyac',
+    grade: 2,
+    topicKey: 'istek_ihtiyac',
+    title: 'İstek mi, İhtiyaç mı?',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_mevsim_gardirobu',
+    type: 'mevsim_gardirobu',
+    grade: 2,
+    topicKey: 'mevsim_gardirobu',
+    title: 'Mevsim Gardırobu',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
+  {
+    id: 'g2_hb_karar_alma_video',
+    type: 'lesson_video',
+    topicKey: 'karar_alma',
+    grade: 2,
+    title: 'Karar Alma Süreci',
+    categoryLabel: '2. Sınıf Hayat Bilgisi',
+    videoSrc: '/karar_alma_sunum.mp4'
+  },
+  {
+    id: 'g2_hb_saglikli_aliskanliklar_video',
+    type: 'lesson_video',
+    topicKey: 'saglikli_aliskanliklar',
+    grade: 2,
+    title: 'Sağlıklı Alışkanlıklar',
+    categoryLabel: '2. Sınıf Hayat Bilgisi',
+    videoSrc: '/saglikli_aliskanliklar_tanitim.mp4'
+  }
+];
+
+G2_HAYAT_BILGISI_ACTIVITIES.forEach(act => ALL_ACTIVITIES_LIST.push(act));
 
 // 5. Diğer Oyunlar (2. Sınıf Mini Oyunları)
 const g2Diger = [
