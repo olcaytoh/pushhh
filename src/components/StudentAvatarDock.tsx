@@ -13,6 +13,14 @@ interface StudentAvatarDockProps {
   playMp3?: (src: string) => void;
 }
 
+const formatDockStudentName = (fullName: string): string => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+  const secondInitial = Array.from(parts[1])[0]?.toLocaleUpperCase('tr') || '';
+  return secondInitial ? `${parts[0]} ${secondInitial}.` : parts[0];
+};
+
 export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
   students,
   currentGrade = 2,
@@ -127,8 +135,8 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
             </button>
           </div>
         ) : (
-          /* TÜM LİSTE ALTA, KESİNLİKLE TEK SIRA, ASLA KAYDIRMAYA NEDEN OLMAYACAK VE HEPSİ GÖRÜNECEK ŞEKİLDE */
-          <div className="w-full flex flex-row flex-nowrap items-center justify-between gap-1 sm:gap-1.5 py-0.5 min-w-0 overflow-hidden">
+          /* TÜM LİSTE ALTA, TEK SIRA - İSİMLER ASLA KISALTILMAZ */
+          <div className="w-full flex flex-row flex-nowrap items-center justify-between gap-1 sm:gap-1.5 py-0.5 min-w-0">
             {/* SOL: SINIF BİLGİ ROZETİ */}
             <button
               type="button"
@@ -143,56 +151,59 @@ export const StudentAvatarDock: React.FC<StudentAvatarDockProps> = ({
               <span>{effectiveGrade}. Sınıf ({sortedStudents.length})</span>
             </button>
 
-            {/* ORTA: TÜM ÖĞRENCİLER - KESİNLİKLE TEK SIRA, HEPSİ GÖZÜKÜR, KAYDIRMAYA ASLA NEDEN OLMAZ */}
-            <div className="flex-1 flex flex-row flex-nowrap items-center justify-center gap-0.5 sm:gap-1 min-w-0 overflow-hidden px-0.5">
-              {sortedStudents.map((student) => {
-                const assignedGIdx = selectedStudentIds.findIndex(id => id === student.id);
-                const isAssigned = assignedGIdx !== -1 && assignedGIdx < playerCount;
-                const assignedTheme = isAssigned ? groupThemes[assignedGIdx] : null;
+            {/* ORTA: TÜM ÖĞRENCİLER - İSİMLER KISALTILMADAN TAM GÖRÜNÜR */}
+            <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar px-0.5">
+              <div className="flex flex-row flex-nowrap items-center justify-center gap-1 sm:gap-1.5 min-w-full w-max py-0.5">
+                {sortedStudents.map((student) => {
+                  const assignedGIdx = selectedStudentIds.findIndex(id => id === student.id);
+                  const isAssigned = assignedGIdx !== -1 && assignedGIdx < playerCount;
+                  const assignedTheme = isAssigned ? groupThemes[assignedGIdx] : null;
+                  const displayName = formatDockStudentName(student.name);
 
-                return (
-                  <button
-                    key={student.id}
-                    type="button"
-                    onClick={() => handleAvatarClick(student)}
-                    className={`group relative flex flex-col items-center justify-center shrink min-w-0 flex-1 max-w-[64px] py-0.5 px-0.5 sm:px-1 rounded-xl transition-all cursor-pointer active:scale-90 ${
-                      isAssigned
-                        ? 'bg-slate-800/90 scale-105 shadow-md'
-                        : 'hover:bg-slate-800/60'
-                    }`}
-                    title={`${student.name} (${student.grade}. Sınıf) • ${isAssigned ? `${assignedGIdx + 1}. Oyuncu (Tıkla ve kaldır)` : 'Tıkla ve seç'}`}
-                  >
-                    {/* AVATAR BADGE */}
-                    <div
-                      className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm shadow-sm transition-all shrink-0 ${
-                        assignedTheme
-                          ? `${assignedTheme.ringColor} shadow-[0_0_12px_rgba(255,255,255,0.4)]`
-                          : 'border border-white/20 group-hover:scale-110 group-hover:border-white/50'
+                  return (
+                    <button
+                      key={student.id}
+                      type="button"
+                      onClick={() => handleAvatarClick(student)}
+                      className={`group relative flex flex-col items-center justify-center shrink-0 py-0.5 px-1.5 sm:px-2 rounded-xl transition-all cursor-pointer active:scale-90 ${
+                        isAssigned
+                          ? 'bg-slate-800/90 scale-105 shadow-md'
+                          : 'hover:bg-slate-800/60'
                       }`}
+                      title={`${student.name} (${student.grade}. Sınıf) • ${isAssigned ? `${assignedGIdx + 1}. Oyuncu (Tıkla ve kaldır)` : 'Tıkla ve seç'}`}
                     >
-                      <span>{student.avatar}</span>
+                      {/* AVATAR BADGE */}
+                      <div
+                        className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br ${student.avatarBg || 'from-indigo-500 to-purple-600'} flex items-center justify-center text-xs sm:text-sm shadow-sm transition-all shrink-0 ${
+                          assignedTheme
+                            ? `${assignedTheme.ringColor} shadow-[0_0_12px_rgba(255,255,255,0.4)]`
+                            : 'border border-white/20 group-hover:scale-110 group-hover:border-white/50'
+                        }`}
+                      >
+                        <span>{student.avatar}</span>
 
-                      {/* SEÇİLEN OYUNCU NUMARASI VEYA ONAY İŞARETİ */}
-                      {isAssigned && (
-                        <span className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full ${assignedTheme?.badgeBg} font-black text-[8px] flex items-center justify-center border border-white shadow-xs animate-pulse`}>
-                          {playerCount === 1 ? '✓' : (assignedGIdx + 1)}
-                        </span>
-                      )}
-                    </div>
+                        {/* SEÇİLEN OYUNCU NUMARASI VEYA ONAY İŞARETİ */}
+                        {isAssigned && (
+                          <span className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full ${assignedTheme?.badgeBg} font-black text-[8px] flex items-center justify-center border border-white shadow-xs animate-pulse`}>
+                            {playerCount === 1 ? '✓' : (assignedGIdx + 1)}
+                          </span>
+                        )}
+                      </div>
 
-                    {/* ÖĞRENCİ ADI */}
-                    <span
-                      className={`text-[8px] sm:text-[9px] font-bold mt-0.5 truncate w-full text-center leading-none ${
-                        assignedTheme
-                          ? `${assignedTheme.textColor} font-black drop-shadow`
-                          : 'text-slate-300 group-hover:text-white'
-                      }`}
-                    >
-                      {student.name.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
+                      {/* ÖĞRENCİ ADI */}
+                      <span
+                        className={`text-[9px] sm:text-[10px] font-bold mt-0.5 whitespace-nowrap text-center leading-tight ${
+                          assignedTheme
+                            ? `${assignedTheme.textColor} font-black drop-shadow`
+                            : 'text-slate-300 group-hover:text-white'
+                        }`}
+                      >
+                        {displayName}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* SAĞ: YENİ ÖĞRENCİ EKLEME BUTONU */}
