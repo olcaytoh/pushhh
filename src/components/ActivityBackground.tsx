@@ -125,27 +125,12 @@ export const ActivityBackground: React.FC<ActivityBackgroundProps> = ({
           {/* Güneşli Sıcak Gökyüzü ve Yumuşak Işık (Asla mor veya düz koyu renk yok!) */}
           <div className="absolute inset-0 bg-gradient-to-b from-sky-400/15 via-transparent to-slate-950/35 pointer-events-none" />
           
-          {/* 1. SINIFTAKİ SEVİMLİ DOĞA & HAYVAN MASKOTLARI (Güneş, Kelebek, Aslan, Zürafa) */}
+          {/* 1. SINIFTAKİ SEVİMLİ DOĞA & HAYVAN MASKOTU */}
           {showFloatingElements && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {/* Sol Üst: Sevimli Parlayan Güneş */}
-              <div className="absolute top-2 left-3 sm:left-6 w-14 h-14 sm:w-20 sm:h-20 drop-shadow-[0_4px_16px_rgba(250,204,21,0.6)] animate-pulse opacity-95">
-                <img src="/assets/sudoku/gunes.png" alt="Güneş" className="w-full h-full object-contain" />
-              </div>
-              
-              {/* Sağ Üst: Renkli Uçan Kelebek */}
-              <div className="absolute top-4 right-4 sm:right-10 w-12 h-12 sm:w-16 sm:h-16 drop-shadow-md transform rotate-12 opacity-95">
-                <img src="/assets/sudoku/kelebek.png" alt="Kelebek" className="w-full h-full object-contain" />
-              </div>
-
               {/* Sol Alt: Sevimli Yavru Aslan */}
               <div className="absolute bottom-2 left-2 sm:left-4 w-14 h-14 sm:w-20 sm:h-20 drop-shadow-lg opacity-90">
                 <img src="/assets/sudoku/aslan.png" alt="Aslan" className="w-full h-full object-contain" />
-              </div>
-
-              {/* Sağ Alt: Sevimli Zürafa */}
-              <div className="absolute bottom-2 right-2 sm:right-4 w-14 h-14 sm:w-20 sm:h-20 drop-shadow-lg opacity-90">
-                <img src="/assets/sudoku/zurafa.png" alt="Zürafa" className="w-full h-full object-contain" />
               </div>
             </div>
           )}

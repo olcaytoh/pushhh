@@ -31,10 +31,29 @@ const CRITICAL_BUTTON_IMAGES = [
 ];
 
 if (typeof window !== 'undefined') {
-  CRITICAL_BUTTON_IMAGES.forEach((src) => {
-    const img = new Image();
-    img.src = src;
-  });
+  // Arayüz görsellerini açılışı yavaşlatmadan, tarayıcı boşta kalınca ön belleğe al
+  const warmImages = () => {
+    CRITICAL_BUTTON_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = src;
+    });
+  };
+  const startWarm = () => {
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(warmImages, { timeout: 3000 });
+    } else {
+      setTimeout(warmImages, 1500);
+    }
+  };
+  if (document.readyState === 'complete') startWarm();
+  else window.addEventListener('load', startWarm, { once: true });
+
+  // Sekme arka plandayken tüm CSS animasyonlarını durdur (CPU/GPU ve fan tasarrufu)
+  const syncTabVisibility = () =>
+    document.documentElement.classList.toggle('tab-hidden', document.hidden);
+  document.addEventListener('visibilitychange', syncTabVisibility);
+  syncTabVisibility();
 
   // Akıllı tahtalarda 2 veya 3 çocuk aynı anda dokunduğunda browser'ın sağ tık menüsünü açmasını tamamen engelle
   const blockContextMenu = (e: Event) => {

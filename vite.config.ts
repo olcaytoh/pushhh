@@ -58,6 +58,23 @@ export default defineConfig(() => {
   return {
     base: './',
     plugins: [react(), tailwindcss(), webpFallbackPlugin(), videoUploadPlugin()],
+    build: {
+      // Ağır kütüphaneleri ayrı dosyalara böl: ilk açılış küçülür, tarayıcı sadece gerekeni indirir/derler.
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('/three/') || id.includes('@types/three')) return 'three';
+            if (id.includes('/firebase/') || id.includes('/@firebase/')) return 'firebase';
+            if (id.includes('/recharts/') || id.includes('/d3-') || id.includes('/victory-vendor/')) return 'charts';
+            if (id.includes('/motion/') || id.includes('/framer-motion/') || id.includes('/motion-dom/')) return 'motion';
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) return 'react';
+            return undefined;
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

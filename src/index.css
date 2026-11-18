@@ -968,3 +968,10 @@ html.smartboard-4k-active #tug-of-war-arena {
   color: #0f172a;
 }
  
+
+/* Sekme arka plandayken sonsuz animasyonları durdur: CPU/GPU yükünü ve fan gürültüsünü azaltır */
+html.tab-hidden *,
+html.tab-hidden *::before,
+html.tab-hidden *::after {
+  animation-play-state: paused !important;
+}

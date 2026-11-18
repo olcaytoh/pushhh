@@ -6,6 +6,8 @@ import {
   Cloud, Globe
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { lazyComponent } from './utils/lazyComponent';
+import { QuestionTimerBadge, createTimerStore } from './components/QuestionTimerBadge';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
 import { auth, onAuthStateChanged, User } from './firebase';
 import { GoogleAuthSyncModal } from './components/GoogleAuthSyncModal';
@@ -29,59 +31,61 @@ import {
 } from './services/cloudSyncService';
 import { BADGES, BadgeItem, getBadgeRepeatCount } from './badges';
 import { AslanSVG } from './components/Mascot';
-import { Geometry3DLab } from './components/Geometry3DLab';
-import { GeoboardActivity } from './components/GeoboardActivity';
-import { GeometricNetsActivity } from './components/GeometricNetsActivity';
-import { XOXGame } from './components/XOXGame';
-import { AynisiniBulGame } from './components/AynisiniBulGame';
-import { OnuBulGame } from './components/OnuBulGame';
-import { YirmiyiBulGame } from './components/YirmiyiBulGame';
-import { RitmikBalonPatlatmaGame } from './components/RitmikBalonPatlatmaGame';
-import { CarpimTablosuBalonGame } from './components/CarpimTablosuBalonGame';
+const Geometry3DLab = lazyComponent(() => import('./components/Geometry3DLab'), 'Geometry3DLab');
+const GeoboardActivity = lazyComponent(() => import('./components/GeoboardActivity'), 'GeoboardActivity');
+const GeometricNetsActivity = lazyComponent(() => import('./components/GeometricNetsActivity'), 'GeometricNetsActivity');
+const XOXGame = lazyComponent(() => import('./components/XOXGame'), 'XOXGame');
+const AynisiniBulGame = lazyComponent(() => import('./components/AynisiniBulGame'), 'AynisiniBulGame');
+const OnuBulGame = lazyComponent(() => import('./components/OnuBulGame'), 'OnuBulGame');
+const YirmiyiBulGame = lazyComponent(() => import('./components/YirmiyiBulGame'), 'YirmiyiBulGame');
+const RitmikBalonPatlatmaGame = lazyComponent(() => import('./components/RitmikBalonPatlatmaGame'), 'RitmikBalonPatlatmaGame');
+const CarpimTablosuBalonGame = lazyComponent(() => import('./components/CarpimTablosuBalonGame'), 'CarpimTablosuBalonGame');
 import { EnYakinOnlugaYuvarlamaGame, isRoundingGameKey, getRoundingGameConfig } from './components/EnYakinOnlugaYuvarlamaGame';
-import { OtherGamesHub } from './components/OtherGamesHub';
-import { KuralliCumleActivity } from './components/KuralliCumleActivity';
-import { HeceSayisiActivity } from './components/HeceSayisiActivity';
-import { SozlukSiralaGame } from './components/SozlukSiralaGame';
-import { KelimeSiralaGame } from './components/KelimeSiralaGame';
-import { HeceMakasiGame } from './components/HeceMakasiGame';
-import { YazimDedektifiGame } from './components/YazimDedektifiGame';
-import { GeometrikSekilleriBulActivity } from './components/GeometrikSekilleriBulActivity';
-import { Dedektif5N1KGame } from './components/Dedektif5N1KGame';
-import { OnlukBirlikGame } from './components/OnlukBirlikGame';
-import { SayiBasketiGame } from './components/SayiBasketiGame';
-import { SatirSonuHeceGame } from './components/SatirSonuHeceGame';
-import { LessonVideoPlayer } from './components/LessonVideoPlayer';
-import { NoktalamaAvcisiGame } from './components/NoktalamaAvcisiGame';
-import { NoktalamaSurukleBirakGame } from './components/NoktalamaSurukleBirakGame';
-import { HarfCorbasiGame } from './components/HarfCorbasiGame';
-import { GeriDonusumGame } from './components/GeriDonusumGame';
-import { SaglikliTabakGame } from './components/SaglikliTabakGame';
-import { GuvenliInternetGame } from './components/GuvenliInternetGame';
-import { SaglikliBuyumeGame } from './components/SaglikliBuyumeGame';
-import { IstekIhtiyacGame } from './components/IstekIhtiyacGame';
-import { MevsimGardirobuGame } from './components/MevsimGardirobuGame';
-import { AdresimiBiliyorumGame } from './components/AdresimiBiliyorumGame';
-import { AblukaGame } from './components/AblukaGame';
-import { SudokuGame } from './components/SudokuGame';
-import { GorselliSudokuGame } from './components/GorselliSudokuGame';
-import { SchoolLifeGame } from './components/SchoolLifeGame';
-import { SiviMiktariTahminGame } from './components/SiviMiktariTahminGame';
-import { StandartOlmayanSiviOlcmeVideoModal } from './components/StandartOlmayanSiviOlcmeVideoModal';
-import { SaatZamanActivity } from './components/SaatZamanActivity';
-import { MarketKasasiGame } from './components/MarketKasasiGame';
-import { KesirDuvariPizzaGame } from './components/KesirDuvariPizzaGame';
-import { EsSesliKelimelerGame } from './components/EsSesliKelimelerGame';
-import { DengeTerazisiGame } from './components/DengeTerazisiGame';
-import { KodlamaAlgoritmaMutfagiGame } from './components/KodlamaAlgoritmaMutfagiGame';
+const OtherGamesHub = lazyComponent(() => import('./components/OtherGamesHub'), 'OtherGamesHub');
+const KuralliCumleActivity = lazyComponent(() => import('./components/KuralliCumleActivity'), 'KuralliCumleActivity');
+const HeceSayisiActivity = lazyComponent(() => import('./components/HeceSayisiActivity'), 'HeceSayisiActivity');
+const SozlukSiralaGame = lazyComponent(() => import('./components/SozlukSiralaGame'), 'SozlukSiralaGame');
+const KelimeSiralaGame = lazyComponent(() => import('./components/KelimeSiralaGame'), 'KelimeSiralaGame');
+const HeceMakasiGame = lazyComponent(() => import('./components/HeceMakasiGame'), 'HeceMakasiGame');
+const YazimDedektifiGame = lazyComponent(() => import('./components/YazimDedektifiGame'), 'YazimDedektifiGame');
+const GeometrikSekilleriBulActivity = lazyComponent(() => import('./components/GeometrikSekilleriBulActivity'), 'GeometrikSekilleriBulActivity');
+const Dedektif5N1KGame = lazyComponent(() => import('./components/Dedektif5N1KGame'), 'Dedektif5N1KGame');
+const OnlukBirlikGame = lazyComponent(() => import('./components/OnlukBirlikGame'), 'OnlukBirlikGame');
+const SayiBasketiGame = lazyComponent(() => import('./components/SayiBasketiGame'), 'SayiBasketiGame');
+const SatirSonuHeceGame = lazyComponent(() => import('./components/SatirSonuHeceGame'), 'SatirSonuHeceGame');
+const LessonVideoPlayer = lazyComponent(() => import('./components/LessonVideoPlayer'), 'LessonVideoPlayer');
+const NoktalamaAvcisiGame = lazyComponent(() => import('./components/NoktalamaAvcisiGame'), 'NoktalamaAvcisiGame');
+const NoktalamaSurukleBirakGame = lazyComponent(() => import('./components/NoktalamaSurukleBirakGame'), 'NoktalamaSurukleBirakGame');
+const HarfCorbasiGame = lazyComponent(() => import('./components/HarfCorbasiGame'), 'HarfCorbasiGame');
+const GeriDonusumGame = lazyComponent(() => import('./components/GeriDonusumGame'), 'GeriDonusumGame');
+const SaglikliTabakGame = lazyComponent(() => import('./components/SaglikliTabakGame'), 'SaglikliTabakGame');
+const GuvenliInternetGame = lazyComponent(() => import('./components/GuvenliInternetGame'), 'GuvenliInternetGame');
+const SaglikliBuyumeGame = lazyComponent(() => import('./components/SaglikliBuyumeGame'), 'SaglikliBuyumeGame');
+const IstekIhtiyacGame = lazyComponent(() => import('./components/IstekIhtiyacGame'), 'IstekIhtiyacGame');
+const MevsimGardirobuGame = lazyComponent(() => import('./components/MevsimGardirobuGame'), 'MevsimGardirobuGame');
+const AdresimiBiliyorumGame = lazyComponent(() => import('./components/AdresimiBiliyorumGame'), 'AdresimiBiliyorumGame');
+const AblukaGame = lazyComponent(() => import('./components/AblukaGame'), 'AblukaGame');
+const SudokuGame = lazyComponent(() => import('./components/SudokuGame'), 'SudokuGame');
+const GorselliSudokuGame = lazyComponent(() => import('./components/GorselliSudokuGame'), 'GorselliSudokuGame');
+const SchoolLifeGame = lazyComponent(() => import('./components/SchoolLifeGame'), 'SchoolLifeGame');
+const SiviMiktariTahminGame = lazyComponent(() => import('./components/SiviMiktariTahminGame'), 'SiviMiktariTahminGame');
+const StandartOlmayanSiviOlcmeVideoModal = lazyComponent(() => import('./components/StandartOlmayanSiviOlcmeVideoModal'), 'StandartOlmayanSiviOlcmeVideoModal');
+const SaatZamanActivity = lazyComponent(() => import('./components/SaatZamanActivity'), 'SaatZamanActivity');
+const MarketKasasiGame = lazyComponent(() => import('./components/MarketKasasiGame'), 'MarketKasasiGame');
+const KesirDuvariPizzaGame = lazyComponent(() => import('./components/KesirDuvariPizzaGame'), 'KesirDuvariPizzaGame');
+const EsSesliKelimelerGame = lazyComponent(() => import('./components/EsSesliKelimelerGame'), 'EsSesliKelimelerGame');
+const DengeTerazisiGame = lazyComponent(() => import('./components/DengeTerazisiGame'), 'DengeTerazisiGame');
+const KodlamaAlgoritmaMutfagiGame = lazyComponent(() => import('./components/KodlamaAlgoritmaMutfagiGame'), 'KodlamaAlgoritmaMutfagiGame');
 import { ActivityBackground } from './components/ActivityBackground';
-import { RandomStudentWheelModal } from './components/RandomStudentWheelModal';
-import { EnglishGamesHub } from './components/EnglishGamesHub';
-import { WordGameModal } from './components/WordGameModal';
-import { FeedbackModal } from './components/FeedbackModal';
+const RandomStudentWheelModal = lazyComponent(() => import('./components/RandomStudentWheelModal'), 'RandomStudentWheelModal');
+const EnglishGamesHub = lazyComponent(() => import('./components/EnglishGamesHub'), 'EnglishGamesHub');
+const BilsemHub = lazyComponent(() => import('./components/BilsemHub'), 'BilsemHub');
+const BilsemGameModal = lazyComponent(() => import('./components/BilsemGameModal'), 'BilsemGameModal');
+const WordGameModal = lazyComponent(() => import('./components/WordGameModal'), 'WordGameModal');
+const FeedbackModal = lazyComponent(() => import('./components/FeedbackModal'), 'FeedbackModal');
 import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIcon, GlossyScreenRotateIcon, GoldCoinDisplayCard } from './components/GameUIButtons';
-import { ModernStatsView, Cute3DStarMascotSVG } from './components/ModernStatsView';
-import { ClassCountersModal } from './components/ClassCountersModal';
+const ModernStatsView = lazyComponent(() => import('./components/ModernStatsView'), 'ModernStatsView');
+const ClassCountersModal = lazyComponent(() => import('./components/ClassCountersModal'), 'ClassCountersModal');
 import { Student } from './types/student';
 import { 
   loadStudents, 
@@ -110,8 +114,8 @@ import {
 } from './utils/studentStore';
 import { getCurriculumTopicsForGrade } from './utils/topicHelper';
 import { StudentAvatarDock } from './components/StudentAvatarDock';
-import { StudentRosterModal } from './components/StudentRosterModal';
-import { OdevAkvaryumuModal } from './components/OdevAkvaryumuModal';
+const StudentRosterModal = lazyComponent(() => import('./components/StudentRosterModal'), 'StudentRosterModal');
+const OdevAkvaryumuModal = lazyComponent(() => import('./components/OdevAkvaryumuModal'), 'OdevAkvaryumuModal');
 import { 
   loadHomeworkData, 
   saveHomeworkData, 
@@ -122,8 +126,8 @@ import {
   recoverAllPossibleHomeworkData,
   calculateTotalHomework
 } from './utils/homeworkStore';
-import { AndroidAppsModal } from './components/AndroidAppsModal';
-import { SchoolSettingsModal } from './components/SchoolSettingsModal';
+const AndroidAppsModal = lazyComponent(() => import('./components/AndroidAppsModal'), 'AndroidAppsModal');
+const SchoolSettingsModal = lazyComponent(() => import('./components/SchoolSettingsModal'), 'SchoolSettingsModal');
 import { 
   ClassCountersData, 
   loadCounters, 
@@ -151,6 +155,13 @@ import { topics4thGrade } from './data/topics4thGrade';
 import { halatCekmeTopics, sureliExtraTopics } from './data/halatCekmeTopics';
 import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA } from './data/wordPairsData';
 import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, getGradeOtherGamesList, G2_HAYAT_BILGISI_ACTIVITIES } from './data/allActivitiesRegistry';
+import {
+  BILSEM_ACTIVITIES,
+  BilsemActivityId,
+  BilsemGrade,
+  getActivitiesForGrade,
+  normalizeBilsemGrade,
+} from './data/bilsemActivitiesData';
 
 // --- TOPICS FOR OTHER WORD GAMES (STANDARDIZED WITH ALL OTHER ACTIVITIES) ---
 const topicsWordGames: Record<string, { title: string; desc: string; icon?: string; generate: () => QuestionData }> = {
@@ -3059,7 +3070,16 @@ export default function App() {
   const [shuffledOptions, setShuffledOptions] = useState<(string | number)[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | number | null>(null);
   const [feedbackState, setFeedbackState] = useState<'none' | 'correct' | 'wrong'>('none');
-  const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(100);
+  // Geri sayım değeri state dışında tutulur: her saniye tüm App yeniden çizilmesin diye.
+  // Sadece süre bittiğinde (timeIsUp) App güncellenir; ekrandaki sayı <QuestionTimerBadge /> ile çizilir.
+  const questionTimerStore = useRef(createTimerStore(100)).current;
+  const [timeIsUp, setTimeIsUp] = useState(false);
+  const questionTimeLeft = timeIsUp ? 0 : questionTimerStore.get();
+  const setQuestionTimeLeft = (value: number | ((prev: number) => number)) => {
+    const next = typeof value === 'function' ? value(questionTimerStore.get()) : value;
+    questionTimerStore.set(next);
+    setTimeIsUp(next <= 0);
+  };
 
   const isTimedTopic = (topicKey: string) => {
     if (!topicKey) return false;
@@ -3107,6 +3127,10 @@ export default function App() {
   const [showGeometricNets, setShowGeometricNets] = useState(false);
   const [showOtherGamesModal, setShowOtherGamesModal] = useState(false);
   const [showEnglishGamesModal, setShowEnglishGamesModal] = useState(false);
+  const [showBilsemHub, setShowBilsemHub] = useState(false);
+  const [activeBilsemActivityId, setActiveBilsemActivityId] = useState<BilsemActivityId | null>(null);
+  const [bilsemSelectedGrade, setBilsemSelectedGrade] = useState<BilsemGrade>(2);
+  const [completedBilsemIds, setCompletedBilsemIds] = useState<string[]>([]);
   const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
@@ -3205,6 +3229,7 @@ export default function App() {
     showEsSesli ||
     showDengeTerazisi ||
     showKodlamaMutfagi ||
+    activeBilsemActivityId !== null ||
     wordGameType !== null
   );
 
@@ -4280,7 +4305,7 @@ export default function App() {
       return;
     }
 
-    if (questionTimeLeft <= 0) {
+    if (timeIsUp) {
       if (isTimedTopic(currentTopic)) {
         // Özel süreli etkinlikler (soru başına 10 saniye)
         playWrongSound();
@@ -4337,17 +4362,21 @@ export default function App() {
       return;
     }
 
-    // Play audible warning on last 3 seconds (3, 2, 1) in Single Player ONLY
-    if (questionTimeLeft <= 3 && questionTimeLeft >= 1) {
-      playCountdownWarningSound(questionTimeLeft);
-    }
-
+    // Tek kişilik geri sayım: değer store'da güncellenir, App sadece süre bitince yeniden çizilir.
     const timer = setInterval(() => {
-      setQuestionTimeLeft(prev => Math.max(0, prev - 1));
+      const next = Math.max(0, questionTimerStore.get() - 1);
+      questionTimerStore.set(next);
+      // Son 3 saniyede (3, 2, 1) sesli uyarı (sadece tek kişilik modda)
+      if (next >= 1 && next <= 3) {
+        playCountdownWarningSound(next);
+      }
+      if (next <= 0) {
+        setTimeIsUp(true);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameState, currentTopic, feedbackState, questionTimeLeft, currentQuestionData, score, soundEnabled, playerCountMode, lives]);
+  }, [gameState, currentTopic, feedbackState, timeIsUp, currentQuestionData, score, soundEnabled, playerCountMode, lives]);
 
   // Multi-Player Independent Countdown Timers (Each player has their own 10-second timer, silent to avoid confusion)
   useEffect(() => {
@@ -5131,7 +5160,7 @@ export default function App() {
     }
 
     // 4. If in category view and topic modal not open
-    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showGeometrikSekilleriBul && !showOtherGamesModal && !showEnglishGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && wordGameType === null) {
+    if (!showTopicModal && !show3DLab && !showGeoboard && !showGeometricNets && !showKuralliCumle && !showHeceSayisi && !showSozlukSirala && !showGeometrikSekilleriBul && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && wordGameType === null) {
       if (selectedCategoryId === 'diger_oyunlar') {
         const firstGame = selectedGrade === 1 
           ? 'halat_toplama_1' 
@@ -6307,6 +6336,8 @@ export default function App() {
     setShowKodlamaMutfagi(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
+    setShowBilsemHub(false);
+    setActiveBilsemActivityId(null);
     setShowTopicModal(false);
     setShowStatsModal(false);
     setWordGameType(null);
@@ -6353,6 +6384,14 @@ export default function App() {
    * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handlePrevActivity = () => {
+    if (activeBilsemActivityId !== null) {
+      const list = getActivitiesForGrade(bilsemSelectedGrade);
+      const idx = list.findIndex(a => a.id === activeBilsemActivityId);
+      const prevIdx = idx >= 0 ? (idx - 1 + list.length) % list.length : 0;
+      setActiveBilsemActivityId(list[prevIdx].id);
+      return;
+    }
+
     // 2. Sınıf Hayat Bilgisi İçindeyken Sıralı Geçiş
     const isInsideHayatBilgisi =
       showGuvenliInternet ||
@@ -6401,6 +6440,14 @@ export default function App() {
    * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handleNextActivity = () => {
+    if (activeBilsemActivityId !== null) {
+      const list = getActivitiesForGrade(bilsemSelectedGrade);
+      const idx = list.findIndex(a => a.id === activeBilsemActivityId);
+      const nextIdx = idx >= 0 ? (idx + 1) % list.length : 0;
+      setActiveBilsemActivityId(list[nextIdx].id);
+      return;
+    }
+
     // 2. Sınıf Hayat Bilgisi İçindeyken Sıralı Geçiş
     const isInsideHayatBilgisi =
       showGuvenliInternet ||
@@ -6458,6 +6505,8 @@ export default function App() {
     setShowGeometricNets(false);
     setShowOtherGamesModal(false);
     setShowEnglishGamesModal(false);
+    setShowBilsemHub(false);
+    setActiveBilsemActivityId(null);
     setOpenedFromOtherGamesModal(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
@@ -7114,8 +7163,12 @@ export default function App() {
         return currentTopic;
       }
     }
+    if (activeBilsemActivityId) {
+      return BILSEM_ACTIVITIES.find(a => a.id === activeBilsemActivityId)?.title || 'BİLSEM Etkinliği';
+    }
     if (showOtherGamesModal) return 'Diğer Oyunlar Merkezi';
     if (showEnglishGamesModal) return 'İngilizce Oyunlar Merkezi';
+    if (showBilsemHub) return '7. BİLSEM Zeka & Dikkat Merkezi';
     if (selectedCategoryId) {
       const catMap: Record<string, string> = {
         geometri: '1. Nesnelerin Geometrisi',
@@ -7167,14 +7220,8 @@ export default function App() {
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover object-center scale-105 blur-[0.5px] transition-all duration-300 filter brightness-105 contrast-105"
           />
-          {/* Güneşli Sıcak Gökyüzü ve Neşeli Maskotlar */}
+          {/* Güneşli Sıcak Gökyüzü */}
           <div className="absolute inset-0 bg-gradient-to-b from-sky-400/15 via-transparent to-slate-950/40 pointer-events-none" />
-          <div className="absolute top-2 left-4 w-14 h-14 sm:w-16 sm:h-16 opacity-90 drop-shadow-md pointer-events-none animate-pulse">
-            <img src="/assets/sudoku/gunes.png" alt="Güneş" className="w-full h-full object-contain" />
-          </div>
-          <div className="absolute top-3 right-6 w-12 h-12 sm:w-14 sm:h-14 opacity-90 drop-shadow-md pointer-events-none transform rotate-12">
-            <img src="/assets/sudoku/kelebek.png" alt="Kelebek" className="w-full h-full object-contain" />
-          </div>
         </div>
       )}
 
@@ -7185,15 +7232,16 @@ export default function App() {
           <div className="w-full flex items-center justify-between min-h-[50px] sm:min-h-[58px]">
           {/* ORTADAKİ TÜM BUTONLAR GRUBU (SOLA TAŞMAYI VE 1. SINIF BUTONUNUN KESİLMESİNİ ÖNLEYEN YAPI) */}
           <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-1">
-          {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6) */}
+          {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6, 7) */}
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
-            {[1, 2, 3, 4, 5, 6].map((g) => {
+            {[1, 2, 3, 4, 5, 6, 7].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
                 (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
-                (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame));
-              const iconSrc = `/icon_${g}.webp`;
-              const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : '6. İngilizce Oyunlar';
+                (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame)) ||
+                (g === 7 && (showBilsemHub || activeBilsemActivityId !== null));
+              const iconSrc = g === 7 ? '/MENUIKON/grid_icon_27.webp' : `/icon_${g}.webp`;
+              const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : g === 6 ? '6. İngilizce Oyunlar' : '7. BİLSEM Etkinlikleri';
               return (
                 <button
                   key={g}
@@ -7210,6 +7258,8 @@ export default function App() {
                       setShowGeometricNets(false);
                       setShowOtherGamesModal(false);
                       setShowEnglishGamesModal(false);
+                      setShowBilsemHub(false);
+                      setActiveBilsemActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
@@ -7293,6 +7343,8 @@ export default function App() {
                       setShowStatsModal(false);
                       setShowTopicModal(false);
                       setShowEnglishGamesModal(false);
+                      setShowBilsemHub(false);
+                      setActiveBilsemActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowOtherGamesModal(true);
                     } else if (g === 6) {
@@ -7340,8 +7392,61 @@ export default function App() {
                       setShowStatsModal(false);
                       setShowTopicModal(false);
                       setShowOtherGamesModal(false);
+                      setShowBilsemHub(false);
+                      setActiveBilsemActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowEnglishGamesModal(true);
+                    } else if (g === 7) {
+                      setSelectedGrade(null);
+                      setSelectedCategoryId(null);
+                      setGameState('welcome');
+                      setShow3DLab(false);
+                      setShowGeoboard(false);
+                      setShowGeometricNets(false);
+                      setShowXOXGame(false);
+                      setShowAynisiniBul(false);
+                      setShowKuralliCumle(false);
+                      setShowSozlukSirala(false);
+                      setShowKelimeSirala(false);
+                      setShowHeceSayisi(false);
+                      setShowGeometrikSekilleriBul(false);
+                      setShowDedektif5N1K(false);
+                      setShowOnlukBirlik(false);
+                      setShowSayiBasketi(false);
+                      setShowOnlukYuvarlamaOyunu(false);
+                      setShowSatirSonuHece(false);
+                      setShowNoktalamaAvcisi(false);
+                      setShowNoktalamaSurukle(false);
+                      setShowHarfCorbasi(false);
+                      setShowGeriDonusum(false);
+                      setShowSaglikliTabak(false);
+                      setShowIstekIhtiyac(false);
+                      setShowMevsimGardirobu(false);
+                      setShowAdresimiBiliyorum(false);
+                      setShowAblukaGame(false);
+                      setShowSudokuGame(false);
+                      setShowSchoolLifeGame(false);
+                      setShowSiviTahminAkvaryum(false);
+                      setShowSiviOlcmeVideoModal(false);
+                      setShowSaatZaman(false);
+                      setShowMarketKasasi(false);
+                      setShowKesirDuvariPizza(false);
+                      setShowEsSesli(false);
+                      setShowDengeTerazisi(false);
+                      setShowKodlamaMutfagi(false);
+                      setShowRitmikBalon(false);
+                      setShowCarpimBalon(false);
+                      setShowLessonVideo(false);
+                      setWordGameType(null);
+                      setShowStatsModal(false);
+                      setShowTopicModal(false);
+                      setShowOtherGamesModal(false);
+                      setShowEnglishGamesModal(false);
+                      setOpenedFromOtherGamesModal(false);
+                      handleClassClick('otherGames');
+                      setBilsemSelectedGrade(normalizeBilsemGrade(selectedGrade));
+                      setActiveBilsemActivityId(null);
+                      setShowBilsemHub(true);
                     }
                   }}
                   title={title}
@@ -7586,6 +7691,12 @@ export default function App() {
             // 5.1 If inside English Games Hub modal itself
             if (showEnglishGamesModal) {
               setShowEnglishGamesModal(false);
+              return;
+            }
+
+            // 5.2 If inside BİLSEM Hub modal itself
+            if (showBilsemHub) {
+              setShowBilsemHub(false);
               return;
             }
 
@@ -7932,7 +8043,7 @@ export default function App() {
     {isInsideAnyGame && currentActivityTitle && (
       <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-2 shrink-0 animate-fadeIn z-20">
         <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-5 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 max-w-full overflow-x-auto no-scrollbar flex-wrap justify-center">
-          <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
+          <span className="text-amber-400 text-xs sm:text-sm select-none">✨</span>
           <div className="flex items-center gap-1.5 flex-wrap justify-center">
             <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
               {currentActivityTitle}
@@ -7950,7 +8061,7 @@ export default function App() {
               </span>
             )}
           </div>
-          <span className="text-amber-400 text-xs sm:text-sm animate-pulse select-none">✨</span>
+          <span className="text-amber-400 text-xs sm:text-sm select-none">✨</span>
 
           {/* Sınıf İçi Tahta Araçları: Rastgele Öğrenci Çarkı (Ritmik Balon & Çarpım Balon hariç, onlarda alt dock mevcut) */}
           {!showRitmikBalon && !showCarpimBalon && (
@@ -8274,7 +8385,42 @@ export default function App() {
                   </div>
                 </button>
 
-                {/* 7. MADDE: ANDROID UYGULAMALARIM (UZUN KART - sm:col-span-2) */}
+                {/* 7. MADDE: BİLSEM (UZUN KART - sm:col-span-2) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playMp3('/coin.mp3');
+                    handleClassClick('otherGames');
+                    setBilsemSelectedGrade(normalizeBilsemGrade(selectedGrade));
+                    setActiveBilsemActivityId(null);
+                    setShowBilsemHub(true);
+                  }}
+                  className="group relative w-full sm:col-span-2 bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border border-amber-400/50 hover:border-amber-300 shadow-md hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                >
+                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                    <img
+                      src="/MENUIKON/grid_icon_27.webp"
+                      alt="7. BİLSEM"
+                      className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform"
+                    />
+                  </div>
+                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                    <div className="text-[10px] sm:text-xs font-semibold text-amber-300 mb-0.5">
+                      1.–4. Sınıf Düzeyleri · Zeka, Dikkat &amp; Görsel Algı
+                    </div>
+                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-200 leading-tight uppercase tracking-wider transition-colors">
+                      7. BİLSEM
+                    </h3>
+                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-300 mt-0.5 break-words leading-tight">
+                      1., 2., 3. ve 4. Sınıflara Özel Ayrı BİLSEM Etkinlikleri &amp; Görsel Zeka Testleri
+                    </p>
+                  </div>
+                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
+                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
+                  </div>
+                </button>
+
+                {/* 8. MADDE: ANDROID UYGULAMALARIM (UZUN KART - sm:col-span-2) */}
                 <div
                   onClick={() => {
                     playMp3('/coin.mp3');
@@ -8309,7 +8455,7 @@ export default function App() {
                         </span>
                       </div>
                       <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-emerald-300 leading-tight uppercase tracking-wider transition-colors flex items-center gap-2">
-                        <span>7. Android Uygulamalarım</span>
+                        <span>8. Android Uygulamalarım</span>
                       </h3>
                     </div>
                   </div>
@@ -10615,18 +10761,10 @@ export default function App() {
                   {/* RIGHT: SCORE, TIMER & LIVES */}
                   <div className="flex items-center gap-1.5 shrink-0 h-full">
                     {/* Tek Kişilik Geri Sayım Sayacı (10 doğru için toplam 100s, süreli etkinliklerde soru başı 10s) */}
-                    <div 
+                    <QuestionTimerBadge
+                      store={questionTimerStore}
                       title={isTimedTopic(currentTopic) ? "Soru Başı Süre: 10s" : "10 Doğru İçin Toplam Kalan Süre (100s)"}
-                      className={`h-full border rounded-xl px-2 py-0.5 flex items-center gap-1 font-mono font-black text-xs shrink-0 transition-all ${
-                      questionTimeLeft <= 5 
-                        ? 'bg-rose-950/90 border-rose-500 text-rose-300 ring-2 ring-rose-500/60 animate-pulse' 
-                        : questionTimeLeft <= 15
-                        ? 'bg-amber-950/80 border-amber-500 text-amber-300 ring-1 ring-amber-500/40'
-                        : 'bg-[#080e1d] border-slate-700 text-slate-200'
-                    }`}>
-                      <span className="text-xs">⏱️</span>
-                      <span>{questionTimeLeft}s</span>
-                    </div>
+                    />
 
                     <div className="h-full bg-[#0e172a] border border-slate-700/80 rounded-xl px-2 sm:px-2.5 flex items-center gap-1.5 shadow-xs">
                       <span className="bg-[#080e1d] border border-slate-700 text-slate-100 font-black text-xs px-2 py-0.5 rounded-lg shadow-xs tracking-wider">
@@ -11263,7 +11401,7 @@ export default function App() {
                             {/* CHARACTER IMAGE */}
                             <div className={`relative flex items-center justify-center ${isWinner ? 'scale-105 sm:scale-115' : 'scale-90 sm:scale-95'} transition-transform`}>
                               {isWinner && (
-                                <div className="absolute inset-0 bg-yellow-400/25 rounded-full blur-xl animate-pulse pointer-events-none" />
+                                <div className="absolute inset-0 bg-yellow-400/25 rounded-full blur-xl pointer-events-none" />
                               )}
                               <img
                                 src={group.img}
@@ -13225,6 +13363,64 @@ export default function App() {
         />
       )}
 
+      {/* 7. TEMA: BİLSEM ETKİNLİKLERİ HUB MODAL */}
+      {showBilsemHub && !activeBilsemActivityId && (
+        <BilsemHub
+          onClose={() => setShowBilsemHub(false)}
+          onGoHome={handleGoHome}
+          selectedGrade={bilsemSelectedGrade}
+          onSelectGrade={(g) => setBilsemSelectedGrade(g)}
+          onSelectActivity={(id, grade) => {
+            setBilsemSelectedGrade(grade);
+            setActiveBilsemActivityId(id);
+          }}
+          completedIds={completedBilsemIds}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* BİLSEM İNTERAKTİF ETKİNLİK MODALI (SINIF SINIF AYRILMIŞ ETKİNLİKLER) */}
+      {activeBilsemActivityId && (
+        <BilsemGameModal
+          activityId={activeBilsemActivityId}
+          bilsemGrade={bilsemSelectedGrade}
+          onClose={() => {
+            setActiveBilsemActivityId(null);
+            setShowBilsemHub(true);
+          }}
+          onGoHome={handleGoHome}
+          onSwitchActivity={(nextId) => {
+            setActiveBilsemActivityId(nextId);
+          }}
+          onCompleted={(doneId, doneGrade) => {
+            const key = `${doneGrade}:${doneId}`;
+            setCompletedBilsemIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
+          }}
+          playMp3={playMp3}
+          students={students}
+          currentGrade={bilsemSelectedGrade}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || bilsemSelectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer(`bilsem_${activeBilsemActivityId}`, isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
       {/* SCHOOL LIFE OYUNU MODAL (İNGİLİZCE) */}
       {showSchoolLifeGame && (
         <SchoolLifeGame
@@ -13725,7 +13921,6 @@ export default function App() {
             src="/introh.mp4"
             poster="/dere3.webp"
             autoPlay
-            loop
             muted
             playsInline
             // @ts-ignore
