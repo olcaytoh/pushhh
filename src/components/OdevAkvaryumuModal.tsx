@@ -748,7 +748,7 @@ export const OdevAkvaryumuModal: React.FC<OdevAkvaryumuModalProps> = ({
     <div
       ref={modalContainerRef}
       id="odev-akvaryumu-modal"
-      className="fixed inset-0 z-[1000] flex flex-col w-screen h-screen bg-[#02182b] select-none overflow-hidden p-0 m-0"
+      className="fixed inset-0 z-[1000] flex flex-col w-screen h-[100dvh] bg-[#02182b] select-none overflow-hidden p-0 m-0"
     >
       <div className="relative w-full h-full flex flex-col overflow-hidden bg-[#02182b]">
         

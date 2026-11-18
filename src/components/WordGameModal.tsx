@@ -1391,7 +1391,7 @@ export const WordGameModal: React.FC<WordGameModalProps> = ({
                             key={oIdx}
                             disabled={quizFeedback !== 'none'}
                             onClick={() => handleQuizAnswer(opt)}
-                            className={`fast-quiz-btn relative w-full py-1.5 sm:py-2 px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] max-h-[58px] rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${btnClass}`}
+                            className={`fast-quiz-btn relative w-full py-1.5 sm:py-2 px-1.5 sm:px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] sm:max-h-[58px] rounded-2xl border-2 transition-colors duration-75 flex items-center justify-center text-center cursor-pointer uppercase tracking-wider overflow-hidden active:scale-98 ${btnClass}`}
                           >
                             {/* Subtle top glare in button */}
                             <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-300/10 to-transparent pointer-events-none rounded-t-2xl" />

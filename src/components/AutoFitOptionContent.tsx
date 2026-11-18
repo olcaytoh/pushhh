@@ -9,16 +9,21 @@ interface AutoFitOptionContentProps {
   isLarge?: boolean;
 }
 
-function formatOptionText(rawText: string | number, mode: 1 | 2 | 3, isLarge: boolean = false): string | number {
+function formatOptionText(
+  rawText: string | number,
+  mode: 1 | 2 | 3,
+  isLarge: boolean = false,
+  isNarrowContainer: boolean = false
+): string | number {
   if (typeof rawText !== 'string') return rawText;
   if (rawText.includes('<')) return rawText; // HTML tags (fractions etc.)
   const clean = rawText.trim();
   const words = clean.split(/\s+/);
   if (words.length <= 1) return clean;
 
-  const mode1Threshold = isLarge ? 22 : 13;
+  const mode1Threshold = isNarrowContainer ? (isLarge ? 14 : 8) : (isLarge ? 22 : 13);
   // 2 Kişilik modda genişlik ferah olduğu için sadece gerçekten uzun şıkları (18+ karakter) 2 satıra böl
-  const mode2Threshold = isLarge ? 18 : 14;
+  const mode2Threshold = isNarrowContainer ? 10 : (isLarge ? 18 : 14);
   // 3 Kişilik modda dar sütun olduğu için 8+ karakterli çok kelimeli şıkları 2 satıra böl
   const mode3Threshold = isLarge ? 8 : 7;
 
@@ -27,6 +32,16 @@ function formatOptionText(rawText: string | number, mode: 1 | 2 | 3, isLarge: bo
     (mode === 2 && clean.length > mode2Threshold) ||
     (mode === 1 && clean.length > mode1Threshold)
   ) {
+    if (isNarrowContainer && words.length >= 4 && clean.length > 26) {
+      const third = Math.ceil(words.length / 3);
+      return [
+        words.slice(0, third).join(' '),
+        words.slice(third, third * 2).join(' '),
+        words.slice(third * 2).join(' '),
+      ]
+        .filter(Boolean)
+        .join('\n');
+    }
     if (words.length === 2) {
       return words[0] + '\n' + words[1];
     }
@@ -49,10 +64,13 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
+  const [isNarrowContainer, setIsNarrowContainer] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
 
   const formattedDisplayOpt = React.useMemo(() => {
-    return formatOptionText(displayOpt, mode, isLarge);
-  }, [displayOpt, mode, isLarge]);
+    return formatOptionText(displayOpt, mode, isLarge, isNarrowContainer);
+  }, [displayOpt, mode, isLarge, isNarrowContainer]);
 
   const hasLineBreak = typeof formattedDisplayOpt === 'string' && formattedDisplayOpt.includes('\n');
   const isHTML = typeof displayOpt === 'string' && displayOpt.includes('<');
@@ -133,6 +151,9 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     const availH = container.clientHeight;
     if (availW <= 0 || availH <= 0) return;
 
+    const narrowNow = availW < 215 || (typeof window !== 'undefined' && window.innerWidth < 640);
+    setIsNarrowContainer((prev) => (prev === narrowNow ? prev : narrowNow));
+
     // Measure accurate natural content dimensions without artificial flex stretching
     const naturalW = content.offsetWidth || content.scrollWidth;
     const naturalH = content.offsetHeight || content.scrollHeight;
@@ -147,11 +168,11 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
     let s = Math.min(scaleW, scaleH);
 
     // If s > 1, short numbers/visuals expand nicely up to 1.5x for visuals or 1.2x for text
-    // If s < 1, long text scales down smoothly with a protective floor so text is never unreadably small
+    // On narrow mobile option buttons, allow scaling down cleanly so nothing clips horizontally
     if (s > 1.0) {
       s = Math.min(s, isHTML ? 1.5 : 1.2);
     } else {
-      const minFloor = mode === 3 ? 0.78 : mode === 2 ? 0.82 : 0.65;
+      const minFloor = narrowNow ? 0.38 : (mode === 3 ? 0.78 : mode === 2 ? 0.82 : 0.65);
       s = Math.max(s, minFloor);
     }
 
@@ -197,7 +218,11 @@ export const AutoFitOptionContent: React.FC<AutoFitOptionContentProps> = ({
           transformOrigin: 'center center',
         }}
         className={`inline-flex flex-col items-center justify-center text-center font-black text-white ${
-          hasLineBreak ? 'whitespace-pre-line leading-[1.12] break-words' : 'whitespace-nowrap leading-tight'
+          hasLineBreak
+            ? 'whitespace-pre-line leading-[1.12] break-words'
+            : isNarrowContainer
+            ? 'whitespace-normal leading-[1.12] break-words'
+            : 'whitespace-nowrap leading-tight'
         } px-0.5 shrink-0 ${
           isHTML ? '' : `${baseFontClass} [text-shadow:_0_1px_3px_#000]`
         }`}

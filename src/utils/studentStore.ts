@@ -380,6 +380,7 @@ export function upgradeOlcaytoStudentNames(students: Student[], userEmail?: stri
   const email = (userEmail || currentStoreUserEmail || '').trim().toLowerCase();
   const isOlcayto = isOlcaytoUser(email);
   const isBanu = isBanuUser(email);
+  if (!isOlcayto && !isBanu) return students;
 
   return students.map(s => {
     if (!s || !s.name) return s;
@@ -702,8 +703,8 @@ export function recoverLegacyOrBackupStudents(
       }
     }
 
-    // 3. Legacy and guest slots are ONLY checked if the user is Olcayto or a guest with no user ID
-    if (isOlcayto || (!userId && !cleanEmail)) {
+    // 3. Legacy slots are ONLY checked for Olcayto's authenticated account
+    if (isOlcayto) {
       keysToCheck.push(
         'classroom_students_backup_v1',
         STORAGE_KEY,
@@ -787,6 +788,20 @@ export function loadStudents(userId?: string | null, userEmail?: string | null):
         ...s,
         grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
       }));
+      // Google girişi yapılmadan (misafir modunda) yerleşik öğretmen sınıf listelerinin varsayılan görünmesini engelle
+      if (!uid && !email) {
+        const predefinedCount = mapped.filter(s => {
+          const norm = (s.name || '').trim().toLocaleLowerCase('tr');
+          return (
+            OLCAYTO_2A_NAMES_SET.has(norm) ||
+            MUSHAT_3C_STUDENTS.some(m => m.name.trim().toLocaleLowerCase('tr') === norm) ||
+            BANU_2A_STUDENTS.some(b => b.name.trim().toLocaleLowerCase('tr') === norm)
+          );
+        }).length;
+        if (predefinedCount >= 3 || isDefaultSampleList(mapped)) {
+          return [];
+        }
+      }
       const upgraded = upgradeOlcaytoStudentNames(mapped, email);
       const anyChange = upgraded.some((s, idx) => s.name !== parsed[idx]?.name || s.className !== parsed[idx]?.className);
       if (anyChange) {
@@ -802,23 +817,9 @@ export function loadStudents(userId?: string | null, userEmail?: string | null):
       return [];
     }
 
-    // If guest and not yet initialized in guest_v1, check legacy 'classroom_students_v1'
-    if (!uid && raw === null) {
-      const legacyRaw = localStorage.getItem(STORAGE_KEY);
-      if (legacyRaw !== null) {
-        try {
-          parsed = JSON.parse(legacyRaw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            let mapped: Student[] = parsed.map((s: any) => ({
-              ...s,
-              grade: (s.grade && [1, 2, 3, 4].includes(Number(s.grade))) ? Number(s.grade) : 2
-            }));
-            const upgraded = upgradeOlcaytoStudentNames(mapped, email);
-            saveStudents(upgraded, uid);
-            return upgraded;
-          }
-        } catch {}
-      }
+    // Misafir modunda (Google girişi yokken) eski legacy listeden varsayılan öğrenci çekilmez, boş başlar
+    if (!uid && !email) {
+      return [];
     }
 
     // First time EVER visit: seed proper initial template

@@ -2910,13 +2910,41 @@ export default function App() {
     setGameState('gameover');
   };
 
+  const sharedAudioCtxRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!sharedAudioCtxRef.current || sharedAudioCtxRef.current.state === 'closed') {
+          sharedAudioCtxRef.current = new AudioContextClass();
+        }
+        if (sharedAudioCtxRef.current.state === 'suspended') {
+          sharedAudioCtxRef.current.resume().catch(() => {});
+        }
+      } catch {
+        // Ignore audio unlock errors silently
+      }
+    };
+    window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, []);
+
   const playSynthSound = (src: string) => {
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
+      if (!sharedAudioCtxRef.current || sharedAudioCtxRef.current.state === 'closed') {
+        sharedAudioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = sharedAudioCtxRef.current;
       if (ctx.state === 'suspended') {
-        ctx.resume();
+        ctx.resume().catch(() => {});
       }
       const now = ctx.currentTime;
 
@@ -2981,7 +3009,9 @@ export default function App() {
         audio = new Audio(cleanSrc);
         audioCacheRef.current.set(cleanSrc, audio);
       }
-      audio.currentTime = 0;
+      if (audio.readyState > 0) {
+        audio.currentTime = 0;
+      }
       audio.volume = 1.0;
 
       let hasEnded = false;
@@ -8041,11 +8071,11 @@ export default function App() {
 
     {/* OYUNA GİRİNCE: ÜSTTEKİ BUTONLARIN HEMEN ALTINDA ORTADA ETKİNLİK ADI (BAŞLIK) VE ÇERÇEVESİ */}
     {isInsideAnyGame && currentActivityTitle && (
-      <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-2 shrink-0 animate-fadeIn z-20">
-        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-5 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 max-w-full overflow-x-auto no-scrollbar flex-wrap justify-center">
-          <span className="text-amber-400 text-xs sm:text-sm select-none">✨</span>
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            <h1 className="font-black text-xs sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+      <div className="w-full flex items-center justify-center pt-0.5 pb-1 sm:pb-1.5 px-1.5 sm:px-2 shrink-0 animate-fadeIn z-20">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-5 py-0.5 sm:py-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#0d1628] via-[#1a2948] to-[#0d1628] border-2 border-amber-400/90 shadow-[0_0_18px_rgba(245,158,11,0.35)] border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 max-w-full overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap justify-center">
+          <span className="text-amber-400 text-xs sm:text-sm select-none shrink-0">✨</span>
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-nowrap sm:flex-wrap justify-center min-w-0">
+            <h1 className="font-black text-[11px] sm:text-sm md:text-base lg:text-lg text-white uppercase tracking-wide sm:tracking-wider text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate max-w-[185px] sm:max-w-none sm:whitespace-nowrap">
               {currentActivityTitle}
             </h1>
             {(showOnlukYuvarlamaOyunu || showRitmikBalon || showCarpimBalon || showNoktalamaSurukle || showGuvenliInternet || showSaglikliBuyume || showAdresimiBiliyorum || (currentTopic && (
@@ -8056,12 +8086,12 @@ export default function App() {
               currentTopic === 'g3_en_yakin_yuzluge_yuvarlama' ||
               currentTopic === 'g3_en_yakin_onluga_yuvarlama_100'
             ))) && (
-              <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
+              <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md animate-pulse border border-yellow-200 shrink-0">
                 ✨ YENİ
               </span>
             )}
           </div>
-          <span className="text-amber-400 text-xs sm:text-sm select-none">✨</span>
+          <span className="text-amber-400 text-xs sm:text-sm select-none shrink-0">✨</span>
 
           {/* Sınıf İçi Tahta Araçları: Rastgele Öğrenci Çarkı (Ritmik Balon & Çarpım Balon hariç, onlarda alt dock mevcut) */}
           {!showRitmikBalon && !showCarpimBalon && (
@@ -8070,11 +8100,11 @@ export default function App() {
                 playMp3('/op.mp3');
                 setShowStudentWheel(true);
               }}
-              className="ml-1 sm:ml-2.5 px-2 sm:px-2.5 py-0.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:brightness-110 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white"
+              className="ml-0.5 sm:ml-2.5 px-1.5 sm:px-2.5 py-0.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:brightness-110 text-slate-950 font-black text-[10px] sm:text-xs flex items-center gap-1 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer border border-white shrink-0"
               title="Sıradaki soruyu yanıtlayacak öğrenciyi seçmek için çarkı çevir"
             >
               <span className="text-xs sm:text-sm">🎡</span>
-              <span className="whitespace-nowrap">Öğrenci Çarkı</span>
+              <span className="hidden sm:inline whitespace-nowrap">Öğrenci Çarkı</span>
             </button>
           )}
 
@@ -10741,12 +10771,12 @@ export default function App() {
                         1
                       </div>
                     )}
-                    <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2.5 sm:px-3 flex items-center justify-between gap-1.5 min-w-0">
+                    <div className="h-full bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-blue-400/80 shadow-[0_0_15px_rgba(59,130,246,0.3)] border-l-4 border-l-blue-400 rounded-xl px-2 sm:px-3 flex items-center justify-between gap-1 sm:gap-1.5 min-w-0">
                       <div className="flex items-center min-w-0">
-                        <span className="font-black text-xs text-blue-200 uppercase tracking-wide truncate">
+                        <span className="font-black text-[11px] sm:text-xs text-blue-200 uppercase tracking-wide truncate">
                           {assignedStudent ? assignedStudent.name : '1. GRUP'}
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[110px] sm:max-w-[150px]">
+                        <span className="hidden xs:inline sm:inline text-[11px] font-semibold text-slate-400 ml-1.5 truncate max-w-[90px] sm:max-w-[150px]">
                           • {getCurrentTopicInfo(currentTopic, selectedGrade)?.title || 'Etkinlik'}
                         </span>
                       </div>
@@ -10797,17 +10827,24 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID) */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 w-full shrink-0 mt-1">
-                  {(() => {
-                    const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
-                    const singleOptHeightClass = (currentTopic === 'uzamsal_iliskiler_simetri' || currentTopic === 'sira_sayilari'
-                      ? 'h-[52px] sm:h-[60px] md:h-[68px] min-h-[52px] sm:min-h-[60px] md:min-h-[68px] py-1 px-2.5'
-                      : currentTopic === 'uzamsal_iliskiler'
-                      ? 'py-1.5 sm:py-2 px-2.5 min-h-[42px] sm:min-h-[50px]'
-                      : 'py-1.5 sm:py-2 px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] max-h-[58px]');
+                {/* BOTTOM: ŞIKLAR (ÇERÇEVENİN İÇİNDE, 2x2 GRID - TELEFONDA UZUN ŞIKLAR TEK SÜTUN) */}
+                {(() => {
+                  const hasVeryLongPlainOption = optionsList.some((o) => {
+                    const s = String(o ?? '');
+                    return !s.includes('<') && s.trim().length > 28;
+                  });
+                  const uniformOptFontClass = getDynamicOptionFontClass(optionsList, 1, selectedGrade);
+                  const singleOptHeightClass = (currentTopic === 'uzamsal_iliskiler_simetri' || currentTopic === 'sira_sayilari'
+                    ? 'h-[50px] sm:h-[60px] md:h-[68px] min-h-[50px] sm:min-h-[60px] md:min-h-[68px] py-1 px-1.5 sm:px-2.5'
+                    : currentTopic === 'uzamsal_iliskiler'
+                    ? 'py-1.5 sm:py-2 px-1.5 sm:px-2.5 min-h-[42px] sm:min-h-[50px]'
+                    : hasVeryLongPlainOption
+                    ? 'py-1.5 sm:py-2 px-2 sm:px-3 min-h-[34px] sm:min-h-[44px] md:min-h-[50px] sm:max-h-[58px]'
+                    : 'py-1.5 sm:py-2 px-1.5 sm:px-3 min-h-[38px] sm:min-h-[44px] md:min-h-[50px] sm:max-h-[58px]');
 
-                    return optionsList.map((opt, idx) => {
+                  return (
+                <div className={`grid ${hasVeryLongPlainOption ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-1 sm:gap-2 w-full shrink-0 mt-1`}>
+                  {optionsList.map((opt, idx) => {
                       const isCorrect = selectedOption !== null && currentQuestionData && opt === currentQuestionData.correct;
                       const isWrong = selectedOption !== null && currentQuestionData && opt === selectedOption && opt !== currentQuestionData.correct;
 
@@ -10841,14 +10878,15 @@ export default function App() {
                           })()}
                         </button>
                       );
-                    });
-                  })()}
+                    })}
                 </div>
+                  );
+                })()}
               </div>
             </div>
 
             {/* EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ (1 KİŞİLİK MOD) */}
-            {students && (
+            {students && (currentUser || students.length > 0) && (
               <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
                 <StudentAvatarDock
                   students={students}
@@ -11254,6 +11292,7 @@ export default function App() {
           })()}
 
           {/* EN ALTTA TEK SIRA ÖĞRENCİ LİSTESİ (2 VE 3 KİŞİLİK MODLAR İÇİN) */}
+          {(currentUser || students.length > 0) && (
           <div className="w-full shrink-0 z-20 px-1 sm:px-2 pb-0.5 mt-auto">
             <StudentAvatarDock
               students={students}
@@ -11274,6 +11313,7 @@ export default function App() {
               playMp3={playMp3}
             />
           </div>
+          )}
         </div>
       )}
 

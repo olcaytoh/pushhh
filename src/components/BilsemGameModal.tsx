@@ -390,17 +390,17 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       <ActivityBackground theme="doga" dimCenter={false} />
 
       {/* ÜST KONTROL ÇUBUĞU */}
-      <div className="relative z-20 shrink-0 px-2 sm:px-4 pt-2 pb-1">
-        <div className="max-w-5xl mx-auto rounded-2xl bg-white/95 backdrop-blur-md border border-slate-300 px-2.5 sm:px-3.5 py-2 shadow-md flex flex-wrap items-center justify-between gap-2">
+      <div className="relative z-20 shrink-0 px-2 sm:px-4 pt-1.5 sm:pt-2 pb-1">
+        <div className="max-w-5xl mx-auto rounded-2xl bg-white/95 backdrop-blur-md border border-slate-300 px-2 sm:px-3.5 py-1.5 sm:py-2 shadow-md flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
           {/* Sol: Menüye Dön & Önceki/Sonraki Etkinlik */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <button
               type="button"
               onClick={() => {
                 playMp3?.('/op.mp3');
                 onClose();
               }}
-              className="min-h-[44px] px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer whitespace-nowrap"
+              className="min-h-[36px] sm:min-h-[44px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft className="w-4 h-4 text-amber-600" />
               <span>BİLSEM</span>
@@ -412,7 +412,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                   type="button"
                   onClick={() => switchNeighborActivity(-1)}
                   title="Önceki BİLSEM Etkinliği"
-                  className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -420,7 +420,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                   type="button"
                   onClick={() => switchNeighborActivity(1)}
                   title="Sonraki BİLSEM Etkinliği"
-                  className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -439,7 +439,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
           </div>
 
           {/* Sağ: İpucu & Sıfırla */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {!isFinished && (
               <button
                 type="button"
@@ -447,7 +447,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                   playMp3?.('/op.mp3');
                   setShowHint((h) => !h);
                 }}
-                className={`min-h-[44px] px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer whitespace-nowrap ${
+                className={`min-h-[36px] sm:min-h-[44px] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 cursor-pointer whitespace-nowrap ${
                   showHint
                     ? 'bg-amber-400 text-slate-950 border-amber-500'
                     : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
@@ -461,7 +461,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
               type="button"
               onClick={handleRestartActivity}
               title="Baştan Başlat"
-              className="min-h-[44px] min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
+              className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -470,8 +470,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       </div>
 
       {/* ORTA ETKİNLİK SAHNESİ */}
-      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-2 sm:px-4 py-2 flex flex-col items-center justify-start sm:justify-center">
-        <div className="w-full max-w-4xl rounded-3xl bg-slate-100/95 backdrop-blur-md border border-slate-300 shadow-2xl p-3 sm:p-5 flex flex-col gap-3 text-slate-900">
+      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-2 sm:px-4 py-1.5 sm:py-2 flex flex-col items-center justify-start sm:justify-center">
+        <div className="w-full max-w-4xl rounded-2xl sm:rounded-3xl bg-slate-100/95 backdrop-blur-md border border-slate-300 shadow-2xl p-2.5 sm:p-5 flex flex-col gap-2 sm:gap-3 text-slate-900">
           {showHint && !isFinished && (
             <div className="rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2.5 text-xs sm:text-sm text-amber-950 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -550,16 +550,16 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
             /* ----------------------------------------------------------------
                MODE 1: GÖRSEL ÇOKTAN SEÇMELİ BİLSEM SORULARI
                ---------------------------------------------------------------- */
-            <div className="flex flex-col gap-3.5">
-              <p className="text-sm sm:text-base font-bold text-slate-900 text-center leading-snug">
+            <div className="flex flex-col gap-2 sm:gap-3.5">
+              <p className="text-xs sm:text-base font-bold text-slate-900 text-center leading-snug">
                 {activeQuiz.prompt}
               </p>
 
-              <div className="py-1">
+              <div className="py-0.5 sm:py-1 max-h-[30dvh] sm:max-h-none flex items-center justify-center overflow-hidden [&_svg]:max-h-[28dvh] sm:[&_svg]:max-h-none">
                 <BilsemQuestionVisual question={activeQuiz} />
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2.5">
                 {activeQuiz.options.map((opt, idx) => {
                   const isSelected = selectedOptionId === opt.id;
                   const answered = quizOutcome !== 'idle';
@@ -584,15 +584,15 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                       type="button"
                       disabled={answered}
                       onClick={() => handleQuizSelect(opt.id, opt.isCorrect)}
-                      className={`relative rounded-2xl border p-2.5 sm:p-3 min-h-[76px] flex flex-col items-center justify-center gap-1.5 transition cursor-pointer active:scale-95 ${cardStyle}`}
+                      className={`relative rounded-xl sm:rounded-2xl border p-1.5 sm:p-3 min-h-[54px] sm:min-h-[76px] flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer active:scale-95 ${cardStyle}`}
                     >
-                      <span className="self-start text-[11px] font-black text-sky-700 tabular-nums">
+                      <span className="self-start text-[10px] sm:text-[11px] font-black text-sky-700 tabular-nums leading-none">
                         {OPTION_LETTERS[idx] || idx + 1})
                       </span>
                       {opt.visual ? (
                         <BilsemOptionVisual question={activeQuiz} visual={opt.visual} />
                       ) : (
-                        <span className="text-sm sm:text-base font-black text-center">
+                        <span className="text-xs sm:text-base font-black text-center leading-tight">
                           {opt.label}
                         </span>
                       )}
@@ -814,12 +814,12 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
             /* ----------------------------------------------------------------
                MODE 4: GÖRSEL AYIRT ETME (FARKLI OLANI BUL)
                ---------------------------------------------------------------- */
-            <div className="flex flex-col gap-3.5">
-              <p className="text-sm sm:text-base font-bold text-slate-900 text-center">
+            <div className="flex flex-col gap-2 sm:gap-3.5">
+              <p className="text-xs sm:text-base font-bold text-slate-900 text-center">
                 {activeSpot.prompt}
               </p>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-3">
                 {activeSpot.cards.map((card, idx) => {
                   const isPicked = spotSelectedCardId === card.id;
                   const isDone = spotOutcome === 'correct';
@@ -839,9 +839,9 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                       type="button"
                       disabled={isDone}
                       onClick={() => handleSpotCardClick(card.id, card.variant)}
-                      className={`relative rounded-2xl border p-2.5 sm:p-3 flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 ${cardStyle}`}
+                      className={`relative rounded-xl sm:rounded-2xl border p-1.5 sm:p-3 flex flex-col items-center justify-center gap-1 transition cursor-pointer active:scale-95 ${cardStyle}`}
                     >
-                      <span className="self-start text-[11px] font-black text-slate-500 tabular-nums">
+                      <span className="self-start text-[10px] sm:text-[11px] font-black text-slate-500 tabular-nums">
                         #{idx + 1}
                       </span>
                       <SpotOddCardSVG
