@@ -6,6 +6,17 @@ import {
   ShapeKind,
   SpotOddTheme,
 } from '../data/bilsemActivitiesData';
+import {
+  EmbeddedSceneSpec,
+  MirrorMosaicSpec,
+  PatternTileSpec,
+  PuzzleCutSpec,
+  SpotOddGlyphSpec,
+} from '../data/bilsemVisualTypes';
+import {
+  BilsemSampleOptionVisual,
+  BilsemSampleQuestionVisual,
+} from './BilsemSampleVisuals';
 
 export const ShapeGlyph: React.FC<{
   shape: ShapeKind;
@@ -88,8 +99,30 @@ const IsometricCubesSVG: React.FC<{ heights: number[][] }> = ({ heights }) => {
   const originX = 110;
   const originY = 145;
 
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const cube of cubes) {
+    const cx = originX + (cube.x - cube.y) * dx;
+    const cy = originY + (cube.x + cube.y) * dy - cube.z * cubeH;
+    minX = Math.min(minX, cx - dx);
+    maxX = Math.max(maxX, cx + dx);
+    minY = Math.min(minY, cy - dy * 2);
+    maxY = Math.max(maxY, cy + cubeH);
+  }
+
+  const pad = 12;
+  const vbX = Number.isFinite(minX) ? minX - pad : 0;
+  const vbY = Number.isFinite(minY) ? minY - pad : 0;
+  const vbW = Number.isFinite(maxX) ? Math.max(96, maxX - minX + pad * 2) : 140;
+  const vbH = Number.isFinite(maxY) ? Math.max(96, maxY - minY + pad * 2) : 140;
+
   return (
-    <svg viewBox="0 0 220 190" className="w-full max-w-[240px] h-auto mx-auto drop-shadow-md">
+    <svg
+      viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
+      className="w-full max-w-[195px] sm:max-w-[220px] max-h-[175px] sm:max-h-[205px] h-auto mx-auto drop-shadow-md"
+    >
       {cubes.map((cube, idx) => {
         const cx = originX + (cube.x - cube.y) * dx;
         const cy = originY + (cube.x + cube.y) * dy - cube.z * cubeH;
@@ -115,22 +148,29 @@ export const ShadowFigureSVG: React.FC<{
   figure: string;
   isShadow: boolean;
   variant?: string;
-}> = ({ figure, isShadow, variant = 'exact' }) => {
+  angle?: number;
+  flipX?: boolean;
+}> = ({ figure, isShadow, variant = 'exact', angle = 0, flipX = false }) => {
   const fillMain = isShadow ? '#090d16' : '#38bdf8';
   const fillAccent = isShadow ? '#090d16' : '#f59e0b';
   const fillThird = isShadow ? '#090d16' : '#f43f5e';
   const strokeCol = isShadow ? '#334155' : '#0f172a';
-  const flipX = variant === 'mirrored' || variant === 'flipped';
+  const netFlipX = variant === 'mirrored' || variant === 'flipped' ? !flipX : Boolean(flipX);
   const flipY = figure === 'rocket' && variant === 'flipped';
+  const netAngle =
+    angle +
+    (variant === 'wrong_rot_90'
+      ? 90
+      : variant === 'wrong_rot_neg90'
+      ? -90
+      : variant === 'wrong_rot_180'
+      ? 180
+      : 0);
 
-  const transformStyle =
-    flipX && flipY
-      ? 'scale(-1, -1)'
-      : flipX
-      ? 'scale(-1, 1)'
-      : flipY
-      ? 'scale(1, -1)'
-      : undefined;
+  const transformParts: string[] = [];
+  if (netAngle !== 0) transformParts.push(`rotate(${netAngle}deg)`);
+  if (netFlipX || flipY) transformParts.push(`scale(${netFlipX ? -1 : 1}, ${flipY ? -1 : 1})`);
+  const transformStyle = transformParts.length > 0 ? transformParts.join(' ') : undefined;
 
   return (
     <svg
@@ -369,6 +409,508 @@ export const ShadowFigureSVG: React.FC<{
           />
         </g>
       )}
+
+      {figure === 'helicopter' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Üst pervane */}
+          <rect x="55" y="24" width="6" height="12" fill={fillAccent} />
+          <rect
+            x={variant === 'short_blade' ? 38 : 16}
+            y="18"
+            width={variant === 'short_blade' ? 42 : 84}
+            height="6"
+            rx="3"
+            fill={fillThird}
+          />
+          {/* Kuyruk ve arka pervane */}
+          <rect x="68" y="50" width="38" height="9" rx="4" fill={fillAccent} />
+          <circle cx="106" cy="52" r="9" fill={fillThird} />
+          {/* Gövde */}
+          <ellipse cx="48" cy="56" rx="28" ry="20" fill={fillMain} />
+          {!isShadow && <path d="M25,52 C28,40 44,40 48,40 L48,56 L22,56 Z" fill="#e0f2fe" stroke="#0f172a" strokeWidth="1.8" />}
+          {/* İniş kızağı */}
+          {variant !== 'no_skid' && (
+            <>
+              <line x1="36" y1="74" x2="36" y2="88" stroke={strokeCol} strokeWidth="3.5" />
+              <line x1="60" y1="74" x2="60" y2="88" stroke={strokeCol} strokeWidth="3.5" />
+              <rect x="20" y="86" width="56" height="6" rx="3" fill={fillAccent} />
+            </>
+          )}
+        </g>
+      )}
+
+      {figure === 'teapot' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Emzik (sola yukarı) */}
+          <path d="M36,68 Q16,60 18,38 L28,40 Q28,54 40,56 Z" fill={fillAccent} />
+          {/* Kulp (sağda) */}
+          {variant === 'flat_handle' ? (
+            <rect x="80" y="46" width="16" height="32" rx="2" fill={fillAccent} />
+          ) : (
+            <path d="M80,48 C104,44 104,82 80,78" fill="none" stroke={fillAccent} strokeWidth="8" strokeLinecap="round" />
+          )}
+          {/* Gövde */}
+          <ellipse cx="60" cy="68" rx="28" ry="24" fill={fillMain} />
+          {/* Kapak ve topuz */}
+          <path d="M40,48 Q60,34 80,48 Z" fill={fillThird} />
+          {variant !== 'no_knob' && <circle cx="60" cy="34" r="6" fill={fillAccent} />}
+          <rect x="44" y="88" width="32" height="8" rx="3" fill={fillAccent} />
+        </g>
+      )}
+
+      {figure === 'guitar' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Sap ve burgular */}
+          <rect
+            x="54"
+            y={variant === 'short_neck' ? 36 : 16}
+            width="12"
+            height={variant === 'short_neck' ? 28 : 48}
+            fill={fillAccent}
+          />
+          {variant !== 'no_pegs' && (
+            <>
+              <rect x="48" y="10" width="24" height="14" rx="4" fill={fillThird} />
+              <circle cx="44" cy="14" r="3.5" fill={fillAccent} />
+              <circle cx="44" cy="21" r="3.5" fill={fillAccent} />
+              <circle cx="76" cy="14" r="3.5" fill={fillAccent} />
+              <circle cx="76" cy="21" r="3.5" fill={fillAccent} />
+            </>
+          )}
+          {/* Gövde */}
+          {variant === 'round_body' ? (
+            <circle cx="60" cy="80" r="28" fill={fillMain} />
+          ) : (
+            <>
+              <ellipse cx="60" cy="64" rx="20" ry="16" fill={fillMain} />
+              <ellipse cx="60" cy="88" rx="28" ry="20" fill={fillMain} />
+            </>
+          )}
+          {!isShadow && <circle cx="60" cy="68" r="8" fill="#0f172a" />}
+        </g>
+      )}
+
+      {figure === 'umbrella' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Tepe uç */}
+          {variant !== 'no_tip' && <polygon points="57,10 63,10 60,20" fill={fillAccent} />}
+          {/* Kubbe */}
+          <path d="M16,58 C16,22 104,22 104,58 Q89,50 75,58 Q60,50 45,58 Q31,50 16,58 Z" fill={fillMain} />
+          {!isShadow && <path d="M40,54 Q60,22 80,54" fill="none" stroke="#fef08a" strokeWidth="3" />}
+          {/* Baston sap */}
+          {variant === 'straight_handle' ? (
+            <rect x="57" y="56" width="6" height="50" rx="3" fill={fillThird} />
+          ) : (
+            <path d="M60,56 L60,94 A10,10 0 0 0 80,94" fill="none" stroke={fillThird} strokeWidth="7" strokeLinecap="round" />
+          )}
+        </g>
+      )}
+
+      {figure === 'elephant' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Kuyruk */}
+          {variant !== 'no_tail' && (
+            <path d="M94,64 Q108,68 106,82" fill="none" stroke={fillMain} strokeWidth="5" strokeLinecap="round" />
+          )}
+          {/* Bacaklar */}
+          <rect x="44" y="76" width="14" height="28" rx="4" fill={fillMain} />
+          <rect x="72" y="76" width="14" height="28" rx="4" fill={fillMain} />
+          {/* Gövde ve kafa */}
+          <ellipse cx="68" cy="64" rx="28" ry="22" fill={fillMain} />
+          <circle cx="42" cy="52" r="20" fill={fillMain} />
+          {/* Hortum */}
+          {variant !== 'no_trunk' && (
+            <path d="M24,54 Q10,64 16,80 Q22,88 30,80" fill="none" stroke={fillMain} strokeWidth="9" strokeLinecap="round" />
+          )}
+          {/* Büyük kulak */}
+          <ellipse cx="52" cy="52" rx="12" ry="17" fill={fillAccent} />
+          {!isShadow && <circle cx="34" cy="46" r="3.5" fill="#0f172a" />}
+        </g>
+      )}
+
+      {figure === 'locomotive' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Baca */}
+          {variant !== 'no_chimney' && (
+            <polygon points="28,26 44,26 40,46 32,46" fill={fillThird} />
+          )}
+          {/* Ön kazan ve kabin */}
+          <rect x="20" y="46" width="46" height="32" rx="4" fill={fillMain} />
+          <rect x="64" y="30" width="34" height="48" rx="4" fill={fillAccent} />
+          {!isShadow && <rect x="72" y="38" width="18" height="16" rx="3" fill="#fef08a" stroke="#0f172a" strokeWidth="1.8" />}
+          {/* Tekerlekler */}
+          <circle cx="32" cy="86" r="10" fill={fillThird} />
+          {variant !== 'two_wheels' && <circle cx="56" cy="86" r="10" fill={fillThird} />}
+          <circle cx="84" cy="84" r="12" fill={fillThird} />
+        </g>
+      )}
+
+      {figure === 'duck' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Gaga (sağa bakar) */}
+          {variant !== 'no_beak' && (
+            <polygon points="82,36 106,42 82,48" fill={fillAccent} />
+          )}
+          {/* Kafa */}
+          <circle cx="72" cy="40" r="16" fill={fillMain} />
+          {/* Gövde ve kuyruk */}
+          <path d="M22,64 C22,52 38,54 58,54 C76,54 84,68 82,82 C78,94 34,94 24,80 Z" fill={fillMain} />
+          {/* Kuyruk çıkıntısı */}
+          {variant !== 'round_tail' && (
+            <polygon points="24,66 10,48 34,58" fill={fillThird} />
+          )}
+          {/* Kanat */}
+          {variant === 'raised_wing' && (
+            <polygon points="48,54 36,30 62,54" fill={fillAccent} />
+          )}
+          {!isShadow && <circle cx="76" cy="36" r="3" fill="#0f172a" />}
+        </g>
+      )}
+
+      {figure === 'cactus' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Saksı */}
+          <polygon points="36,86 84,86 78,108 42,108" fill={fillThird} />
+          {/* Ana gövde */}
+          <rect x="50" y="22" width="20" height="64" rx="10" fill={fillMain} />
+          {/* Sol yüksek kol */}
+          {variant !== 'no_left_arm' && (
+            <path d="M50,52 L30,52 L30,32" fill="none" stroke={isShadow ? '#090d16' : '#38bdf8'} strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+          {/* Sağ alçak kol */}
+          {variant !== 'even_arms' ? (
+            <path d="M70,64 L90,64 L90,46" fill="none" stroke={isShadow ? '#090d16' : '#38bdf8'} strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+          ) : (
+            <path d="M70,52 L90,52 L90,32" fill="none" stroke={isShadow ? '#090d16' : '#38bdf8'} strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+          {/* Tepe çiçeği */}
+          {variant !== 'no_flower' && <circle cx="60" cy="18" r="7" fill={fillAccent} />}
+        </g>
+      )}
+
+      {figure === 'mug' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Buhar */}
+          {variant !== 'no_steam' && (
+            <>
+              <path d="M44,32 Q38,20 46,12" fill="none" stroke={isShadow ? '#090d16' : '#94a3b8'} strokeWidth="5" strokeLinecap="round" />
+              <path d="M62,32 Q68,20 60,12" fill="none" stroke={isShadow ? '#090d16' : '#94a3b8'} strokeWidth="5" strokeLinecap="round" />
+            </>
+          )}
+          {/* Kulp */}
+          {variant !== 'no_handle' && (
+            <path d="M80,48 C104,48 104,84 80,84" fill="none" stroke={fillAccent} strokeWidth="9" strokeLinecap="round" />
+          )}
+          {/* Gövde */}
+          <rect x="26" y="40" width="54" height="58" rx={variant === 'round_cup' ? 22 : 6} fill={fillMain} />
+          <rect x="20" y="96" width="66" height="8" rx="4" fill={fillThird} />
+        </g>
+      )}
+
+      {figure === 'lamp' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Abajur başlık */}
+          {variant === 'round_shade' ? (
+            <circle cx="60" cy="40" r="26" fill={fillAccent} />
+          ) : (
+            <polygon points="36,20 84,20 100,56 20,56" fill={fillAccent} />
+          )}
+          {/* Sarkıt ip / düğme sağda */}
+          {variant !== 'no_pull' && (
+            <>
+              <line x1="80" y1="56" x2="80" y2="72" stroke={isShadow ? '#090d16' : '#0f172a'} strokeWidth="3.5" />
+              <circle cx="80" cy="74" r="4.5" fill={fillThird} />
+            </>
+          )}
+          {/* Direk ve taban */}
+          <rect x="55" y="56" width="10" height="38" fill={fillMain} />
+          <rect x={variant === 'thin_base' ? 44 : 30} y="92" width={variant === 'thin_base' ? 32 : 60} height="12" rx="4" fill={fillThird} />
+        </g>
+      )}
+
+      {figure === 'bicycle' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Tekerlekler */}
+          <circle cx="28" cy="80" r="18" fill="none" stroke={isShadow ? '#090d16' : '#0f172a'} strokeWidth="7" />
+          {variant !== 'small_front' ? (
+            <circle cx="92" cy="80" r="18" fill="none" stroke={isShadow ? '#090d16' : '#0f172a'} strokeWidth="7" />
+          ) : (
+            <circle cx="92" cy="86" r="11" fill="none" stroke={isShadow ? '#090d16' : '#0f172a'} strokeWidth="7" />
+          )}
+          {/* Kadro */}
+          <polygon points="28,80 56,50 80,50 60,80" fill="none" stroke={fillMain} strokeWidth="6" strokeLinejoin="round" />
+          <line x1="80" y1="36" x2="92" y2="80" stroke={fillThird} strokeWidth="6" strokeLinecap="round" />
+          {/* Sele ve gidon */}
+          {variant !== 'no_seat' && <rect x="44" y="40" width="18" height="7" rx="3" fill={fillAccent} />}
+          <path d="M74,36 L90,36 L94,42" fill="none" stroke={fillAccent} strokeWidth="6" strokeLinecap="round" />
+        </g>
+      )}
+
+      {figure === 'anchor' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Üst halka */}
+          {variant !== 'no_ring' && <circle cx="60" cy="20" r="9" fill="none" stroke={fillAccent} strokeWidth="6" />}
+          {/* Çubuk */}
+          <rect x="55" y="28" width="10" height="66" fill={fillMain} />
+          {/* Yatay kol */}
+          {variant !== 'no_crossbar' && <rect x="34" y="38" width="52" height="9" rx="4" fill={fillAccent} />}
+          {/* Alt yay ve uçlar */}
+          <path d="M24,68 C24,102 96,102 96,68" fill="none" stroke={fillMain} strokeWidth="10" strokeLinecap="round" />
+          <polygon points="16,72 24,54 34,72" fill={fillThird} />
+          <polygon points="86,72 96,54 104,72" fill={fillThird} />
+        </g>
+      )}
+
+      {figure === 'snowman' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Şapka */}
+          {variant !== 'no_hat' && (
+            <>
+              <rect x="42" y="10" width="36" height="16" rx="2" fill={fillThird} />
+              <rect x="34" y="24" width="52" height="6" rx="3" fill={fillAccent} />
+            </>
+          )}
+          {/* Kafa ve gövde */}
+          <circle cx="60" cy="44" r="16" fill={fillMain} />
+          {/* Havuç burun sağa */}
+          {variant !== 'no_nose' && <polygon points="74,42 94,46 74,50" fill={fillAccent} />}
+          <circle cx="60" cy="82" r="24" fill={fillMain} />
+          {/* Süpürge / kol sola yukarı */}
+          {variant !== 'no_arm' && (
+            <line x1="40" y1="74" x2="16" y2="54" stroke={isShadow ? '#090d16' : '#78350f'} strokeWidth="6" strokeLinecap="round" />
+          )}
+        </g>
+      )}
+
+      {figure === 'owl_sil' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Kulak tüyleri */}
+          {variant !== 'no_ears' && (
+            <>
+              <polygon points="34,36 28,16 48,30" fill={fillThird} />
+              <polygon points="86,36 92,16 72,30" fill={fillThird} />
+            </>
+          )}
+          <ellipse cx="60" cy="64" rx="32" ry="36" fill={fillMain} />
+          {/* Sağ kanat çıkık */}
+          {variant !== 'flat_wings' && <ellipse cx="92" cy="68" rx="8" ry="18" fill={fillAccent} />}
+          {/* Ayaklar */}
+          <polygon points="44,98 38,108 50,108" fill={fillAccent} />
+          <polygon points="76,98 70,108 82,108" fill={fillAccent} />
+          {!isShadow && (
+            <>
+              <circle cx="48" cy="48" r="9" fill="#ffffff" />
+              <circle cx="72" cy="48" r="9" fill="#ffffff" />
+              <circle cx="48" cy="48" r="4" fill="#0f172a" />
+              <circle cx="72" cy="48" r="4" fill="#0f172a" />
+              <polygon points="56,56 64,56 60,64" fill="#f59e0b" />
+            </>
+          )}
+        </g>
+      )}
+
+      {figure === 'car_sil' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Tavan sireni */}
+          {variant !== 'no_siren' && <rect x="52" y="24" width="16" height="10" rx="4" fill={fillAccent} />}
+          <path d="M32,54 L42,34 L76,34 L88,54 Z" fill={fillMain} />
+          <rect x="14" y="54" width="92" height="26" rx="8" fill={fillThird} />
+          {/* Tekerlekler */}
+          <circle cx="36" cy="84" r="12" fill={fillAccent} />
+          {variant !== 'one_wheel' && <circle cx="84" cy="84" r="12" fill={fillAccent} />}
+          {!isShadow && <rect x="44" y="38" width="28" height="14" rx="2" fill="#e0f2fe" />}
+        </g>
+      )}
+
+      {figure === 'mushroom_sil' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Sap */}
+          <rect x={variant === 'thin_stem' ? 52 : 44} y="58" width={variant === 'thin_stem' ? 16 : 32} height="44" rx="8" fill={fillAccent} />
+          {/* Küçük yan mantar */}
+          {variant !== 'no_mini' && <circle cx="90" cy="92" r="10" fill={fillMain} />}
+          {/* Şapka */}
+          <path d="M16,64 C16,20 104,20 104,64 Z" fill={fillThird} />
+          {!isShadow && (
+            <>
+              <circle cx="44" cy="44" r="7" fill="#ffffff" />
+              <circle cx="72" cy="40" r="8" fill="#ffffff" />
+            </>
+          )}
+        </g>
+      )}
+
+      {figure === 'sword' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Bıçak ucu */}
+          {variant === 'blunt_tip' ? (
+            <rect x="52" y="14" width="16" height="58" rx="3" fill={fillMain} />
+          ) : (
+            <polygon points="60,10 69,26 69,72 51,72 51,26" fill={fillMain} />
+          )}
+          {/* Kabza koruma */}
+          {variant !== 'no_guard' && <rect x="30" y="70" width="60" height="10" rx="5" fill={fillAccent} />}
+          {/* Sap ve topuz */}
+          <rect x="54" y="80" width="12" height="20" fill={fillThird} />
+          <circle cx="60" cy="104" r="8" fill={fillAccent} />
+        </g>
+      )}
+
+      {figure === 'flower_pot' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Saksı */}
+          <polygon points="36,72 84,72 76,106 44,106" fill={fillThird} />
+          <rect x="32" y="66" width="56" height="10" rx="3" fill={fillAccent} />
+          {/* Sap ve tek yaprak (sağda) */}
+          <rect x="57" y="38" width="6" height="28" fill={fillMain} />
+          {variant !== 'no_leaf' && <ellipse cx="76" cy="54" rx="14" ry="7" fill={fillMain} transform="rotate(-22 76 54)" />}
+          {/* Taç yapraklar */}
+          {[0, 72, 144, 216, 288].map((deg) => (
+            <circle
+              key={deg}
+              cx={60 + Math.cos((deg * Math.PI) / 180) * 14}
+              cy={30 + Math.sin((deg * Math.PI) / 180) * 14}
+              r={variant === 'small_flower' ? 5 : 9}
+              fill={fillThird}
+            />
+          ))}
+          {!isShadow && <circle cx="60" cy="30" r="8" fill="#fbbf24" />}
+        </g>
+      )}
+
+      {figure === 'penguin_sil' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Ayaklar */}
+          <ellipse cx="44" cy="100" rx="11" ry="6" fill={fillAccent} />
+          <ellipse cx="76" cy="100" rx="11" ry="6" fill={fillAccent} />
+          {/* Sağ yukarı kalkık kanat */}
+          {variant !== 'no_wing' && <ellipse cx="94" cy="54" rx="12" ry="7" fill={fillMain} transform="rotate(-32 94 54)" />}
+          {/* Sol inik kanat */}
+          <ellipse cx="26" cy="68" rx="7" ry="15" fill={fillMain} transform="rotate(14 26 68)" />
+          {/* Gövde ve gaga */}
+          <ellipse cx="60" cy="60" rx="28" ry="38" fill={fillMain} />
+          {variant !== 'no_beak' && <polygon points="84,38 102,42 84,48" fill={fillAccent} />}
+          {!isShadow && (
+            <>
+              <ellipse cx="60" cy="68" rx="18" ry="25" fill="#ffffff" />
+              <circle cx="68" cy="38" r="4" fill="#0f172a" />
+            </>
+          )}
+        </g>
+      )}
+
+      {figure === 'whale' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Su fıskiyesi */}
+          {variant !== 'no_spout' && (
+            <>
+              <path d="M46,36 Q38,20 28,22" fill="none" stroke={isShadow ? '#090d16' : '#38bdf8'} strokeWidth="5" strokeLinecap="round" />
+              <path d="M52,36 Q58,18 68,20" fill="none" stroke={isShadow ? '#090d16' : '#38bdf8'} strokeWidth="5" strokeLinecap="round" />
+            </>
+          )}
+          {/* Kuyruk */}
+          {variant !== 'round_tail' ? (
+            <polygon points="84,70 108,46 100,68 108,88" fill={fillThird} />
+          ) : (
+            <circle cx="96" cy="68" r="13" fill={fillThird} />
+          )}
+          {/* Gövde */}
+          <path d="M16,66 C16,42 54,38 78,56 C90,66 88,88 54,88 C28,88 16,80 16,66 Z" fill={fillMain} />
+          {!isShadow && <circle cx="32" cy="64" r="4" fill="#0f172a" />}
+        </g>
+      )}
+
+      {figure === 'book_stack' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Alt kitap (yatay kalın) */}
+          <rect x="18" y="76" width="84" height="24" rx="4" fill={fillMain} />
+          {!isShadow && <rect x="26" y="81" width="68" height="14" rx="2" fill="#e0f2fe" />}
+          {/* Orta kitap (hafif sağa kayık) */}
+          <rect x="26" y="52" width="76" height="24" rx="4" fill={fillThird} />
+          {!isShadow && <rect x="34" y="57" width="60" height="14" rx="2" fill="#ffe4e6" />}
+          {/* Ayraç şeridi (sağdan sarkan) */}
+          {variant !== 'no_bookmark' && (
+            <polygon points="84,76 92,76 92,108 88,101 84,108" fill={fillAccent} />
+          )}
+          {/* Üst eğik kitap */}
+          {variant !== 'two_books' && (
+            <g transform="rotate(-10 56 38)">
+              <rect x="20" y="26" width="70" height="22" rx="4" fill={fillAccent} />
+              {!isShadow && <rect x="28" y="31" width="54" height="12" rx="2" fill="#fef3c7" />}
+            </g>
+          )}
+        </g>
+      )}
+
+      {figure === 'watering_can' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Arka kulp */}
+          {variant !== 'no_handle' && (
+            <path d="M36,44 C12,38 12,84 36,84" fill="none" stroke={fillAccent} strokeWidth="8" strokeLinecap="round" />
+          )}
+          {/* Üst kulp */}
+          <path d="M38,44 C38,24 76,24 76,44" fill="none" stroke={fillThird} strokeWidth="6" strokeLinecap="round" />
+          {/* Uzun sulama borusu (sağa yukarı) */}
+          <polygon points="74,74 102,42 108,48 76,86" fill={fillMain} />
+          {/* Süzgeç başlığı */}
+          {variant !== 'no_rose' && (
+            <ellipse cx="106" cy="42" rx="8" ry="12" fill={fillAccent} transform="rotate(-42 106 42)" />
+          )}
+          {/* Gövde */}
+          <polygon points="34,44 80,44 84,96 30,96" fill={fillMain} />
+        </g>
+      )}
+
+      {figure === 'alarm_clock' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Üst tokmak */}
+          {variant !== 'no_hammer' && (
+            <>
+              <rect x="57" y="14" width="6" height="16" fill={fillThird} />
+              <rect x="46" y="12" width="28" height="6" rx="3" fill={fillAccent} />
+            </>
+          )}
+          {/* Çanlar */}
+          <circle cx="32" cy="30" r="13" fill={fillAccent} />
+          {variant !== 'one_bell' && <circle cx="88" cy="30" r="13" fill={fillAccent} />}
+          {/* Ayaklar */}
+          {variant !== 'no_feet' && (
+            <>
+              <polygon points="34,90 22,108 38,108 46,94" fill={fillThird} />
+              <polygon points="86,90 98,108 82,108 74,94" fill={fillThird} />
+            </>
+          )}
+          {/* Ana daire */}
+          <circle cx="60" cy="64" r="34" fill={fillMain} />
+          {!isShadow && (
+            <>
+              <circle cx="60" cy="64" r="26" fill="#ffffff" />
+              <line x1="60" y1="64" x2="60" y2="44" stroke="#0f172a" strokeWidth="3" strokeLinecap="round" />
+              <line x1="60" y1="64" x2="76" y2="64" stroke="#dc2626" strokeWidth="3.5" strokeLinecap="round" />
+            </>
+          )}
+        </g>
+      )}
+
+      {figure === 'backpack_sil' && (
+        <g stroke={strokeCol} strokeWidth="2.2" strokeLinejoin="round">
+          {/* Üst askı */}
+          {variant !== 'no_top_loop' && (
+            <path d="M44,28 C44,10 76,10 76,28" fill="none" stroke={fillThird} strokeWidth="7" strokeLinecap="round" />
+          )}
+          {/* Sağ yan cep */}
+          {variant !== 'no_side_pocket' && (
+            <rect x="86" y="64" width="16" height="30" rx="6" fill={fillAccent} />
+          )}
+          {/* Ana gövde */}
+          <rect x="26" y="26" width="62" height="78" rx="18" fill={fillMain} />
+          {!isShadow && (
+            <>
+              <rect x="36" y="64" width="42" height="28" rx="8" fill="#fbbf24" />
+              <circle cx="57" cy="44" r="7" fill="#fef08a" />
+            </>
+          )}
+        </g>
+      )}
     </svg>
   );
 };
@@ -380,10 +922,97 @@ const PatternTileSquareSVG: React.FC<{
   patternId: string;
   quadrant: 0 | 1 | 2 | 3 | 'option';
   piece?: string;
-}> = ({ patternId, quadrant, piece = 'exact' }) => {
+  spec?: PatternTileSpec;
+}> = ({ patternId, quadrant, piece = 'exact', spec }) => {
   // Quadrant 0=TL, 1=TR, 2=BL, 3=BR
   // Transform helpers so TL/TR/BL mirror naturally toward center (BR is target)
   const renderContent = () => {
+    if (spec) {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const baseRot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
+      const rot =
+        quadrant === 'option' && piece === 'wrong_rot'
+          ? 0
+          : quadrant === 'option' && piece === 'wrong_rot_90'
+          ? 90
+          : baseRot;
+      const bg = quadrant === 'option' && piece === 'wrong_bg' ? '#475569' : spec.bg;
+      const c1 = quadrant === 'option' && piece === 'swapped' ? spec.c2 : spec.c1;
+      const c2 = quadrant === 'option' && piece === 'swapped' ? spec.c1 : spec.c2;
+      const hideAccent = quadrant === 'option' && piece === 'missing_accent';
+
+      return (
+        <g transform={`rotate(${rot} 30 30)`}>
+          <rect width="60" height="60" fill={bg} />
+          {spec.motif === 'corner_tri' && (
+            <>
+              <polygon points="60,60 12,60 60,12" fill={c1} />
+              {!hideAccent && <circle cx="18" cy="18" r="8" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'diag_band' && (
+            <>
+              <line x1="0" y1="60" x2="60" y2="0" stroke={c1} strokeWidth="14" />
+              {!hideAccent && <rect x="40" y="40" width="16" height="16" rx="3" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'arc_ring' && (
+            <>
+              <circle cx="60" cy="60" r="46" fill="none" stroke={c1} strokeWidth="11" />
+              {!hideAccent && <circle cx="60" cy="60" r="22" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'double_stripe' && (
+            <>
+              <rect x="0" y="42" width="60" height="14" fill={c1} />
+              <rect x="42" y="0" width="14" height="60" fill={c1} />
+              {!hideAccent && <circle cx="18" cy="18" r="9" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'star_dot' && (
+            <>
+              <polygon points="60,60 22,60 60,34" fill={c1} />
+              <polygon points="60,60 34,60 60,22" fill={c2} />
+              {!hideAccent && <circle cx="16" cy="24" r="7" fill={c1} />}
+            </>
+          )}
+          {spec.motif === 'chevron_l' && (
+            <>
+              <path d="M16,60 L16,16 L60,16" fill="none" stroke={c1} strokeWidth="10" strokeLinecap="square" />
+              {!hideAccent && <circle cx="44" cy="44" r="10" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'diamond_edge' && (
+            <>
+              <polygon points="60,20 40,60 60,60" fill={c1} />
+              <polygon points="14,14 34,14 24,34" fill={c2} />
+              {!hideAccent && <circle cx="44" cy="18" r="5" fill={c1} />}
+            </>
+          )}
+          {spec.motif === 'petal_drop' && (
+            <>
+              <ellipse cx="42" cy="42" rx="22" ry="12" fill={c1} transform="rotate(-45 42 42)" />
+              {!hideAccent && <circle cx="56" cy="56" r="12" fill={c2} />}
+            </>
+          )}
+          {spec.motif === 'step_corner' && (
+            <>
+              <rect x="34" y="34" width="26" height="26" fill={c1} />
+              <rect x="16" y="44" width="18" height="16" fill={c2} />
+              {!hideAccent && <circle cx="20" cy="20" r="7" fill={c1} />}
+            </>
+          )}
+          {spec.motif === 'ring_dot' && (
+            <>
+              <circle cx="60" cy="60" r="38" fill="none" stroke={c1} strokeWidth="9" />
+              <line x1="12" y1="12" x2="36" y2="36" stroke={c2} strokeWidth="7" strokeLinecap="round" />
+              {!hideAccent && <circle cx="14" cy="44" r="6" fill={c2} />}
+            </>
+          )}
+        </g>
+      );
+    }
+
     if (patternId === 'radial_star') {
       if (quadrant === 'option') {
         if (piece === 'inverted_color') {
@@ -657,6 +1286,97 @@ const PatternTileSquareSVG: React.FC<{
       );
     }
 
+    if (patternId === 'spiral_quarter') {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const centers: Record<number, [number, number]> = {
+        0: [60, 60],
+        1: [0, 60],
+        2: [60, 0],
+        3: [0, 0],
+      };
+      let [cx, cy] = centers[qIdx];
+      if (quadrant === 'option' && piece === 'flipped') [cx, cy] = [60, 60];
+      const strokeA = quadrant === 'option' && piece === 'wrong_color' ? '#f43f5e' : '#38bdf8';
+      return (
+        <>
+          <rect width="60" height="60" fill="#0f172a" />
+          <circle cx={cx} cy={cy} r="44" fill="none" stroke={strokeA} strokeWidth="9" />
+          {!(quadrant === 'option' && piece === 'missing_ring') && (
+            <circle cx={cx} cy={cy} r="22" fill="none" stroke="#fbbf24" strokeWidth="8" />
+          )}
+        </>
+      );
+    }
+
+    if (patternId === 'sunburst_corner') {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const rot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
+      const useRot = quadrant === 'option' && piece === 'outward' ? 0 : rot;
+      const rayCol = quadrant === 'option' && piece === 'wrong_color' ? '#38bdf8' : '#fbbf24';
+      return (
+        <g transform={`rotate(${useRot} 30 30)`}>
+          <rect width="60" height="60" fill="#1e1b4b" />
+          <line x1="60" y1="60" x2="10" y2="10" stroke={rayCol} strokeWidth="6" strokeLinecap="round" />
+          <line x1="60" y1="60" x2="10" y2="42" stroke={rayCol} strokeWidth="5" strokeLinecap="round" />
+          <line x1="60" y1="60" x2="42" y2="10" stroke={rayCol} strokeWidth="5" strokeLinecap="round" />
+          {!(quadrant === 'option' && piece === 'no_core') && (
+            <circle cx="60" cy="60" r="18" fill="#f97316" />
+          )}
+        </g>
+      );
+    }
+
+    if (patternId === 'chevron_frame') {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const rot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
+      const useRot = quadrant === 'option' && piece === 'reversed' ? 0 : rot;
+      const cOut = quadrant === 'option' && piece === 'swapped' ? '#38bdf8' : '#f59e0b';
+      const cIn = quadrant === 'option' && piece === 'swapped' ? '#f59e0b' : '#38bdf8';
+      return (
+        <g transform={`rotate(${useRot} 30 30)`}>
+          <rect width="60" height="60" fill="#0f172a" />
+          <path d="M12,60 L12,12 L60,12" fill="none" stroke={cOut} strokeWidth="10" strokeLinecap="square" />
+          {!(quadrant === 'option' && piece === 'single_bar') && (
+            <path d="M34,60 L34,34 L60,34" fill="none" stroke={cIn} strokeWidth="8" strokeLinecap="square" />
+          )}
+        </g>
+      );
+    }
+
+    if (patternId === 'dot_constellation') {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const rot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
+      const useRot = quadrant === 'option' && piece === 'mirrored' ? 0 : rot;
+      const dotCol = quadrant === 'option' && piece === 'wrong_color' ? '#2dd4bf' : '#fb7185';
+      return (
+        <g transform={`rotate(${useRot} 30 30)`}>
+          <rect width="60" height="60" fill="#312e81" />
+          <line x1="16" y1="16" x2="48" y2="48" stroke="#e2e8f0" strokeWidth="3" />
+          <circle cx="16" cy="16" r="8" fill="#ffffff" />
+          <circle cx="34" cy="34" r="5" fill={dotCol} />
+          {!(quadrant === 'option' && piece === 'missing_dot') && (
+            <circle cx="48" cy="48" r="5" fill={dotCol} />
+          )}
+        </g>
+      );
+    }
+
+    if (patternId === 'clover_petal') {
+      const qIdx = quadrant === 'option' ? 3 : quadrant;
+      const rot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
+      const useRot = quadrant === 'option' && piece === 'reversed' ? 0 : rot;
+      const leafCol = quadrant === 'option' && piece === 'wrong_color' ? '#f43f5e' : '#10b981';
+      return (
+        <g transform={`rotate(${useRot} 30 30)`}>
+          <rect width="60" height="60" fill="#ecfdf5" />
+          <ellipse cx="34" cy="34" rx="22" ry="14" fill={leafCol} transform="rotate(-45 34 34)" />
+          {!(quadrant === 'option' && piece === 'no_core') && (
+            <circle cx="60" cy="60" r="13" fill="#fbbf24" />
+          )}
+        </g>
+      );
+    }
+
     // maze_corner
     const qIdx = quadrant === 'option' ? 3 : quadrant;
     const rot = qIdx === 0 ? 0 : qIdx === 1 ? 90 : qIdx === 2 ? 270 : 180;
@@ -707,7 +1427,34 @@ const PuzzleCutSVG: React.FC<{
   puzzleId: string;
   mode: 'board' | 'piece';
   piece?: string;
-}> = ({ puzzleId, mode, piece = 'exact' }) => {
+  spec?: PuzzleCutSpec;
+}> = ({ puzzleId, mode, piece = 'exact', spec }) => {
+  if (spec) {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="12" y="12" width="116" height="96" rx="8" fill={spec.boardColor} stroke="#f8fafc" strokeWidth="3" />
+          <polygon
+            points={spec.boardCutPoints}
+            fill="#e2e8f0"
+            stroke="#334155"
+            strokeWidth="2.5"
+            strokeDasharray="4,3"
+          />
+          <text x="88" y="66" textAnchor="middle" fill="#0f172a" fontSize="19" fontWeight="900">
+            ?
+          </text>
+        </svg>
+      );
+    }
+    const pts = piece === 'exact' ? spec.exactPoints : spec.wrongPoints[piece] || spec.exactPoints;
+    return (
+      <svg viewBox="0 0 120 120" className="w-20 h-20">
+        <polygon points={pts} fill={spec.pieceColor} stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
   if (puzzleId === 'step_block') {
     if (mode === 'board') {
       return (
@@ -937,6 +1684,131 @@ const PuzzleCutSVG: React.FC<{
     );
   }
 
+  if (puzzleId === 'keyhole_fit') {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="15" y="15" width="110" height="90" rx="8" fill="#0284c7" stroke="#e0f2fe" strokeWidth="3" />
+          <path d="M35,15 L105,15 L105,40 L80,40 L80,58 A16,16 0 1 1 60,58 L60,40 L35,40 Z" fill="#e2e8f0" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,3" />
+          <text x="70" y="34" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">?</text>
+        </svg>
+      );
+    }
+    const d =
+      piece === 'square_tip'
+        ? 'M25,20 L95,20 L95,45 L70,45 L70,84 L50,84 L50,45 L25,45 Z'
+        : piece === 'wide_neck'
+        ? 'M25,20 L95,20 L95,45 L82,45 A16,16 0 1 1 38,45 L25,45 Z'
+        : piece === 'no_knob'
+        ? 'M25,20 L95,20 L95,45 L25,45 Z'
+        : 'M25,20 L95,20 L95,45 L70,45 L70,63 A16,16 0 1 1 50,63 L50,45 L25,45 Z';
+    return (
+      <svg viewBox="0 0 120 110" className="w-20 h-20">
+        <path d={d} fill="#38bdf8" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (puzzleId === 'castle_battlement') {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="15" y="15" width="110" height="90" rx="8" fill="#ea580c" stroke="#ffedd5" strokeWidth="3" />
+          <polygon points="25,15 115,15 115,48 92,48 92,70 78,70 78,48 62,48 62,70 48,70 48,48 25,48" fill="#e2e8f0" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,3" />
+          <text x="70" y="38" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">?</text>
+        </svg>
+      );
+    }
+    const pts =
+      piece === 'one_tooth'
+        ? '15,25 105,25 105,58 70,58 70,80 50,80 50,58 15,58'
+        : piece === 'flat'
+        ? '15,25 105,25 105,58 15,58'
+        : piece === 'too_deep'
+        ? '15,25 105,25 105,58 84,58 84,96 68,96 68,58 52,58 52,96 36,96 36,58 15,58'
+        : '15,25 105,25 105,58 82,58 82,80 68,80 68,58 52,58 52,80 38,80 38,58 15,58';
+    return (
+      <svg viewBox="0 0 120 110" className="w-20 h-20">
+        <polygon points={pts} fill="#fb923c" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (puzzleId === 'wave_ribbon') {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="15" y="15" width="110" height="90" rx="8" fill="#7c3aed" stroke="#ede9fe" strokeWidth="3" />
+          <path d="M15,62 Q42,42 70,62 Q98,82 125,62 L125,105 L15,105 Z" fill="#e2e8f0" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,3" />
+          <text x="70" y="92" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">?</text>
+        </svg>
+      );
+    }
+    const d =
+      piece === 'reversed'
+        ? 'M10,50 Q38,70 65,50 Q92,30 120,50 L120,90 L10,90 Z'
+        : piece === 'straight'
+        ? 'M10,50 L120,50 L120,90 L10,90 Z'
+        : piece === 'zigzag'
+        ? 'M10,50 L38,32 L65,50 L92,68 L120,50 L120,90 L10,90 Z'
+        : 'M10,50 Q38,30 65,50 Q92,70 120,50 L120,90 L10,90 Z';
+    return (
+      <svg viewBox="0 0 130 110" className="w-20 h-20">
+        <path d={d} fill="#a78bfa" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (puzzleId === 'diamond_corner') {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="15" y="15" width="110" height="90" rx="8" fill="#10b981" stroke="#d1fae5" strokeWidth="3" />
+          <polygon points="55,15 125,15 125,85 95,55 82,68 72,42" fill="#e2e8f0" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,3" />
+          <text x="102" y="42" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">?</text>
+        </svg>
+      );
+    }
+    const pts =
+      piece === 'flat_edge'
+        ? '45,15 115,15 115,85'
+        : piece === 'mirrored'
+        ? '15,15 85,15 68,42 58,68 45,55 15,85'
+        : piece === 'inward'
+        ? '45,15 115,15 115,85 88,58 98,42 75,38'
+        : '45,15 115,15 115,85 85,55 72,68 62,42';
+    return (
+      <svg viewBox="0 0 130 110" className="w-20 h-20">
+        <polygon points={pts} fill="#34d399" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (puzzleId === 'triple_tooth') {
+    if (mode === 'board') {
+      return (
+        <svg viewBox="0 0 140 120" className="w-full max-w-[190px] h-auto mx-auto">
+          <rect x="15" y="15" width="110" height="90" rx="8" fill="#e11d48" stroke="#ffe4e6" strokeWidth="3" />
+          <polygon points="80,15 125,15 125,105 80,105 80,92 60,92 60,78 80,78 80,66 60,66 60,52 80,52 80,40 60,40 60,26 80,26" fill="#e2e8f0" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,3" />
+          <text x="102" y="66" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="900">?</text>
+        </svg>
+      );
+    }
+    const pts =
+      piece === 'two_teeth'
+        ? '60,15 105,15 105,105 60,105 60,82 40,82 40,66 60,66 60,48 40,48 40,32 60,32'
+        : piece === 'mirrored'
+        ? '15,15 60,15 60,26 80,26 80,40 60,40 60,52 80,52 80,66 60,66 60,78 80,78 80,92 60,92 60,105 15,105'
+        : piece === 'round'
+        ? '60,15 105,15 105,105 60,105 46,85 60,60 46,35'
+        : '60,15 105,15 105,105 60,105 60,92 40,92 40,78 60,78 60,66 40,66 40,52 60,52 60,40 40,40 40,26 60,26';
+    return (
+      <svg viewBox="0 0 120 120" className="w-20 h-20">
+        <polygon points={pts} fill="#fb7185" stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
   // zigzag_piece
   if (mode === 'board') {
     return (
@@ -965,7 +1837,230 @@ const PuzzleCutSVG: React.FC<{
 // ============================================================================
 // ŞEKİL-ZEMİN AYRIMI & GÖMÜLÜ ŞEKİL BULMA
 // ============================================================================
-const EmbeddedShapeSVG: React.FC<{ sceneId: string; compact?: boolean }> = ({ sceneId, compact = false }) => {
+const EmbeddedShapeSVG: React.FC<{
+  sceneId: string;
+  compact?: boolean;
+  spec?: EmbeddedSceneSpec;
+}> = ({ sceneId, compact = false, spec }) => {
+  if (spec) {
+    if (spec.mode === 'count_shapes') {
+      const count = spec.countValue || 4;
+      const kind = spec.countKind || 'triangles';
+      const col = spec.strokeColor || '#0284c7';
+      return (
+        <svg viewBox="0 0 180 150" className="w-full max-w-[230px] h-auto mx-auto">
+          {kind === 'triangles' && (
+            <>
+              <polygon points="90,14 162,132 18,132" fill="rgba(14,165,233,0.10)" stroke={col} strokeWidth="3.2" strokeLinejoin="round" />
+              {Array.from({ length: Math.max(0, count - 1) }).map((_, i) => {
+                const y = 38 + i * (76 / Math.max(1, count - 1));
+                const t = (y - 14) / 118;
+                const halfW = t * 72;
+                return (
+                  <line
+                    key={i}
+                    x1={90 - halfW}
+                    y1={y}
+                    x2={90 + halfW}
+                    y2={y}
+                    stroke="#d97706"
+                    strokeWidth="2.6"
+                  />
+                );
+              })}
+            </>
+          )}
+          {kind === 'squares' && (
+            <>
+              {Array.from({ length: count }).map((_, i) => {
+                const s = 114 - i * 14;
+                const x = 90 - s / 2 + (i % 2 === 0 ? -4 : 4);
+                const y = 75 - s / 2;
+                return (
+                  <rect
+                    key={i}
+                    x={x}
+                    y={y}
+                    width={s}
+                    height={s}
+                    fill={i % 2 === 0 ? 'rgba(16,185,129,0.10)' : 'rgba(245,158,11,0.10)'}
+                    stroke={i % 2 === 0 ? '#059669' : '#d97706'}
+                    strokeWidth="2.8"
+                  />
+                );
+              })}
+            </>
+          )}
+          {kind === 'circles' && (
+            <>
+              {Array.from({ length: count }).map((_, i) => {
+                const r = 58 - i * 7;
+                const cx = 90 + (i % 2 === 0 ? -5 : 5);
+                return (
+                  <circle
+                    key={i}
+                    cx={cx}
+                    cy={75}
+                    r={Math.max(8, r)}
+                    fill="rgba(56,189,248,0.08)"
+                    stroke={i % 2 === 0 ? col : '#e11d48'}
+                    strokeWidth="2.8"
+                  />
+                );
+              })}
+            </>
+          )}
+          {kind === 'diamonds' && (
+            <>
+              {Array.from({ length: count }).map((_, i) => {
+                const rx = 64 - i * 8;
+                const ry = 56 - i * 7;
+                return (
+                  <polygon
+                    key={i}
+                    points={`90,${75 - ry} ${90 + rx},75 90,${75 + ry} ${90 - rx},75`}
+                    fill="rgba(168,85,247,0.08)"
+                    stroke={i % 2 === 0 ? '#7e22ce' : '#0284c7'}
+                    strokeWidth="2.8"
+                  />
+                );
+              })}
+            </>
+          )}
+          {kind === 'stars' && (
+            <>
+              <rect x="20" y="16" width="140" height="118" rx="10" fill="rgba(248,250,252,0.8)" stroke="#94a3b8" strokeWidth="2" />
+              <line x1="20" y1="75" x2="160" y2="75" stroke="#cbd5e1" strokeWidth="1.8" strokeDasharray="4,3" />
+              <line x1="90" y1="16" x2="90" y2="134" stroke="#cbd5e1" strokeWidth="1.8" strokeDasharray="4,3" />
+              {Array.from({ length: count }).map((_, i) => {
+                const pts: [number, number][] = [
+                  [50, 42],
+                  [128, 44],
+                  [52, 106],
+                  [126, 106],
+                  [90, 75],
+                  [88, 36],
+                  [92, 114],
+                ];
+                const [sx, sy] = pts[i % pts.length];
+                return (
+                  <g key={i} transform={`translate(${sx - 12}, ${sy - 12}) scale(0.5)`}>
+                    <polygon
+                      points="24,5 29.5,17 42,18.5 32.5,27.5 35,40.5 24,34 13,40.5 15.5,27.5 6,18.5 18.5,17"
+                      fill="none"
+                      stroke="#d97706"
+                      strokeWidth="4.2"
+                    />
+                  </g>
+                );
+              })}
+            </>
+          )}
+        </svg>
+      );
+    }
+
+    const wirePaths: Record<string, string> = {
+      house_frame: 'M34,82 L34,46 L60,22 L86,46 L86,82',
+      z_bolt: 'M28,24 L92,24 L28,76 L92,76',
+      flag_pole: 'M38,84 L38,20 L90,36 L38,54',
+      m_crown: 'M24,80 L24,24 L60,54 L96,24 L96,80',
+      arrow_right: 'M22,50 L92,50 M68,26 L92,50 L68,74',
+      hourglass: 'M32,22 L88,22 L32,78 L88,78 L32,22',
+      umbrella: 'M26,48 A34,28 0 0 1 94,48 Z M60,48 L60,78 A8,8 0 0 0 76,78',
+      kite_tail: 'M60,16 L86,42 L60,68 L34,42 Z M60,68 L74,84',
+      sailboat_frame: 'M58,18 L58,74 M58,20 L26,64 L58,64 M22,74 L94,74 L82,88 L34,88 Z',
+      lightning: 'M68,14 L34,54 L60,54 L46,88 L88,46 L62,46 Z',
+      bowtie: 'M26,26 L94,74 L94,26 L26,74 Z',
+      hook_j: 'M42,20 L82,20 M66,20 L66,72 A14,14 0 0 1 38,72',
+      diamond_cross: 'M60,16 L96,50 L60,84 L24,50 Z M60,16 L60,84',
+      double_tri: 'M24,78 L58,24 L58,78 L96,24 L96,78',
+      tree_branch: 'M60,84 L60,18 M60,52 L88,30 M60,64 L32,46',
+      key_line: 'M36,50 A14,14 0 1 0 36,49.9 M50,50 L94,50 M78,50 L78,66 M90,50 L90,62',
+      pentagon_cut: 'M60,18 L92,44 L80,82 L40,82 L28,44 Z',
+      fish_wire: 'M24,50 Q52,22 80,50 Q52,78 24,50 Z M80,50 L98,34 L98,66 Z',
+      cup_handle: 'M32,26 L76,26 L72,78 L36,78 Z M76,38 C94,38 94,64 74,64',
+      stair_step: 'M22,78 L44,78 L44,58 L66,58 L66,38 L88,38 L88,20',
+    };
+
+    const brokenPaths: Record<string, string> = {
+      house_frame: 'M34,82 L60,22 L86,82',
+      z_bolt: 'M28,24 L92,24 L92,76 L28,76',
+      flag_pole: 'M38,84 L38,20 L90,20 L90,54 L38,54',
+      m_crown: 'M24,80 L60,24 L96,80',
+      arrow_right: 'M28,26 L92,50 L28,74 Z',
+      hourglass: 'M32,22 L88,22 L88,78 L32,78 Z',
+      umbrella: 'M26,48 L94,48 L60,20 Z M60,48 L60,80',
+      kite_tail: 'M34,26 L86,26 L86,76 L34,76 Z',
+      sailboat_frame: 'M26,74 L94,74 L60,22 Z',
+      lightning: 'M32,24 L88,24 L60,82 Z',
+      bowtie: 'M26,26 L94,26 L60,78 Z',
+      hook_j: 'M36,20 L36,80 L84,80',
+      diamond_cross: 'M28,26 L92,26 L92,74 L28,74 Z',
+      double_tri: 'M24,78 L60,22 L96,78 Z',
+      tree_branch: 'M60,84 L60,18 M30,50 L90,50',
+      key_line: 'M26,50 L94,50 M60,30 L60,70',
+      pentagon_cut: 'M28,26 L92,26 L92,78 L28,78 Z',
+      fish_wire: 'M26,50 A34,24 0 1 0 94,50 A34,24 0 1 0 26,50',
+      cup_handle: 'M32,26 L84,26 L84,78 L32,78 Z',
+      stair_step: 'M22,78 L88,20',
+    };
+
+    const pathD =
+      spec.variant === 'broken'
+        ? brokenPaths[spec.kind || 'house_frame'] || wirePaths.house_frame
+        : wirePaths[spec.kind || 'house_frame'] || wirePaths.house_frame;
+    const strokeCol = spec.strokeColor || (spec.mode === 'target' ? '#d97706' : '#0284c7');
+    const transform =
+      spec.variant === 'flipX'
+        ? 'translate(120, 0) scale(-1, 1)'
+        : spec.variant === 'flipY'
+        ? 'translate(0, 100) scale(1, -1)'
+        : undefined;
+
+    return (
+      <svg viewBox="0 0 120 100" className={compact ? 'w-24 h-20' : 'w-28 h-24 mx-auto'}>
+        {spec.mode === 'clutter' && (
+          <g stroke="#94a3b8" strokeWidth="1.8" fill="none">
+            {spec.clutterFrame === 'circle' ? (
+              <>
+                <circle cx="60" cy="50" r="36" />
+                <line x1="20" y1="50" x2="100" y2="50" />
+              </>
+            ) : spec.clutterFrame === 'diag' ? (
+              <>
+                <rect x="18" y="16" width="84" height="68" />
+                <line x1="18" y1="16" x2="102" y2="84" />
+                <line x1="102" y1="16" x2="18" y2="84" />
+              </>
+            ) : spec.clutterFrame === 'hex' ? (
+              <>
+                <polygon points="60,12 96,31 96,69 60,88 24,69 24,31" />
+                <line x1="24" y1="50" x2="96" y2="50" />
+              </>
+            ) : (
+              <>
+                <rect x="18" y="16" width="84" height="68" />
+                <line x1="18" y1="50" x2="102" y2="50" />
+                <line x1="60" y1="16" x2="60" y2="84" />
+              </>
+            )}
+          </g>
+        )}
+        <g transform={transform}>
+          <path
+            d={pathD}
+            fill="none"
+            stroke={strokeCol}
+            strokeWidth={spec.mode === 'target' ? 4.8 : 3.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      </svg>
+    );
+  }
+
   if (sceneId === 'triangles_count') {
     return (
       <svg viewBox="0 0 180 150" className="w-full max-w-[230px] h-auto mx-auto">
@@ -1166,6 +2261,109 @@ const EmbeddedShapeSVG: React.FC<{ sceneId: string; compact?: boolean }> = ({ sc
       </svg>
     );
   }
+  if (sceneId === 'window_squares_count') {
+    return (
+      <svg viewBox="0 0 180 150" className="w-full max-w-[230px] h-auto mx-auto">
+        <rect x="35" y="20" width="110" height="110" fill="rgba(14,165,233,0.12)" stroke="#0284c7" strokeWidth="4" />
+        <line x1="90" y1="20" x2="90" y2="130" stroke="#0284c7" strokeWidth="3.5" />
+        <line x1="35" y1="75" x2="145" y2="75" stroke="#0284c7" strokeWidth="3.5" />
+      </svg>
+    );
+  }
+  if (sceneId === 'hexagons_overlap_count') {
+    return (
+      <svg viewBox="0 0 180 150" className="w-full max-w-[230px] h-auto mx-auto">
+        <polygon points="90,12 152,43 152,107 90,138 28,107 28,43" fill="rgba(168,85,247,0.12)" stroke="#7e22ce" strokeWidth="3.5" />
+        <polygon points="90,32 130,53 130,97 90,118 50,97 50,53" fill="rgba(14,165,233,0.12)" stroke="#0284c7" strokeWidth="3" />
+        <polygon points="90,52 110,63 110,87 90,98 70,87 70,63" fill="rgba(245,158,11,0.14)" stroke="#d97706" strokeWidth="3" />
+      </svg>
+    );
+  }
+  if (sceneId === 'find_embedded_crown') {
+    return (
+      <svg viewBox="0 0 120 100" className="w-28 h-24 mx-auto">
+        <polygon points="24,78 24,38 42,58 60,24 78,58 96,38 96,78" fill="none" stroke="#d97706" strokeWidth="4.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (sceneId.startsWith('crown_')) {
+    const isMatch = sceneId === 'crown_C_match';
+    return (
+      <svg viewBox="0 0 120 100" className={compact ? 'w-24 h-20' : 'w-28 h-24'}>
+        <rect x="20" y="20" width="80" height="62" fill="none" stroke="#94a3b8" strokeWidth="2" />
+        <line x1="20" y1="50" x2="100" y2="50" stroke="#94a3b8" strokeWidth="2" />
+        {isMatch ? (
+          <polygon points="24,78 24,38 42,58 60,24 78,58 96,38 96,78" fill="none" stroke="#0284c7" strokeWidth="3.2" strokeLinejoin="round" />
+        ) : sceneId === 'crown_A' ? (
+          <polygon points="24,78 24,38 60,64 96,38 96,78" fill="none" stroke="#0284c7" strokeWidth="3.2" />
+        ) : sceneId === 'crown_B' ? (
+          <polygon points="24,24 24,64 42,44 60,78 78,44 96,64 96,24" fill="none" stroke="#0284c7" strokeWidth="3.2" />
+        ) : (
+          <polygon points="24,78 60,24 96,78" fill="none" stroke="#0284c7" strokeWidth="3.2" />
+        )}
+      </svg>
+    );
+  }
+  if (sceneId === 'find_embedded_hourglass') {
+    return (
+      <svg viewBox="0 0 120 100" className="w-28 h-24 mx-auto">
+        <polygon points="30,22 90,22 30,78 90,78" fill="none" stroke="#d97706" strokeWidth="4.5" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (sceneId.startsWith('hg_')) {
+    const isMatch = sceneId === 'hg_A_match';
+    return (
+      <svg viewBox="0 0 120 100" className={compact ? 'w-24 h-20' : 'w-28 h-24'}>
+        <circle cx="60" cy="50" r="36" fill="none" stroke="#94a3b8" strokeWidth="2" />
+        <line x1="60" y1="14" x2="60" y2="86" stroke="#94a3b8" strokeWidth="2" />
+        {isMatch ? (
+          <polygon points="30,22 90,22 30,78 90,78" fill="none" stroke="#7e22ce" strokeWidth="3.2" strokeLinejoin="round" />
+        ) : sceneId === 'hg_B' ? (
+          <polygon points="30,22 90,22 90,78 30,78" fill="none" stroke="#7e22ce" strokeWidth="3.2" />
+        ) : sceneId === 'hg_C' ? (
+          <polygon points="30,22 90,50 30,78" fill="none" stroke="#7e22ce" strokeWidth="3.2" />
+        ) : (
+          <polygon points="60,20 92,50 60,80 28,50" fill="none" stroke="#7e22ce" strokeWidth="3.2" />
+        )}
+      </svg>
+    );
+  }
+  if (sceneId === 'find_embedded_umbrella') {
+    return (
+      <svg viewBox="0 0 120 100" className="w-28 h-24 mx-auto">
+        <path d="M26,48 A34,30 0 0 1 94,48 Z" fill="none" stroke="#d97706" strokeWidth="4.5" strokeLinejoin="round" />
+        <path d="M60,48 L60,78 A8,8 0 0 0 76,78" fill="none" stroke="#d97706" strokeWidth="4.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (sceneId.startsWith('umb_')) {
+    const isMatch = sceneId === 'umb_D_match';
+    return (
+      <svg viewBox="0 0 120 100" className={compact ? 'w-24 h-20' : 'w-28 h-24'}>
+        <rect x="20" y="16" width="80" height="70" fill="none" stroke="#94a3b8" strokeWidth="2" />
+        <line x1="20" y1="48" x2="100" y2="48" stroke="#94a3b8" strokeWidth="2" />
+        {isMatch ? (
+          <>
+            <path d="M26,48 A34,30 0 0 1 94,48 Z" fill="none" stroke="#059669" strokeWidth="3.2" strokeLinejoin="round" />
+            <path d="M60,48 L60,78 A8,8 0 0 0 76,78" fill="none" stroke="#059669" strokeWidth="3.2" strokeLinecap="round" />
+          </>
+        ) : sceneId === 'umb_A' ? (
+          <>
+            <path d="M26,48 A34,30 0 0 1 94,48 Z" fill="none" stroke="#059669" strokeWidth="3.2" />
+            <path d="M60,48 L60,78 A8,8 0 0 1 44,78" fill="none" stroke="#059669" strokeWidth="3.2" />
+          </>
+        ) : sceneId === 'umb_B' ? (
+          <>
+            <path d="M26,56 A34,30 0 0 0 94,56 Z" fill="none" stroke="#059669" strokeWidth="3.2" />
+            <line x1="60" y1="22" x2="60" y2="56" stroke="#059669" strokeWidth="3.2" />
+          </>
+        ) : (
+          <circle cx="60" cy="48" r="28" fill="none" stroke="#059669" strokeWidth="3.2" />
+        )}
+      </svg>
+    );
+  }
   return null;
 };
 
@@ -1176,7 +2374,8 @@ const MirrorFigureSVG: React.FC<{
   figureId: string;
   transform?: 'same' | 'reflectX' | 'reflectY' | 'rotate180';
   compact?: boolean;
-}> = ({ figureId, transform = 'same', compact = false }) => {
+  spec?: MirrorMosaicSpec;
+}> = ({ figureId, transform = 'same', compact = false, spec }) => {
   const cssTransform =
     transform === 'reflectX'
       ? 'scale(-1, 1)'
@@ -1192,7 +2391,48 @@ const MirrorFigureSVG: React.FC<{
       className={compact ? 'w-20 h-20' : 'w-24 h-24 sm:w-28 sm:h-28'}
       style={cssTransform ? { transform: cssTransform } : undefined}
     >
-      {figureId === 'flag_arrow' && (
+      {spec && (
+        <g stroke="#94a3b8" strokeWidth="1.6">
+          {spec.cells.map((col, idx) => {
+            const r = Math.floor(idx / 3);
+            const c = idx % 3;
+            const x = 14 + c * 25;
+            const y = 14 + r * 25;
+            const fill = col || '#e2e8f0';
+            const ac = spec.accentCorner && spec.accentCorner.idx === idx ? spec.accentCorner : null;
+            return (
+              <g key={idx}>
+                <rect
+                  x={x}
+                  y={y}
+                  width="22"
+                  height="22"
+                  rx="3.5"
+                  fill={fill}
+                  stroke={col ? '#0f172a' : '#94a3b8'}
+                />
+                {ac && (
+                  <polygon
+                    points={
+                      ac.corner === 'tl'
+                        ? `${x},${y} ${x + 12},${y} ${x},${y + 12}`
+                        : ac.corner === 'tr'
+                        ? `${x + 22},${y} ${x + 10},${y} ${x + 22},${y + 12}`
+                        : ac.corner === 'bl'
+                        ? `${x},${y + 22} ${x + 12},${y + 22} ${x},${y + 10}`
+                        : `${x + 22},${y + 22} ${x + 10},${y + 22} ${x + 22},${y + 10}`
+                    }
+                    fill={ac.color}
+                    stroke="#0f172a"
+                    strokeWidth="1"
+                  />
+                )}
+              </g>
+            );
+          })}
+        </g>
+      )}
+      {!spec && figureId === 'flag_arrow' && (
         <g stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round">
           {/* Asimetrik: sol dikey mavi blok, üstten sağa ok bayrağı, sağ alt köşede kırmızı nokta */}
           <rect x="20" y="16" width="14" height="68" rx="4" fill="#38bdf8" />
@@ -1259,6 +2499,63 @@ const MirrorFigureSVG: React.FC<{
           />
           <polygon points="20,26 36,16 36,36" fill="#fbbf24" />
           <circle cx="46" cy="80" r="8" fill="#10b981" />
+        </g>
+      )}
+
+      {figureId === 'rocket_tilt' && (
+        <g stroke="#0f172a" strokeWidth="2.4" strokeLinejoin="round">
+          {/* Sağa doğru eğimli roket + sol üstte yıldız */}
+          <g transform="translate(54, 52) rotate(35)">
+            <path d="M0,-34 C12,-18 14,4 14,26 L-14,26 C-14,4 -12,-18 0,-34 Z" fill="#38bdf8" />
+            <polygon points="-14,10 -24,28 -14,24" fill="#f43f5e" />
+            <polygon points="14,10 24,28 14,24" fill="#f43f5e" />
+            <circle cx="0" cy="-4" r="6" fill="#fef08a" />
+          </g>
+          <polygon points="22,16 25,22 31,23 26,27 28,33 22,30 16,33 18,27 13,23 19,22" fill="#f59e0b" />
+        </g>
+      )}
+
+      {figureId === 'stairs_dot' && (
+        <g stroke="#0f172a" strokeWidth="2.3" strokeLinejoin="round">
+          {/* Soldan sağa yükselen 3 basamak + en tepede kırmızı bayrak */}
+          <rect x="16" y="64" width="22" height="22" rx="3" fill="#38bdf8" />
+          <rect x="38" y="42" width="22" height="44" rx="3" fill="#10b981" />
+          <rect x="60" y="20" width="22" height="66" rx="3" fill="#f59e0b" />
+          <polygon points="60,20 42,27 60,34" fill="#f43f5e" />
+        </g>
+      )}
+
+      {figureId === 'key_asym' && (
+        <g stroke="#0f172a" strokeWidth="2.4" strokeLinejoin="round">
+          <circle cx="28" cy="48" r="15" fill="#fbbf24" />
+          <circle cx="28" cy="48" r="5" fill="#ffffff" />
+          <rect x="42" y="43" width="44" height="10" rx="3" fill="#fbbf24" />
+          <rect x="62" y="53" width="7" height="18" fill="#f43f5e" />
+          <rect x="76" y="53" width="7" height="11" fill="#38bdf8" />
+        </g>
+      )}
+
+      {figureId === 'pixel_4x4' && (
+        <g stroke="#94a3b8" strokeWidth="1.4">
+          {[
+            ['#f43f5e', '#e2e8f0', '#e2e8f0', '#10b981'],
+            ['#e2e8f0', '#38bdf8', '#e2e8f0', '#10b981'],
+            ['#e2e8f0', '#38bdf8', '#fbbf24', '#10b981'],
+            ['#a855f7', '#e2e8f0', '#e2e8f0', '#e2e8f0'],
+          ].map((row, r) =>
+            row.map((col, c) => (
+              <rect
+                key={`${r}-${c}`}
+                x={12 + c * 20}
+                y={12 + r * 20}
+                width="18"
+                height="18"
+                rx="3"
+                fill={col}
+                stroke={col === '#e2e8f0' ? '#94a3b8' : '#0f172a'}
+              />
+            ))
+          )}
         </g>
       )}
     </svg>
@@ -1367,12 +2664,17 @@ const IsometricLabeledCubeSVG: React.FC<{
 };
 
 const TopViewGridSVG: React.FC<{ grid: number[][] }> = ({ grid }) => {
+  const cols = grid[0]?.length || 2;
   return (
-    <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-xl bg-slate-200 border border-slate-300">
+    <div
+      className={`grid gap-1.5 p-1.5 rounded-xl bg-slate-200 border border-slate-300 ${
+        cols === 3 ? 'grid-cols-3' : 'grid-cols-2'
+      }`}
+    >
       {grid.flat().map((val, idx) => (
         <div
           key={idx}
-          className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm tabular-nums border ${
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs sm:text-sm tabular-nums border ${
             val === 0
               ? 'bg-white border-dashed border-slate-400 text-slate-400'
               : val >= 3
@@ -1383,6 +2685,246 @@ const TopViewGridSVG: React.FC<{ grid: number[][] }> = ({ grid }) => {
           {val}
         </div>
       ))}
+    </div>
+  );
+};
+
+// ============================================================================
+// KAĞIT KATLAMA & DELİK AÇMA / ŞEKİL BİRLEŞTİRME / YÖN ALGORİTMASI SVG'LERİ
+// ============================================================================
+const renderPaperHole = (
+  h: { x: number; y: number; shape?: 'circle' | 'diamond' | 'triangle' },
+  idx: number
+) => {
+  if (h.shape === 'diamond') {
+    return (
+      <polygon
+        key={idx}
+        points={`${h.x},${h.y - 7.5} ${h.x + 7.5},${h.y} ${h.x},${h.y + 7.5} ${h.x - 7.5},${h.y}`}
+        fill="#0f172a"
+        stroke="#0f172a"
+        strokeWidth="1.2"
+      />
+    );
+  }
+  if (h.shape === 'triangle') {
+    return (
+      <polygon
+        key={idx}
+        points={`${h.x},${h.y - 7} ${h.x + 7},${h.y + 6} ${h.x - 7},${h.y + 6}`}
+        fill="#0f172a"
+        stroke="#0f172a"
+        strokeWidth="1.2"
+      />
+    );
+  }
+  return <circle key={idx} cx={h.x} cy={h.y} r="6.8" fill="#0f172a" />;
+};
+
+const PaperFoldQuestionSVG: React.FC<{
+  foldType: 'half_v' | 'half_h' | 'quarter' | 'diag_tr';
+  holes: { x: number; y: number; shape?: 'circle' | 'diamond' | 'triangle' }[];
+}> = ({ foldType, holes }) => {
+  return (
+    <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap">
+      {/* Adım 1: Katlama Yönü */}
+      <div className="p-1.5 sm:p-2 rounded-xl bg-white border border-slate-300 shadow-sm flex flex-col items-center gap-1">
+        <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20">
+          <rect x="6" y="6" width="88" height="88" rx="6" fill="#f8fafc" stroke="#334155" strokeWidth="2.5" />
+          {(foldType === 'half_v' || foldType === 'quarter') && (
+            <>
+              <line x1="50" y1="6" x2="50" y2="94" stroke="#0284c7" strokeWidth="2.2" strokeDasharray="4 3" />
+              <path d="M78,34 Q62,22 44,34" fill="none" stroke="#0284c7" strokeWidth="2.4" strokeLinecap="round" />
+              <polygon points="41,34 48,29 48,39" fill="#0284c7" />
+            </>
+          )}
+          {(foldType === 'half_h' || foldType === 'quarter') && (
+            <>
+              <line x1="6" y1="50" x2="94" y2="50" stroke="#e11d48" strokeWidth="2.2" strokeDasharray="4 3" />
+              <path d="M34,76 Q22,62 34,44" fill="none" stroke="#e11d48" strokeWidth="2.4" strokeLinecap="round" />
+              <polygon points="34,40 29,48 39,48" fill="#e11d48" />
+            </>
+          )}
+          {foldType === 'diag_tr' && (
+            <>
+              <line x1="6" y1="6" x2="94" y2="94" stroke="#7c3aed" strokeWidth="2.2" strokeDasharray="4 3" />
+              <path d="M26,74 Q42,58 64,34" fill="none" stroke="#7c3aed" strokeWidth="2.4" strokeLinecap="round" />
+              <polygon points="67,31 58,34 64,40" fill="#7c3aed" />
+            </>
+          )}
+        </svg>
+        <span className="text-[10px] font-bold text-slate-600">Katla</span>
+      </div>
+
+      <span className="text-sky-600 font-black text-base sm:text-lg">→</span>
+
+      {/* Adım 2: Delik Açma */}
+      <div className="p-1.5 sm:p-2 rounded-xl bg-white border border-slate-300 shadow-sm flex flex-col items-center gap-1">
+        <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20">
+          <rect x="6" y="6" width="88" height="88" rx="6" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 3" />
+          {foldType === 'half_v' && (
+            <rect x="6" y="6" width="44" height="88" rx="4" fill="#bae6fd" stroke="#0284c7" strokeWidth="2.5" />
+          )}
+          {foldType === 'half_h' && (
+            <rect x="6" y="6" width="88" height="44" rx="4" fill="#bae6fd" stroke="#0284c7" strokeWidth="2.5" />
+          )}
+          {foldType === 'quarter' && (
+            <rect x="6" y="6" width="44" height="44" rx="4" fill="#bae6fd" stroke="#0284c7" strokeWidth="2.5" />
+          )}
+          {foldType === 'diag_tr' && (
+            <polygon points="6,6 94,6 94,94" fill="#bae6fd" stroke="#0284c7" strokeWidth="2.5" strokeLinejoin="round" />
+          )}
+          {holes.map((h, i) => renderPaperHole(h, i))}
+        </svg>
+        <span className="text-[10px] font-bold text-slate-600">Del</span>
+      </div>
+
+      <span className="text-sky-600 font-black text-base sm:text-lg">→</span>
+
+      {/* Adım 3: Açılmışı */}
+      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-amber-50 border-2 border-dashed border-amber-500 flex flex-col items-center justify-center">
+        <span className="text-2xl font-black text-amber-600 leading-none">?</span>
+        <span className="text-[10px] font-bold text-amber-700 mt-1">Aç</span>
+      </div>
+    </div>
+  );
+};
+
+const PaperUnfoldedSVG: React.FC<{
+  holes: { x: number; y: number; shape?: 'circle' | 'diamond' | 'triangle' }[];
+  foldLine?: 'v' | 'h' | 'vh' | 'diag';
+}> = ({ holes, foldLine }) => (
+  <svg viewBox="0 0 100 100" className="w-16 h-16 sm:w-20 sm:h-20">
+    <rect x="6" y="6" width="88" height="88" rx="6" fill="#e0f2fe" stroke="#0284c7" strokeWidth="2.4" />
+    {(foldLine === 'v' || foldLine === 'vh') && (
+      <line x1="50" y1="6" x2="50" y2="94" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
+    )}
+    {(foldLine === 'h' || foldLine === 'vh') && (
+      <line x1="6" y1="50" x2="94" y2="50" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
+    )}
+    {foldLine === 'diag' && (
+      <line x1="6" y1="6" x2="94" y2="94" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
+    )}
+    {holes.map((h, i) => renderPaperHole(h, i))}
+  </svg>
+);
+
+const MiniOverlayGridSVG: React.FC<{
+  gridSize: number;
+  cells: { idx: number; color?: string }[];
+  sizeClass?: string;
+}> = ({ gridSize, cells, sizeClass = 'w-16 h-16 sm:w-20 sm:h-20' }) => {
+  const cellMap = new Map(cells.map((c) => [c.idx, c.color || '#0284c7']));
+  return (
+    <div
+      className={`grid gap-1 p-1.5 rounded-xl bg-slate-200 border border-slate-300 ${sizeClass}`}
+      style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+    >
+      {Array.from({ length: gridSize * gridSize }).map((_, idx) => {
+        const col = cellMap.get(idx);
+        return (
+          <div
+            key={idx}
+            className="rounded-md bg-white border border-slate-300 flex items-center justify-center"
+          >
+            {col && (
+              <div
+                className="w-3/5 h-3/5 rounded-full border border-slate-900/40 shadow-sm"
+                style={{ backgroundColor: col }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const GridPathSceneSVG: React.FC<{
+  size: number;
+  start: [number, number];
+  moves: { dir: 'R' | 'L' | 'U' | 'D'; steps: number }[];
+  targets?: { row: number; col: number; shape: ShapeKind; color: string }[];
+  showCoords?: boolean;
+}> = ({ size, start, moves, targets = [], showCoords = false }) => {
+  const cols = ['A', 'B', 'C', 'D', 'E'].slice(0, size);
+  const dirArrow: Record<'R' | 'L' | 'U' | 'D', string> = {
+    R: '→',
+    L: '←',
+    U: '↑',
+    D: '↓',
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-2.5 sm:gap-4 flex-wrap bg-white rounded-2xl border border-slate-300 p-2 sm:p-3 shadow-sm">
+      <div className="flex flex-col items-center">
+        {showCoords && (
+          <div className="flex ml-5 mb-0.5 gap-1">
+            {cols.map((c) => (
+              <span key={c} className={`${size >= 5 ? 'w-7' : 'w-8'} sm:w-9 text-center text-[10px] font-black text-slate-500`}>
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center">
+          {showCoords && (
+            <div className="flex flex-col gap-1 mr-1">
+              {Array.from({ length: size }).map((_, r) => (
+                <span
+                  key={r}
+                  className={`${size >= 5 ? 'h-7' : 'h-8'} sm:h-9 flex items-center justify-center text-[10px] font-black text-slate-500 w-4`}
+                >
+                  {r + 1}
+                </span>
+              ))}
+            </div>
+          )}
+          <div
+            className="grid gap-1 p-1 rounded-xl bg-slate-200 border border-slate-300"
+            style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+          >
+            {Array.from({ length: size * size }).map((_, flatIdx) => {
+              const r = Math.floor(flatIdx / size);
+              const c = flatIdx % size;
+              const isStart = start[0] === r && start[1] === c;
+              const tgt = targets.find((t) => t.row === r && t.col === c);
+              return (
+                <div
+                  key={flatIdx}
+                  className={`${size >= 5 ? 'w-7 h-7' : 'w-8 h-8'} sm:w-9 sm:h-9 rounded-lg border flex items-center justify-center ${
+                    isStart
+                      ? 'bg-emerald-100 border-emerald-500'
+                      : 'bg-white border-slate-300'
+                  }`}
+                >
+                  {isStart ? (
+                    <div className="flex flex-col items-center leading-none">
+                      <span className="text-[11px] font-black text-emerald-700">★</span>
+                      <span className="text-[7px] font-black text-emerald-700">BAŞLA</span>
+                    </div>
+                  ) : tgt ? (
+                    <ShapeGlyph shape={tgt.shape} color={tgt.color} size={20} />
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Yön Adımları */}
+      <div className="flex flex-row sm:flex-col gap-1.5 flex-wrap justify-center max-w-[140px]">
+        {moves.map((m, idx) => (
+          <div
+            key={idx}
+            className="px-2.5 py-1 rounded-xl bg-sky-50 border border-sky-300 text-sky-900 font-black text-xs sm:text-sm flex items-center gap-1 tabular-nums shadow-sm"
+          >
+            <span>{m.steps}</span>
+            <span className="text-sky-600 text-base leading-none">{dirArrow[m.dir]}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -1446,12 +2988,15 @@ const SequenceRowView: React.FC<{ items: any[] }> = ({ items }) => {
 // ============================================================================
 // ANA SORU SAHNESİ RENDERER (QUIZ GÖRSELLERİ)
 // ============================================================================
-export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = ({ question }) => {
+export const BilsemQuestionVisual: React.FC<{
+  question: QuizVisualQuestion;
+  flashPhase?: 'memorize' | 'answer';
+}> = ({ question, flashPhase }) => {
   const { visualType, visualData } = question;
 
   if (visualType === 'cubes3d') {
     return (
-      <div className="flex flex-col items-center justify-center p-2 bg-white rounded-2xl border border-slate-300 shadow-sm max-w-[260px] mx-auto">
+      <div className="flex flex-col items-center justify-center p-2 sm:p-2.5 bg-white rounded-2xl border border-slate-300 shadow-sm max-w-[235px] mx-auto">
         <IsometricCubesSVG heights={visualData.heights} />
       </div>
     );
@@ -1583,7 +3128,12 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
   if (visualType === 'shadow') {
     return (
       <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-2xl bg-white border-2 border-slate-300 flex items-center justify-center mx-auto p-3 shadow-sm">
-        <ShadowFigureSVG figure={visualData.figure} isShadow={false} />
+        <ShadowFigureSVG
+          figure={visualData.figure}
+          isShadow={false}
+          angle={visualData.angle}
+          flipX={visualData.flipX}
+        />
       </div>
     );
   }
@@ -1592,13 +3142,13 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
     return (
       <div className="grid grid-cols-2 w-44 h-44 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border-2 border-slate-400 mx-auto shadow-md bg-white">
         <div className="border-r border-b border-slate-300">
-          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={0} />
+          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={0} spec={visualData.spec} />
         </div>
         <div className="border-b border-slate-300">
-          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={1} />
+          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={1} spec={visualData.spec} />
         </div>
         <div className="border-r border-slate-300">
-          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={2} />
+          <PatternTileSquareSVG patternId={visualData.patternId} quadrant={2} spec={visualData.spec} />
         </div>
         <div className="bg-amber-50 flex items-center justify-center border-2 border-dashed border-amber-500">
           <span className="text-3xl font-black text-amber-600">?</span>
@@ -1610,7 +3160,7 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
   if (visualType === 'puzzle_cut') {
     return (
       <div className="p-2 rounded-2xl bg-white border border-slate-300 shadow-sm flex items-center justify-center max-w-[230px] mx-auto">
-        <PuzzleCutSVG puzzleId={visualData.puzzleId} mode="board" />
+        <PuzzleCutSVG puzzleId={visualData.puzzleId} mode="board" spec={visualData.spec} />
       </div>
     );
   }
@@ -1618,7 +3168,7 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
   if (visualType === 'embedded_shape') {
     return (
       <div className="p-2.5 rounded-2xl bg-white border border-slate-300 shadow-sm flex items-center justify-center max-w-[260px] mx-auto">
-        <EmbeddedShapeSVG sceneId={visualData.sceneId} />
+        <EmbeddedShapeSVG sceneId={visualData.sceneId} spec={visualData.spec} />
       </div>
     );
   }
@@ -1632,7 +3182,7 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
         } items-center justify-center gap-3 max-w-xs mx-auto`}
       >
         <div className="p-2 rounded-xl bg-slate-50 border border-slate-300">
-          <MirrorFigureSVG figureId={visualData.figureId} transform="same" />
+          <MirrorFigureSVG figureId={visualData.figureId} transform="same" spec={visualData.spec} />
         </div>
         <div
           className={
@@ -1660,7 +3210,52 @@ export const BilsemQuestionVisual: React.FC<{ question: QuizVisualQuestion }> = 
     return <SequenceRowView items={visualData.items} />;
   }
 
-  return null;
+  if (visualType === 'paper_fold') {
+    return (
+      <PaperFoldQuestionSVG
+        foldType={visualData.foldType}
+        holes={visualData.holes || []}
+      />
+    );
+  }
+
+  if (visualType === 'grid_path') {
+    return (
+      <GridPathSceneSVG
+        size={visualData.size || 4}
+        start={visualData.start || [0, 0]}
+        moves={visualData.moves || []}
+        targets={visualData.targets || []}
+        showCoords={Boolean(visualData.showCoords)}
+      />
+    );
+  }
+
+  if (visualType === 'shape_overlay') {
+    return (
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap p-2 rounded-2xl bg-white border border-slate-300 shadow-sm">
+        <MiniOverlayGridSVG
+          gridSize={visualData.gridSize || 3}
+          cells={visualData.gridA || []}
+          sizeClass="w-16 h-16 sm:w-20 sm:h-20"
+        />
+        <span className="px-2 py-1 rounded-lg bg-sky-50 border border-sky-300 text-sky-700 font-black text-base sm:text-lg">
+          {visualData.ruleSymbol || '+'}
+        </span>
+        <MiniOverlayGridSVG
+          gridSize={visualData.gridSize || 3}
+          cells={visualData.gridB || []}
+          sizeClass="w-16 h-16 sm:w-20 sm:h-20"
+        />
+        <span className="text-slate-600 font-black text-base sm:text-lg">=</span>
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-amber-50 border-2 border-dashed border-amber-500 flex items-center justify-center">
+          <span className="text-2xl font-black text-amber-600">?</span>
+        </div>
+      </div>
+    );
+  }
+
+  return <BilsemSampleQuestionVisual question={question} flashPhase={flashPhase} />;
 };
 
 export const BilsemOptionVisual: React.FC<{
@@ -1671,7 +3266,8 @@ export const BilsemOptionVisual: React.FC<{
   if (
     question.visualType === 'matrix3x3' ||
     question.visualType === 'analogy' ||
-    question.visualType === 'sequence_row'
+    question.visualType === 'sequence_row' ||
+    (question.visualType === 'grid_path' && visual.shape)
   ) {
     return (
       <ShapeGlyph
@@ -1685,7 +3281,14 @@ export const BilsemOptionVisual: React.FC<{
     );
   }
   if (question.visualType === 'mirror_axis') {
-    return <MirrorFigureSVG figureId={visual.figureId} transform={visual.transform} compact={true} />;
+    return (
+      <MirrorFigureSVG
+        figureId={visual.figureId}
+        transform={visual.transform}
+        compact={true}
+        spec={visual.spec || question.visualData?.spec}
+      />
+    );
   }
   if (question.visualType === 'cube_net') {
     if (visual.cubeFaces) {
@@ -1699,24 +3302,60 @@ export const BilsemOptionVisual: React.FC<{
   if (question.visualType === 'shadow') {
     return (
       <div className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-200 p-1.5 flex items-center justify-center">
-        <ShadowFigureSVG figure={visual.figure} isShadow={true} variant={visual.variant} />
+        <ShadowFigureSVG
+          figure={visual.figure}
+          isShadow={true}
+          variant={visual.variant}
+          angle={visual.angle}
+          flipX={visual.flipX}
+        />
       </div>
     );
   }
   if (question.visualType === 'pattern_tile') {
     return (
       <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-300">
-        <PatternTileSquareSVG patternId={visual.patternId} quadrant="option" piece={visual.piece} />
+        <PatternTileSquareSVG
+          patternId={visual.patternId}
+          quadrant="option"
+          piece={visual.piece}
+          spec={visual.spec || question.visualData?.spec}
+        />
       </div>
     );
   }
   if (question.visualType === 'puzzle_cut') {
-    return <PuzzleCutSVG puzzleId={visual.puzzleId} mode="piece" piece={visual.piece} />;
+    return (
+      <PuzzleCutSVG
+        puzzleId={visual.puzzleId}
+        mode="piece"
+        piece={visual.piece}
+        spec={visual.spec || question.visualData?.spec}
+      />
+    );
   }
   if (question.visualType === 'embedded_shape') {
-    return <EmbeddedShapeSVG sceneId={visual.sceneId} compact={true} />;
+    return (
+      <EmbeddedShapeSVG
+        sceneId={visual.sceneId}
+        compact={true}
+        spec={visual.spec}
+      />
+    );
   }
-  return null;
+  if (question.visualType === 'paper_fold') {
+    return <PaperUnfoldedSVG holes={visual.holes || []} foldLine={visual.foldLine} />;
+  }
+  if (question.visualType === 'shape_overlay') {
+    return (
+      <MiniOverlayGridSVG
+        gridSize={visual.gridSize || 3}
+        cells={visual.cells || []}
+        sizeClass="w-16 h-16 sm:w-20 sm:h-20"
+      />
+    );
+  }
+  return <BilsemSampleOptionVisual question={question} visual={visual} />;
 };
 
 // ============================================================================
@@ -1725,36 +3364,140 @@ export const BilsemOptionVisual: React.FC<{
 export const SpotOddCardSVG: React.FC<{
   theme: SpotOddTheme;
   isOdd: boolean;
-}> = ({ theme, isOdd }) => {
+  variantIndex?: number;
+  glyphSpec?: SpotOddGlyphSpec;
+}> = ({ theme, isOdd, variantIndex = 0, glyphSpec }) => {
+  if (glyphSpec) {
+    const useAltDot = isOdd && glyphSpec.oddChange === 'dot_count';
+    const useRot = isOdd && glyphSpec.oddChange === 'inner_rot';
+    const useSwap = isOdd && glyphSpec.oddChange === 'color_swap';
+    const useAltInner = isOdd && glyphSpec.oddChange === 'inner_shape';
+    const hideRing = isOdd && glyphSpec.oddChange === 'missing_ring';
+
+    const cMain = useSwap ? glyphSpec.accentColor : glyphSpec.primaryColor;
+    const cAcc = useSwap ? glyphSpec.primaryColor : glyphSpec.accentColor;
+    const dotCount = useAltDot
+      ? glyphSpec.cornerDots === 4
+        ? 3
+        : glyphSpec.cornerDots + 1
+      : glyphSpec.cornerDots;
+    const dotPos: [number, number][] = [
+      [22, 22],
+      [98, 22],
+      [22, 98],
+      [98, 98],
+    ];
+    const renderGlyphShape = (kind: ShapeKind, fill: string, rScale: number, rotDeg = 0) => {
+      const cx = 60;
+      const cy = 60;
+      const s = 30 * rScale;
+      if (kind === 'circle') return <circle cx={cx} cy={cy} r={s} fill={fill} stroke="#0f172a" strokeWidth="2.2" />;
+      if (kind === 'square')
+        return (
+          <rect
+            x={cx - s}
+            y={cy - s}
+            width={s * 2}
+            height={s * 2}
+            rx="5"
+            fill={fill}
+            stroke="#0f172a"
+            strokeWidth="2.2"
+            transform={`rotate(${rotDeg} 60 60)`}
+          />
+        );
+      if (kind === 'triangle')
+        return (
+          <polygon
+            points={`${cx},${cy - s} ${cx + s},${cy + s * 0.85} ${cx - s},${cy + s * 0.85}`}
+            fill={fill}
+            stroke="#0f172a"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            transform={`rotate(${rotDeg} 60 60)`}
+          />
+        );
+      if (kind === 'diamond')
+        return (
+          <polygon
+            points={`${cx},${cy - s * 1.1} ${cx + s * 1.1},${cy} ${cx},${cy + s * 1.1} ${cx - s * 1.1},${cy}`}
+            fill={fill}
+            stroke="#0f172a"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            transform={`rotate(${rotDeg} 60 60)`}
+          />
+        );
+      if (kind === 'hexagon')
+        return (
+          <polygon
+            points={`${cx},${cy - s} ${cx + s * 0.88},${cy - s * 0.5} ${cx + s * 0.88},${cy + s * 0.5} ${cx},${cy + s} ${cx - s * 0.88},${cy + s * 0.5} ${cx - s * 0.88},${cy - s * 0.5}`}
+            fill={fill}
+            stroke="#0f172a"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            transform={`rotate(${rotDeg} 60 60)`}
+          />
+        );
+      return (
+        <polygon
+          points="60,34 67,49 84,51 71,62 74,78 60,70 46,78 49,62 36,51 53,49"
+          fill={fill}
+          stroke="#0f172a"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          transform={`translate(60 60) scale(${rScale}) translate(-60 -60) rotate(${rotDeg} 60 60)`}
+        />
+      );
+    };
+    const innerKind: ShapeKind = useAltInner
+      ? glyphSpec.innerShape === 'star'
+        ? 'triangle'
+        : 'star'
+      : glyphSpec.innerShape;
+
+    return (
+      <svg viewBox="0 0 120 120" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto">
+        <rect x="8" y="8" width="104" height="104" rx="16" fill={glyphSpec.bg} stroke="#cbd5e1" strokeWidth="2.2" />
+        {!hideRing && <circle cx="60" cy="60" r="40" fill="none" stroke={cMain} strokeWidth="3.5" strokeDasharray="6 4" />}
+        {renderGlyphShape(glyphSpec.outerShape, cMain, 0.96, 0)}
+        {renderGlyphShape(innerKind, cAcc, 0.48, useRot ? 180 : 0)}
+        {dotPos.slice(0, dotCount).map(([dx, dy], i) => (
+          <circle key={i} cx={dx} cy={dy} r="5.5" fill={cAcc} stroke="#0f172a" strokeWidth="1.5" />
+        ))}
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 120 120" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto">
       {theme === 'robot' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
           <line x1="60" y1="22" x2="60" y2="10" stroke="#94a3b8" strokeWidth="3" />
-          <circle cx="60" cy="10" r="5" fill={isOdd ? '#f43f5e' : '#fbbf24'} />
+          <circle cx="60" cy="10" r="5" fill={isOdd && variantIndex === 0 ? '#f43f5e' : '#fbbf24'} />
           <rect x="34" y="22" width="52" height="34" rx="8" fill="#38bdf8" />
           <circle cx="48" cy="37" r="5" fill="#0f172a" />
-          <circle cx="72" cy="37" r="5" fill="#0f172a" />
+          <circle cx="72" cy="37" r={isOdd && variantIndex === 1 ? 8 : 5} fill="#0f172a" />
           <rect x="46" y="47" width="28" height="4" rx="2" fill="#ffffff" />
           <rect x="28" y="60" width="64" height="42" rx="8" fill="#0284c7" />
           <circle cx="46" cy="76" r="5" fill="#fbbf24" />
-          {!isOdd && <circle cx="60" cy="76" r="5" fill="#10b981" />}
-          <circle cx="74" cy="76" r="5" fill="#f43f5e" />
+          {!(isOdd && variantIndex === 0) && <circle cx="60" cy="76" r="5" fill="#10b981" />}
+          <circle cx="74" cy="76" r="5" fill={isOdd && variantIndex === 1 ? '#fbbf24' : '#f43f5e'} />
         </g>
       )}
 
       {theme === 'house' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
           {/* Baca */}
-          <rect x={isOdd ? '28' : '76'} y="18" width="12" height="24" fill="#94a3b8" />
+          <rect x={isOdd && variantIndex === 0 ? '28' : '76'} y="18" width="12" height="24" fill="#94a3b8" />
           {/* Çatı */}
           <polygon points="18,52 60,16 102,52" fill="#f43f5e" />
-          {!isOdd && <circle cx="60" cy="38" r="6" fill="#fef08a" />}
+          {!(isOdd && variantIndex === 0) && <circle cx="60" cy="38" r="6" fill="#fef08a" />}
           {/* Gövde */}
           <rect x="24" y="52" width="72" height="54" rx="4" fill="#fde68a" />
-          <rect x="50" y="72" width="20" height="34" fill="#92400e" />
+          <rect x="50" y="72" width="20" height="34" fill={isOdd && variantIndex === 1 ? '#10b981' : '#92400e'} />
           <rect x="30" y="62" width="14" height="14" fill="#38bdf8" />
-          <rect x="76" y="62" width="14" height="14" fill="#38bdf8" />
+          {!(isOdd && variantIndex === 1) && <rect x="76" y="62" width="14" height="14" fill="#38bdf8" />}
         </g>
       )}
 
@@ -1762,16 +3505,12 @@ export const SpotOddCardSVG: React.FC<{
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
           <ellipse cx="60" cy="68" rx="34" ry="38" fill="#a855f7" />
           <ellipse cx="60" cy="78" rx="22" ry="22" fill="#e9d5ff" />
-          {/* Gözler */}
           <circle cx="45" cy="46" r="12" fill="#ffffff" />
           <circle cx="75" cy="46" r="12" fill="#ffffff" />
           <circle cx="46" cy="46" r="5" fill="#0f172a" />
           <circle cx="74" cy="46" r="5" fill="#0f172a" />
-          {/* Kaş farkı */}
-          {isOdd && <line x1="65" y1="30" x2="86" y2="25" stroke="#fde047" strokeWidth="3.5" />}
-          {/* Gaga */}
-          <polygon points="54,54 66,54 60,64" fill="#f59e0b" />
-          {/* Göğüs benekleri */}
+          {isOdd && variantIndex === 0 && <line x1="65" y1="30" x2="86" y2="25" stroke="#fde047" strokeWidth="3.5" />}
+          <polygon points="54,54 66,54 60,64" fill={isOdd && variantIndex === 1 ? '#e11d48' : '#f59e0b'} />
           <circle cx="52" cy="76" r="3" fill="#7e22ce" />
           {!isOdd && <circle cx="60" cy="84" r="3" fill="#7e22ce" />}
           <circle cx="68" cy="76" r="3" fill="#7e22ce" />
@@ -1781,13 +3520,13 @@ export const SpotOddCardSVG: React.FC<{
       {theme === 'ship' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
           <rect x="58" y="18" width="4" height="58" fill="#78350f" />
-          <polygon points={isOdd ? '58,18 38,24 58,30' : '62,18 82,24 62,30'} fill="#f43f5e" />
+          <polygon points={isOdd && variantIndex === 0 ? '58,18 38,24 58,30' : '62,18 82,24 62,30'} fill="#f43f5e" />
           <polygon points="58,28 24,72 58,72" fill="#ffffff" />
-          <polygon points="62,36 92,72 62,72" fill="#fde047" />
+          <polygon points="62,36 92,72 62,72" fill={isOdd && variantIndex === 1 ? '#38bdf8' : '#fde047'} />
           <polygon points="16,74 104,74 90,98 30,98" fill="#0284c7" />
           <circle cx="44" cy="86" r="5" fill="#e0f2fe" />
-          {isOdd && <circle cx="60" cy="86" r="5" fill="#e0f2fe" />}
-          <circle cx="76" cy="86" r="5" fill="#e0f2fe" />
+          {isOdd && variantIndex === 0 && <circle cx="60" cy="86" r="5" fill="#e0f2fe" />}
+          {!(isOdd && variantIndex === 1) && <circle cx="76" cy="86" r="5" fill="#e0f2fe" />}
         </g>
       )}
 
@@ -1795,23 +3534,29 @@ export const SpotOddCardSVG: React.FC<{
         <g stroke="#0f172a" strokeWidth="2" strokeLinejoin="round">
           <line x1="60" y1="54" x2="60" y2="108" stroke="#22c55e" strokeWidth="5" />
           <ellipse cx="44" cy="86" rx="12" ry="6" fill="#22c55e" transform="rotate(-25 44 86)" />
-          {!isOdd && <ellipse cx="76" cy="86" rx="12" ry="6" fill="#22c55e" transform="rotate(25 76 86)" />}
+          {!(isOdd && variantIndex === 0) && <ellipse cx="76" cy="86" rx="12" ry="6" fill="#22c55e" transform="rotate(25 76 86)" />}
           {[0, 60, 120, 180, 240, 300].map((deg) => (
             <circle
               key={deg}
               cx={60 + Math.cos((deg * Math.PI) / 180) * 18}
               cy={42 + Math.sin((deg * Math.PI) / 180) * 18}
               r="11"
-              fill={isOdd && deg === 120 ? '#38bdf8' : '#fb7185'}
+              fill={
+                isOdd && variantIndex === 0 && deg === 120
+                  ? '#38bdf8'
+                  : isOdd && variantIndex === 1 && deg === 0
+                  ? '#a855f7'
+                  : '#fb7185'
+              }
             />
           ))}
-          <circle cx="60" cy="42" r="12" fill="#fde047" />
+          <circle cx="60" cy="42" r={isOdd && variantIndex === 1 ? 7 : 12} fill="#fde047" />
         </g>
       )}
 
       {theme === 'clock' && (
         <g stroke="#0f172a" strokeWidth="2.5" strokeLinejoin="round">
-          <circle cx="60" cy="60" r="44" fill="#f8fafc" stroke="#38bdf8" strokeWidth="5" />
+          <circle cx="60" cy="60" r="44" fill="#f8fafc" stroke={isOdd && variantIndex === 1 ? '#f59e0b' : '#38bdf8'} strokeWidth="5" />
           {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((d) => (
             <circle
               key={d}
@@ -1821,13 +3566,11 @@ export const SpotOddCardSVG: React.FC<{
               fill="#334155"
             />
           ))}
-          {/* Yelkovan (12'ye) */}
-          <line x1="60" y1="60" x2="60" y2="30" stroke="#0f172a" strokeWidth="3.5" strokeLinecap="round" />
-          {/* Akrep: normal 3'e, odd 9'a */}
+          <line x1="60" y1="60" x2="60" y2={isOdd && variantIndex === 1 ? '90' : '30'} stroke="#0f172a" strokeWidth="3.5" strokeLinecap="round" />
           <line
             x1="60"
             y1="60"
-            x2={isOdd ? '36' : '84'}
+            x2={isOdd && variantIndex === 0 ? '36' : '84'}
             y2="60"
             stroke="#dc2626"
             strokeWidth="4.5"
@@ -1839,43 +3582,39 @@ export const SpotOddCardSVG: React.FC<{
 
       {theme === 'train' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
-          {/* Duman bulutu (odd olanda yok) */}
-          {!isOdd && (
+          {!(isOdd && variantIndex === 0) && (
             <>
               <circle cx="38" cy="20" r="7" fill="#e2e8f0" />
               <circle cx="50" cy="14" r="9" fill="#f8fafc" />
             </>
           )}
-          {/* Baca */}
           <rect x="30" y="28" width="12" height="22" fill="#334155" />
-          {/* Kazanlı ön gövde */}
           <rect x="22" y="48" width="46" height="32" rx="4" fill="#ef4444" />
-          {/* Kabin */}
           <rect x="64" y="34" width="34" height="46" rx="4" fill="#2563eb" />
-          {/* Pencere rengi farkı */}
-          <rect x="72" y="42" width="18" height="16" rx="3" fill={isOdd ? '#10b981' : '#fef08a'} />
-          {/* Tekerlekler */}
+          <rect x="72" y="42" width="18" height="16" rx="3" fill={isOdd && variantIndex === 0 ? '#10b981' : '#fef08a'} />
           <circle cx="34" cy="86" r="10" fill="#fbbf24" />
-          <circle cx="58" cy="86" r="10" fill="#fbbf24" />
-          <circle cx="84" cy="86" r="12" fill="#fbbf24" />
+          {!(isOdd && variantIndex === 1) && <circle cx="58" cy="86" r="10" fill="#fbbf24" />}
+          <circle cx="84" cy="86" r="12" fill={isOdd && variantIndex === 1 ? '#10b981' : '#fbbf24'} />
         </g>
       )}
 
       {theme === 'cake' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
-          {/* Mumlar (odd olanda orta mum eksik) */}
           <rect x="38" y="26" width="6" height="22" fill="#38bdf8" />
           <ellipse cx="41" cy="20" rx="3.5" ry="5.5" fill="#fbbf24" />
-          {!isOdd && (
+          {!(isOdd && variantIndex === 0) && (
             <>
               <rect x="57" y="22" width="6" height="26" fill="#a855f7" />
               <ellipse cx="60" cy="16" rx="3.5" ry="5.5" fill="#fbbf24" />
             </>
           )}
-          <rect x="76" y="26" width="6" height="22" fill="#10b981" />
-          <ellipse cx="79" cy="20" rx="3.5" ry="5.5" fill="#fbbf24" />
-          {/* Pasta üst kreması ve gövdesi */}
-          <rect x="22" y="48" width="76" height="24" rx="6" fill="#fda4af" />
+          {!(isOdd && variantIndex === 1) && (
+            <>
+              <rect x="76" y="26" width="6" height="22" fill="#10b981" />
+              <ellipse cx="79" cy="20" rx="3.5" ry="5.5" fill="#fbbf24" />
+            </>
+          )}
+          <rect x="22" y="48" width="76" height="24" rx="6" fill={isOdd && variantIndex === 1 ? '#fde047' : '#fda4af'} />
           <rect x="18" y="70" width="84" height="28" rx="6" fill="#92400e" />
           <rect x="14" y="96" width="92" height="8" rx="4" fill="#cbd5e1" />
         </g>
@@ -1883,29 +3622,114 @@ export const SpotOddCardSVG: React.FC<{
 
       {theme === 'mushroom' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
-          {/* Sap */}
           <rect x="46" y="60" width="28" height="44" rx="8" fill="#fef3c7" />
-          {/* Şapka */}
-          <path d="M16,64 C16,24 104,24 104,64 Z" fill="#ef4444" />
-          {/* Beyaz benekler */}
+          <path d="M16,64 C16,24 104,24 104,64 Z" fill={isOdd && variantIndex === 1 ? '#f59e0b' : '#ef4444'} />
           <circle cx="42" cy="44" r="7" fill="#ffffff" />
-          <circle cx="62" cy="36" r="8" fill="#ffffff" />
+          {!(isOdd && variantIndex === 1) && <circle cx="62" cy="36" r="8" fill="#ffffff" />}
           <circle cx="80" cy="48" r="6" fill="#ffffff" />
-          {!isOdd && <circle cx="68" cy="54" r="5" fill="#ffffff" />}
+          {!(isOdd && variantIndex === 0) && <circle cx="68" cy="54" r="5" fill="#ffffff" />}
         </g>
       )}
 
       {theme === 'balloon' && (
         <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
-          {/* İpler */}
           <line x1="46" y1="74" x2="50" y2="90" stroke="#cbd5e1" strokeWidth="2.5" />
           <line x1="74" y1="74" x2="70" y2="90" stroke="#cbd5e1" strokeWidth="2.5" />
-          {/* Sepet */}
-          <rect x="46" y="88" width="28" height="18" rx="4" fill="#92400e" />
-          {/* Balon kubbesi */}
-          <circle cx="60" cy="44" r="32" fill="#38bdf8" />
-          {/* Orta şerit */}
-          <ellipse cx="60" cy="44" rx="14" ry="32" fill={isOdd ? '#eab308' : '#10b981'} />
+          <rect x="46" y="88" width="28" height="18" rx="4" fill={isOdd && variantIndex === 1 ? '#fbbf24' : '#92400e'} />
+          <circle cx="60" cy="44" r="32" fill={isOdd && variantIndex === 1 ? '#f43f5e' : '#38bdf8'} />
+          <ellipse cx="60" cy="44" rx="14" ry="32" fill={isOdd && variantIndex === 0 ? '#eab308' : '#10b981'} />
+        </g>
+      )}
+
+      {theme === 'car' && (
+        <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
+          {!(isOdd && variantIndex === 0) && <rect x="52" y="28" width="16" height="8" rx="3" fill="#38bdf8" />}
+          <path d="M34,54 L44,36 L76,36 L86,54 Z" fill="#f43f5e" />
+          <polygon points="46,40 58,40 58,52 39,52" fill="#e0f2fe" />
+          <polygon points="62,40 74,40 81,52 62,52" fill={isOdd && variantIndex === 1 ? '#fbbf24' : '#e0f2fe'} />
+          <rect x="18" y="54" width="84" height="24" rx="7" fill="#ef4444" />
+          <circle cx="24" cy="64" r="5" fill={isOdd && variantIndex === 0 ? '#fbbf24' : '#ffffff'} />
+          <circle cx="38" cy="82" r="11" fill="#334155" />
+          <circle cx="38" cy="82" r="4.5" fill="#e2e8f0" />
+          <circle cx="82" cy="82" r={isOdd && variantIndex === 1 ? 7 : 11} fill="#334155" />
+          <circle cx="82" cy="82" r="4.5" fill="#e2e8f0" />
+        </g>
+      )}
+
+      {theme === 'penguin' && (
+        <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
+          <ellipse cx="44" cy="100" rx="10" ry="5" fill="#f59e0b" />
+          <ellipse cx="76" cy="100" rx="10" ry="5" fill="#f59e0b" />
+          <ellipse cx="60" cy="62" rx="32" ry="38" fill="#1e293b" />
+          <ellipse cx="60" cy="68" rx="21" ry="26" fill="#ffffff" />
+          <circle cx="49" cy="40" r="4.5" fill="#ffffff" />
+          <circle cx="71" cy="40" r="4.5" fill="#ffffff" />
+          <circle cx="49" cy="40" r="2.2" fill="#0f172a" />
+          <circle cx="71" cy="40" r="2.2" fill="#0f172a" />
+          <polygon points="54,46 66,46 60,55" fill="#f59e0b" />
+          {!(isOdd && variantIndex === 1) && (
+            <>
+              <polygon points="48,58 60,64 48,70" fill={isOdd && variantIndex === 0 ? '#ef4444' : '#38bdf8'} />
+              <polygon points="72,58 60,64 72,70" fill={isOdd && variantIndex === 0 ? '#ef4444' : '#38bdf8'} />
+            </>
+          )}
+          {!(isOdd && variantIndex === 0) && <circle cx="60" cy="79" r="3" fill="#38bdf8" />}
+        </g>
+      )}
+
+      {theme === 'icecream' && (
+        <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
+          {!(isOdd && variantIndex === 0) && <circle cx="60" cy="18" r="7" fill="#e11d48" />}
+          <circle cx="60" cy="36" r="18" fill="#fda4af" />
+          <circle cx="46" cy="54" r="16" fill={isOdd && variantIndex === 1 ? '#a855f7' : '#fde047'} />
+          <circle cx="74" cy="54" r="16" fill="#67e8f9" />
+          <polygon points="34,62 86,62 60,108" fill="#d97706" />
+          <line x1="46" y1="68" x2="66" y2="96" stroke="#92400e" strokeWidth="2" />
+          {!(isOdd && variantIndex === 1) && <line x1="74" y1="68" x2="54" y2="96" stroke="#92400e" strokeWidth="2" />}
+        </g>
+      )}
+
+      {theme === 'castle_spot' && (
+        <g stroke="#0f172a" strokeWidth="2" strokeLinejoin="round">
+          <line x1="60" y1="14" x2="60" y2="34" stroke="#475569" strokeWidth="2.5" />
+          <polygon points={isOdd && variantIndex === 0 ? '60,14 42,20 60,26' : '60,14 78,20 60,26'} fill="#ef4444" />
+          <rect x="20" y="42" width="22" height="58" fill="#cbd5e1" />
+          <polygon points="18,42 31,26 44,42" fill={isOdd && variantIndex === 1 ? '#f59e0b' : '#3b82f6'} />
+          <rect x="78" y="42" width="22" height="58" fill="#cbd5e1" />
+          <polygon points="76,42 89,26 102,42" fill="#3b82f6" />
+          <rect x="42" y="34" width="36" height="66" fill="#e2e8f0" />
+          {!(isOdd && variantIndex === 0) && <rect x="55" y="44" width="10" height="12" rx="3" fill="#38bdf8" />}
+          <path d="M51,100 L51,78 A9,9 0 0 1 69,78 L69,100 Z" fill="#92400e" />
+        </g>
+      )}
+
+      {theme === 'bee' && (
+        <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
+          <ellipse cx="48" cy="36" rx="14" ry="18" fill="#e0f2fe" transform="rotate(-15 48 36)" />
+          {!(isOdd && variantIndex === 1) && (
+            <ellipse cx="72" cy="36" rx="14" ry="18" fill="#e0f2fe" transform="rotate(15 72 36)" />
+          )}
+          <ellipse cx="60" cy="68" rx="32" ry="22" fill="#fbbf24" />
+          <rect x="48" y="47" width="8" height="42" rx="3" fill="#0f172a" />
+          <rect x="64" y="47" width="8" height="42" rx="3" fill="#0f172a" />
+          {!(isOdd && variantIndex === 0) && <rect x="78" y="53" width="6" height="30" rx="2" fill="#0f172a" />}
+          <circle cx="30" cy="66" r="14" fill="#0f172a" />
+          <circle cx="26" cy="63" r="3.5" fill={isOdd && variantIndex === 1 ? '#fbbf24' : '#ffffff'} />
+        </g>
+      )}
+
+      {theme === 'trophy_spot' && (
+        <g stroke="#0f172a" strokeWidth="2.2" strokeLinejoin="round">
+          <path d="M36,30 C18,30 18,56 38,56" fill="none" stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
+          {!(isOdd && variantIndex === 1) && (
+            <path d="M84,30 C102,30 102,56 82,56" fill="none" stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
+          )}
+          <path d="M34,22 L86,22 L80,62 C78,74 42,74 40,62 Z" fill="#fbbf24" />
+          {!(isOdd && variantIndex === 0) && (
+            <polygon points="60,33 63,40 71,41 65,46 67,53 60,49 53,53 55,46 49,41 57,40" fill="#ffffff" />
+          )}
+          <rect x="54" y="72" width="12" height="18" fill="#d97706" />
+          <rect x="34" y="90" width="52" height="14" rx="4" fill="#92400e" />
         </g>
       )}
     </svg>
@@ -2229,7 +4053,87 @@ export const BilsemActivityMiniPreview: React.FC<{ activityId: BilsemActivityId 
           ))}
         </g>
       )}
+
+      {/* 13. KAĞIT KATLAMA VE DELİK AÇMA */}
+      {activityId === 'kagit_katlama' && (
+        <g>
+          <rect x="8" y="10" width="32" height="36" rx="4" fill="#ffe4e6" stroke="#e11d48" strokeWidth="1.5" />
+          <line x1="24" y1="10" x2="24" y2="46" stroke="#0284c7" strokeWidth="1.4" strokeDasharray="3 2" />
+          <circle cx="16" cy="28" r="3.5" fill="#0f172a" />
+          <path d="M44,28 L55,28 M52,24 L56,28 L52,32" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="62" y="10" width="38" height="36" rx="4" fill="#e0f2fe" stroke="#0284c7" strokeWidth="1.5" />
+          <line x1="81" y1="10" x2="81" y2="46" stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="2 2" />
+          <circle cx="71" cy="28" r="3.5" fill="#0f172a" />
+          <circle cx="91" cy="28" r="3.5" fill="#0f172a" />
+        </g>
+      )}
+
+      {/* 14. YÖN TAKİBİ, KODLAMA & GÖRSEL MANTIK */}
+      {activityId === 'yon_algoritma' && (
+        <g>
+          <g transform="translate(8, 6)">
+            <rect x="0" y="0" width="44" height="44" rx="5" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1.3" />
+            {[0, 1, 2].map((r) =>
+              [0, 1, 2].map((c) => (
+                <rect
+                  key={`${r}-${c}`}
+                  x={3 + c * 13.2}
+                  y={3 + r * 13.2}
+                  width="11.2"
+                  height="11.2"
+                  rx="2"
+                  fill={r === 0 && c === 0 ? '#bbf7d0' : r === 2 && c === 2 ? '#bae6fd' : '#ffffff'}
+                  stroke={r === 2 && c === 2 ? '#0284c7' : '#cbd5e1'}
+                  strokeWidth="1"
+                />
+              ))
+            )}
+          </g>
+          <rect x="60" y="10" width="44" height="15" rx="4" fill="#f0f9ff" stroke="#0284c7" strokeWidth="1.3" />
+          <text x="82" y="21" textAnchor="middle" fontSize="10" fontWeight="900" fill="#0369a1">2 →</text>
+          <rect x="60" y="30" width="44" height="15" rx="4" fill="#f0fdf4" stroke="#16a34a" strokeWidth="1.3" />
+          <text x="82" y="41" textAnchor="middle" fontSize="10" fontWeight="900" fill="#15803d">2 ↓</text>
+        </g>
+      )}
+
+      {/* 15. KISA SÜRELİ GÖRSEL & SAYISAL HAFIZA */}
+      {activityId === 'kisa_sureli_hafiza' && (
+        <g>
+          {/* Sol: Sayı dizisi kartı */}
+          <rect x="6" y="8" width="54" height="24" rx="5" fill="#eef2ff" stroke="#4f46e5" strokeWidth="1.5" />
+          <text x="33" y="24" textAnchor="middle" fontSize="11" fontWeight="900" fill="#1e1b4b">8, 3, 0, 1</text>
+          {/* Alt: Süre çubuğu */}
+          <rect x="6" y="38" width="54" height="7" rx="3.5" fill="#e2e8f0" />
+          <rect x="6" y="38" width="36" height="7" rx="3.5" fill="#6366f1" />
+          {/* Sağ: Göz / Hatırla kartı */}
+          <rect x="68" y="8" width="38" height="38" rx="7" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5" strokeDasharray="3 2" />
+          <path d="M74,27 C79,19 95,19 100,27 C95,35 79,35 74,27 Z" fill="#ffffff" stroke="#4f46e5" strokeWidth="1.6" />
+          <circle cx="87" cy="27" r="4" fill="#4f46e5" />
+        </g>
+      )}
+
+      {/* 16. ZİHİNSEL DÖNDÜRME & FARKLI ŞEKİL */}
+      {activityId === 'zihinsel_dondurme' && (
+        <g>
+          {/* Sol renkli T-parçası */}
+          <g transform="translate(8, 13)" stroke="#0f172a" strokeWidth="1.2">
+            <rect x="0" y="0" width="11" height="11" fill="#fde047" />
+            <rect x="11" y="0" width="11" height="11" fill="#22c55e" />
+            <rect x="22" y="0" width="11" height="11" fill="#ef4444" />
+            <rect x="11" y="11" width="11" height="11" fill="#38bdf8" />
+          </g>
+          {/* Dönüş oku */}
+          <path d="M49,21 A10,10 0 1,1 55,34" fill="none" stroke="#ea580c" strokeWidth="2.2" strokeLinecap="round" />
+          <polygon points="51,17 53,24 46,23" fill="#ea580c" />
+          {/* Sağ: 90° dönmüş renkli T-parçası */}
+          <g transform="translate(72, 10)" stroke="#0f172a" strokeWidth="1.2">
+            <rect x="11" y="0" width="11" height="11" fill="#fde047" />
+            <rect x="11" y="11" width="11" height="11" fill="#22c55e" />
+            <rect x="11" y="22" width="11" height="11" fill="#ef4444" />
+            <rect x="0" y="11" width="11" height="11" fill="#38bdf8" />
+          </g>
+        </g>
+      )}
     </svg>
   );
 };
-

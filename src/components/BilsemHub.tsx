@@ -4,6 +4,7 @@ import {
   BilsemActivityId,
   BilsemGrade,
   getActivitiesForGrade,
+  getPoolSize,
   getTaskCountForGrade,
   normalizeBilsemGrade,
 } from '../data/bilsemActivitiesData';
@@ -24,7 +25,6 @@ const GRADE_TABS: { grade: BilsemGrade; label: string; focus: string }[] = [
   { grade: 1, label: '1. Sınıf', focus: 'Görsel Algı · Dikkat · Gölge' },
   { grade: 2, label: '2. Sınıf', focus: 'Matris · Simetri · Hafıza' },
   { grade: 3, label: '3. Sınıf', focus: '3B Küp · Örüntü · Mantık' },
-  { grade: 4, label: '4. Sınıf', focus: 'İleri Düzey BİLSEM Hazırlık' },
 ];
 
 const ACCENT_CLASSES: Record<string, { border: string; iconBg: string; action: string; numberText: string }> = {
@@ -103,7 +103,7 @@ export const BilsemHub: React.FC<BilsemHubProps> = ({
 
   useEffect(() => {
     if (selectedGrade === 1 || selectedGrade === 2 || selectedGrade === 3 || selectedGrade === 4) {
-      setActiveGrade(selectedGrade);
+      setActiveGrade(normalizeBilsemGrade(selectedGrade));
     }
   }, [selectedGrade]);
 
@@ -164,10 +164,10 @@ export const BilsemHub: React.FC<BilsemHubProps> = ({
             </button>
           </div>
 
-          {/* SINIF SEÇİM SEKMELERİ (1. SINIF - 4. SINIF) */}
+          {/* SINIF SEÇİM SEKMELERİ (1. SINIF - 3. SINIF) */}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200">
             <div
-              className="grid grid-cols-4 sm:inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 w-full sm:w-auto"
+              className="grid grid-cols-3 sm:inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 w-full sm:w-auto"
               role="tablist"
               aria-label="BİLSEM Sınıf Seçimi"
             >
@@ -249,7 +249,7 @@ export const BilsemHub: React.FC<BilsemHubProps> = ({
                     )}
                   </div>
                   <div className="text-[11px] sm:text-xs font-semibold text-slate-500 mt-1 tabular-nums">
-                    {activeGrade}. Sınıf · {taskCount} Görev
+                    {activeGrade}. Sınıf · {taskCount} Soru · {getPoolSize(item.id)} Soru Havuzu
                   </div>
                 </div>
 

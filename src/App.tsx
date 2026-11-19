@@ -8436,13 +8436,13 @@ export default function App() {
                   </div>
                   <div className="flex-1 text-left min-w-0 z-10 py-0.5">
                     <div className="text-[10px] sm:text-xs font-semibold text-amber-300 mb-0.5">
-                      1.–4. Sınıf Düzeyleri · Zeka, Dikkat &amp; Görsel Algı
+                      1.–3. Sınıf Düzeyleri · Zeka, Dikkat &amp; Görsel Algı
                     </div>
                     <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-amber-200 leading-tight uppercase tracking-wider transition-colors">
                       7. BİLSEM
                     </h3>
                     <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-300 mt-0.5 break-words leading-tight">
-                      1., 2., 3. ve 4. Sınıflara Özel Ayrı BİLSEM Etkinlikleri &amp; Görsel Zeka Testleri
+                      1., 2. ve 3. Sınıflara Özel Ayrı BİLSEM Etkinlikleri &amp; Görsel Zeka Testleri
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">

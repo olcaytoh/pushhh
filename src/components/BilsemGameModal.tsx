@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -9,6 +10,8 @@ import {
   Eye,
   Lightbulb,
   RotateCcw,
+  ShieldAlert,
+  ShieldOff,
   Sparkles,
   Trophy,
 } from 'lucide-react';
@@ -82,7 +85,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   onQuestionAnswered,
   onGameCompleted,
 }) => {
-  const activeGrade: BilsemGrade = bilsemGrade ?? normalizeBilsemGrade(currentGrade);
+  const activeGrade: BilsemGrade = normalizeBilsemGrade(bilsemGrade ?? currentGrade);
 
   const gradeActivities = useMemo(
     () => getActivitiesForGrade(activeGrade),
@@ -103,13 +106,27 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   );
 
   const mode = getModeForActivity(activityId);
+  // Her oyun başında (ve "Tekrar Oyna"da) havuzdan yeni bir soru karışımı seçilir.
+  const baseSeedRef = useRef<number>(Math.floor(Math.random() * 1_000_000_000));
+  const [runSeed, setRunSeed] = useState(0);
+  const sessionSeed = baseSeedRef.current + runSeed * 7919;
+
   const quizQuestions = useMemo(
-    () => getQuizQuestionsForGrade(activityId, activeGrade),
-    [activityId, activeGrade]
+    () => getQuizQuestionsForGrade(activityId, activeGrade, sessionSeed),
+    [activityId, activeGrade, sessionSeed]
   );
-  const memoryRounds = useMemo(() => getMemoryRoundsForGrade(activeGrade), [activeGrade]);
-  const scanRounds = useMemo(() => getScanRoundsForGrade(activeGrade), [activeGrade]);
-  const spotRounds = useMemo(() => getSpotOddRoundsForGrade(activeGrade), [activeGrade]);
+  const memoryRounds = useMemo(
+    () => getMemoryRoundsForGrade(activeGrade, sessionSeed),
+    [activeGrade, sessionSeed]
+  );
+  const scanRounds = useMemo(
+    () => getScanRoundsForGrade(activeGrade, sessionSeed),
+    [activeGrade, sessionSeed]
+  );
+  const spotRounds = useMemo(
+    () => getSpotOddRoundsForGrade(activeGrade, sessionSeed),
+    [activeGrade, sessionSeed]
+  );
 
   const totalSteps =
     mode === 'quiz'
@@ -126,12 +143,25 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   const [wrongCount, setWrongCount] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [failedByThreeStrikes, setFailedByThreeStrikes] = useState(false);
+  const [threeStrikeEnabled, setThreeStrikeEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('bilsem_three_strike_enabled');
+      return saved === null ? true : saved === 'true';
+    } catch {
+      return true;
+    }
+  });
+  const [autoNextSeconds, setAutoNextSeconds] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const [runSeed, setRunSeed] = useState(0);
 
   // Quiz state
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [quizOutcome, setQuizOutcome] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  // Kısa süreli hafıza (flash_memory) soruları için ezberleme / cevaplama aşaması
+  const [flashPhase, setFlashPhase] = useState<'memorize' | 'answer'>('answer');
+  const [flashRemainingPct, setFlashRemainingPct] = useState(100);
+  const flashIntervalRef = useRef<number | null>(null);
 
   // Memory matrix state
   const [memoryPhase, setMemoryPhase] = useState<'preview' | 'recall' | 'won' | 'lost'>('preview');
@@ -139,6 +169,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   const [memoryWrongCell, setMemoryWrongCell] = useState<number | null>(null);
   const [memoryMistakes, setMemoryMistakes] = useState(0);
   const previewTimerRef = useRef<number | null>(null);
+  const threeStrikeTimerRef = useRef<number | null>(null);
 
   // Target scan state
   const [scanSelected, setScanSelected] = useState<number[]>([]);
@@ -155,6 +186,14 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       window.clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
+    if (threeStrikeTimerRef.current !== null) {
+      window.clearTimeout(threeStrikeTimerRef.current);
+      threeStrikeTimerRef.current = null;
+    }
+    if (flashIntervalRef.current !== null) {
+      window.clearInterval(flashIntervalRef.current);
+      flashIntervalRef.current = null;
+    }
   };
 
   // Reset all round state cleanly when activity changes or restarted
@@ -163,6 +202,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
     setShowHint(false);
     setSelectedOptionId(null);
     setQuizOutcome('idle');
+    setFlashPhase('answer');
+    setFlashRemainingPct(100);
     setMemoryPhase('preview');
     setMemorySelected([]);
     setMemoryWrongCell(null);
@@ -175,6 +216,19 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
     setSpotOutcome('idle');
   };
 
+  const handleToggleThreeStrike = () => {
+    playMp3?.('/op.mp3');
+    setThreeStrikeEnabled((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('bilsem_three_strike_enabled', String(next));
+      } catch {
+        // Ignore storage restrictions
+      }
+      return next;
+    });
+  };
+
   const handleRestartActivity = () => {
     playMp3?.('/op.mp3');
     resetRoundStates();
@@ -183,6 +237,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
     setWrongCount(0);
     setScore(0);
     setIsFinished(false);
+    setFailedByThreeStrikes(false);
+    setAutoNextSeconds(null);
     setRunSeed((prev) => prev + 1);
   };
 
@@ -193,6 +249,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
     setWrongCount(0);
     setScore(0);
     setIsFinished(false);
+    setFailedByThreeStrikes(false);
+    setAutoNextSeconds(null);
     return () => clearTimers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activityId, activeGrade]);
@@ -224,8 +282,53 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
     };
   }, [mode, stepIndex, isFinished, activityId, activeGrade, memoryRounds, runSeed]);
 
+  // Flash-memory (Görsel & Sayısal Hafıza) soruları için süreli gösterim
+  useEffect(() => {
+    if (flashIntervalRef.current !== null) {
+      window.clearInterval(flashIntervalRef.current);
+      flashIntervalRef.current = null;
+    }
+    if (mode !== 'quiz' || isFinished) {
+      setFlashPhase('answer');
+      return;
+    }
+    const q = quizQuestions[stepIndex];
+    if (!q || q.visualType !== 'flash_memory') {
+      setFlashPhase('answer');
+      return;
+    }
+
+    const durationMs =
+      (q.visualData?.previewMs ?? 4000) + (activeGrade === 1 ? 700 : 0);
+    const startedAt = Date.now();
+    setFlashPhase('memorize');
+    setFlashRemainingPct(100);
+
+    flashIntervalRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const pct = Math.max(0, 100 - (elapsed / durationMs) * 100);
+      setFlashRemainingPct(pct);
+      if (elapsed >= durationMs) {
+        if (flashIntervalRef.current !== null) {
+          window.clearInterval(flashIntervalRef.current);
+          flashIntervalRef.current = null;
+        }
+        setFlashPhase('answer');
+      }
+    }, 50);
+
+    return () => {
+      if (flashIntervalRef.current !== null) {
+        window.clearInterval(flashIntervalRef.current);
+        flashIntervalRef.current = null;
+      }
+    };
+  }, [mode, stepIndex, isFinished, activityId, activeGrade, quizQuestions, runSeed]);
+
   const finishActivity = () => {
+    setFailedByThreeStrikes(false);
     setIsFinished(true);
+    setAutoNextSeconds(onSwitchActivity ? 3 : null);
     playMp3?.('/alkis.mp3');
     onCompleted?.(activityId, activeGrade);
     onGameCompleted?.(0, 1);
@@ -249,16 +352,51 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   const switchNeighborActivity = (delta: number) => {
     if (!onSwitchActivity || gradeActivities.length === 0) return;
     playMp3?.('/op.mp3');
+    clearTimers();
+    setAutoNextSeconds(null);
+    setRunSeed((prev) => prev + 1);
     const baseIdx = currentMetaIdx >= 0 ? currentMetaIdx : 0;
     const nextIdx = (baseIdx + delta + gradeActivities.length) % gradeActivities.length;
     onSwitchActivity(gradeActivities[nextIdx].id);
   };
 
+  // 10 soru tamamlandığında otomatik olarak bir sonraki etkinliğe geç
+  useEffect(() => {
+    if (!isFinished || failedByThreeStrikes || autoNextSeconds === null || !onSwitchActivity) return;
+    if (autoNextSeconds <= 0) {
+      switchNeighborActivity(1);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setAutoNextSeconds((s) => (s !== null ? s - 1 : null));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished, failedByThreeStrikes, autoNextSeconds]);
+
+  const registerMistake = () => {
+    const nextWrong = wrongCount + 1;
+    setWrongCount(nextWrong);
+    if (threeStrikeEnabled && nextWrong >= 3) {
+      if (threeStrikeTimerRef.current !== null) {
+        window.clearTimeout(threeStrikeTimerRef.current);
+      }
+      threeStrikeTimerRef.current = window.setTimeout(() => {
+        setAutoNextSeconds(null);
+        setFailedByThreeStrikes(true);
+        setIsFinished(true);
+        threeStrikeTimerRef.current = null;
+      }, 650);
+    }
+  };
+
   // --------------------------------------------------------------------------
   // HANDLERS BY MODE
   // --------------------------------------------------------------------------
+  const strikeLocked = threeStrikeEnabled && wrongCount >= 3;
+
   const handleQuizSelect = (optId: string, isCorrect: boolean) => {
-    if (quizOutcome !== 'idle') return;
+    if (quizOutcome !== 'idle' || strikeLocked) return;
     setSelectedOptionId(optId);
     if (isCorrect) {
       setQuizOutcome('correct');
@@ -268,14 +406,14 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       onQuestionAnswered?.(true, 0);
     } else {
       setQuizOutcome('wrong');
-      setWrongCount((w) => w + 1);
+      registerMistake();
       playMp3?.('/yanlis.mp3');
       onQuestionAnswered?.(false, 0);
     }
   };
 
   const handleMemoryCellClick = (cellIdx: number) => {
-    if (memoryPhase !== 'recall') return;
+    if (memoryPhase !== 'recall' || strikeLocked) return;
     const round = memoryRounds[stepIndex];
     if (!round || memorySelected.includes(cellIdx)) return;
 
@@ -298,13 +436,14 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       playMp3?.('/yanlis.mp3');
       if (nextMistakes >= 2) {
         setMemoryPhase('lost');
-        setWrongCount((w) => w + 1);
+        registerMistake();
         onQuestionAnswered?.(false, 0);
       }
     }
   };
 
   const handleMemoryReplayRound = () => {
+    if (strikeLocked) return;
     const round = memoryRounds[stepIndex];
     if (!round) return;
     playMp3?.('/op.mp3');
@@ -322,7 +461,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   };
 
   const handleScanItemClick = (idx: number) => {
-    if (scanCompletedRound) return;
+    if (scanCompletedRound || strikeLocked) return;
     const round = scanRounds[stepIndex];
     if (!round) return;
     const item = round.items[idx];
@@ -345,7 +484,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       }
     } else {
       setScanWrongIdx(idx);
-      setWrongCount((w) => w + 1);
+      registerMistake();
       setScanWarning('Dikkat! Seçtiğin sembol kurala uymuyor, şekil ve yönünü tekrar incele.');
       playMp3?.('/yanlis.mp3');
       onQuestionAnswered?.(false, 0);
@@ -353,7 +492,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
   };
 
   const handleSpotCardClick = (cardId: string, variant: 'normal' | 'odd') => {
-    if (spotOutcome === 'correct') return;
+    if (spotOutcome === 'correct' || strikeLocked) return;
     setSpotSelectedCardId(cardId);
     if (variant === 'odd') {
       setSpotOutcome('correct');
@@ -363,7 +502,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       onQuestionAnswered?.(true, 0);
     } else {
       setSpotOutcome('wrong');
-      setWrongCount((w) => w + 1);
+      registerMistake();
       playMp3?.('/yanlis.mp3');
       onQuestionAnswered?.(false, 0);
     }
@@ -434,12 +573,37 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
               {activeGrade}. Sınıf · {activityMeta.title}
             </div>
             <div className="text-[11px] sm:text-xs font-semibold text-slate-600 tabular-nums">
-              Görev {Math.min(stepIndex + 1, totalSteps)}/{totalSteps} · Doğru: {correctCount} · Puan: {score}
+              Görev {Math.min(stepIndex + 1, totalSteps)}/{totalSteps} · Doğru: {correctCount}
+              {threeStrikeEnabled ? ` · Hata: ${wrongCount}/3` : ''} · Puan: {score}
             </div>
           </div>
 
-          {/* Sağ: İpucu & Sıfırla */}
+          {/* Sağ: 3 Hata Kuralı Toggle, İpucu & Sıfırla */}
           <div className="flex items-center gap-1 sm:gap-1.5">
+            <button
+              type="button"
+              onClick={handleToggleThreeStrike}
+              title="3 Hata Kuralını Aç / Kapat"
+              aria-pressed={threeStrikeEnabled}
+              className={`min-h-[36px] sm:min-h-[44px] px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold flex items-center gap-1 transition active:scale-95 cursor-pointer whitespace-nowrap ${
+                threeStrikeEnabled
+                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-300'
+              }`}
+            >
+              {threeStrikeEnabled ? (
+                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-600 shrink-0" />
+              ) : (
+                <ShieldOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 shrink-0" />
+              )}
+              <span className="hidden md:inline">
+                3 Hata: {threeStrikeEnabled ? 'Açık' : 'Kapalı'}
+              </span>
+              <span className="md:hidden">
+                3H:{threeStrikeEnabled ? 'Aç' : 'Kp'}
+              </span>
+            </button>
+
             {!isFinished && (
               <button
                 type="button"
@@ -460,7 +624,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
             <button
               type="button"
               onClick={handleRestartActivity}
-              title="Baştan Başlat"
+              title="Yeni Sorularla Baştan Başlat"
               className="min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
@@ -470,8 +634,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
       </div>
 
       {/* ORTA ETKİNLİK SAHNESİ */}
-      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-2 sm:px-4 py-1.5 sm:py-2 flex flex-col items-center justify-start sm:justify-center">
-        <div className="w-full max-w-4xl rounded-2xl sm:rounded-3xl bg-slate-100/95 backdrop-blur-md border border-slate-300 shadow-2xl p-2.5 sm:p-5 flex flex-col gap-2 sm:gap-3 text-slate-900">
+      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-2 sm:px-4 py-1.5 sm:py-2 flex flex-col items-center justify-start">
+        <div className="w-full max-w-4xl my-auto rounded-2xl sm:rounded-3xl bg-slate-100/95 backdrop-blur-md border border-slate-300 shadow-2xl p-2.5 sm:p-5 flex flex-col gap-2 sm:gap-3 text-slate-900">
           {showHint && !isFinished && (
             <div className="rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2.5 text-xs sm:text-sm text-amber-950 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -482,17 +646,44 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
           {/* BİTİŞ ÖZET EKRANI */}
           {isFinished ? (
             <div className="py-4 sm:py-6 flex flex-col items-center text-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center">
-                <Trophy className="w-9 h-9 text-amber-600" />
+              <div
+                className={`w-16 h-16 rounded-2xl border flex items-center justify-center ${
+                  failedByThreeStrikes
+                    ? 'bg-rose-100 border-rose-300'
+                    : 'bg-amber-100 border-amber-300'
+                }`}
+              >
+                {failedByThreeStrikes ? (
+                  <AlertTriangle className="w-9 h-9 text-rose-600" />
+                ) : (
+                  <Trophy className="w-9 h-9 text-amber-600" />
+                )}
               </div>
               <div>
                 <h2 className="text-lg sm:text-2xl font-black text-slate-900">
-                  Tebrikler! Etkinlik Tamamlandı
+                  {failedByThreeStrikes
+                    ? '3 Hata Doldu! Oyun Sonlandı'
+                    : 'Tebrikler! 10 Soru Tamamlandı'}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  {activityMeta.title} bölümündeki tüm görevleri tamamladın.
+                  {failedByThreeStrikes
+                    ? '3 hata hakkın dolduğu için etkinlik sona erdi. Yeni sorularla tekrar oynayabilir veya üstten 3 Hata kuralını kapatabilirsin.'
+                    : `${activityMeta.title} bölümündeki ${totalSteps} soruyu başarıyla tamamladın.`}
                 </p>
               </div>
+
+              {!failedByThreeStrikes && autoNextSeconds !== null && onSwitchActivity && (
+                <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-300 px-3.5 py-2 text-xs sm:text-sm text-amber-950 font-semibold tabular-nums">
+                  <span>Sonraki etkinliğe geçiliyor: {autoNextSeconds} sn</span>
+                  <button
+                    type="button"
+                    onClick={() => setAutoNextSeconds(null)}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 font-bold text-xs cursor-pointer transition"
+                  >
+                    Burada Kal
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-2.5 sm:gap-4 w-full max-w-md">
                 <div className="rounded-2xl bg-emerald-50 border border-emerald-300 p-3">
@@ -504,7 +695,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                 <div className="rounded-2xl bg-rose-50 border border-rose-300 p-3">
                   <div className="text-xs text-rose-700 font-semibold">Hata</div>
                   <div className="text-xl sm:text-2xl font-black text-rose-600 tabular-nums mt-0.5">
-                    {wrongCount}
+                    {threeStrikeEnabled ? `${wrongCount}/3` : wrongCount}
                   </div>
                 </div>
                 <div className="rounded-2xl bg-amber-50 border border-amber-300 p-3">
@@ -522,7 +713,7 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                   className="min-h-[44px] px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer active:scale-95 transition"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Tekrar Oyna</span>
+                  <span>Yeni Sorularla Tekrar Oyna</span>
                 </button>
                 {onSwitchActivity && (
                   <button
@@ -552,54 +743,84 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                ---------------------------------------------------------------- */
             <div className="flex flex-col gap-2 sm:gap-3.5">
               <p className="text-xs sm:text-base font-bold text-slate-900 text-center leading-snug">
-                {activeQuiz.prompt}
+                {activeQuiz.visualType === 'flash_memory' && flashPhase === 'memorize'
+                  ? activeQuiz.visualData?.subType === 'sequence'
+                    ? 'Sayıları / harfleri sırasıyla aklında tut...'
+                    : 'Görseli dikkatlice incele ve aklında tut...'
+                  : activeQuiz.prompt}
               </p>
 
-              <div className="py-0.5 sm:py-1 max-h-[30dvh] sm:max-h-none flex items-center justify-center overflow-hidden [&_svg]:max-h-[28dvh] sm:[&_svg]:max-h-none">
-                <BilsemQuestionVisual question={activeQuiz} />
+              <div className="py-0.5 sm:py-1 max-h-[36dvh] sm:max-h-[42dvh] flex items-center justify-center overflow-y-auto overflow-x-hidden [&_svg]:max-h-[32dvh] sm:[&_svg]:max-h-[36dvh]">
+                <BilsemQuestionVisual question={activeQuiz} flashPhase={flashPhase} />
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2.5">
-                {activeQuiz.options.map((opt, idx) => {
-                  const isSelected = selectedOptionId === opt.id;
-                  const answered = quizOutcome !== 'idle';
-                  let cardStyle =
-                    'bg-white hover:bg-slate-50 border-slate-300 hover:border-sky-500 text-slate-900 shadow-sm';
+              {activeQuiz.visualType === 'flash_memory' && flashPhase === 'memorize' ? (
+                <div className="flex flex-col items-center gap-3 py-2 max-w-sm mx-auto w-full">
+                  <div className="w-full h-3 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+                    <div
+                      className="h-full bg-indigo-600 transition-[width] duration-75 ease-linear rounded-full"
+                      style={{ width: `${flashRemainingPct}%` }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playMp3?.('/op.mp3');
+                      if (flashIntervalRef.current !== null) {
+                        window.clearInterval(flashIntervalRef.current);
+                        flashIntervalRef.current = null;
+                      }
+                      setFlashPhase('answer');
+                    }}
+                    className="min-h-[44px] px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-black flex items-center gap-2 cursor-pointer active:scale-95 transition shadow-sm"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>Aklımda Tuttum, Seçenekleri Göster</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2.5">
+                  {activeQuiz.options.map((opt, idx) => {
+                    const isSelected = selectedOptionId === opt.id;
+                    const answered = quizOutcome !== 'idle';
+                    let cardStyle =
+                      'bg-white hover:bg-slate-50 border-slate-300 hover:border-sky-500 text-slate-900 shadow-sm';
 
-                  if (answered) {
-                    if (opt.isCorrect) {
-                      cardStyle =
-                        'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-400/50 shadow-sm';
-                    } else if (isSelected && !opt.isCorrect) {
-                      cardStyle =
-                        'bg-rose-50 border-rose-500 text-rose-950 ring-2 ring-rose-400/50 shadow-sm';
-                    } else {
-                      cardStyle = 'bg-slate-50 border-slate-200 text-slate-400 opacity-65';
+                    if (answered) {
+                      if (opt.isCorrect) {
+                        cardStyle =
+                          'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-400/50 shadow-sm';
+                      } else if (isSelected && !opt.isCorrect) {
+                        cardStyle =
+                          'bg-rose-50 border-rose-500 text-rose-950 ring-2 ring-rose-400/50 shadow-sm';
+                      } else {
+                        cardStyle = 'bg-slate-50 border-slate-200 text-slate-400 opacity-65';
+                      }
                     }
-                  }
 
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={answered}
-                      onClick={() => handleQuizSelect(opt.id, opt.isCorrect)}
-                      className={`relative rounded-xl sm:rounded-2xl border p-1.5 sm:p-3 min-h-[54px] sm:min-h-[76px] flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer active:scale-95 ${cardStyle}`}
-                    >
-                      <span className="self-start text-[10px] sm:text-[11px] font-black text-sky-700 tabular-nums leading-none">
-                        {OPTION_LETTERS[idx] || idx + 1})
-                      </span>
-                      {opt.visual ? (
-                        <BilsemOptionVisual question={activeQuiz} visual={opt.visual} />
-                      ) : (
-                        <span className="text-xs sm:text-base font-black text-center leading-tight">
-                          {opt.label}
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        disabled={answered}
+                        onClick={() => handleQuizSelect(opt.id, opt.isCorrect)}
+                        className={`relative rounded-xl sm:rounded-2xl border p-1.5 sm:p-3 min-h-[54px] sm:min-h-[76px] flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition cursor-pointer active:scale-95 ${cardStyle}`}
+                      >
+                        <span className="self-start text-[10px] sm:text-[11px] font-black text-sky-700 tabular-nums leading-none">
+                          {OPTION_LETTERS[idx] || idx + 1})
                         </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                        {opt.visual ? (
+                          <BilsemOptionVisual question={activeQuiz} visual={opt.visual} />
+                        ) : (
+                          <span className="text-xs sm:text-base font-black text-center leading-tight">
+                            {opt.label}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {quizOutcome !== 'idle' && (
                 <div
@@ -847,6 +1068,8 @@ export const BilsemGameModal: React.FC<BilsemGameModalProps> = ({
                       <SpotOddCardSVG
                         theme={activeSpot.sceneTheme}
                         isOdd={card.variant === 'odd'}
+                        variantIndex={activeSpot.variantIndex}
+                        glyphSpec={activeSpot.glyphSpec}
                       />
                     </button>
                   );
