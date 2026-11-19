@@ -7261,9 +7261,9 @@ export default function App() {
           {/* ÜST BUTONLAR SATIRI */}
           <div className="w-full flex items-center justify-between min-h-[50px] sm:min-h-[58px]">
           {/* ORTADAKİ TÜM BUTONLAR GRUBU (SOLA TAŞMAYI VE 1. SINIF BUTONUNUN KESİLMESİNİ ÖNLEYEN YAPI) */}
-          <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 xs:gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-1">
+          <div className="flex-1 flex items-center justify-start 2xl:justify-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 min-w-0 pl-0.5 sm:pl-1">
           {/* SINIF VE OYUN KATEGORİSİ BUTONLARI (1, 2, 3, 4, 5, 6, 7) */}
-          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0 mr-0.5 sm:mr-1">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
             {[1, 2, 3, 4, 5, 6, 7].map((g) => {
               const isSelected = 
                 (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
@@ -7480,7 +7480,7 @@ export default function App() {
                     }
                   }}
                   title={title}
-                  className={`relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
+                  className={`relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] shrink-0 border-2 ${
                     isSelected
                       ? 'bg-[#1a2842] border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-[0_0_10px_rgba(245,158,11,0.4)] z-10'
                       : 'bg-[#121c2e] border-slate-700/80 opacity-60 hover:opacity-100 hover:border-slate-500'
@@ -7505,7 +7505,7 @@ export default function App() {
         <button
           onClick={handleGoHome}
           title="Ana Sayfaya Dön"
-          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+          className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
             src="/ana.webp" 
@@ -7755,7 +7755,7 @@ export default function App() {
             }
           }}
           title="Bir önceki menüye dön"
-          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+          className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
             src="/geri.webp" 
@@ -7774,7 +7774,7 @@ export default function App() {
           }}
           title="Sonraki Etkinliğe Geç"
           aria-label="Sonraki Etkinlik"
-          className="relative group w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
+          className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.35)] shrink-0"
         >
           <img 
             src="/ileri.webp" 
@@ -7942,7 +7942,7 @@ export default function App() {
             }}
             title="Önceki Etkinliğe Geç"
             aria-label="Önceki Etkinlik"
-            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
+            className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
           >
             <SkipBack size={16} className="text-slate-300 group-hover:text-white transition-colors" />
           </button>
@@ -7953,7 +7953,7 @@ export default function App() {
             }}
             title="Sonraki Etkinliğe Geç"
             aria-label="Sonraki Etkinlik"
-            className="relative group w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
+            className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
           >
             <SkipForward size={16} className="text-slate-300 group-hover:text-white transition-colors" />
           </button>
@@ -7989,83 +7989,89 @@ export default function App() {
         </div>
       </div>
 
-      {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ */}
-      <div className="shrink-0 flex flex-col justify-center gap-1 pl-1 sm:pl-1.5 z-20">
-        {/* GOOGLE AUTH & CLOUD SYNC BUTTON */}
-        <button
-          onClick={() => {
-            playMp3('/op.mp3');
-            setShowGoogleAuthModal(true);
-          }}
-          title={currentUser ? `Google Bulut Senkronizasyonu: ${currentUser.displayName || currentUser.email}` : "Google ile Giriş Yap & Öğrenci/İstatistikleri Buluta Yedekle"}
-          aria-label="Google Bulut Eşitleme"
-          className={`group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] rounded-md sm:rounded-lg shadow-sm transition-all cursor-pointer shrink-0 border w-full ${
-            currentUser
-              ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_8px_rgba(16,185,129,0.35)]'
-              : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_8px_rgba(59,130,246,0.35)]'
-          }`}
-        >
-          {currentUser ? (
-            <>
-              {currentUser.photoURL ? (
-                <img
-                  src={currentUser.photoURL}
-                  alt={currentUser.displayName || 'Google'}
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-emerald-400/80 object-cover shrink-0"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[9px] shrink-0">
-                  {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
+      {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ (KOMPAKT İKON, ÜSTÜNE GELİNCE AÇILIR) */}
+      <div className="shrink-0 flex flex-col items-end justify-center gap-1 pl-1 sm:pl-1.5 z-30">
+        {/* GOOGLE AUTH & CLOUD SYNC ICON BUTTON */}
+        <div className="relative w-7 h-[22px] sm:w-8 sm:h-[25px] shrink-0">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              setShowGoogleAuthModal(true);
+            }}
+            title={currentUser ? `Google Bulut Senkronizasyonu: ${currentUser.displayName || currentUser.email}` : "Google ile Giriş Yap & Öğrenci/İstatistikleri Buluta Yedekle"}
+            aria-label="Google Giriş"
+            className={`group absolute right-0 top-0 h-full inline-flex items-center justify-center px-1.5 sm:px-2 rounded-md sm:rounded-lg shadow-sm transition-all duration-200 cursor-pointer border z-20 hover:z-40 focus-visible:z-40 ${
+              currentUser
+                ? 'bg-[#0f241a] hover:bg-[#133224] border-emerald-500/70 hover:border-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.45)]'
+                : 'bg-[#0f182c] hover:bg-[#16233e] border-blue-500/70 hover:border-blue-400 hover:shadow-[0_0_12px_rgba(59,130,246,0.45)]'
+            }`}
+          >
+            {currentUser ? (
+              <>
+                <div className="relative shrink-0">
+                  {currentUser.photoURL ? (
+                    <img
+                      src={currentUser.photoURL}
+                      alt={currentUser.displayName || 'Google'}
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-emerald-400/80 object-cover block"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500/20 border border-emerald-400/80 flex items-center justify-center text-emerald-300 font-bold text-[9px]">
+                      {(currentUser.displayName || currentUser.email || 'G')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
                 </div>
-              )}
-              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
-                {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
-              </span>
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCloudSyncing ? 'bg-amber-400 animate-spin' : 'bg-emerald-400 animate-pulse'}`} />
-            </>
-          ) : (
-            <>
-              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span className="text-[10px] sm:text-[11px] font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap">
-                Google Giriş
-              </span>
-            </>
-          )}
-        </button>
+                <span className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[100px] group-hover:opacity-100 group-hover:ml-1.5 group-focus-visible:max-w-[100px] group-focus-visible:opacity-100 group-focus-visible:ml-1.5 transition-all duration-200 text-[10px] sm:text-[11px] font-bold text-emerald-300 group-hover:text-emerald-200 tracking-tight whitespace-nowrap">
+                  {currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Bulut'}
+                </span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <span className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[100px] group-hover:opacity-100 group-hover:ml-1.5 group-focus-visible:max-w-[100px] group-focus-visible:opacity-100 group-focus-visible:ml-1.5 transition-all duration-200 text-[10px] sm:text-[11px] font-bold text-blue-300 group-hover:text-blue-200 tracking-tight whitespace-nowrap">
+                  Google Giriş
+                </span>
+              </>
+            )}
+          </button>
+        </div>
 
-        {/* FEEDBACK BUTTON */}
-        <button
-          onClick={() => {
-            playMp3('/op.mp3');
-            setShowFeedbackModal(true);
-          }}
-          title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
-          aria-label="Görüş Bildir"
-          className="group flex items-center justify-center gap-1 sm:gap-1.5 px-2 h-[22px] sm:h-[24px] bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-md sm:rounded-lg shadow-sm hover:shadow-[0_0_8px_rgba(245,158,11,0.3)] transition-all cursor-pointer shrink-0 w-full"
-        >
-          <Mail size={12} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
-          <span className="text-[10px] sm:text-[11px] font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap">
-            Görüş Bildir
-          </span>
-        </button>
+        {/* FEEDBACK ENVELOPE ICON BUTTON */}
+        <div className="relative w-7 h-[22px] sm:w-8 sm:h-[25px] shrink-0">
+          <button
+            onClick={() => {
+              playMp3('/op.mp3');
+              setShowFeedbackModal(true);
+            }}
+            title="Hata ve Geri Bildirim Gönder (olcaytoh@gmail.com)"
+            aria-label="Görüş Bildir"
+            className="group absolute right-0 top-0 h-full inline-flex items-center justify-center px-1.5 sm:px-2 bg-[#0f182c] hover:bg-[#16233e] border border-amber-500/70 hover:border-amber-400 rounded-md sm:rounded-lg shadow-sm hover:shadow-[0_0_12px_rgba(245,158,11,0.4)] transition-all duration-200 cursor-pointer z-20 hover:z-40 focus-visible:z-40"
+          >
+            <Mail size={13} className="text-amber-400 group-hover:text-amber-300 transition-transform group-hover:scale-110 shrink-0" />
+            <span className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[100px] group-hover:opacity-100 group-hover:ml-1.5 group-focus-visible:max-w-[100px] group-focus-visible:opacity-100 group-focus-visible:ml-1.5 transition-all duration-200 text-[10px] sm:text-[11px] font-bold text-amber-300 group-hover:text-amber-200 tracking-tight whitespace-nowrap">
+              Görüş Bildir
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
