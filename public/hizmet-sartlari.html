@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hizmet Şartları - Olcico İlkokul Eğitim Platformu</title>
+  <meta name="description" content="Olcico İlkokul Matematik ve Türkçe İnteraktif Eğitim Platformu Hizmet Şartları ve Kullanım Koşulları.">
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0a0f1d;
+      color: #cbd5e1;
+      line-height: 1.7;
+      padding: 0;
+      margin: 0;
+    }
+    header {
+      background: rgba(13, 21, 39, 0.95);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+      background: #4f46e5;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .brand {
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero {
+      background: linear-gradient(180deg, #121c36 0%, #0a0f1d 100%);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+      padding: 40px 24px;
+    }
+    .hero-content {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #a5b4fc;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: fit-content;
+    }
+    h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .subtext {
+      color: #94a3b8;
+      font-size: 15px;
+    }
+    .date-badge {
+      color: #f59e0b;
+      font-weight: 700;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .container {
+      max-width: 860px;
+      margin: 36px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1e293b;
+      border-radius: 24px;
+      padding: 36px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .callout {
+      background: rgba(49, 46, 129, 0.3);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 16px;
+      padding: 16px 20px;
+      color: #c7d2fe;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    section {
+      margin-bottom: 32px;
+    }
+    h2 {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    p {
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    ul {
+      margin: 10px 0 16px 24px;
+    }
+    li {
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+    .contact-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .email-link {
+      color: #fbbf24;
+      font-weight: 800;
+      text-decoration: underline;
+      font-size: 16px;
+    }
+    .email-link:hover {
+      color: #fef08a;
+    }
+    .bottom-bar {
+      margin-top: 36px;
+      text-align: center;
+    }
+    .big-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 15px;
+      text-decoration: none;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+    }
+    .big-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+    }
+    footer {
+      border-top: 1px solid #1e293b;
+      background: #070b16;
+      padding: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 48px;
+    }
+    footer a {
+      color: #94a3b8;
+      text-decoration: underline;
+    }
+    @media (max-width: 640px) {
+      .card {
+        padding: 22px 18px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header>
+    <a href="/" class="back-btn">← Ana Sayfaya Dön</a>
+    <div class="brand">⭐ Olcico Eğitim Platformu</div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-content">
+      <div class="badge">Yasal Bilgilendirme</div>
+      <h1>Hizmet Şartları / Kullanım Koşulları</h1>
+      <p class="subtext">Olcico İlkokul Matematik ve Türkçe İnteraktif Eğitim Platformu kullanımına ilişkin hak, yükümlülük ve kurallar.</p>
+      <div class="date-badge">Son Güncelleme: 5 Kasım 2026</div>
+    </div>
+  </div>
+
+  <!-- CONTAINER -->
+  <div class="container">
+    <div class="card">
+      <div class="callout">
+        Lütfen uygulamamızı kullanmadan önce işbu Hizmet Şartları'nı dikkatlice okuyunuz. Uygulamamızı indirerek veya kullanarak, bu şartların tümüyle ve çekincesiz olarak kabul etmiş olursunuz. Şartları kabul etmiyorsanız, lütfen uygulamayı kullanmayınız.
+      </div>
+
+      <section>
+        <h2><span class="num">1</span> Taraflar ve Kapsam</h2>
+        <p>İşbu Hizmet Şartları, uygulamayı geliştiren bağımsız geliştirici (<strong>"Biz", "Geliştirici"</strong>) ile uygulamayı mobil cihazına indirerek veya web üzerinden kullanan son kullanıcı (<strong>"Kullanıcı", "Siz"</strong>) arasındaki hukuki koşulları düzenler. Bu şartlar, uygulamanın kullanımıyla ilgili hak ve yükümlülüklerinizi belirler.</p>
+      </section>
+
+      <section>
+        <h2><span class="num">2</span> Lisans ve Kullanım Hakları</h2>
+        <ul>
+          <li>Geliştirici, kullanıcılara uygulamayı kişisel, ticari olmayan veya sunulan kapsam dahilindeki amaçlarla (ilkokul düzeyinde sınıf içi eğitim, akıllı tahta etkinlikleri, eğlenceli matematik ve Türkçe alıştırmaları vb.) kullanmaları için münhasır olmayan, devredilemez ve sınırlı bir lisans verir.</li>
+          <li>Uygulamanın kaynak kodlarını tersine mühendislik (reverse engineering) yapmamayı, kopyalamamayı, değiştirmemeyi veya izinsiz dağıtmamayı kabul edersiniz.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="num">3</span> Gizlilik ve Veri Koruma</h2>
+        <p>Uygulama üzerinden toplanan kişisel verileriniz (varsa hesap bilgileri, kullanım istatistikleri vb.), yürürlükteki yasalara ve Gizlilik Politikamıza uygun olarak işlenir. Detaylı bilgi için lütfen Gizlilik Politikamızı inceleyiniz.</p>
+      </section>
+
+      <section>
+        <h2><span class="num">4</span> Uygulama İçi Satın Alma ve Ödemeler</h2>
+        <ul>
+          <li>Uygulama içerisinde ilerleyen süreçte sunulabilecek olan dijital ürünler, abonelikler veya reklam kaldırma gibi uygulama içi satın almalar Google Play Ödeme Sistemi altyapısı üzerinden gerçekleştirilir.</li>
+          <li>Fiyatlandırma, iade ve iptal koşulları Google Play'in güncel politika ve kurallarına tabidir.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="num">5</span> Sorumluluk Sınırlaması</h2>
+        <ul>
+          <li>Uygulama "olduğu gibi" ve "mevcut olduğu sürece" sunulur. Geliştirici, uygulamanın kesintisiz, hatasız veya tamamen güvenli olacağını garanti etmez.</li>
+          <li>Uygulamanın kullanımından doğabilecek doğrudan veya dolaylı veri kaybı, cihaz arızası veya benzeri zararlardan geliştirici sorumlu tutulamaz.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="num">6</span> Şartlarda Değişiklikler</h2>
+        <p>Geliştirici, işbu Hizmet Şartları'nı dilediği zaman değiştirme hakkını saklı tutar. Yapılan güncellemeler uygulama içinde veya web sitemizde yayınlandığı tarihte yürürlüğe girer. Güncellemelerden haberdar olmak için şartları periyodik olarak incelemeniz tavsiye edilir.</p>
+      </section>
+
+      <section>
+        <h2><span class="num">7</span> İletişim</h2>
+        <p>İşbu sözleşme ile ilgili her türlü soru, öneri ve geri bildiriminiz için bizimle aşağıdaki e-posta adresinden iletişime geçebilirsiniz:</p>
+        <div class="contact-box">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: bold;">Resmi İletişim E-Postası</div>
+            <a href="mailto:olcaytoh@gmail.com" class="email-link">olcaytoh@gmail.com</a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="bottom-bar">
+      <a href="/" class="big-btn">← Ana Sayfaya / Oyuna Dön</a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 Olcico Eğitim Platformu. Tüm hakları saklıdır.</p>
+    <p style="margin-top: 6px;"><a href="/hizmet-sartlari">olcico.com.tr/hizmet-sartlari</a></p>
+  </footer>
+
+</body>
+</html>
