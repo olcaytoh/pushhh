@@ -1831,8 +1831,8 @@ const CizgiliYaziTahtasiGame: React.FC<{
       const xRatio = xM.actualBoundingBoxAscent > 0 ? xM.actualBoundingBoxAscent / REF : 0.52;
 
       const chars = Array.from(displayText);
-      const isTallChar = (ch: string) =>
-        ch !== ' ' && (ch !== ch.toLocaleLowerCase('tr-TR') || ch === 'l');
+      const isUpperChar = (ch: string) => ch !== ' ' && ch !== ch.toLocaleLowerCase('tr-TR');
+      const ASCENDER_LOWER = new Set(['b', 'd', 'f', 'h', 'k', 'l', 't']);
 
       const layoutForUnit = (u: number) => {
         const upperSize = (2 * u) / capRatio;
@@ -1843,20 +1843,22 @@ const CizgiliYaziTahtasiGame: React.FC<{
           if (ch === ' ') {
             const w = lowerSize * 0.36;
             totalWidth += w;
-            return { ch, font: '', width: w };
+            return { ch, font: '', width: w, isUpper: false, isAscender: false };
           }
-          const font = isTallChar(ch)
+          const isUpper = isUpperChar(ch);
+          const isAscender = !isUpper && ASCENDER_LOWER.has(ch);
+          const font = isUpper
             ? `600 ${upperSize}px ${fontFamily}`
             : `700 ${lowerSize}px ${fontFamily}`;
           ctx.font = font;
           const w = ctx.measureText(ch).width;
           totalWidth += w + gap;
-          return { ch, font, width: w };
+          return { ch, font, width: w, isUpper, isAscender };
         });
         if (items.length > 0 && chars[chars.length - 1] !== ' ') {
           totalWidth -= gap;
         }
-        return { items, totalWidth, gap };
+        return { items, totalWidth, gap, lowerSize };
       };
 
       // 1. Sınıf kılavuz defteri: 3 EŞİT aralık (üst mavi ↔ kırmızı kesikli ↔ alt mavi ↔ alt kesikli)
@@ -1874,23 +1876,102 @@ const CizgiliYaziTahtasiGame: React.FC<{
       const baselineY = topBlueY + 2 * unit;
       const descBlueY = topBlueY + 3 * unit;
 
-      // 1) Silik kılavuz harf / kelime (her harf kendi bandına birebir oturur)
+      // 1) Silik kılavuz harf / kelime (ek yerlerinde ton farkı olmaması için tek katmanlı offscreen tuvalde çizilir)
       if (showGuide) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.42)';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        let cursorX = (W - layout.totalWidth) / 2;
-        for (const item of layout.items) {
-          if (item.ch === ' ') {
-            cursorX += item.width;
-            continue;
+        const off = document.createElement('canvas');
+        off.width = canvas.width;
+        off.height = canvas.height;
+        const octx = off.getContext('2d');
+        if (octx) {
+          octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          octx.fillStyle = '#94a3b8';
+          octx.textAlign = 'left';
+          octx.textBaseline = 'alphabetic';
+
+          // Küçük harflerin gövde/yuvarlak üst sınırını ('o' dahil) ölç ki sadece dik çubuk üst mavi çizgiye uzasın
+          octx.font = `700 ${layout.lowerSize}px ${fontFamily}`;
+          const oAscent = octx.measureText('o').actualBoundingBoxAscent || unit;
+          const xAscent = octx.measureText('x').actualBoundingBoxAscent || unit;
+          const stemSplitY = baselineY - Math.max(oAscent, xAscent) - 2;
+
+          let cursorX = (W - layout.totalWidth) / 2;
+          for (const item of layout.items) {
+            if (item.ch === ' ') {
+              cursorX += item.width;
+              continue;
+            }
+            octx.font = item.font;
+
+            if (!item.isAscender) {
+              octx.fillText(item.ch, cursorX, baselineY);
+            } else {
+              // Küçük b, d, f, h, k, l harfleri ÜST MAVİ ÇİZGİYE (topBlueY) tam değer;
+              // küçük 't' harfi ise üst mavi çizgi ile kırmızı kesikli çizginin TAM ORTASINA gelir (MEB Dik Temel Harf kuralı).
+              const targetTopY = item.ch === 't' ? Math.round((topBlueY + midPinkY) / 2) : topBlueY;
+              const chMetrics = octx.measureText(item.ch);
+              const chAscent = chMetrics.actualBoundingBoxAscent || unit * 1.38;
+              const origTopY = baselineY - chAscent;
+              const origUpperH = Math.max(4, stemSplitY - origTopY);
+              const targetUpperH = Math.max(4, stemSplitY - targetTopY);
+
+              // Alt gövde (kırmızı kesikli çizgi ↔ taban çizgisi) — hiç bozulmaz
+              octx.save();
+              octx.beginPath();
+              octx.rect(0, stemSplitY - 0.5, W, H - stemSplitY + 1);
+              octx.clip();
+              octx.fillText(item.ch, cursorX, baselineY);
+              octx.restore();
+
+              if (item.ch === 'f') {
+                // 'f' harfinin üst kıvrımını bozmadan üst mavi çizgiye taşı, aradaki dik boynu pürüzsüz bağla
+                const hookH = Math.max(5, origUpperH * 0.48);
+                const hookSplitOrigY = origTopY + hookH;
+                const shiftY = targetTopY - origTopY;
+
+                // 1) Üst kıvrım (tam topBlueY'ye değer)
+                octx.save();
+                octx.beginPath();
+                octx.rect(0, targetTopY - 2, W, hookH + 3);
+                octx.clip();
+                octx.fillText(item.ch, cursorX, baselineY + shiftY);
+                octx.restore();
+
+                // 2) Ara dik çubuk (kıvrım altı ↔ stemSplitY)
+                const origNeckH = Math.max(2, stemSplitY - hookSplitOrigY);
+                const targetNeckTopY = targetTopY + hookH - 1;
+                const targetNeckH = Math.max(2, stemSplitY + 1 - targetNeckTopY);
+                octx.save();
+                octx.beginPath();
+                octx.rect(0, targetNeckTopY, W, targetNeckH);
+                octx.clip();
+                octx.translate(0, stemSplitY);
+                octx.scale(1, targetNeckH / origNeckH);
+                octx.translate(0, -stemSplitY);
+                octx.fillText(item.ch, cursorX, baselineY);
+                octx.restore();
+              } else {
+                // b, d, h, k, l üst mavi çizgiye; t ise mavi ile kırmızı çizginin tam ortasına uzanır
+                const scaleY = targetUpperH / origUpperH;
+                octx.save();
+                octx.beginPath();
+                octx.rect(0, targetTopY - 1, W, targetUpperH + 2);
+                octx.clip();
+                octx.translate(0, stemSplitY);
+                octx.scale(1, scaleY);
+                octx.translate(0, -stemSplitY);
+                octx.fillText(item.ch, cursorX, baselineY);
+                octx.restore();
+              }
+            }
+
+            cursorX += item.width + layout.gap;
           }
-          ctx.font = item.font;
-          ctx.fillText(item.ch, cursorX, baselineY);
-          cursorX += item.width + layout.gap;
+
+          ctx.save();
+          ctx.globalAlpha = 0.42;
+          ctx.drawImage(off, 0, 0, W, H);
+          ctx.restore();
         }
-        ctx.restore();
       }
 
       // 2) 1. Sınıf 4'lü kılavuz çizgileri (3 eşit aralık)
@@ -1909,9 +1990,9 @@ const CizgiliYaziTahtasiGame: React.FC<{
         ctx.restore();
       };
 
-      // Üst mavi sınır çizgisi (büyük harfler bu çizgiye tam değer)
+      // Üst mavi sınır çizgisi (büyük harfler ve küçük b, d, f, h, k, l, t bu çizgiye tam değer)
       drawLine(topBlueY, '#0ea5e9', 2.5, false);
-      // Tam ortadaki kırmızı kesikli çizgi (küçük harfler bu çizgiye tam değer)
+      // Tam ortadaki kırmızı kesikli çizgi (küçük harf gövdeleri bu çizgiye tam değer)
       drawLine(midPinkY, '#f43f5e', 2.2, true);
       // Taban mavi çizgisi (tüm harflerin oturduğu çizgi)
       drawLine(baselineY, '#0284c7', 2.5, false);

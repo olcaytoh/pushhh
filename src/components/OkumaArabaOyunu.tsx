@@ -18,6 +18,7 @@ import {
   OKUMA_ARABA_VEHICLES,
   getFilteredWords,
   getGroupSyllables,
+  isValidTurkishSyllableOrWord,
   shuffleArray,
   speakTurkish,
   stopSpeaking,
@@ -44,52 +45,6 @@ interface OkumaArabaOyunuProps {
 const TOTAL_QUESTIONS = 7;
 const WAVE_DURATION_MS = 8800;
 
-const TURKISH_VOWELS = /[aeıioöuüAEIİOÖUÜ]/;
-// Türkçe ses/yazım kurallarına aykırı veya TTS tarafından yanlış genişletilen tek heceleri engelle
-const INVALID_TURKISH_SYLLABLES = new Set([
-  'üy',
-  'iy',
-  'ab',
-  'eb',
-  'ib',
-  'ob',
-  'ub',
-  'ac',
-  'ec',
-  'ic',
-  'oc',
-  'uc',
-  'ed',
-  'id',
-  'od',
-  'ud',
-  'ag',
-  'eg',
-  'ig',
-  'og',
-  'ug',
-  'eğ',
-  'iğ',
-  'ığ',
-  'oğ',
-  'uğ',
-  'öğ',
-  'üğ',
-  'aj',
-  'ej',
-  'ij',
-  'oj',
-  'uj',
-]);
-
-function isValidTurkishTarget(text: string): boolean {
-  const clean = text.trim().toLocaleLowerCase('tr-TR');
-  if (clean.length < 2) return false; // Tek harf sorusu yok
-  if (!TURKISH_VOWELS.test(clean)) return false; // Türkçe hecede en az bir ünlü zorunlu
-  if (INVALID_TURKISH_SYLLABLES.has(clean)) return false;
-  return true;
-}
-
 const CUBE_STYLES = [
   {
     outer: 'bg-gradient-to-b from-violet-400 to-violet-600 border-violet-700 shadow-[0_6px_0_#5b21b6]',
@@ -111,10 +66,10 @@ function buildPoolForMode(
   contentType: ArabaContentType
 ): { text: string; kind: 'hece' | 'kelime' }[] {
   const syllables = getGroupSyllables(group, focusLetter)
-    .filter(isValidTurkishTarget)
+    .filter(isValidTurkishSyllableOrWord)
     .map((s) => ({ text: s, kind: 'hece' as const }));
   const words = getFilteredWords(group, focusLetter)
-    .filter((w) => isValidTurkishTarget(w.word))
+    .filter((w) => isValidTurkishSyllableOrWord(w.word))
     .map((w) => ({ text: w.word, kind: 'kelime' as const }));
 
   if (contentType === 'hece') return syllables;

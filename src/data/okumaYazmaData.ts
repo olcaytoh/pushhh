@@ -179,7 +179,7 @@ export const LETTER_GROUPS: LetterGroupData[] = [
       { upper: 'L', lower: 'l', keyword: 'lale', emoji: '🌷', syllables: ['el', 'le', 'al', 'la'], sampleWords: ['el', 'ele', 'elle', 'lale'] },
       { upper: 'A', lower: 'a', keyword: 'arı', emoji: '🐝', syllables: ['al', 'la', 'ak', 'an'], sampleWords: ['ela', 'ala', 'lale', 'Ela', 'Lale'] },
       { upper: 'K', lower: 'k', keyword: 'kale', emoji: '🏰', syllables: ['ek', 'ke', 'ak', 'ka', 'kal', 'kek'], sampleWords: ['kal', 'kek', 'kale', 'elek', 'ekle', 'leke', 'kelek'] },
-      { upper: 'İ', lower: 'i', keyword: 'inek', emoji: '🐄', syllables: ['il', 'li', 'ik', 'ki', 'in', 'ni'], sampleWords: ['Ali', 'iki', 'ile', 'kil', 'elli', 'aile', 'kekik', 'keklik'] },
+      { upper: 'İ', lower: 'i', keyword: 'inek', emoji: '🐄', syllables: ['il', 'li', 'ki', 'in', 'ni', 'kil'], sampleWords: ['Ali', 'iki', 'ile', 'kil', 'elli', 'aile', 'kekik', 'keklik'] },
       { upper: 'N', lower: 'n', keyword: 'nane', emoji: '🌿', syllables: ['en', 'ne', 'an', 'na', 'in', 'ni', 'nal'], sampleWords: ['anne', 'nine', 'nane', 'inek', 'ekin', 'nal', 'ninni', 'Kenan'] },
     ],
     words: [
@@ -281,12 +281,12 @@ export const LETTER_GROUPS: LetterGroupData[] = [
     lettersLabel: 'O - M - U - T - Ü - Y',
     accent: 'emerald',
     letters: [
-      { upper: 'O', lower: 'o', keyword: 'okul', emoji: '🏫', syllables: ['ol', 'lo', 'ok', 'ko', 'on', 'no', 'kol'], sampleWords: ['kol', 'koli', 'kilo', 'kokla', 'konak', 'koala'] },
-      { upper: 'M', lower: 'm', keyword: 'limon', emoji: '🍋', syllables: ['em', 'me', 'im', 'mi', 'om', 'mo', 'ma', 'mum'], sampleWords: ['elma', 'limon', 'kalem', 'ekmek', 'keman', 'kilim'] },
-      { upper: 'U', lower: 'u', keyword: 'uçak', emoji: '✈️', syllables: ['ul', 'lu', 'uk', 'ku', 'un', 'nu', 'um', 'mu', 'kum'], sampleWords: ['okul', 'koku', 'kule', 'kulak', 'lokum', 'mum', 'kum'] },
-      { upper: 'T', lower: 't', keyword: 'tilki', emoji: '🦊', syllables: ['et', 'te', 'at', 'ta', 'it', 'ti', 'ot', 'to', 'ut', 'tu', 'tat'], sampleWords: ['toka', 'kutu', 'etek', 'mutlu', 'tatil', 'tilki', 'koltuk'] },
-      { upper: 'Ü', lower: 'ü', keyword: 'ütü', emoji: '🧺', syllables: ['ül', 'lü', 'ük', 'kü', 'ün', 'nü', 'üm', 'mü', 'üt', 'tü', 'tül'], sampleWords: ['ütü', 'tül', 'küme', 'ülke', 'tünel', 'kütük', 'ünlem'] },
-      { upper: 'Y', lower: 'y', keyword: 'yayla', emoji: '⛰️', syllables: ['ey', 'ye', 'ay', 'ya', 'yi', 'oy', 'yo', 'uy', 'yu', 'yü', 'yay'], sampleWords: ['oyun', 'ayna', 'kuyu', 'yemek', 'leylek', 'kamyon', 'maymun'] },
+      { upper: 'O', lower: 'o', keyword: 'okul', emoji: '🏫', syllables: ['ol', 'lo', 'ok', 'ko', 'on', 'kol', 'kon'], sampleWords: ['kol', 'koli', 'kilo', 'kokla', 'konak', 'koala'] },
+      { upper: 'M', lower: 'm', keyword: 'limon', emoji: '🍋', syllables: ['em', 'me', 'mi', 'om', 'mo', 'ma', 'mum', 'nem'], sampleWords: ['elma', 'limon', 'kalem', 'ekmek', 'keman', 'kilim'] },
+      { upper: 'U', lower: 'u', keyword: 'uçak', emoji: '✈️', syllables: ['lu', 'ku', 'un', 'nu', 'um', 'mu', 'kum', 'kul'], sampleWords: ['okul', 'koku', 'kule', 'kulak', 'lokum', 'mum', 'kum'] },
+      { upper: 'T', lower: 't', keyword: 'tilki', emoji: '🦊', syllables: ['et', 'te', 'at', 'ta', 'it', 'ti', 'ot', 'to', 'ut', 'tu', 'tat', 'tel'], sampleWords: ['toka', 'kutu', 'etek', 'mutlu', 'tatil', 'tilki', 'koltuk'] },
+      { upper: 'Ü', lower: 'ü', keyword: 'ütü', emoji: '🧺', syllables: ['ül', 'lü', 'kü', 'ün', 'nü', 'mü', 'üt', 'tü', 'tül', 'küt'], sampleWords: ['ütü', 'tül', 'küme', 'ülke', 'tünel', 'kütük', 'ünlem'] },
+      { upper: 'Y', lower: 'y', keyword: 'yayla', emoji: '⛰️', syllables: ['ey', 'ye', 'ay', 'ya', 'yi', 'oy', 'yo', 'uy', 'yu', 'yü', 'yay', 'yol', 'yem'], sampleWords: ['oyun', 'ayna', 'kuyu', 'yemek', 'leylek', 'kamyon', 'maymun'] },
     ],
     words: [
       { word: 'koli', syllables: ['ko', 'li'], letter: 'O', emoji: '📦' },
@@ -386,11 +386,11 @@ export const LETTER_GROUPS: LetterGroupData[] = [
     lettersLabel: 'Ö - R - I - D - S - B',
     accent: 'amber',
     letters: [
-      { upper: 'Ö', lower: 'ö', keyword: 'ördek', emoji: '🦆', syllables: ['öl', 'lö', 'ök', 'kö', 'ön', 'nö', 'öt', 'tö', 'köy'], sampleWords: ['köy', 'önlük', 'öykü', 'yöntem', 'atölye', 'önemli'] },
-      { upper: 'R', lower: 'r', keyword: 'radyo', emoji: '📻', syllables: ['er', 're', 'ar', 'ra', 'ir', 'ri', 'or', 'ro', 'ur', 'ru', 'nar', 'kar', 'mor'], sampleWords: ['nar', 'mor', 'kar', 'market', 'ayran', 'kartal', 'makarna'] },
-      { upper: 'I', lower: 'ı', keyword: 'ırmak', emoji: '🏞️', syllables: ['ıl', 'lı', 'ık', 'kı', 'ın', 'nı', 'ım', 'mı', 'ır', 'rı'], sampleWords: ['ayı', 'arı', 'ırmak', 'yılan', 'tırtıl', 'martı', 'atkı'] },
+      { upper: 'Ö', lower: 'ö', keyword: 'ördek', emoji: '🦆', syllables: ['öl', 'lö', 'kö', 'ön', 'nö', 'öt', 'tö', 'köy', 'dört'], sampleWords: ['köy', 'önlük', 'öykü', 'yöntem', 'atölye', 'önemli'] },
+      { upper: 'R', lower: 'r', keyword: 'radyo', emoji: '📻', syllables: ['er', 're', 'ar', 'ra', 'ri', 'or', 'ro', 'ur', 'ru', 'nar', 'kar', 'mor'], sampleWords: ['nar', 'mor', 'kar', 'market', 'ayran', 'kartal', 'makarna'] },
+      { upper: 'I', lower: 'ı', keyword: 'ırmak', emoji: '🏞️', syllables: ['lı', 'kı', 'nı', 'mı', 'rı', 'kır', 'tır', 'sır', 'yıl'], sampleWords: ['ayı', 'arı', 'ırmak', 'yılan', 'tırtıl', 'martı', 'atkı'] },
       { upper: 'D', lower: 'd', keyword: 'dondurma', emoji: '🍦', syllables: ['ad', 'de', 'da', 'di', 'do', 'du', 'dü', 'dal', 'dört'], sampleWords: ['dede', 'kedi', 'dört', 'doktor', 'radyo', 'ördek', 'dondurma'] },
-      { upper: 'S', lower: 's', keyword: 'saat', emoji: '⏰', syllables: ['es', 'se', 'as', 'sa', 'is', 'si', 'os', 'so', 'us', 'su', 'ses'], sampleWords: ['saat', 'sarı', 'masa', 'masal', 'aslan', 'salata', 'kestane'] },
+      { upper: 'S', lower: 's', keyword: 'saat', emoji: '⏰', syllables: ['es', 'se', 'as', 'sa', 'is', 'si', 'os', 'so', 'us', 'su', 'ses', 'sal'], sampleWords: ['saat', 'sarı', 'masa', 'masal', 'aslan', 'salata', 'kestane'] },
       { upper: 'B', lower: 'b', keyword: 'balık', emoji: '🐟', syllables: ['be', 'ba', 'bi', 'bo', 'bu', 'bal', 'bol', 'bel'], sampleWords: ['baba', 'balık', 'bebek', 'bulut', 'sabun', 'bayrak', 'kelebek', 'araba'] },
     ],
     words: [
@@ -437,7 +437,7 @@ export const LETTER_GROUPS: LetterGroupData[] = [
       { word: 'bayrak', syllables: ['bay', 'rak'], letter: 'B', emoji: '🚩' },
       { word: 'kelebek', syllables: ['ke', 'le', 'bek'], letter: 'B', emoji: '🦋' },
       { word: 'araba', syllables: ['a', 'ra', 'ba'], letter: 'B', emoji: '🚗' },
-      { word: 'bisiklet', syllables: ['bi', 'sik', 'let'], letter: 'B', emoji: '🚲' },
+      { word: 'biber', syllables: ['bi', 'ber'], letter: 'B', emoji: '🫑' },
     ],
     sentences: [
       { text: 'Öykü önlük al.', words: ['Öykü', 'önlük', 'al.'], letter: 'Ö' },
@@ -492,12 +492,12 @@ export const LETTER_GROUPS: LetterGroupData[] = [
     lettersLabel: 'Z - Ç - G - Ş - C - P',
     accent: 'rose',
     letters: [
-      { upper: 'Z', lower: 'z', keyword: 'zebra', emoji: '🦓', syllables: ['ez', 'ze', 'az', 'za', 'iz', 'zi', 'uz', 'zu', 'zar', 'zil', 'muz'], sampleWords: ['zar', 'zil', 'muz', 'üzüm', 'zebra', 'zeytin', 'yıldız'] },
-      { upper: 'Ç', lower: 'ç', keyword: 'çiçek', emoji: '🌸', syllables: ['eç', 'çe', 'aç', 'ça', 'iç', 'çi', 'uç', 'çu', 'çay', 'üç'], sampleWords: ['çay', 'uçak', 'çiçek', 'çilek', 'çanta', 'çikolata', 'çaydanlık'] },
+      { upper: 'Z', lower: 'z', keyword: 'zebra', emoji: '🦓', syllables: ['ez', 'ze', 'az', 'za', 'iz', 'zi', 'zu', 'zar', 'zil', 'muz', 'tuz', 'buz'], sampleWords: ['zar', 'zil', 'muz', 'üzüm', 'zebra', 'zeytin', 'yıldız'] },
+      { upper: 'Ç', lower: 'ç', keyword: 'çiçek', emoji: '🌸', syllables: ['çe', 'aç', 'ça', 'iç', 'çi', 'uç', 'çu', 'çay', 'üç', 'saç', 'taç'], sampleWords: ['çay', 'uçak', 'çiçek', 'çilek', 'çanta', 'çikolata', 'çaydanlık'] },
       { upper: 'G', lower: 'g', keyword: 'gemi', emoji: '🚢', syllables: ['ge', 'ga', 'gi', 'go', 'gu', 'gü', 'göl', 'göz', 'gül'], sampleWords: ['göl', 'göz', 'gemi', 'gitar', 'geyik', 'gözlük', 'gazete'] },
-      { upper: 'Ş', lower: 'ş', keyword: 'şeker', emoji: '🍬', syllables: ['eş', 'şe', 'aş', 'şa', 'iş', 'şi', 'uş', 'şu', 'kuş', 'beş', 'taş'], sampleWords: ['kuş', 'beş', 'şişe', 'şeker', 'şarkı', 'güneş', 'yeşil'] },
-      { upper: 'C', lower: 'c', keyword: 'ceylan', emoji: '🦌', syllables: ['ce', 'ca', 'ci', 'co', 'cu', 'cam', 'can', 'cem'], sampleWords: ['cam', 'inci', 'gece', 'böcek', 'çocuk', 'ceylan', 'oyuncak'] },
-      { upper: 'P', lower: 'p', keyword: 'pasta', emoji: '🎂', syllables: ['ip', 'öp', 'pe', 'pa', 'pi', 'po', 'pu', 'pil', 'pul', 'top'], sampleWords: ['pil', 'park', 'pide', 'kapı', 'şapka', 'pasta', 'karpuz', 'portakal'] },
+      { upper: 'Ş', lower: 'ş', keyword: 'şeker', emoji: '🍬', syllables: ['eş', 'şe', 'aş', 'şa', 'iş', 'şi', 'şu', 'kuş', 'beş', 'taş', 'kaş'], sampleWords: ['kuş', 'beş', 'şişe', 'şeker', 'şarkı', 'güneş', 'yeşil'] },
+      { upper: 'C', lower: 'c', keyword: 'ceylan', emoji: '🦌', syllables: ['ce', 'ca', 'ci', 'co', 'cam', 'can', 'cem', 'cin'], sampleWords: ['cam', 'inci', 'gece', 'böcek', 'çocuk', 'ceylan', 'oyuncak'] },
+      { upper: 'P', lower: 'p', keyword: 'pasta', emoji: '🎂', syllables: ['ip', 'öp', 'pe', 'pa', 'pi', 'po', 'pu', 'pil', 'pul', 'top', 'kap'], sampleWords: ['pil', 'park', 'pide', 'kapı', 'şapka', 'pasta', 'karpuz', 'portakal'] },
     ],
     words: [
       { word: 'üzüm', syllables: ['ü', 'züm'], letter: 'Z', emoji: '🍇' },
@@ -598,10 +598,10 @@ export const LETTER_GROUPS: LetterGroupData[] = [
     lettersLabel: 'H - V - Ğ - F - J',
     accent: 'violet',
     letters: [
-      { upper: 'H', lower: 'h', keyword: 'horoz', emoji: '🐓', syllables: ['ah', 'he', 'ha', 'hi', 'ho', 'hu', 'hak', 'hal'], sampleWords: ['halı', 'hece', 'horoz', 'bahar', 'hediye', 'ahtapot'] },
+      { upper: 'H', lower: 'h', keyword: 'horoz', emoji: '🐓', syllables: ['ah', 'he', 'ha', 'hi', 'ho', 'hu', 'hak', 'hal', 'han'], sampleWords: ['halı', 'hece', 'horoz', 'bahar', 'hediye', 'ahtapot'] },
       { upper: 'V', lower: 'v', keyword: 'vazo', emoji: '🏺', syllables: ['ev', 'av', 've', 'va', 'vi', 'vo', 'var', 'ver'], sampleWords: ['vazo', 'mavi', 'havuz', 'havuç', 'tavuk', 'vapur', 'civciv', 'tavşan'] },
       { upper: 'Ğ', lower: 'ğ', keyword: 'ağaç', emoji: '🌳', syllables: ['ağ', 'dağ', 'yağ', 'bağ', 'çağ', 'sağ'], sampleWords: ['dağ', 'yağ', 'ağaç', 'kuğu', 'iğne', 'yoğurt', 'yağmur', 'kurbağa'] },
-      { upper: 'F', lower: 'f', keyword: 'fil', emoji: '🐘', syllables: ['af', 'of', 'fe', 'fa', 'fi', 'fo', 'fu', 'fil', 'far'], sampleWords: ['fil', 'fare', 'fener', 'fırın', 'fındık', 'futbol', 'defter', 'zürafa'] },
+      { upper: 'F', lower: 'f', keyword: 'fil', emoji: '🐘', syllables: ['af', 'of', 'fe', 'fa', 'fi', 'fo', 'fu', 'fil', 'far', 'fen'], sampleWords: ['fil', 'fare', 'fener', 'fırın', 'fındık', 'futbol', 'defter', 'zürafa'] },
       { upper: 'J', lower: 'j', keyword: 'jaguar', emoji: '🐆', syllables: ['je', 'ja', 'ji', 'jo', 'ju', 'jö', 'jel', 'jet'], sampleWords: ['jel', 'oje', 'judo', 'jöle', 'garaj', 'pijama', 'ejderha', 'jaguar'] },
     ],
     words: [
@@ -976,14 +976,100 @@ export function getFilteredSentences(group: LetterGroupData, focusLetter: string
   return matched.length >= 3 ? matched : group.sentences;
 }
 
+// Türkçe dilbilgisi, çocuk güvenliği ve TTS doğru telaffuz filtresi:
+// 1) İlkokul ortamına uygun olmayan heceler (özellikle 'am', 'sik' vb.) kesinlikle yasaklıdır.
+// 2) TTS motorunun kısaltma/harf adıyla yanlış okuduğu heceler ('ik'→'i-ke', 'no'→'numara', 'üy'→'üye' vb.) engellenir.
+// 3) Türkçede hece/kelime sonunda bulunmayan b, c, d, g, j ile biten yapay heceler engellenir.
+const BLOCKED_OR_MISREAD_SYLLABLES = new Set([
+  // Çocuk güvenliği / uygunsuz hece engeli
+  'am',
+  'sik',
+  'bok',
+  'göt',
+  'piç',
+  'amk',
+  'mal',
+  // Google Türkçe TTS tarafından harf adıyla veya kısaltma olarak yanlış okunanlar
+  'ik',
+  'uk',
+  'ul',
+  'ıl',
+  'ım',
+  'im',
+  'üm',
+  'ir',
+  'ır',
+  'eç',
+  'uş',
+  'uz',
+  'ök',
+  'ük',
+  'ık',
+  'ın',
+  'cu',
+  'no',
+  'üy',
+  'iy',
+  // Türkçe ses/yazım kurallarına aykırı kapalı heceler
+  'ab',
+  'eb',
+  'ib',
+  'ob',
+  'ub',
+  'ac',
+  'ec',
+  'ic',
+  'oc',
+  'uc',
+  'ed',
+  'id',
+  'od',
+  'ud',
+  'ag',
+  'eg',
+  'ig',
+  'og',
+  'ug',
+  'eğ',
+  'iğ',
+  'ığ',
+  'oğ',
+  'uğ',
+  'öğ',
+  'üğ',
+  'aj',
+  'ej',
+  'ij',
+  'oj',
+  'uj',
+]);
+
+const TURKISH_VOWEL_REGEX = /[aeıioöuüAEIİOÖUÜ]/;
+
+export function isValidTurkishSyllableOrWord(text: string): boolean {
+  const clean = text.trim().toLocaleLowerCase('tr-TR');
+  if (clean.length < 2) return false;
+  if (!TURKISH_VOWEL_REGEX.test(clean)) return false;
+  if (BLOCKED_OR_MISREAD_SYLLABLES.has(clean)) return false;
+  return true;
+}
+
 export function getGroupSyllables(group: LetterGroupData, focusLetter: string | null): string[] {
   const sourceLetters = focusLetter
     ? group.letters.filter((l) => l.upper === focusLetter)
     : group.letters;
   const set = new Set<string>();
-  sourceLetters.forEach((l) => l.syllables.forEach((s) => set.add(s)));
+  sourceLetters.forEach((l) =>
+    l.syllables.forEach((s) => {
+      if (isValidTurkishSyllableOrWord(s)) set.add(s);
+    })
+  );
   if (set.size < 8) {
-    group.letters.forEach((l) => l.syllables.forEach((s) => set.add(s)));
+    group.letters.forEach((l) =>
+      l.syllables.forEach((s) => {
+        if (isValidTurkishSyllableOrWord(s)) set.add(s);
+      })
+    );
   }
   return Array.from(set);
 }
