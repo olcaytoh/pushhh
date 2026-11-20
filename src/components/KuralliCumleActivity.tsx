@@ -8,6 +8,7 @@ import {
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { ActivityBackground } from './ActivityBackground';
+import { speakTurkish } from '../utils/turkishSpeech';
 
 export type GradeLevel = 1 | 2 | 3 | 4;
 
@@ -1756,15 +1757,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   // Sesli Oku
   const speakSentence = (text: string) => {
-    try {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'tr-TR';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch {}
+    speakTurkish(text, { kind: 'cumle' });
   };
 
   // Re-shuffle current sentence

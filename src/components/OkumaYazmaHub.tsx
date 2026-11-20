@@ -9,6 +9,7 @@ import {
   speakTurkish,
 } from '../data/okumaYazmaData';
 import { TurkishActivityBackground } from './TurkishActivityBackground';
+import { TeacherVoiceToggle } from './TeacherVoiceToggle';
 
 interface OkumaYazmaHubProps {
   onClose: () => void;
@@ -169,21 +170,24 @@ export const OkumaYazmaHub: React.FC<OkumaYazmaHubProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                playMp3?.('/op.mp3');
-                if (onGoHome) {
-                  onGoHome();
-                } else {
-                  onClose();
-                }
-              }}
-              className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2 transition active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
-            >
-              <Home className="w-4 h-4 text-rose-600" />
-              <span>Ana Menü</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <TeacherVoiceToggle playMp3={playMp3} />
+              <button
+                type="button"
+                onClick={() => {
+                  playMp3?.('/op.mp3');
+                  if (onGoHome) {
+                    onGoHome();
+                  } else {
+                    onClose();
+                  }
+                }}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2 transition active:scale-95 cursor-pointer shrink-0 whitespace-nowrap"
+              >
+                <Home className="w-4 h-4 text-rose-600" />
+                <span>Ana Menü</span>
+              </button>
+            </div>
           </div>
 
           {/* 5 HARF GRUBU SEKMELERİ (HECE KİTABIM SIRALAMASI) */}

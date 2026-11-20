@@ -9,6 +9,7 @@ import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { BasketballRaceTrack, SingleBasketballTrack } from './BasketballRaceTrack';
 import { ActivityBackground } from './ActivityBackground';
+import { speakTurkish } from '../utils/turkishSpeech';
 
 export interface HeceSayisiActivityProps {
   onClose: () => void;
@@ -324,19 +325,11 @@ export const HeceSayisiActivity: React.FC<HeceSayisiActivityProps> = ({
     }
   }, [playMp3, soundEnabled]);
 
-  // Web Speech API for Turkish word pronunciation
+  // Doğal Türkçe öğretmen seslendirmesi
   const [speechEnabled, setSpeechEnabled] = useState(true);
   const speakWord = useCallback((word: string) => {
     if (!speechEnabled || typeof window === 'undefined') return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = 'tr-TR';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Ignore speech synth error if unsupported
-    }
+    speakTurkish(word, { kind: 'kelime' });
   }, [speechEnabled]);
 
   // =========================================================================

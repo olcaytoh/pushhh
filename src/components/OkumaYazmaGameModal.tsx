@@ -27,6 +27,7 @@ import {
   getGroupSyllables,
   getLetterGroupById,
   getOkumaYazmaActivityMeta,
+  prefetchTurkishItems,
   shuffleArray,
   speakTurkish,
   stopSpeaking,
@@ -34,6 +35,7 @@ import {
 import { TurkishActivityBackground } from './TurkishActivityBackground';
 import { StudentAvatarDock } from './StudentAvatarDock';
 import { OkumaArabaOyunu } from './OkumaArabaOyunu';
+import { TeacherVoiceToggle } from './TeacherVoiceToggle';
 import { Student } from '../types/student';
 
 interface OkumaYazmaGameModalProps {
@@ -606,22 +608,132 @@ const BulutEslestirmeGame: React.FC<{
  * ========================================================================== */
 type BalloonMode = 'hece' | 'kelime' | 'harf';
 
+interface BalloonColorTheme {
+  id: string;
+  img: string;
+  burstColor: string;
+  shardAlt: string;
+  ringColor: string;
+}
+
+const BALLOON_THEMES: BalloonColorTheme[] = [
+  {
+    id: 'red',
+    img: '/assets/okuma_balon/balon_red.png',
+    burstColor: '#ef4444',
+    shardAlt: '#fca5a5',
+    ringColor: 'rgba(239,68,68,0.65)',
+  },
+  {
+    id: 'blue',
+    img: '/assets/okuma_balon/balon_blue.png',
+    burstColor: '#0284c7',
+    shardAlt: '#7dd3fc',
+    ringColor: 'rgba(2,132,199,0.65)',
+  },
+  {
+    id: 'green',
+    img: '/assets/okuma_balon/balon_green.png',
+    burstColor: '#16a34a',
+    shardAlt: '#86efac',
+    ringColor: 'rgba(22,163,74,0.65)',
+  },
+  {
+    id: 'orange',
+    img: '/assets/okuma_balon/balon_orange.png',
+    burstColor: '#f97316',
+    shardAlt: '#fdba74',
+    ringColor: 'rgba(249,115,22,0.65)',
+  },
+  {
+    id: 'purple',
+    img: '/assets/okuma_balon/balon_purple.png',
+    burstColor: '#9333ea',
+    shardAlt: '#d8b4fe',
+    ringColor: 'rgba(147,51,234,0.65)',
+  },
+  {
+    id: 'pink',
+    img: '/assets/okuma_balon/balon_pink.png',
+    burstColor: '#ec4899',
+    shardAlt: '#f9a8d4',
+    ringColor: 'rgba(236,72,153,0.65)',
+  },
+  {
+    id: 'teal',
+    img: '/assets/okuma_balon/balon_teal.png',
+    burstColor: '#0d9488',
+    shardAlt: '#5eead4',
+    ringColor: 'rgba(13,148,136,0.65)',
+  },
+  {
+    id: 'gold',
+    img: '/assets/okuma_balon/balon_gold.png',
+    burstColor: '#eab308',
+    shardAlt: '#fde047',
+    ringColor: 'rgba(234,179,8,0.72)',
+  },
+];
+
+// 10 radyal patlama parçacığı vektörü (ses olmadan zengin görsel balon patlama efekti)
+const POP_SHARDS = [
+  { dx: -56, dy: -46, rot: -45, size: 13, shape: 'shard' },
+  { dx: 0, dy: -66, rot: 12, size: 11, shape: 'dot' },
+  { dx: 54, dy: -48, rot: 48, size: 13, shape: 'shard' },
+  { dx: 68, dy: -4, rot: 85, size: 12, shape: 'star' },
+  { dx: 52, dy: 46, rot: 135, size: 13, shape: 'shard' },
+  { dx: 8, dy: 60, rot: 170, size: 10, shape: 'dot' },
+  { dx: -48, dy: 48, rot: -130, size: 13, shape: 'shard' },
+  { dx: -68, dy: 2, rot: -85, size: 12, shape: 'star' },
+  { dx: -30, dy: -60, rot: -20, size: 9, shape: 'dot' },
+  { dx: 32, dy: 56, rot: 155, size: 9, shape: 'dot' },
+] as const;
+
 interface BalloonItem {
   uid: string;
   label: string;
   isTarget: boolean;
   popped: boolean;
-  colorClass: string;
+  popping: boolean;
+  theme: BalloonColorTheme;
+  floatDelay: number;
 }
 
-const BALLOON_COLORS = [
-  'from-rose-400 to-rose-600 border-rose-700',
-  'from-sky-400 to-sky-600 border-sky-700',
-  'from-amber-400 to-orange-500 border-orange-600',
-  'from-emerald-400 to-emerald-600 border-emerald-700',
-  'from-violet-400 to-purple-600 border-purple-700',
-  'from-cyan-400 to-teal-600 border-teal-700',
-];
+/**
+ * Aynı hece, kelime veya harfin asla arka arkaya gelmemesini garantileyen
+ * (ve mümkünse tur boyunca hiç tekrar etmeyen) hedef dizisi oluşturur.
+ */
+function buildNonRepeatingWaveTargets(
+  pool: string[],
+  count: number,
+  avoidFirst: string | null
+): string[] {
+  const unique = Array.from(new Set(pool.map((s) => s.trim()).filter(Boolean)));
+  if (unique.length === 0) return Array(count).fill('el');
+  if (unique.length === 1) return Array(count).fill(unique[0]);
+
+  const result: string[] = [];
+  let prevKey = avoidFirst ? avoidFirst.toLocaleLowerCase('tr-TR') : '';
+
+  while (result.length < count) {
+    const batch = shuffleArray(unique);
+    // İlk eleman bir öncekiyle aynıysa havuzdan farklı biriyle yer değiştir
+    if (prevKey && batch[0].toLocaleLowerCase('tr-TR') === prevKey && batch.length > 1) {
+      const swapIdx = batch.findIndex((item) => item.toLocaleLowerCase('tr-TR') !== prevKey);
+      if (swapIdx > 0) {
+        [batch[0], batch[swapIdx]] = [batch[swapIdx], batch[0]];
+      }
+    }
+    for (const item of batch) {
+      if (result.length >= count) break;
+      const key = item.toLocaleLowerCase('tr-TR');
+      if (key === prevKey) continue;
+      result.push(item);
+      prevKey = key;
+    }
+  }
+  return result;
+}
 
 const BalonSesAviGame: React.FC<{
   group: LetterGroupData;
@@ -629,7 +741,7 @@ const BalonSesAviGame: React.FC<{
   playMp3?: (src: string) => void;
   onScore: (delta: number, isCorrect: boolean) => void;
   onRoundDone: () => void;
-}> = ({ group, focusLetter, playMp3, onScore, onRoundDone }) => {
+}> = ({ group, focusLetter, onScore, onRoundDone }) => {
   const [mode, setMode] = useState<BalloonMode>('hece');
   const [listenOnly, setListenOnly] = useState(false);
   const [wave, setWave] = useState(0);
@@ -637,17 +749,14 @@ const BalonSesAviGame: React.FC<{
   const [balloons, setBalloons] = useState<BalloonItem[]>([]);
   const [targetText, setTargetText] = useState('');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [shakingUid, setShakingUid] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  const lastTargetRef = useRef<string | null>(null);
+  const waveAdvanceTimerRef = useRef<number | null>(null);
 
   const TOTAL_WAVES = 8;
 
-  useEffect(() => {
-    setWave(0);
-    setFinished(false);
-  }, [group.id, focusLetter, mode, roundSeed]);
-
-  useEffect(() => {
-    if (finished) return;
+  const uniquePool = useMemo(() => {
     let pool: string[] = [];
     if (mode === 'harf') {
       pool = group.letters.flatMap((l) => [l.upper, l.lower]);
@@ -656,62 +765,122 @@ const BalonSesAviGame: React.FC<{
     } else {
       pool = getGroupSyllables(group, focusLetter);
     }
-    const uniquePool = Array.from(new Set(pool));
-    const chosenTarget = uniquePool[Math.floor(Math.random() * uniquePool.length)] || 'el';
-    const distractors = shuffleArray(uniquePool.filter((x) => x !== chosenTarget));
+    return Array.from(new Set(pool.map((s) => s.trim()).filter(Boolean)));
+  }, [group, focusLetter, mode]);
+
+  // Tüm 8 tur için arka arkaya aynı hecenin/kelimenin gelmediği sabit hedef sırası
+  const waveTargets = useMemo(() => {
+    return buildNonRepeatingWaveTargets(uniquePool, TOTAL_WAVES, lastTargetRef.current);
+  }, [uniquePool, roundSeed]);
+
+  useEffect(() => {
+    if (waveAdvanceTimerRef.current !== null) {
+      window.clearTimeout(waveAdvanceTimerRef.current);
+      waveAdvanceTimerRef.current = null;
+    }
+    setWave(0);
+    setFinished(false);
+    // Yaklaşan turların doğal öğretmen seslerini arka planda hazırla
+    const kind = mode === 'harf' ? 'harf' : mode === 'kelime' ? 'kelime' : 'hece';
+    prefetchTurkishItems(waveTargets.map((text) => ({ text, kind })));
+  }, [waveTargets, mode]);
+
+  useEffect(() => {
+    return () => {
+      if (waveAdvanceTimerRef.current !== null) {
+        window.clearTimeout(waveAdvanceTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (finished) return;
+    const chosenTarget = waveTargets[wave] || uniquePool[0] || 'el';
+    lastTargetRef.current = chosenTarget;
+
+    const chosenKey = chosenTarget.toLocaleLowerCase('tr-TR');
+    const distractors = shuffleArray(
+      uniquePool.filter((x) => x.toLocaleLowerCase('tr-TR') !== chosenKey)
+    );
+    const shuffledThemes = shuffleArray(BALLOON_THEMES);
+
     const targetCount = 3;
     const items: BalloonItem[] = [];
     for (let i = 0; i < targetCount; i++) {
       items.push({
-        uid: `t-${wave}-${i}`,
+        uid: `t-${roundSeed}-${wave}-${i}`,
         label: chosenTarget,
         isTarget: true,
         popped: false,
-        colorClass: BALLOON_COLORS[i % BALLOON_COLORS.length],
+        popping: false,
+        theme: shuffledThemes[i % shuffledThemes.length],
+        floatDelay: i * 0.35,
       });
     }
     for (let i = 0; i < 8 - targetCount; i++) {
-      const dist = distractors[i % distractors.length] || 'la';
+      const dist = distractors[i % Math.max(1, distractors.length)] || 'la';
       items.push({
-        uid: `d-${wave}-${i}`,
+        uid: `d-${roundSeed}-${wave}-${i}`,
         label: dist,
         isTarget: false,
         popped: false,
-        colorClass: BALLOON_COLORS[(i + targetCount) % BALLOON_COLORS.length],
+        popping: false,
+        theme: shuffledThemes[(i + targetCount) % shuffledThemes.length],
+        floatDelay: (i + targetCount) * 0.32,
       });
     }
+
     setTargetText(chosenTarget);
     setBalloons(shuffleArray(items));
     setStatusMsg(null);
-    speakTurkish(chosenTarget, 0.85);
-  }, [group, focusLetter, mode, wave, roundSeed, finished]);
+    setShakingUid(null);
+
+    const kind = mode === 'harf' ? 'harf' : mode === 'kelime' ? 'kelime' : 'hece';
+    speakTurkish(chosenTarget, { kind, rate: 0.88 });
+  }, [waveTargets, uniquePool, mode, wave, roundSeed, finished]);
 
   const handlePop = (balloon: BalloonItem) => {
-    if (balloon.popped) return;
+    if (balloon.popped || balloon.popping) return;
+
     if (balloon.isTarget) {
-      playMp3?.('/ding.mp3');
+      // Ses efekti olmadan sadece görsel balon patlama efekti!
       onScore(10, true);
-      const next = balloons.map((b) => (b.uid === balloon.uid ? { ...b, popped: true } : b));
+      const next = balloons.map((b) =>
+        b.uid === balloon.uid ? { ...b, popped: true, popping: true } : b
+      );
       setBalloons(next);
+
+      window.setTimeout(() => {
+        setBalloons((prev) =>
+          prev.map((b) => (b.uid === balloon.uid ? { ...b, popping: false } : b))
+        );
+      }, 560);
+
       const remaining = next.filter((b) => b.isTarget && !b.popped).length;
       if (remaining === 0) {
         setStatusMsg(`Harika! "${targetText}" balonlarının hepsini patlattın!`);
-        window.setTimeout(() => {
+        waveAdvanceTimerRef.current = window.setTimeout(() => {
+          waveAdvanceTimerRef.current = null;
           if (wave + 1 < TOTAL_WAVES) {
             setWave((w) => w + 1);
           } else {
             setFinished(true);
             onRoundDone();
           }
-        }, 850);
+        }, 900);
       } else {
         setStatusMsg(`Süper! Kalan hedef balon: ${remaining}`);
       }
     } else {
-      playMp3?.('/op.mp3');
+      // Yanlış balonda da patlama/uyarı sesi yok, yalnızca nazik sallanma + ipucu yazısı
       onScore(0, false);
-      speakTurkish(balloon.label, 0.9);
-      setStatusMsg(`Bu balon "${balloon.label}". Hedefimiz: ${listenOnly ? 'Dinle!' : `"${targetText}"`}`);
+      setShakingUid(balloon.uid);
+      window.setTimeout(() => {
+        setShakingUid((curr) => (curr === balloon.uid ? null : curr));
+      }, 420);
+      setStatusMsg(
+        `Bu balon "${balloon.label}". Hedefimiz: ${listenOnly ? 'Dinle!' : `"${targetText}"`}`
+      );
     }
   };
 
@@ -725,10 +894,7 @@ const BalonSesAviGame: React.FC<{
         </p>
         <button
           type="button"
-          onClick={() => {
-            playMp3?.('/op.mp3');
-            setRoundSeed((s) => s + 1);
-          }}
+          onClick={() => setRoundSeed((s) => s + 1)}
           className="min-h-[48px] px-6 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-base flex items-center gap-2 cursor-pointer shadow-md"
         >
           <RotateCcw className="w-5 h-5" />
@@ -742,6 +908,64 @@ const BalonSesAviGame: React.FC<{
 
   return (
     <div className="w-full max-w-4xl mx-auto rounded-3xl bg-white/95 border-2 border-rose-200 p-4 sm:p-6 shadow-lg flex flex-col gap-4">
+      <style>{`
+        @keyframes okumaBalloonBob {
+          0%, 100% { transform: translateY(0px) rotate(-1.2deg); }
+          50% { transform: translateY(-7px) rotate(1.4deg); }
+        }
+        @keyframes okumaBalloonPopOut {
+          0% { transform: scale(1); opacity: 1; }
+          32% { transform: scale(1.22); opacity: 0.95; }
+          100% { transform: scale(0.15); opacity: 0; }
+        }
+        @keyframes okumaPopRing {
+          0% { transform: scale(0.35); opacity: 0.95; border-width: 6px; }
+          100% { transform: scale(1.65); opacity: 0; border-width: 1px; }
+        }
+        @keyframes okumaPopFlash {
+          0% { transform: scale(0.25) rotate(0deg); opacity: 1; }
+          55% { transform: scale(1.18) rotate(18deg); opacity: 0.85; }
+          100% { transform: scale(1.45) rotate(32deg); opacity: 0; }
+        }
+        @keyframes okumaPopShard {
+          0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+          70% { opacity: 0.95; }
+          100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.25) rotate(var(--rot)); opacity: 0; }
+        }
+        @keyframes okumaPopScore {
+          0% { transform: translate(-50%, -20%) scale(0.6); opacity: 0; }
+          25% { transform: translate(-50%, -65%) scale(1.15); opacity: 1; }
+          100% { transform: translate(-50%, -145%) scale(0.95); opacity: 0; }
+        }
+        @keyframes okumaBalloonShake {
+          0%, 100% { transform: translateX(0); }
+          22% { transform: translateX(-7px) rotate(-4deg); }
+          50% { transform: translateX(7px) rotate(4deg); }
+          78% { transform: translateX(-4px) rotate(-2deg); }
+        }
+        .okuma-balloon-bob {
+          animation: okumaBalloonBob 3.1s ease-in-out infinite;
+        }
+        .okuma-balloon-pop-out {
+          animation: okumaBalloonPopOut 0.18s ease-out forwards;
+        }
+        .okuma-pop-ring {
+          animation: okumaPopRing 0.44s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .okuma-pop-flash {
+          animation: okumaPopFlash 0.32s ease-out forwards;
+        }
+        .okuma-pop-shard {
+          animation: okumaPopShard 0.52s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+        }
+        .okuma-pop-score {
+          animation: okumaPopScore 0.56s ease-out forwards;
+        }
+        .okuma-balloon-shake {
+          animation: okumaBalloonShake 0.38s ease-in-out;
+        }
+      `}</style>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
           {(
@@ -754,10 +978,7 @@ const BalonSesAviGame: React.FC<{
             <button
               key={m.id}
               type="button"
-              onClick={() => {
-                playMp3?.('/op.mp3');
-                setMode(m.id);
-              }}
+              onClick={() => setMode(m.id)}
               className={`min-h-[40px] px-3 py-1.5 rounded-lg text-xs sm:text-sm font-black transition cursor-pointer ${
                 mode === m.id ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-700 hover:bg-white'
               }`}
@@ -791,7 +1012,12 @@ const BalonSesAviGame: React.FC<{
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => speakTurkish(targetText, 0.8)}
+            onClick={() =>
+              speakTurkish(targetText, {
+                kind: mode === 'harf' ? 'harf' : mode === 'kelime' ? 'kelime' : 'hece',
+                rate: 0.86,
+              })
+            }
             className="min-h-[48px] px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm sm:text-base flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 transition"
           >
             <Volume2 className="w-5 h-5" />
@@ -809,24 +1035,119 @@ const BalonSesAviGame: React.FC<{
         </span>
       </div>
 
-      {/* BALON IZGARASI */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 py-2">
-        {balloons.map((b) => (
-          <button
-            key={b.uid}
-            type="button"
-            disabled={b.popped}
-            onClick={() => handlePop(b)}
-            className={`relative min-h-[112px] sm:min-h-[126px] rounded-[50%_50%_46%_46%/55%_55%_45%_45%] border-2 bg-gradient-to-b ${b.colorClass} text-white font-black text-2xl sm:text-3xl shadow-lg transition-all flex items-center justify-center cursor-pointer select-none ${
-              b.popped
-                ? 'scale-50 opacity-0 pointer-events-none'
-                : 'hover:scale-105 active:scale-90'
-            }`}
-          >
-            <span className="absolute top-3 left-5 w-4 h-7 rounded-full bg-white/30 rotate-12 pointer-events-none" />
-            <span className="drop-shadow-sm px-2 text-center leading-tight">{b.label}</span>
-          </button>
-        ))}
+      {/* PARLAK 3D BALON IZGARASI (baloon.png + 8 RENK + SESSİZ PATLAMA EFEKTİ) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 py-2">
+        {balloons.map((b) => {
+          const isShaking = shakingUid === b.uid;
+          const labelLen = b.label.length;
+          const labelSizeClass =
+            labelLen >= 7
+              ? 'text-lg sm:text-xl'
+              : labelLen >= 5
+              ? 'text-xl sm:text-2xl'
+              : 'text-2xl sm:text-3xl';
+
+          return (
+            <div
+              key={b.uid}
+              className="relative flex items-center justify-center min-h-[146px] sm:min-h-[168px] select-none"
+            >
+              {/* BALON BUTONU */}
+              {(!b.popped || b.popping) && (
+                <button
+                  type="button"
+                  disabled={b.popped}
+                  onClick={() => handlePop(b)}
+                  style={{
+                    animationDelay: b.popping || isShaking ? '0s' : `${b.floatDelay}s`,
+                  }}
+                  className={`relative w-[134px] h-[142px] sm:w-[152px] sm:h-[162px] flex items-center justify-center bg-transparent border-0 p-0 cursor-pointer focus:outline-none transition-transform ${
+                    b.popping
+                      ? 'okuma-balloon-pop-out pointer-events-none'
+                      : isShaking
+                      ? 'okuma-balloon-shake'
+                      : 'okuma-balloon-bob hover:scale-108 active:scale-92'
+                  }`}
+                >
+                  <img
+                    src={b.theme.img}
+                    alt={`${b.label} balonu`}
+                    draggable={false}
+                    className="w-full h-full object-contain drop-shadow-[0_10px_14px_rgba(15,23,42,0.18)] pointer-events-none"
+                  />
+                  <span
+                    className={`absolute inset-x-3 pb-4 flex items-center justify-center font-black text-white tracking-wide text-center leading-tight pointer-events-none ${labelSizeClass}`}
+                    style={{
+                      textShadow:
+                        '0 2px 5px rgba(15,23,42,0.58), 0 0 2px rgba(15,23,42,0.75)',
+                    }}
+                  >
+                    {b.label}
+                  </span>
+                </button>
+              )}
+
+              {/* GÖRSEL BALON PATLAMA EFEKTİ (SESSİZ) */}
+              {b.popping && (
+                <div
+                  className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible z-20"
+                  aria-hidden="true"
+                >
+                  {/* Şok Dalgası Halkası */}
+                  <span
+                    className="okuma-pop-ring absolute w-24 h-24 rounded-full"
+                    style={{ borderStyle: 'solid', borderColor: b.theme.ringColor }}
+                  />
+
+                  {/* Merkez Patlama Yıldızı */}
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="okuma-pop-flash absolute w-24 h-24"
+                  >
+                    <polygon
+                      points="50,6 60,34 89,22 70,46 95,62 66,65 74,94 50,74 26,94 34,65 5,62 30,46 11,22 40,34"
+                      fill={b.theme.shardAlt}
+                      stroke={b.theme.burstColor}
+                      strokeWidth="3"
+                    />
+                  </svg>
+
+                  {/* Etrafta Dağılan Balon Parçaları */}
+                  {POP_SHARDS.map((shard, sIdx) => (
+                    <span
+                      key={sIdx}
+                      className="okuma-pop-shard absolute top-1/2 left-1/2"
+                      style={
+                        {
+                          width: `${shard.size}px`,
+                          height: shard.shape === 'shard' ? `${Math.round(shard.size * 0.65)}px` : `${shard.size}px`,
+                          backgroundColor: sIdx % 2 === 0 ? b.theme.burstColor : b.theme.shardAlt,
+                          borderRadius:
+                            shard.shape === 'dot'
+                              ? '9999px'
+                              : shard.shape === 'star'
+                              ? '3px'
+                              : '50% 20% 60% 25%',
+                          '--dx': `${shard.dx}px`,
+                          '--dy': `${shard.dy}px`,
+                          '--rot': `${shard.rot}deg`,
+                        } as React.CSSProperties
+                      }
+                    />
+                  ))}
+
+                  {/* Yükselen +10 Puan Rozeti */}
+                  <span
+                    className="okuma-pop-score absolute top-1/2 left-1/2 text-xl sm:text-2xl font-black text-emerald-600"
+                    style={{ textShadow: '0 2px 6px rgba(255,255,255,0.95)' }}
+                  >
+                    +10
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {statusMsg && (
@@ -1119,8 +1440,10 @@ const SurprizKutularGame: React.FC<{
   const handleOpenBox = (idx: number) => {
     if (openedBoxes.includes(idx)) return;
     playMp3?.('/op.mp3');
+    stopSpeaking();
     setActiveBoxIdx(idx);
-    speakTurkish(boxes[idx].word, 0.85);
+    // Kutuyu açınca otomatik okuma yapma; yalnızca "Dinle" butonuna basılınca anında çalması için arka planda hazırla
+    prefetchTurkishItems([{ text: boxes[idx].word, kind: 'kelime' }]);
   };
 
   const handleConfirmRead = () => {
@@ -1512,12 +1835,14 @@ const PiramitOkumaGame: React.FC<{
   const [activeLine, setActiveLine] = useState(0);
   const [colorSyllables, setColorSyllables] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
-  const [speedMs, setSpeedMs] = useState<number>(2100);
+  // Piramit & Merdiven okuma hızları: Yavaş 3,5 sn (3500ms), Orta 2,75 sn (2750ms), Hızlı 2 sn (2000ms)
+  const [speedMs, setSpeedMs] = useState<number>(2750);
 
   useEffect(() => {
     setTextIdx(0);
     setActiveLine(0);
     setAutoPlay(false);
+    stopSpeaking();
   }, [group.id, subMode]);
 
   const currentPyramid = group.pyramids[textIdx % group.pyramids.length];
@@ -1527,7 +1852,6 @@ const PiramitOkumaGame: React.FC<{
 
   useEffect(() => {
     if (!autoPlay) return;
-    speakTurkish(lines[activeLine] || '', speedMs <= 1400 ? 1.05 : 0.85);
     const timer = window.setTimeout(() => {
       if (activeLine + 1 < lines.length) {
         setActiveLine((l) => l + 1);
@@ -1539,7 +1863,7 @@ const PiramitOkumaGame: React.FC<{
       }
     }, speedMs);
     return () => window.clearTimeout(timer);
-  }, [autoPlay, activeLine, lines, speedMs, playMp3, onScore, onRoundDone]);
+  }, [autoPlay, activeLine, lines.length, speedMs, playMp3, onScore, onRoundDone]);
 
   const renderStyledLine = (line: string) => {
     if (!colorSyllables) return <span>{line}</span>;
@@ -1597,9 +1921,9 @@ const PiramitOkumaGame: React.FC<{
 
           <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
             {[
-              { label: 'Yavaş', ms: 2800 },
-              { label: 'Orta', ms: 2000 },
-              { label: 'Hızlı', ms: 1300 },
+              { label: 'Yavaş (3,5 sn)', ms: 3500 },
+              { label: 'Orta (2,75 sn)', ms: 2750 },
+              { label: 'Hızlı (2 sn)', ms: 2000 },
             ].map((sp) => (
               <button
                 key={sp.label}
@@ -1637,7 +1961,7 @@ const PiramitOkumaGame: React.FC<{
             {subMode === 'piramit' ? currentPyramid.title : `Merdiven ${textIdx + 1}`}
           </div>
           <div className="text-[11px] font-bold text-slate-500">
-            Satıra dokunarak sesli dinle ve takip et ({textIdx + 1}/{totalItems})
+            Satırları sırayla takip ederek oku ({textIdx + 1}/{totalItems})
           </div>
         </div>
 
@@ -1667,7 +1991,6 @@ const PiramitOkumaGame: React.FC<{
               onClick={() => {
                 setAutoPlay(false);
                 setActiveLine(idx);
-                speakTurkish(line, 0.82);
               }}
               className={`w-full max-w-2xl min-h-[48px] px-4 py-2 rounded-2xl border-2 text-center font-black transition-all cursor-pointer ${
                 isActive
@@ -1688,7 +2011,6 @@ const PiramitOkumaGame: React.FC<{
           onClick={() => {
             if (autoPlay) {
               setAutoPlay(false);
-              stopSpeaking();
             } else {
               setActiveLine(0);
               setAutoPlay(true);
@@ -2310,6 +2632,7 @@ export const OkumaYazmaGameModal: React.FC<OkumaYazmaGameModalProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <TeacherVoiceToggle compact playMp3={playMp3} />
               <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm font-black flex items-center gap-1.5 tabular-nums">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 <span>{score} Puan</span>

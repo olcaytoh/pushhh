@@ -7,6 +7,7 @@ import {
 import { Cute3DStarMascotSVG } from './ModernStatsView';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { speakTurkish } from '../utils/turkishSpeech';
 
 // ==========================================
 // 1. TEMEL VERİ TİPLERİ VE GÖREV LİSTESİ
@@ -396,19 +397,12 @@ export const GeoboardShapeDrawingGame: React.FC<GeoboardShapeDrawingGameProps> =
   const selectedColor = COLOR_PALETTE[selectedColorIndex] || COLOR_PALETTE[0];
 
   const speakInstruction = () => {
-    if (!('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentMission.speechText);
-      utterance.lang = 'tr-TR';
-      utterance.rate = 0.95;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      setIsSpeaking(false);
-    }
+    setIsSpeaking(true);
+    speakTurkish(currentMission.speechText, {
+      kind: 'cumle',
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+    });
   };
 
   const handleNextMission = () => {

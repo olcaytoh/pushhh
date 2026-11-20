@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Student } from '../types/student';
 import { StudentAvatarDock } from './StudentAvatarDock';
+import { speakEnglish } from '../utils/turkishSpeech';
 
 export interface SchoolLifeItem {
   id: string;
@@ -193,18 +194,7 @@ export const SCHOOL_LIFE_ITEMS: SchoolLifeItem[] = [
 
 // Helper: Text-to-speech pronunciation
 export const speakEnglishWord = (text: string) => {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.88;
-      utterance.pitch = 1.05;
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // ignore
-    }
-  }
+  speakEnglish(text, { kind: 'kelime' });
 };
 
 const normalizeWord = (w: string) => w.trim().toLowerCase().replace(/’/g, "'");

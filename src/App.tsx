@@ -8,6 +8,7 @@ import {
 import confetti from 'canvas-confetti';
 import { lazyComponent } from './utils/lazyComponent';
 import { QuestionTimerBadge, createTimerStore } from './components/QuestionTimerBadge';
+import { speakTurkish } from './utils/turkishSpeech';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
 import { auth, onAuthStateChanged, User } from './firebase';
 import { GoogleAuthSyncModal } from './components/GoogleAuthSyncModal';
@@ -3054,18 +3055,7 @@ export default function App() {
 
   const speakTurkishText = (text: string) => {
     if (!soundEnabled) return;
-    try {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'tr-TR';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.1;
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch {
-      // Ignore speech synthesis errors
-    }
+    speakTurkish(text, { kind: 'cumle' });
   };
 
   const playCoinSound = (_starCount: 3 | 5 | 7 = 3) => {

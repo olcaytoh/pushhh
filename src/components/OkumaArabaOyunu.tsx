@@ -19,9 +19,11 @@ import {
   getFilteredWords,
   getGroupSyllables,
   isValidTurkishSyllableOrWord,
+  prefetchTurkishItems,
   shuffleArray,
-  speakTurkish,
+  speakTurkishRepeated,
   stopSpeaking,
+  unlockAudioPlayback,
 } from '../data/okumaYazmaData';
 
 export type ArabaContentType = 'karisik' | 'hece' | 'kelime';
@@ -477,9 +479,9 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
   const [showTextHint, setShowTextHint] = useState<boolean>(false);
 
   const recentTargetsRef = useRef<Set<string>>(new Set());
-  const speechTimersRef = useRef<number[]>([]);
   const [questions, setQuestions] = useState<ArabaQuestion[]>([]);
   const [qIndex, setQIndex] = useState(0);
+  const [waveAudioReady, setWaveAudioReady] = useState(false);
 
   const [p1Lane, setP1Lane] = useState<0 | 1 | 2>(1);
   const [p2Lane, setP2Lane] = useState<0 | 1 | 2>(1);
@@ -493,45 +495,62 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
   const p2LaneRef = useRef<0 | 1 | 2>(1);
   const p1ResultRef = useRef<'idle' | 'correct' | 'wrong'>('idle');
   const p2ResultRef = useRef<'idle' | 'correct' | 'wrong'>('idle');
+  const playerCountRef = useRef<1 | 2>(playerCount);
+  const repeatModeRef = useRef<ArabaRepeatMode>(repeatMode);
   const advancingRef = useRef(false);
   const rafRef = useRef<number | null>(null);
   const waveStartRef = useRef<number>(0);
 
+  useEffect(() => {
+    playerCountRef.current = playerCount;
+  }, [playerCount]);
+
+  useEffect(() => {
+    repeatModeRef.current = repeatMode;
+  }, [repeatMode]);
+
   const clearScheduledSpeech = useCallback(() => {
-    speechTimersRef.current.forEach((id) => window.clearTimeout(id));
-    speechTimersRef.current = [];
+    stopSpeaking();
   }, []);
 
-  // Net, anlaşılır ve düşünme paylı seslendirme (üst üste bindirmeden aralıklı tekrar)
-  const speakTargetWithPause = useCallback(
-    (target: string, times: ArabaRepeatMode = repeatMode) => {
-      clearScheduledSpeech();
-      const clean = target.trim();
-      if (!clean) return;
-      speakTurkish(clean, 0.84);
-
-      const gapMs = times === 2 ? 1550 : 1350;
-      for (let i = 1; i < times; i++) {
-        const timerId = window.setTimeout(() => {
-          const allAnswered =
-            playerCount === 1
-              ? p1ResultRef.current !== 'idle'
-              : p1ResultRef.current !== 'idle' && p2ResultRef.current !== 'idle';
-          if (!allAnswered) {
-            speakTurkish(clean, 0.84);
-          }
-        }, gapMs * i);
-        speechTimersRef.current.push(timerId);
+  // Net, anlaşılır ve kesintisiz aralıklı tekrar seslendirme (tek seferde yükler, bitince 550ms bekleyip tekrarlar)
+  const speakQuestionAudio = useCallback(
+    (q: ArabaQuestion, times?: ArabaRepeatMode, onFirstStart?: () => void) => {
+      unlockAudioPlayback();
+      const clean = q.target.trim();
+      if (!clean) {
+        onFirstStart?.();
+        return;
       }
+      speakTurkishRepeated(clean, {
+        kind: q.kind,
+        times: times ?? repeatModeRef.current,
+        pauseMs: 550,
+        rate: 0.9,
+        onStart: onFirstStart,
+        shouldContinue: () =>
+          playerCountRef.current === 1
+            ? p1ResultRef.current === 'idle'
+            : p1ResultRef.current === 'idle' || p2ResultRef.current === 'idle',
+      });
     },
-    [clearScheduledSpeech, repeatMode, playerCount]
+    []
   );
+
+  // Araç seçim ekranındayken grubun ilk hece/kelimelerini sessizce hazırla
+  useEffect(() => {
+    if (phase !== 'select') return;
+    const pool = buildPoolForMode(group, focusLetter, contentType);
+    prefetchTurkishItems(
+      pool.slice(0, 6).map((item) => ({ text: item.text, kind: item.kind }))
+    );
+  }, [phase, group, focusLetter, contentType]);
 
   useEffect(() => {
     return () => {
-      clearScheduledSpeech();
+      stopSpeaking();
     };
-  }, [clearScheduledSpeech]);
+  }, []);
 
   useEffect(() => {
     p1LaneRef.current = p1Lane;
@@ -550,7 +569,7 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
   useEffect(() => {
     recentTargetsRef.current.clear();
     if (phase === 'playing') {
-      clearScheduledSpeech();
+      stopSpeaking();
       const fresh = generateSevenQuestions(group, focusLetter, contentType, recentTargetsRef.current);
       setQuestions(fresh);
       setQIndex(0);
@@ -563,10 +582,9 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
       setP1Lane(1);
       setP2Lane(1);
       setProgressY(0);
+      setWaveAudioReady(false);
       advancingRef.current = false;
-      if (fresh[0]) {
-        speakTargetWithPause(fresh[0].target, repeatMode);
-      }
+      prefetchTurkishItems(fresh.map((q) => ({ text: q.target, kind: q.kind })));
     }
   }, [group.id, focusLetter, contentType]);
 
@@ -574,8 +592,9 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
 
   const startRace = useCallback(
     (overridePlayerCount?: 1 | 2) => {
+      unlockAudioPlayback();
       playMp3?.('/op.mp3');
-      clearScheduledSpeech();
+      stopSpeaking();
       const count = overridePlayerCount ?? playerCount;
       const fresh = generateSevenQuestions(group, focusLetter, contentType, recentTargetsRef.current);
       setQuestions(fresh);
@@ -589,27 +608,46 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
       p1ResultRef.current = 'idle';
       p2ResultRef.current = 'idle';
       setProgressY(0);
+      setWaveAudioReady(false);
       advancingRef.current = false;
       setPlayerCount(count);
       setPhase('playing');
-      if (fresh[0]) {
-        // Kullanıcı tıklaması içinde ilk hedefi hemen net ve aralıklı seslendir
-        speakTargetWithPause(fresh[0].target, repeatMode);
-      }
+      prefetchTurkishItems(fresh.map((q) => ({ text: q.target, kind: q.kind })));
     },
-    [group, focusLetter, contentType, playerCount, playMp3, clearScheduledSpeech, speakTargetWithPause, repeatMode]
+    [group, focusLetter, contentType, playerCount, playMp3]
   );
 
-  // Yeni soru başladığında hedefi net ve aralıklı seslendir
+  // Her soru (1..7) için tek merkezden kesintisiz seslendirme; ses başlar başlamaz küpler harekete geçer
   useEffect(() => {
     if (phase !== 'playing' || !currentQ) return;
-    if (qIndex > 0) {
-      speakTargetWithPause(currentQ.target, repeatMode);
-    }
-    return () => {
-      clearScheduledSpeech();
+    let active = true;
+    setWaveAudioReady(false);
+    setProgressY(0);
+
+    const releaseWave = () => {
+      if (active) setWaveAudioReady(true);
     };
-  }, [phase, qIndex, currentQ, speakTargetWithPause, repeatMode, clearScheduledSpeech]);
+
+    // Güvenlik sınırı: ses cihazda kapalı/engelli olsa bile küpler en geç 2.4 sn içinde hareket eder
+    const safetyTimer = window.setTimeout(releaseWave, 2400);
+
+    speakQuestionAudio(currentQ, repeatModeRef.current, () => {
+      window.clearTimeout(safetyTimer);
+      releaseWave();
+    });
+
+    // Sıradaki 2 soruyu da arka planda garanti önbelleğe al
+    const upcoming = questions.slice(qIndex + 1, qIndex + 4);
+    if (upcoming.length > 0) {
+      prefetchTurkishItems(upcoming.map((q) => ({ text: q.target, kind: q.kind })));
+    }
+
+    return () => {
+      active = false;
+      window.clearTimeout(safetyTimer);
+      stopSpeaking();
+    };
+  }, [phase, qIndex, currentQ, questions, speakQuestionAudio]);
 
   const advanceToNextQuestion = useCallback(
     (finalP1Score: number, finalP2Score: number) => {
@@ -686,9 +724,9 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
     [currentQ, playerCount, playMp3, onScore, p1Score, p2Score, advanceToNextQuestion]
   );
 
-  // Küplerin ufuktan arabaya doğru akıcı ilerlemesi
+  // Küplerin ufuktan arabaya doğru akıcı ilerlemesi (ses başladığında harekete geçer)
   useEffect(() => {
-    if (phase !== 'playing' || !currentQ) return;
+    if (phase !== 'playing' || !currentQ || !waveAudioReady) return;
     waveStartRef.current = performance.now();
     let cancelled = false;
 
@@ -726,7 +764,7 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
         window.cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [phase, qIndex, currentQ, playerCount, evaluatePlayer]);
+  }, [phase, qIndex, currentQ, waveAudioReady, playerCount, evaluatePlayer]);
 
   // Klavye kontrolleri (1. Oyuncu: A/D + W; 2. Oyuncu: Sol/Sağ + Yukarı; Tek kişilikte ikisi de!)
   useEffect(() => {
@@ -1127,7 +1165,7 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
 
           <button
             type="button"
-            onClick={() => speakTargetWithPause(currentQ.target, repeatMode)}
+            onClick={() => speakQuestionAudio(currentQ, repeatMode)}
             className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-black flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <Volume2 className="w-4 h-4" />
@@ -1184,7 +1222,7 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
           totalQuestions={TOTAL_QUESTIONS}
           result={p1Result}
           showTextHint={showTextHint}
-          onReplayAudio={() => speakTargetWithPause(currentQ.target, repeatMode)}
+          onReplayAudio={() => speakQuestionAudio(currentQ, repeatMode)}
           compact={playerCount === 2}
           keysHint={playerCount === 2 ? 'A / D · W' : '← / → veya Dokun'}
           repeatMode={repeatMode}
@@ -1205,7 +1243,7 @@ export const OkumaArabaOyunu: React.FC<OkumaArabaOyunuProps> = ({
             totalQuestions={TOTAL_QUESTIONS}
             result={p2Result}
             showTextHint={showTextHint}
-            onReplayAudio={() => speakTargetWithPause(currentQ.target, repeatMode)}
+            onReplayAudio={() => speakQuestionAudio(currentQ, repeatMode)}
             compact
             keysHint="← / → · ↑"
             repeatMode={repeatMode}
