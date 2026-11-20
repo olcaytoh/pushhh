@@ -114,18 +114,101 @@ function setMemoryCache(key: string, value: { buffer: Buffer; mimeType: string }
   memoryCache.set(key, value);
 }
 
-function pickNeuralRate(kind: SpeechKind): string {
+function pickNeuralRate(kind: SpeechKind, voice: VoicePersona): string {
+  if (voice === 'erkek' && (kind === 'hece' || kind === 'harf')) {
+    return '-2%';
+  }
   switch (kind) {
     case 'harf':
-      return '-12%';
+      return '-6%';
     case 'hece':
-      return '-10%';
+      return '-6%';
     case 'kelime':
-      return '-8%';
+      return '-6%';
     case 'cumle':
     default:
-      return '-6%';
+      return '-4%';
   }
+}
+
+function escapeXml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function prepareTtsInput(
+  text: string,
+  lang: SpeechLang,
+  voice: VoicePersona,
+  kind: SpeechKind
+): string {
+  let clean = text.trim();
+  if (lang === 'tr') {
+    if (!clean.includes(' ') && clean.length <= 3) {
+      // Prevent uppercase 1-3 letter Turkish syllables (e.g. "AL", "EL", "İK") from being spelled out as acronyms ("a-le", "i-ke")
+      clean = clean.toLocaleLowerCase('tr-TR');
+    }
+    // Prevent Edge Neural Turkish abbreviation expander from misreading word-ending periods
+    // (e.g. "al." -> "a-le-ve", "bak." -> "bakınız") while keeping natural sentence pause & intonation
+    // and leaving numeric ordinals like "1. sınıf" untouched.
+    clean = clean.replace(/([a-zA-ZçğıöşüÇĞİÖŞÜ]+)\.(?=\s|$)/g, '$1 .');
+  }
+  // tr-TR-AhmetNeural clips trailing consonants on bare 2-letter Turkish syllables ("al" -> "a-a") unless given a soft comma boundary
+  if (lang === 'tr' && voice === 'erkek' && (kind === 'hece' || (!clean.includes(' ') && clean.length <= 3))) {
+    if (!/[.,!?]$/.test(clean)) {
+      clean = `${clean},`;
+    }
+  }
+  return clean;
+}
+
+// Persistent pooled Edge Neural clients per voice to avoid per-request cold WebSocket handshakes
+const edgeClientPool = new Map<string, Promise<MsEdgeTTS>>();
+
+function evictEdgeClient(edgeVoice: string) {
+  const existing = edgeClientPool.get(edgeVoice);
+  edgeClientPool.delete(edgeVoice);
+  if (existing) {
+    existing
+      .then((client) => {
+        try {
+          client.close();
+        } catch {
+          // ignore close errors
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+  }
+}
+
+function getPooledEdgeClient(edgeVoice: string): Promise<MsEdgeTTS> {
+  const existing = edgeClientPool.get(edgeVoice);
+  if (existing) return existing;
+
+  const initPromise = (async () => {
+    const tts = new MsEdgeTTS({ connectionTimeoutMs: 7000, synthesisTimeoutMs: 9000 });
+    await Promise.race([
+      tts.setMetadata(edgeVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Edge TTS metadata timeout')), 7500)
+      ),
+    ]);
+    return tts;
+  })();
+
+  edgeClientPool.set(edgeVoice, initPromise);
+  initPromise.catch(() => {
+    if (edgeClientPool.get(edgeVoice) === initPromise) {
+      edgeClientPool.delete(edgeVoice);
+    }
+  });
+  return initPromise;
 }
 
 async function synthesizeWithEdgeNeural(
@@ -135,43 +218,31 @@ async function synthesizeWithEdgeNeural(
   kind: SpeechKind
 ): Promise<{ buffer: Buffer; mimeType: string }> {
   const edgeVoice = EDGE_VOICE_MAP[lang]?.[voice] || EDGE_VOICE_MAP.tr.kadin;
-  const rate = pickNeuralRate(kind);
+  const rate = pickNeuralRate(kind, voice);
+  const prepared = escapeXml(prepareTtsInput(text, lang, voice, kind));
 
   const runOnce = async (): Promise<Buffer> => {
-    const tts = new MsEdgeTTS();
-    try {
-      await Promise.race([
-        tts.setMetadata(edgeVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Edge TTS metadata timeout')), 5000)),
-      ]);
-
-      const { audioStream } = tts.toStream(text, { rate });
-      const chunks: Buffer[] = [];
-      const streamPromise = (async () => {
-        for await (const chunk of audioStream) {
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        return Buffer.concat(chunks);
-      })();
-
-      const buf = (await Promise.race([
-        streamPromise,
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Edge TTS stream timeout')), 6500)
-        ),
-      ])) as Buffer;
-
-      if (buf.length < 200) {
-        throw new Error('Edge TTS returned empty audio');
+    const tts = await getPooledEdgeClient(edgeVoice);
+    const { audioStream } = tts.toStream(prepared, { rate });
+    const chunks: Buffer[] = [];
+    const streamPromise = (async () => {
+      for await (const chunk of audioStream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
       }
-      return buf;
-    } finally {
-      try {
-        tts.close();
-      } catch {
-        // ignore close errors
-      }
+      return Buffer.concat(chunks);
+    })();
+
+    const buf = (await Promise.race([
+      streamPromise,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Edge TTS stream timeout')), 8500)
+      ),
+    ])) as Buffer;
+
+    if (buf.length < 200) {
+      throw new Error('Edge TTS returned empty audio');
     }
+    return buf;
   };
 
   let lastErr: unknown;
@@ -181,8 +252,9 @@ async function synthesizeWithEdgeNeural(
       return { buffer, mimeType: 'audio/mpeg' };
     } catch (err) {
       lastErr = err;
+      evictEdgeClient(edgeVoice);
       if (attempt < 2) {
-        await new Promise((r) => setTimeout(r, 200));
+        await new Promise((r) => setTimeout(r, 150));
       }
     }
   }
@@ -194,7 +266,11 @@ async function synthesizeWithTranslateFallback(
   lang: SpeechLang
 ): Promise<{ buffer: Buffer; mimeType: string }> {
   const tl = lang === 'en' ? 'en' : 'tr';
-  const encoded = encodeURIComponent(text);
+  const clean =
+    lang === 'tr' && !text.trim().includes(' ') && text.trim().length <= 3
+      ? text.trim().toLocaleLowerCase('tr-TR')
+      : text.trim();
+  const encoded = encodeURIComponent(clean);
   const endpoints = [
     `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${tl}&q=${encoded}`,
     `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${tl}&q=${encoded}`,
@@ -225,11 +301,12 @@ async function generateNaturalSpeech(
   lang: SpeechLang,
   voice: VoicePersona,
   kind: SpeechKind
-): Promise<{ buffer: Buffer; mimeType: string; source: string }> {
+): Promise<{ buffer: Buffer; mimeType: string; source: 'edge-neural' | 'fallback-tts' }> {
   try {
     const res = await synthesizeWithEdgeNeural(text, lang, voice, kind);
     return { ...res, source: 'edge-neural' };
-  } catch {
+  } catch (err) {
+    console.warn('[TTS] Edge Neural temporarily failed, using emergency fallback:', (err as Error)?.message);
     const fallback = await synthesizeWithTranslateFallback(text, lang);
     return { ...fallback, source: 'fallback-tts' };
   }
@@ -288,7 +365,7 @@ async function createServer() {
   });
 
   // Free Unlimited Natural Turkish & English TTS endpoint:
-  // 1) Custom MP3/WAV Pack -> 2) RAM/Disk Cache -> 3) Edge Neural (Emel/Ahmet) -> 4) Translate MP3 Safety Net
+  // 1) Custom MP3/WAV Pack -> 2) RAM/Disk Cache -> 3) Edge Neural (Emel/Ahmet) -> 4) Emergency Translate MP3 Safety Net (never persisted)
   app.get('/api/tts', async (req, res) => {
     try {
       const rawQuery = typeof req.query.q === 'string' ? req.query.q : '';
@@ -313,10 +390,15 @@ async function createServer() {
         return;
       }
 
-      // 2) Deterministic cache key (RAM -> Disk)
+      const normalizedKeyText =
+        lang === 'tr' && !text.includes(' ') && text.length <= 3
+          ? text.toLocaleLowerCase('tr-TR')
+          : text;
+
+      // 2) Deterministic cache key (RAM -> Disk) — v4 fixes Turkish word-ending period abbreviations (e.g. "al." -> "a-le-ve")
       const cacheKey = crypto
         .createHash('sha256')
-        .update(`v2-edge|${lang}|${voice}|${kind}|${text}`)
+        .update(`v4-edge|${lang}|${voice}|${kind}|${normalizedKeyText}`)
         .digest('hex');
 
       const memHit = memoryCache.get(cacheKey);
@@ -350,11 +432,15 @@ async function createServer() {
 
       // 3) Deduplicate concurrent identical TTS requests
       let pending = inFlightMap.get(cacheKey);
-      let resolvedSource = 'edge-neural';
+      let resolvedSource: 'edge-neural' | 'fallback-tts' = 'edge-neural';
       if (!pending) {
         pending = generateNaturalSpeech(text, lang, voice, kind)
           .then((result) => {
             resolvedSource = result.source;
+            if (result.source === 'edge-neural') {
+              setMemoryCache(cacheKey, { buffer: result.buffer, mimeType: result.mimeType });
+              fs.writeFile(diskPath, result.buffer, () => {});
+            }
             return { buffer: result.buffer, mimeType: result.mimeType };
           })
           .finally(() => {
@@ -364,14 +450,13 @@ async function createServer() {
       }
 
       const generated = await pending;
-      setMemoryCache(cacheKey, generated);
-
-      // Persist asynchronously to disk cache
-      fs.writeFile(diskPath, generated.buffer, () => {});
 
       res.setHeader('Content-Type', generated.mimeType);
       res.setHeader('Content-Length', String(generated.buffer.length));
-      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader(
+        'Cache-Control',
+        resolvedSource === 'edge-neural' ? 'public, max-age=86400' : 'no-store'
+      );
       res.setHeader('X-TTS-Source', resolvedSource);
       res.status(200).end(generated.buffer);
     } catch (err: any) {

@@ -1186,50 +1186,124 @@ const HeceCarkifelekGame: React.FC<{
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ label: string; syllables?: string[] } | null>(null);
+  const [usedIndices, setUsedIndices] = useState<number[]>([]);
   const [readCount, setReadCount] = useState(0);
+  const spinTimerRef = useRef<number | null>(null);
+  const lastLandedLabelRef = useRef<string | null>(null);
 
   const slices = useMemo(() => {
+    const normalizeKey = (s: string) => s.trim().toLocaleLowerCase('tr-TR');
+
     if (mode === 'hece') {
-      return shuffleArray(getGroupSyllables(group, focusLetter))
-        .slice(0, 8)
-        .map((s) => ({ label: s }));
-    }
-    if (mode === 'cumle') {
-      const sents = shuffleArray(getFilteredSentences(group, focusLetter));
+      const seen = new Set<string>();
       const out: { label: string }[] = [];
-      for (let i = 0; i < 8; i++) {
-        out.push({ label: sents[i % sents.length].text });
+      const primary = shuffleArray(getGroupSyllables(group, focusLetter));
+      const fallback = focusLetter ? shuffleArray(getGroupSyllables(group, null)) : [];
+      for (const s of [...primary, ...fallback]) {
+        const key = normalizeKey(s);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push({ label: s });
+        if (out.length >= 8) break;
       }
       return out;
     }
-    const words = shuffleArray(getFilteredWords(group, focusLetter));
+
+    if (mode === 'cumle') {
+      const seen = new Set<string>();
+      const out: { label: string }[] = [];
+      const primary = shuffleArray(getFilteredSentences(group, focusLetter));
+      const fallback = focusLetter ? shuffleArray(getFilteredSentences(group, null)) : [];
+      for (const s of [...primary, ...fallback]) {
+        const key = normalizeKey(s.text);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        out.push({ label: s.text });
+        if (out.length >= 8) break;
+      }
+      return out;
+    }
+
+    const seen = new Set<string>();
     const out: { label: string; syllables: string[] }[] = [];
-    for (let i = 0; i < 8; i++) {
-      const w = words[i % words.length];
+    const primary = shuffleArray(getFilteredWords(group, focusLetter));
+    const fallback = focusLetter ? shuffleArray(getFilteredWords(group, null)) : [];
+    for (const w of [...primary, ...fallback]) {
+      const key = normalizeKey(w.word);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
       out.push({ label: w.word, syllables: w.syllables });
+      if (out.length >= 8) break;
     }
     return out;
   }, [group, focusLetter, mode, wheelSeed]);
 
   useEffect(() => {
+    if (spinTimerRef.current !== null) {
+      window.clearTimeout(spinTimerRef.current);
+      spinTimerRef.current = null;
+    }
+    setSpinning(false);
     setSelectedItem(null);
+    setUsedIndices([]);
   }, [group.id, focusLetter, mode, wheelSeed]);
 
+  useEffect(() => {
+    return () => {
+      if (spinTimerRef.current !== null) {
+        window.clearTimeout(spinTimerRef.current);
+      }
+    };
+  }, []);
+
+  const remainingIndices = useMemo(
+    () => slices.map((_, idx) => idx).filter((idx) => !usedIndices.includes(idx)),
+    [slices, usedIndices]
+  );
+
+  const isRoundComplete = slices.length > 0 && remainingIndices.length === 0;
+
   const spinWheel = () => {
-    if (spinning) return;
+    if (spinning || slices.length === 0) return;
+
+    // Tüm dilimler bu turda kullanıldıysa otomatik yeni tur başlat
+    if (remainingIndices.length === 0) {
+      playMp3?.('/op.mp3');
+      setWheelSeed((s) => s + 1);
+      return;
+    }
+
     playMp3?.('/op.mp3');
     setSpinning(true);
     setSelectedItem(null);
-    const chosenIdx = Math.floor(Math.random() * slices.length);
+
+    // Yeni turun ilk dönüşünde bir önceki turun en son gelen öğesini arka arkaya getirme
+    let candidatePool = remainingIndices;
+    if (usedIndices.length === 0 && lastLandedLabelRef.current && remainingIndices.length > 1) {
+      const prevNorm = lastLandedLabelRef.current.trim().toLocaleLowerCase('tr-TR');
+      const filtered = remainingIndices.filter(
+        (idx) => slices[idx].label.trim().toLocaleLowerCase('tr-TR') !== prevNorm
+      );
+      if (filtered.length > 0) candidatePool = filtered;
+    }
+
+    const chosenIdx = candidatePool[Math.floor(Math.random() * candidatePool.length)];
     const sliceAngle = 360 / slices.length;
     // Pointer is at top (270deg in SVG coordinates -> 0deg visually top)
     const targetSliceCenter = chosenIdx * sliceAngle + sliceAngle / 2;
     const extraSpins = 360 * (4 + Math.floor(Math.random() * 2));
     const nextRotation = rotation + extraSpins + (360 - ((rotation + targetSliceCenter) % 360));
     setRotation(nextRotation);
-    window.setTimeout(() => {
+
+    if (spinTimerRef.current !== null) {
+      window.clearTimeout(spinTimerRef.current);
+    }
+    spinTimerRef.current = window.setTimeout(() => {
+      spinTimerRef.current = null;
       setSpinning(false);
       const landed = slices[chosenIdx];
+      lastLandedLabelRef.current = landed.label;
+      setUsedIndices((prev) => (prev.includes(chosenIdx) ? prev : [...prev, chosenIdx]));
       setSelectedItem(landed);
       playMp3?.('/ding.mp3');
     }, 2600);
@@ -1299,14 +1373,20 @@ const HeceCarkifelekGame: React.FC<{
                 const y1 = 120 + 114 * Math.sin(startRad);
                 const x2 = 120 + 114 * Math.cos(endRad);
                 const y2 = 120 + 114 * Math.sin(endRad);
+                const largeArcFlag = 360 / count > 180 ? 1 : 0;
                 const midAngle = (startAngle + endAngle) / 2;
+                const isUsed = usedIndices.includes(idx);
                 const shortLabel =
                   slice.label.length > 10 ? `${slice.label.slice(0, 9)}…` : slice.label;
 
                 return (
-                  <g key={`${slice.label}-${idx}`}>
+                  <g key={`${slice.label}-${idx}`} opacity={isUsed ? 0.45 : 1}>
                     <path
-                      d={`M120,120 L${x1},${y1} A114,114 0 0,1 ${x2},${y2} Z`}
+                      d={
+                        count === 1
+                          ? 'M120,6 A114,114 0 1,1 119.99,6 Z'
+                          : `M120,120 L${x1},${y1} A114,114 0 ${largeArcFlag},1 ${x2},${y2} Z`
+                      }
                       fill={WHEEL_SLICE_COLORS[idx % WHEEL_SLICE_COLORS.length]}
                       stroke="#ffffff"
                       strokeWidth="2.5"
@@ -1321,7 +1401,7 @@ const HeceCarkifelekGame: React.FC<{
                       dominantBaseline="central"
                       transform={`rotate(${midAngle}, 120, 120) translate(68, 0)`}
                     >
-                      {shortLabel}
+                      {isUsed ? `✓ ${shortLabel}` : shortLabel}
                     </text>
                   </g>
                 );
@@ -1342,7 +1422,11 @@ const HeceCarkifelekGame: React.FC<{
             onClick={spinWheel}
             className="w-full max-w-xs min-h-[56px] px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-slate-950 font-black text-lg shadow-lg active:scale-95 transition cursor-pointer"
           >
-            {spinning ? 'Çark Dönüyor...' : '🎡 Çarkı Çevir!'}
+            {spinning
+              ? 'Çark Dönüyor...'
+              : isRoundComplete
+                ? '🔄 Yeni Tura Geç!'
+                : '🎡 Çarkı Çevir!'}
           </button>
 
           <div className="w-full rounded-3xl bg-amber-50/90 border-2 border-amber-300 p-5 min-h-[168px] flex flex-col items-center justify-center gap-3">
@@ -1382,6 +1466,10 @@ const HeceCarkifelekGame: React.FC<{
                   </button>
                 </div>
               </>
+            ) : isRoundComplete ? (
+              <p className="text-sm sm:text-base font-bold text-emerald-800">
+                Harika! Bu turdaki tüm {mode === 'hece' ? 'heceler' : mode === 'cumle' ? 'cümleler' : 'kelimeler'} tamamlandı. Yeni tur için butona bas!
+              </p>
             ) : (
               <p className="text-sm sm:text-base font-bold text-amber-900/75">
                 Çarkı çevir, gelen {mode === 'hece' ? 'heceyi' : mode === 'cumle' ? 'cümleyi' : 'kelimeyi'} sınıfça sesli oku!
@@ -1389,9 +1477,13 @@ const HeceCarkifelekGame: React.FC<{
             )}
           </div>
 
-          <span className="text-xs font-bold text-slate-500 tabular-nums">
-            Okunan Kart Sayısı: {readCount}
-          </span>
+          <div className="flex items-center gap-3 text-xs font-bold text-slate-500 tabular-nums">
+            <span>
+              Bu Tur: {usedIndices.length} / {slices.length}
+            </span>
+            <span>•</span>
+            <span>Toplam Okunan: {readCount}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1835,8 +1927,8 @@ const PiramitOkumaGame: React.FC<{
   const [activeLine, setActiveLine] = useState(0);
   const [colorSyllables, setColorSyllables] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
-  // Piramit & Merdiven okuma hızları: Yavaş 3,5 sn (3500ms), Orta 2,75 sn (2750ms), Hızlı 2 sn (2000ms)
-  const [speedMs, setSpeedMs] = useState<number>(2750);
+  // Piramit & Merdiven okuma hızları: Yavaş 4,5 sn (4500ms), Orta 2,95 sn (2950ms), Hızlı 2,3 sn (2300ms)
+  const [speedMs, setSpeedMs] = useState<number>(2950);
 
   useEffect(() => {
     setTextIdx(0);
@@ -1921,9 +2013,9 @@ const PiramitOkumaGame: React.FC<{
 
           <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
             {[
-              { label: 'Yavaş (3,5 sn)', ms: 3500 },
-              { label: 'Orta (2,75 sn)', ms: 2750 },
-              { label: 'Hızlı (2 sn)', ms: 2000 },
+              { label: 'Yavaş (4,5 sn)', ms: 4500 },
+              { label: 'Orta (2,95 sn)', ms: 2950 },
+              { label: 'Hızlı (2,3 sn)', ms: 2300 },
             ].map((sp) => (
               <button
                 key={sp.label}

@@ -17,9 +17,15 @@ export interface RepeatSpeakOptions extends SpeakOptions {
   shouldContinue?: () => boolean;
 }
 
+interface CachedAudioAsset {
+  blobUrl: string;
+  arrayBuffer?: ArrayBuffer;
+  isStaticUrl?: boolean;
+}
+
 const VOICE_STORAGE_KEY = 'turkish_tts_teacher_voice_v1';
-const CLIENT_BLOB_CACHE_LIMIT = 320;
-const FETCH_TIMEOUT_MS = 6500;
+const CLIENT_ASSET_CACHE_LIMIT = 320;
+const FETCH_TIMEOUT_MS = 9500;
 // Tiny valid silent WAV (44 bytes + 2 bytes of silence) to unlock HTMLAudioElement inside user clicks
 const SILENT_WAV_DATA_URI =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
@@ -28,15 +34,18 @@ let activeTeacherVoice: TeacherVoiceId = readInitialVoice();
 const voiceListeners = new Set<(voice: TeacherVoiceId) => void>();
 
 let sharedAudioEl: HTMLAudioElement | null = null;
-let audioUnlocked = false;
+let sharedAudioCtx: AudioContext | null = null;
+let activeBufferSource: AudioBufferSourceNode | null = null;
+let htmlAudioUnlocked = false;
+let isUnlockingHtmlAudio = false;
 let pinnedUtterance: SpeechSynthesisUtterance | null = null;
 let pendingSpeakTimer: number | null = null;
 let repeatPauseTimer: number | null = null;
 let speechSessionId = 0;
 
-// Browser-side Blob URL cache so repeated words/syllables play in 0ms
-const blobUrlCache = new Map<string, string>();
-const inFlightFetches = new Map<string, Promise<string | null>>();
+// Browser-side cache (ArrayBuffer + Blob URL) so repeated words/syllables play in 0ms
+const audioAssetCache = new Map<string, CachedAudioAsset>();
+const inFlightFetches = new Map<string, Promise<CachedAudioAsset | null>>();
 
 // Optional static manifest for Option 2 custom teacher MP3 recordings (works even on static hosting)
 let customManifest: Record<string, string> | null = null;
@@ -97,35 +106,88 @@ function getSharedAudio(): HTMLAudioElement {
   return sharedAudioEl;
 }
 
+function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (sharedAudioCtx) return sharedAudioCtx;
+  const Ctor =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctor) return null;
+  try {
+    sharedAudioCtx = new Ctor();
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Kullanıcı tıklaması içinde çağrıldığında tarayıcının otomatik oynatma (autoplay) kilidini açar;
- * böylece asenkron gelen doğal ses klipleri hiçbir tarayıcıda sessiz kalmaz.
+ * Kullanıcı etkileşimi içinde hem Web Audio API (AudioContext) hem HTMLAudioElement
+ * oynatma kilidini açar; böylece asenkron gelen doğal Türkçe MP3 sesleri Safari/macOS/iframe
+ * içinde bile asla NotAllowedError alıp robotik tarayıcı sesine düşmez.
  */
 export function unlockAudioPlayback(): void {
-  if (typeof window === 'undefined' || audioUnlocked) return;
+  if (typeof window === 'undefined') return;
   try {
-    const audio = getSharedAudio();
-    if (!audio.src) {
-      audio.src = SILENT_WAV_DATA_URI;
-      audio.volume = 0.01;
-      const p = audio.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => {
-          audioUnlocked = true;
-          if (audio.src === SILENT_WAV_DATA_URI) {
-            audio.pause();
-          }
-          audio.volume = 1.0;
-        }).catch(() => {
-          audio.volume = 1.0;
-        });
-      }
-    } else {
-      audioUnlocked = true;
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      void ctx.resume().catch(() => {});
     }
   } catch {
     // ignore
   }
+
+  if (htmlAudioUnlocked || isUnlockingHtmlAudio) return;
+  try {
+    const audio = getSharedAudio();
+    // Only run silent WAV unlock if audio element isn't already actively playing real speech
+    const isPlayingReal = !audio.paused && audio.src && audio.src !== SILENT_WAV_DATA_URI;
+    if (isPlayingReal) {
+      htmlAudioUnlocked = true;
+      return;
+    }
+
+    isUnlockingHtmlAudio = true;
+    audio.src = SILENT_WAV_DATA_URI;
+    audio.volume = 0.01;
+    const p = audio.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        htmlAudioUnlocked = true;
+        isUnlockingHtmlAudio = false;
+        if (audio.src === SILENT_WAV_DATA_URI) {
+          audio.pause();
+        }
+        audio.volume = 1.0;
+      }).catch(() => {
+        isUnlockingHtmlAudio = false;
+        audio.volume = 1.0;
+      });
+    } else {
+      htmlAudioUnlocked = true;
+      isUnlockingHtmlAudio = false;
+      audio.volume = 1.0;
+    }
+  } catch {
+    isUnlockingHtmlAudio = false;
+  }
+}
+
+// Automatically unlock audio on the very first user gesture anywhere in the app
+if (typeof window !== 'undefined') {
+  const handleFirstGesture = () => {
+    unlockAudioPlayback();
+    if (htmlAudioUnlocked && sharedAudioCtx && sharedAudioCtx.state === 'running') {
+      window.removeEventListener('pointerdown', handleFirstGesture, true);
+      window.removeEventListener('touchstart', handleFirstGesture, true);
+      window.removeEventListener('keydown', handleFirstGesture, true);
+      window.removeEventListener('click', handleFirstGesture, true);
+    }
+  };
+  window.addEventListener('pointerdown', handleFirstGesture, true);
+  window.addEventListener('touchstart', handleFirstGesture, true);
+  window.addEventListener('keydown', handleFirstGesture, true);
+  window.addEventListener('click', handleFirstGesture, true);
 }
 
 function ensureVoicesLoaded(): SpeechSynthesisVoice[] {
@@ -185,7 +247,9 @@ if (typeof window !== 'undefined') {
 function normalizeForTts(raw: string, lang: SpeechLang): string {
   const trimmed = raw.trim();
   if (!trimmed) return '';
-  if (lang === 'tr' && trimmed.length === 1) {
+  // Normalize 1-3 letter standalone Turkish syllables (e.g. "AL", "EL", "İK") to lowercase
+  // so no TTS engine ever spells them out letter-by-letter ("a-le", "i-ke")
+  if (lang === 'tr' && !trimmed.includes(' ') && trimmed.length <= 3) {
     return trimmed.toLocaleLowerCase('tr-TR');
   }
   return trimmed;
@@ -199,22 +263,22 @@ function inferKind(text: string, explicit?: SpeechKind): SpeechKind {
   return 'kelime';
 }
 
-function setBlobCache(key: string, objectUrl: string) {
-  if (blobUrlCache.size >= CLIENT_BLOB_CACHE_LIMIT) {
-    const oldestKey = blobUrlCache.keys().next().value;
+function setAssetCache(key: string, asset: CachedAudioAsset) {
+  if (audioAssetCache.size >= CLIENT_ASSET_CACHE_LIMIT) {
+    const oldestKey = audioAssetCache.keys().next().value;
     if (oldestKey) {
-      const oldUrl = blobUrlCache.get(oldestKey);
-      if (oldUrl) {
+      const oldAsset = audioAssetCache.get(oldestKey);
+      if (oldAsset && !oldAsset.isStaticUrl) {
         try {
-          URL.revokeObjectURL(oldUrl);
+          URL.revokeObjectURL(oldAsset.blobUrl);
         } catch {
           // ignore
         }
       }
-      blobUrlCache.delete(oldestKey);
+      audioAssetCache.delete(oldestKey);
     }
   }
-  blobUrlCache.set(key, objectUrl);
+  audioAssetCache.set(key, asset);
 }
 
 function pickBestBrowserVoice(lang: SpeechLang): SpeechSynthesisVoice | null {
@@ -240,7 +304,7 @@ function pickBestBrowserVoice(lang: SpeechLang): SpeechSynthesisVoice | null {
   return trVoices.find((v) => v.localService) || trVoices[0];
 }
 
-function speakWithBrowserFallback(
+function speakWithEmergencyBrowserFallback(
   text: string,
   lang: SpeechLang,
   rate: number,
@@ -262,9 +326,16 @@ function speakWithBrowserFallback(
 
     const startUtterance = () => {
       if (sessionId !== speechSessionId) return;
-      const utterance = new SpeechSynthesisUtterance(text);
+      let safeText =
+        lang === 'tr' && !text.includes(' ') && text.length <= 3
+          ? text.toLocaleLowerCase('tr-TR')
+          : text;
+      if (lang === 'tr') {
+        safeText = safeText.replace(/([a-zA-ZçğıöşüÇĞİÖŞÜ]+)\.(?=\s|$)/g, '$1');
+      }
+      const utterance = new SpeechSynthesisUtterance(safeText);
       utterance.lang = lang === 'en' ? 'en-US' : 'tr-TR';
-      utterance.rate = Math.min(1.2, Math.max(0.75, rate));
+      utterance.rate = Math.min(1.15, Math.max(0.78, rate));
       utterance.pitch = activeTeacherVoice === 'erkek' ? 0.92 : 1.04;
       utterance.volume = 1.0;
 
@@ -305,18 +376,68 @@ function speakWithBrowserFallback(
   }
 }
 
-/**
- * Aynı kelime/hece için eşzamanlı istekleri tek bir sunucu çağrısında birleştirir
- * ve sonucu tarayıcı Blob önbelleğine yazar (iptal edilse bile önbellek dolar).
- */
-async function ensureAudioBlobUrl(
+async function fetchServerTtsOnce(
   text: string,
   lang: SpeechLang,
   voice: TeacherVoiceId,
   kind: SpeechKind
-): Promise<string | null> {
+): Promise<{ asset: CachedAudioAsset | null; hardUnavailable: boolean }> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const params = new URLSearchParams({
+      q: text,
+      lang,
+      voice,
+      kind,
+    });
+    const res = await fetch(`/api/tts?${params.toString()}`, {
+      signal: controller.signal,
+      headers: { Accept: 'audio/mpeg, audio/wav, audio/*' },
+    });
+
+    if (!res.ok) {
+      return {
+        asset: null,
+        hardUnavailable: res.status === 404 || res.status === 503,
+      };
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('audio')) {
+      return { asset: null, hardUnavailable: true };
+    }
+
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength < 100) {
+      return { asset: null, hardUnavailable: false };
+    }
+
+    const blob = new Blob([arrayBuffer], { type: contentType || 'audio/mpeg' });
+    const blobUrl = URL.createObjectURL(blob);
+    return {
+      asset: { blobUrl, arrayBuffer, isStaticUrl: false },
+      hardUnavailable: false,
+    };
+  } catch {
+    return { asset: null, hardUnavailable: false };
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Aynı kelime/hece için eşzamanlı istekleri tek bir sunucu çağrısında birleştirir,
+ * geçici ağ takılmalarında 1 kez daha dener ve sonucu tarayıcı önbelleğine yazar.
+ */
+async function ensureAudioAsset(
+  text: string,
+  lang: SpeechLang,
+  voice: TeacherVoiceId,
+  kind: SpeechKind
+): Promise<CachedAudioAsset | null> {
   const cacheKey = `${lang}|${voice}|${kind}|${text}`;
-  const cached = blobUrlCache.get(cacheKey);
+  const cached = audioAssetCache.get(cacheKey);
   if (cached) return cached;
 
   // Check Option 2 static custom recording manifest first (works offline / static hosting)
@@ -325,10 +446,12 @@ async function ensureAudioBlobUrl(
   const manifestKey = `${lang}/${slug}`;
   const customUrl = manifest[manifestKey] || (lang === 'tr' ? manifest[slug] : undefined);
   if (customUrl) {
-    return customUrl;
+    const staticAsset: CachedAudioAsset = { blobUrl: customUrl, isStaticUrl: true };
+    setAssetCache(cacheKey, staticAsset);
+    return staticAsset;
   }
 
-  // Respect short cooldown if backend /api/tts is completely unavailable
+  // Respect short cooldown only if backend /api/tts is confirmed missing (e.g. static host)
   if (Date.now() < serverTtsCooldownUntil) {
     return null;
   }
@@ -338,54 +461,27 @@ async function ensureAudioBlobUrl(
     return existing;
   }
 
-  const reqPromise = (async (): Promise<string | null> => {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    try {
-      const params = new URLSearchParams({
-        q: text,
-        lang,
-        voice,
-        kind,
-      });
-      const res = await fetch(`/api/tts?${params.toString()}`, {
-        signal: controller.signal,
-        headers: { Accept: 'audio/wav, audio/mpeg, audio/*' },
-      });
-
-      if (!res.ok) {
-        if (res.status === 404 || res.status === 503) {
-          serverTtsFailures += 1;
-          if (serverTtsFailures >= 3) {
-            serverTtsCooldownUntil = Date.now() + 15_000;
-          }
-        }
-        return null;
+  const reqPromise = (async (): Promise<CachedAudioAsset | null> => {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const { asset, hardUnavailable } = await fetchServerTtsOnce(text, lang, voice, kind);
+      if (asset) {
+        serverTtsFailures = 0;
+        serverTtsCooldownUntil = 0;
+        setAssetCache(cacheKey, asset);
+        return asset;
       }
-
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('audio')) {
+      if (hardUnavailable) {
         serverTtsFailures += 1;
         if (serverTtsFailures >= 3) {
           serverTtsCooldownUntil = Date.now() + 15_000;
         }
         return null;
       }
-
-      const blob = await res.blob();
-      if (blob.size < 100) return null;
-
-      serverTtsFailures = 0;
-      serverTtsCooldownUntil = 0;
-
-      const objectUrl = URL.createObjectURL(blob);
-      setBlobCache(cacheKey, objectUrl);
-      return objectUrl;
-    } catch {
-      return null;
-    } finally {
-      window.clearTimeout(timeoutId);
+      if (attempt < 2) {
+        await new Promise((r) => window.setTimeout(r, 200));
+      }
     }
+    return null;
   })();
 
   inFlightFetches.set(cacheKey, reqPromise);
@@ -396,7 +492,65 @@ async function ensureAudioBlobUrl(
   return reqPromise;
 }
 
-function playAudioUrlOnce(
+async function playWithWebAudio(
+  arrayBuffer: ArrayBuffer,
+  rate: number,
+  sessionId: number,
+  onStart?: () => void
+): Promise<'ended' | 'aborted' | 'error'> {
+  if (sessionId !== speechSessionId) return 'aborted';
+  const ctx = getAudioContext();
+  if (!ctx) return 'error';
+
+  try {
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    if (sessionId !== speechSessionId) return 'aborted';
+    if (ctx.state !== 'running') return 'error';
+
+    // Slice buffer because decodeAudioData detaches the passed ArrayBuffer
+    const decoded = await ctx.decodeAudioData(arrayBuffer.slice(0));
+    if (sessionId !== speechSessionId) return 'aborted';
+
+    return await new Promise<'ended' | 'aborted' | 'error'>((resolve) => {
+      if (sessionId !== speechSessionId) {
+        resolve('aborted');
+        return;
+      }
+      const source = ctx.createBufferSource();
+      source.buffer = decoded;
+      const playbackRate = Math.min(1.14, Math.max(0.88, rate >= 0.82 && rate <= 1.02 ? 1.0 : rate));
+      source.playbackRate.value = playbackRate;
+      source.connect(ctx.destination);
+
+      let settled = false;
+      const finish = (status: 'ended' | 'aborted' | 'error') => {
+        if (settled) return;
+        settled = true;
+        if (activeBufferSource === source) activeBufferSource = null;
+        source.onended = null;
+        resolve(status);
+      };
+
+      source.onended = () => {
+        finish(sessionId === speechSessionId ? 'ended' : 'aborted');
+      };
+
+      activeBufferSource = source;
+      try {
+        onStart?.();
+        source.start(0);
+      } catch {
+        finish('error');
+      }
+    });
+  } catch {
+    return 'error';
+  }
+}
+
+function playWithHtmlAudio(
   url: string,
   rate: number,
   sessionId: number,
@@ -421,7 +575,8 @@ function playAudioUrlOnce(
       };
 
       audio.onplaying = () => {
-        audioUnlocked = true;
+        htmlAudioUnlocked = true;
+        isUnlockingHtmlAudio = false;
         if (sessionId === speechSessionId) {
           onStart?.();
         }
@@ -433,6 +588,7 @@ function playAudioUrlOnce(
         finish(sessionId === speechSessionId ? 'error' : 'aborted');
       };
 
+      isUnlockingHtmlAudio = false;
       audio.pause();
       audio.src = url;
       try {
@@ -440,20 +596,15 @@ function playAudioUrlOnce(
       } catch {
         // ignore
       }
-      const playbackRate = Math.min(1.16, Math.max(0.86, rate >= 0.82 && rate <= 1.02 ? 1.0 : rate));
+      const playbackRate = Math.min(1.14, Math.max(0.88, rate >= 0.82 && rate <= 1.02 ? 1.0 : rate));
       audio.playbackRate = playbackRate;
       audio.volume = 1.0;
 
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch((err: any) => {
+        playPromise.catch(() => {
           if (sessionId !== speechSessionId) {
             finish('aborted');
-            return;
-          }
-          // Autoplay engellendiyse browser speech fallback denenebilir
-          if (err && err.name === 'NotAllowedError') {
-            finish('error');
             return;
           }
           finish('error');
@@ -463,6 +614,28 @@ function playAudioUrlOnce(
       resolve('error');
     }
   });
+}
+
+async function playNaturalAssetOnce(
+  asset: CachedAudioAsset,
+  rate: number,
+  sessionId: number,
+  onStart?: () => void
+): Promise<'ended' | 'aborted' | 'error'> {
+  if (sessionId !== speechSessionId) return 'aborted';
+
+  // Primary: Web Audio API (immune to async HTMLAudioElement autoplay blocks inside iframes)
+  if (asset.arrayBuffer) {
+    const webAudioRes = await playWithWebAudio(asset.arrayBuffer, rate, sessionId, onStart);
+    if (webAudioRes === 'ended' || webAudioRes === 'aborted') {
+      return webAudioRes;
+    }
+  }
+
+  if (sessionId !== speechSessionId) return 'aborted';
+
+  // Secondary (same natural MP3): HTMLAudioElement
+  return playWithHtmlAudio(asset.blobUrl, rate, sessionId, onStart);
 }
 
 export function stopSpeaking(): void {
@@ -476,7 +649,22 @@ export function stopSpeaking(): void {
       window.clearTimeout(repeatPauseTimer);
       repeatPauseTimer = null;
     }
-    if (sharedAudioEl) {
+    if (activeBufferSource) {
+      const src = activeBufferSource;
+      activeBufferSource = null;
+      src.onended = null;
+      try {
+        src.stop();
+      } catch {
+        // ignore already-stopped errors
+      }
+      try {
+        src.disconnect();
+      } catch {
+        // ignore
+      }
+    }
+    if (sharedAudioEl && !isUnlockingHtmlAudio) {
       sharedAudioEl.onplaying = null;
       sharedAudioEl.onended = null;
       sharedAudioEl.onerror = null;
@@ -501,8 +689,8 @@ export function stopSpeaking(): void {
 /**
  * Doğal Türkçe öğretmen seslendirmesi (tek seferlik):
  * 1. Özel öğretmen MP3 ses paketi (/public/sesler/tr/) varsa anında çalar.
- * 2. Sunucu doğal Türkçe öğretmen sesi (/api/tts - önbellekli) ile çalar.
- * 3. Çevrimdışı / statik barındırmada tarayıcı ses yedeğine düşer.
+ * 2. Sunucu doğal Türkçe öğretmen sesi (/api/tts - Edge Neural, önbellekli) ile Web Audio / Audio üzerinden çalar.
+ * 3. Yalnızca sunucu tamamen erişilemezse (çevrimdışı / statik barındırma) tarayıcı ses yedeğine düşer.
  */
 export function speakTurkish(text: string, rateOrOptions?: number | SpeakOptions): void {
   const opts: SpeakOptions =
@@ -515,13 +703,15 @@ export function speakTurkish(text: string, rateOrOptions?: number | SpeakOptions
   const voice = opts.voice || activeTeacherVoice;
   const kind = inferKind(normalized, opts.kind);
 
+  // Unlock audio synchronously while still inside any user click/tap handler
+  unlockAudioPlayback();
   stopSpeaking();
   const sessionId = speechSessionId;
 
-  const playUrlOrFallback = async (audioUrl: string | null) => {
+  const playAssetOrEmergencyFallback = async (asset: CachedAudioAsset | null) => {
     if (sessionId !== speechSessionId) return;
-    if (audioUrl) {
-      const result = await playAudioUrlOnce(audioUrl, rate, sessionId, opts.onStart);
+    if (asset) {
+      const result = await playNaturalAssetOnce(asset, rate, sessionId, opts.onStart);
       if (sessionId !== speechSessionId) return;
       if (result === 'ended') {
         opts.onEnd?.();
@@ -529,20 +719,21 @@ export function speakTurkish(text: string, rateOrOptions?: number | SpeakOptions
       }
       if (result === 'aborted') return;
     }
+    // Only reached if /api/tts is completely unavailable OR both Web Audio & HTMLAudio failed
     if (sessionId === speechSessionId) {
-      speakWithBrowserFallback(normalized, lang, rate, sessionId, opts.onStart, opts.onEnd);
+      speakWithEmergencyBrowserFallback(normalized, lang, rate, sessionId, opts.onStart, opts.onEnd);
     }
   };
 
   const cacheKey = `${lang}|${voice}|${kind}|${normalized}`;
-  const instantUrl = blobUrlCache.get(cacheKey);
-  if (instantUrl) {
-    void playUrlOrFallback(instantUrl);
+  const instantAsset = audioAssetCache.get(cacheKey);
+  if (instantAsset) {
+    void playAssetOrEmergencyFallback(instantAsset);
     return;
   }
 
-  void ensureAudioBlobUrl(normalized, lang, voice, kind).then((audioUrl) => {
-    void playUrlOrFallback(audioUrl);
+  void ensureAudioAsset(normalized, lang, voice, kind).then((asset) => {
+    void playAssetOrEmergencyFallback(asset);
   });
 }
 
@@ -562,6 +753,7 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
   const voice = options.voice || activeTeacherVoice;
   const kind = inferKind(normalized, options.kind);
 
+  unlockAudioPlayback();
   stopSpeaking();
   const sessionId = speechSessionId;
 
@@ -578,7 +770,7 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
     });
 
   const runSequence = async () => {
-    const audioUrl = await ensureAudioBlobUrl(normalized, lang, voice, kind);
+    const asset = await ensureAudioAsset(normalized, lang, voice, kind);
     if (sessionId !== speechSessionId) return;
     if (options.shouldContinue && !options.shouldContinue()) return;
 
@@ -590,17 +782,16 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
       }
     };
 
-    if (audioUrl) {
+    if (asset) {
       for (let i = 0; i < times; i++) {
         if (sessionId !== speechSessionId) return;
         if (options.shouldContinue && !options.shouldContinue()) return;
 
-        const status = await playAudioUrlOnce(audioUrl, rate, sessionId, handleStart);
+        const status = await playNaturalAssetOnce(asset, rate, sessionId, handleStart);
         if (sessionId !== speechSessionId) return;
 
         if (status === 'error') {
-          // Tarayıcı oynatma hatasında tek seferlik browser speech yedeği
-          speakWithBrowserFallback(normalized, lang, rate, sessionId, handleStart, options.onEnd);
+          speakWithEmergencyBrowserFallback(normalized, lang, rate, sessionId, handleStart, options.onEnd);
           return;
         }
         if (status === 'aborted') return;
@@ -614,12 +805,12 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
         options.onEnd?.();
       }
     } else {
-      // Sunucu sesi alınamadıysa tarayıcı yedeğiyle aralıklı oku
+      // Yalnızca sunucu tamamen erişilemezse acil tarayıcı yedeği
       for (let i = 0; i < times; i++) {
         if (sessionId !== speechSessionId) return;
         if (options.shouldContinue && !options.shouldContinue()) return;
         await new Promise<void>((resolve) => {
-          speakWithBrowserFallback(normalized, lang, rate, sessionId, handleStart, resolve);
+          speakWithEmergencyBrowserFallback(normalized, lang, rate, sessionId, handleStart, resolve);
         });
         if (sessionId !== speechSessionId) return;
         if (i < times - 1) {
@@ -661,7 +852,7 @@ export function prefetchTurkishItems(
     if (!normalized) continue;
     const itemKind = inferKind(normalized, raw.kind);
     const cacheKey = `${lang}|${voice}|${itemKind}|${normalized}`;
-    if (seen.has(cacheKey) || blobUrlCache.has(cacheKey)) continue;
+    if (seen.has(cacheKey) || audioAssetCache.has(cacheKey)) continue;
     seen.add(cacheKey);
     deduped.push({ text: normalized, kind: itemKind });
     if (deduped.length >= 12) break;
@@ -670,13 +861,13 @@ export function prefetchTurkishItems(
   if (deduped.length === 0) return;
 
   let cursor = 0;
-  const concurrency = 3;
+  const concurrency = 2;
 
   const worker = async () => {
     while (cursor < deduped.length) {
       const idx = cursor++;
       const item = deduped[idx];
-      await ensureAudioBlobUrl(item.text, lang, voice, item.kind);
+      await ensureAudioAsset(item.text, lang, voice, item.kind);
     }
   };
 
