@@ -124,16 +124,6 @@ export const ActivityBackground: React.FC<ActivityBackgroundProps> = ({
           />
           {/* Güneşli Sıcak Gökyüzü ve Yumuşak Işık (Asla mor veya düz koyu renk yok!) */}
           <div className="absolute inset-0 bg-gradient-to-b from-sky-400/15 via-transparent to-slate-950/35 pointer-events-none" />
-          
-          {/* 1. SINIFTAKİ SEVİMLİ DOĞA & HAYVAN MASKOTU */}
-          {showFloatingElements && (
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {/* Sol Alt: Sevimli Yavru Aslan */}
-              <div className="absolute bottom-2 left-2 sm:left-4 w-14 h-14 sm:w-20 sm:h-20 drop-shadow-lg opacity-90">
-                <img src="/assets/sudoku/aslan.png" alt="Aslan" className="w-full h-full object-contain" />
-              </div>
-            </div>
-          )}
         </div>
       )}
 

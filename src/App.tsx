@@ -81,6 +81,8 @@ const RandomStudentWheelModal = lazyComponent(() => import('./components/RandomS
 const EnglishGamesHub = lazyComponent(() => import('./components/EnglishGamesHub'), 'EnglishGamesHub');
 const BilsemHub = lazyComponent(() => import('./components/BilsemHub'), 'BilsemHub');
 const BilsemGameModal = lazyComponent(() => import('./components/BilsemGameModal'), 'BilsemGameModal');
+const OkumaYazmaHub = lazyComponent(() => import('./components/OkumaYazmaHub'), 'OkumaYazmaHub');
+const OkumaYazmaGameModal = lazyComponent(() => import('./components/OkumaYazmaGameModal'), 'OkumaYazmaGameModal');
 const WordGameModal = lazyComponent(() => import('./components/WordGameModal'), 'WordGameModal');
 const FeedbackModal = lazyComponent(() => import('./components/FeedbackModal'), 'FeedbackModal');
 import { GlossyRoundButton, GlossyPillButton, GlossyCompleteCard, GlossyArrowIcon, GlossyScreenRotateIcon, GoldCoinDisplayCard } from './components/GameUIButtons';
@@ -162,6 +164,12 @@ import {
   getActivitiesForGrade,
   normalizeBilsemGrade,
 } from './data/bilsemActivitiesData';
+import {
+  LetterGroupId,
+  OKUMA_YAZMA_ACTIVITIES,
+  OkumaYazmaActivityId,
+  getOkumaYazmaActivityMeta,
+} from './data/okumaYazmaData';
 
 // --- TOPICS FOR OTHER WORD GAMES (STANDARDIZED WITH ALL OTHER ACTIVITIES) ---
 const topicsWordGames: Record<string, { title: string; desc: string; icon?: string; generate: () => QuestionData }> = {
@@ -3161,6 +3169,11 @@ export default function App() {
   const [activeBilsemActivityId, setActiveBilsemActivityId] = useState<BilsemActivityId | null>(null);
   const [bilsemSelectedGrade, setBilsemSelectedGrade] = useState<BilsemGrade>(2);
   const [completedBilsemIds, setCompletedBilsemIds] = useState<string[]>([]);
+  const [showOkumaYazmaHub, setShowOkumaYazmaHub] = useState(false);
+  const [activeOkumaYazmaActivityId, setActiveOkumaYazmaActivityId] = useState<OkumaYazmaActivityId | null>(null);
+  const [okumaYazmaGroupId, setOkumaYazmaGroupId] = useState<LetterGroupId>('grup1');
+  const [okumaYazmaFocusLetter, setOkumaYazmaFocusLetter] = useState<string | null>(null);
+  const [completedOkumaYazmaIds, setCompletedOkumaYazmaIds] = useState<string[]>([]);
   const [openedFromOtherGamesModal, setOpenedFromOtherGamesModal] = useState(false);
   const [showXOXGame, setShowXOXGame] = useState(false);
   const [showAynisiniBul, setShowAynisiniBul] = useState(false);
@@ -3260,6 +3273,7 @@ export default function App() {
     showDengeTerazisi ||
     showKodlamaMutfagi ||
     activeBilsemActivityId !== null ||
+    activeOkumaYazmaActivityId !== null ||
     wordGameType !== null
   );
 
@@ -6414,6 +6428,13 @@ export default function App() {
    * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handlePrevActivity = () => {
+    if (activeOkumaYazmaActivityId !== null) {
+      const idx = OKUMA_YAZMA_ACTIVITIES.findIndex(a => a.id === activeOkumaYazmaActivityId);
+      const prevIdx = idx >= 0 ? (idx - 1 + OKUMA_YAZMA_ACTIVITIES.length) % OKUMA_YAZMA_ACTIVITIES.length : 0;
+      setActiveOkumaYazmaActivityId(OKUMA_YAZMA_ACTIVITIES[prevIdx].id);
+      return;
+    }
+
     if (activeBilsemActivityId !== null) {
       const list = getActivitiesForGrade(bilsemSelectedGrade);
       const idx = list.findIndex(a => a.id === activeBilsemActivityId);
@@ -6470,6 +6491,13 @@ export default function App() {
    * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
    */
   const handleNextActivity = () => {
+    if (activeOkumaYazmaActivityId !== null) {
+      const idx = OKUMA_YAZMA_ACTIVITIES.findIndex(a => a.id === activeOkumaYazmaActivityId);
+      const nextIdx = idx >= 0 ? (idx + 1) % OKUMA_YAZMA_ACTIVITIES.length : 0;
+      setActiveOkumaYazmaActivityId(OKUMA_YAZMA_ACTIVITIES[nextIdx].id);
+      return;
+    }
+
     if (activeBilsemActivityId !== null) {
       const list = getActivitiesForGrade(bilsemSelectedGrade);
       const idx = list.findIndex(a => a.id === activeBilsemActivityId);
@@ -6537,6 +6565,8 @@ export default function App() {
     setShowEnglishGamesModal(false);
     setShowBilsemHub(false);
     setActiveBilsemActivityId(null);
+    setShowOkumaYazmaHub(false);
+    setActiveOkumaYazmaActivityId(null);
     setOpenedFromOtherGamesModal(false);
     setShowXOXGame(false);
     setShowAynisiniBul(false);
@@ -7193,6 +7223,10 @@ export default function App() {
         return currentTopic;
       }
     }
+    if (activeOkumaYazmaActivityId) {
+      return `1. Sınıf Okuma Yazma · ${getOkumaYazmaActivityMeta(activeOkumaYazmaActivityId).title}`;
+    }
+    if (showOkumaYazmaHub) return '1. Sınıf Okuma Yazma Merkezi';
     if (activeBilsemActivityId) {
       return BILSEM_ACTIVITIES.find(a => a.id === activeBilsemActivityId)?.title || 'BİLSEM Etkinliği';
     }
@@ -7266,7 +7300,8 @@ export default function App() {
           <div className="flex items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-1 bg-[#0f182c] rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
             {[1, 2, 3, 4, 5, 6, 7].map((g) => {
               const isSelected = 
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
+                (g === 1 && (showOkumaYazmaHub || activeOkumaYazmaActivityId !== null)) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showOkumaYazmaHub && activeOkumaYazmaActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
                 (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame)) ||
                 (g === 7 && (showBilsemHub || activeBilsemActivityId !== null));
@@ -7290,6 +7325,8 @@ export default function App() {
                       setShowEnglishGamesModal(false);
                       setShowBilsemHub(false);
                       setActiveBilsemActivityId(null);
+                      setShowOkumaYazmaHub(false);
+                      setActiveOkumaYazmaActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowXOXGame(false);
                       setShowAynisiniBul(false);
@@ -7375,6 +7412,8 @@ export default function App() {
                       setShowEnglishGamesModal(false);
                       setShowBilsemHub(false);
                       setActiveBilsemActivityId(null);
+                      setShowOkumaYazmaHub(false);
+                      setActiveOkumaYazmaActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowOtherGamesModal(true);
                     } else if (g === 6) {
@@ -7424,6 +7463,8 @@ export default function App() {
                       setShowOtherGamesModal(false);
                       setShowBilsemHub(false);
                       setActiveBilsemActivityId(null);
+                      setShowOkumaYazmaHub(false);
+                      setActiveOkumaYazmaActivityId(null);
                       setOpenedFromOtherGamesModal(false);
                       setShowEnglishGamesModal(true);
                     } else if (g === 7) {
@@ -7474,6 +7515,8 @@ export default function App() {
                       setShowEnglishGamesModal(false);
                       setOpenedFromOtherGamesModal(false);
                       handleClassClick('otherGames');
+                      setShowOkumaYazmaHub(false);
+                      setActiveOkumaYazmaActivityId(null);
                       setBilsemSelectedGrade(normalizeBilsemGrade(selectedGrade));
                       setActiveBilsemActivityId(null);
                       setShowBilsemHub(true);
@@ -7727,6 +7770,12 @@ export default function App() {
             // 5.2 If inside BİLSEM Hub modal itself
             if (showBilsemHub) {
               setShowBilsemHub(false);
+              return;
+            }
+
+            // 5.3 If inside 1. Sınıf Okuma Yazma Hub modal
+            if (showOkumaYazmaHub) {
+              setShowOkumaYazmaHub(false);
               return;
             }
 
@@ -8167,40 +8216,67 @@ export default function App() {
 
               {/* 6 GRADE CARDS IN 2X2 + 2 GRID (STANDARDIZED NEUTRAL SLATE CARDS WITH ACCENT BORDERS & DIFFICULTY BADGES) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2.5 md:gap-3 w-full max-w-4xl xl:max-w-5xl mx-auto py-1">
-                {/* 1. SINIF */}
-                <button
-                  onClick={() => {
-                    playMp3('/op.mp3');
-                    setSelectedGrade(1);
-                    setLastSelectedGrade(1);
-                    handleClassClick('grade1');
-                  }}
-                  className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2.5 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-blue-400 hover:border-blue-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 md:gap-4 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
-                >
-                  <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
-                    <img src="/icon_1.webp" alt="1. Sınıf" className="w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
-                  </div>
-                  <div className="flex-1 text-left min-w-0 z-10 py-0.5">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <div className="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                        <span className="text-amber-400">★☆☆☆</span>
-                        <span className="text-slate-400 font-medium">Başlangıç Seviyesi</span>
-                      </div>
-                      <span className="bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
-                        Önerilen
-                      </span>
+                {/* 1. SINIF ALANI: MATEMATİK VE OKUMA YAZMA (2 BUTON EŞİT GENİŞLİKTE) */}
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
+                  {/* 1. SINIF MATEMATİK */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(1);
+                      setLastSelectedGrade(1);
+                      handleClassClick('grade1');
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-blue-400 hover:border-blue-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img src="/icon_1.webp" alt="1. Sınıf Matematik" className="w-10 h-10 xs:w-12 xs:h-12 sm:w-16 sm:h-16 md:w-18 md:h-18 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform" />
                     </div>
-                    <h3 className="font-black text-sm sm:text-base md:text-lg text-slate-100 leading-tight uppercase tracking-wider">
-                      1. Sınıf Matematik
-                    </h3>
-                    <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-400 mt-0.5 break-words leading-tight">
-                      Geometri, Sayılar, İşlemler, Veri, Zeka Oyunları & 3D Lab
-                    </p>
-                  </div>
-                  <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
-                    <div className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none" style={{ backgroundImage: `url('/ply.webp')` }} />
-                  </div>
-                </button>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="text-amber-400 text-[9px] sm:text-xs">★☆☆☆</span>
+                        <span className="hidden sm:inline text-slate-400 text-[10px] sm:text-xs font-medium">Başlangıç</span>
+                      </div>
+                      <h3 className="font-black text-xs sm:text-base md:text-lg text-slate-100 group-hover:text-sky-300 leading-tight uppercase tracking-wide transition-colors">
+                        1. Sınıf Matematik
+                      </h3>
+                      <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        Sayılar, İşlemler, Geometri &amp; 3D Lab
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* 1. SINIF OKUMA YAZMA (YENİ!) */}
+                  <button
+                    onClick={() => {
+                      playMp3('/op.mp3');
+                      setSelectedGrade(1);
+                      setLastSelectedGrade(1);
+                      handleClassClick('grade1');
+                      setActiveOkumaYazmaActivityId(null);
+                      setShowOkumaYazmaHub(true);
+                    }}
+                    className="group relative w-full bg-[#121c2e] hover:bg-[#18263e] active:bg-[#0e1726] text-white rounded-[16px] sm:rounded-[20px] md:rounded-[24px] p-2 sm:p-3 md:p-4 border-2 border-slate-700/80 border-l-4 border-l-rose-400 hover:border-rose-400/60 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2 sm:gap-3 overflow-hidden cursor-pointer min-h-[64px] sm:min-h-[78px] md:min-h-[86px]"
+                  >
+                    <div className="relative shrink-0 z-10 flex items-center justify-center -my-1">
+                      <img src="/icon_1.webp" alt="1. Sınıf Okuma Yazma" className="w-10 h-10 xs:w-12 xs:h-12 sm:w-16 sm:h-16 md:w-18 md:h-18 object-contain filter drop-shadow-md group-hover:scale-110 transition-transform [filter:hue-rotate(135deg)_saturate(1.35)]" />
+                      <span className="absolute -bottom-1 -right-1 text-xs sm:text-sm drop-shadow">✏️</span>
+                    </div>
+                    <div className="flex-1 text-left min-w-0 z-10 py-0.5">
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <span className="text-amber-400 text-[9px] sm:text-xs">★☆☆☆</span>
+                        <span className="px-1.5 py-0.2 rounded-full bg-gradient-to-r from-rose-500 to-amber-500 text-white font-black text-[8px] sm:text-[9px] tracking-wider uppercase shadow-sm shrink-0">
+                          ✨ YENİ
+                        </span>
+                      </div>
+                      <h3 className="font-black text-xs sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide transition-colors">
+                        Okuma Yazma
+                      </h3>
+                      <p className="text-[9px] sm:text-xs text-slate-400 mt-0.5 truncate leading-tight">
+                        5 Harf Grubu, Hece, Kelime &amp; Oyunlar
+                      </p>
+                    </div>
+                  </button>
+                </div>
 
                 {/* 2. SINIF ALANI: MATEMATİK, TÜRKÇE VE HAYAT BİLGİSİ (3 BUTON EŞİT GENİŞLİKTE DAĞITILMIŞ) */}
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-2.5 w-full h-full">
@@ -9097,37 +9173,70 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* ALT SIRA: 5. DİĞER OYUNLAR (ORTALANMIŞ, ÜST KARTLARLA AYNI GENİŞLİKTE VE DENGELİ) */}
-                  <div className="w-full flex justify-center">
-                    <div className="w-full sm:w-[calc(50%-0.3125rem)] md:w-[calc(50%-0.375rem)]">
-                      <button
-                        onClick={() => {
-                          playMp3('/op.mp3');
-                          setSelectedCategoryId('diger_oyunlar');
-                        }}
-                        className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
-                      >
-                        <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
-                          <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
-                        </div>
+                  {/* ALT SIRA: 5. DİĞER OYUNLAR VE 6. OKUMA YAZMA (2 KART DENGELİ IZGARA) */}
+                  <div className="grid grid-cols-1 min-[700px]:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 w-full">
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setSelectedCategoryId('diger_oyunlar');
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#2c0f24] via-[#411635] to-[#2c0f24] hover:from-[#3a1430] hover:via-[#541c45] hover:to-[#3a1430] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-pink-400/90 border-l-4 border-l-pink-400 shadow-[0_0_20px_rgba(244,114,182,0.25)] hover:shadow-[0_0_25px_rgba(244,114,182,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_32.webp" alt="Diğer Oyunlar" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-115 group-hover:rotate-6 transition-transform" />
+                      </div>
 
-                        <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
-                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
-                            5. Diğer Oyunlar
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-pink-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                          5. Diğer Oyunlar
+                        </h3>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
+                          Balon, Hafıza &amp; Zeka Oyunları
+                        </p>
+                      </div>
+
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* KART 6: 1. SINIF OKUMA YAZMA */}
+                    <button
+                      onClick={() => {
+                        playMp3('/op.mp3');
+                        setActiveOkumaYazmaActivityId(null);
+                        setShowOkumaYazmaHub(true);
+                      }}
+                      className="group relative w-full bg-gradient-to-r from-[#36101b] via-[#511829] to-[#36101b] hover:from-[#451523] hover:via-[#651f34] hover:to-[#451523] text-white rounded-2xl p-2 sm:p-2.5 md:p-3 border-2 border-rose-400/90 border-l-4 border-l-rose-400 shadow-[0_0_20px_rgba(251,113,133,0.25)] hover:shadow-[0_0_25px_rgba(251,113,133,0.45)] transition-all transform hover:-translate-y-0.5 active:translate-y-0.5 flex items-center justify-between gap-2.5 sm:gap-3.5 overflow-hidden cursor-pointer min-h-[64px] xs:min-h-[72px] sm:min-h-[80px] md:min-h-[88px]"
+                    >
+                      <div className="relative shrink-0 z-10 w-13 h-13 sm:w-16 sm:h-16 md:w-18 md:h-18 -my-1 sm:-my-2 flex items-center justify-center">
+                        <img src="/MENUIKON/grid_icon_25.webp" alt="Okuma Yazma" className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-3 transition-transform" />
+                      </div>
+
+                      <div className="flex-1 text-left min-w-0 z-10 py-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-xs xs:text-sm sm:text-base md:text-lg text-slate-100 group-hover:text-rose-300 leading-tight uppercase tracking-wide break-words transition-colors">
+                            6. Okuma Yazma
                           </h3>
-                          <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-pink-200/70 mt-0.5 break-words leading-tight">
-                            Balon, Hafıza & Zeka Oyunları
-                          </p>
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-pink-500 text-white font-black text-[9px] sm:text-[10px] tracking-wider uppercase shadow-md border border-yellow-200 shrink-0">
+                            ✨ YENİ
+                          </span>
                         </div>
+                        <p className="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium text-rose-200/80 mt-0.5 break-words leading-tight">
+                          5 Harf Grubu, Hece, Kelime, Piramit &amp; Yazı Tahtası
+                        </p>
+                      </div>
 
-                        <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-pink-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
-                          <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-pink-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
-                          <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-pink-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
-                            ▶
-                          </div>
+                      <div className="z-10 shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/25 group-hover:bg-black/40 border border-rose-400/30 shadow-inner group-hover:scale-105 group-hover:translate-x-1 transition-all">
+                        <span className="font-black text-[10px] xs:text-xs sm:text-xs md:text-sm text-rose-300 tracking-wider uppercase drop-shadow">BAŞLA</span>
+                        <div className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded-lg bg-rose-400 text-slate-950 flex items-center justify-center font-black text-[10px] sm:text-xs shadow group-hover:rotate-6 transition-transform">
+                          ▶
                         </div>
-                      </button>
-                    </div>
+                      </div>
+                    </button>
                   </div>
                 </div>
               ) : selectedGrade === 2 && selectedSubject === 'turkce' ? (
@@ -13461,6 +13570,68 @@ export default function App() {
           }}
           onQuestionAnswered={(isCorrect, pIdx = 0) => {
             handleUniversalActivityAnswer(`bilsem_${activeBilsemActivityId}`, isCorrect, pIdx, 'otherGames');
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* 1. SINIF OKUMA YAZMA HUB MODAL (5 HARF GRUBU & 8 İNTERAKTİF ETKİNLİK) */}
+      {showOkumaYazmaHub && !activeOkumaYazmaActivityId && (
+        <OkumaYazmaHub
+          onClose={() => setShowOkumaYazmaHub(false)}
+          onGoHome={handleGoHome}
+          selectedGroupId={okumaYazmaGroupId}
+          onSelectGroup={(gId) => setOkumaYazmaGroupId(gId)}
+          focusLetter={okumaYazmaFocusLetter}
+          onSelectFocusLetter={(letter) => setOkumaYazmaFocusLetter(letter)}
+          onSelectActivity={(actId, gId, letter) => {
+            setOkumaYazmaGroupId(gId);
+            setOkumaYazmaFocusLetter(letter);
+            setActiveOkumaYazmaActivityId(actId);
+          }}
+          completedIds={completedOkumaYazmaIds}
+          playMp3={playMp3}
+        />
+      )}
+
+      {/* 1. SINIF OKUMA YAZMA İNTERAKTİF ETKİNLİK MODALI */}
+      {activeOkumaYazmaActivityId && (
+        <OkumaYazmaGameModal
+          key={`${okumaYazmaGroupId}-${okumaYazmaFocusLetter || 'all'}-${activeOkumaYazmaActivityId}`}
+          activityId={activeOkumaYazmaActivityId}
+          groupId={okumaYazmaGroupId}
+          focusLetter={okumaYazmaFocusLetter}
+          onChangeGroup={(gId) => setOkumaYazmaGroupId(gId)}
+          onChangeFocusLetter={(letter) => setOkumaYazmaFocusLetter(letter)}
+          onSwitchActivity={(nextId) => setActiveOkumaYazmaActivityId(nextId)}
+          onClose={() => {
+            setActiveOkumaYazmaActivityId(null);
+            setShowOkumaYazmaHub(true);
+          }}
+          onGoHome={handleGoHome}
+          onCompleted={(doneActId, doneGroupId) => {
+            const key = `${doneGroupId}:${doneActId}`;
+            setCompletedOkumaYazmaIds((prev) => (prev.includes(key) ? prev : [...prev, key]));
+          }}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || 1);
+            setShowStudentRosterModal(true);
+          }}
+          onQuestionAnswered={(isCorrect, pIdx = 0) => {
+            handleUniversalActivityAnswer(`okuma_yazma_${activeOkumaYazmaActivityId}`, isCorrect, pIdx, 'grade1');
           }}
           onGameCompleted={(winnerIdx, pCount) => {
             handleUniversalGameCompleted(winnerIdx, pCount);

@@ -54,10 +54,92 @@ const videoUploadPlugin = (): Plugin => ({
   }
 });
 
+const turkishTtsPlugin = (): Plugin => {
+  const ttsCache = new Map<string, Buffer>();
+  return {
+    name: 'turkish-tts-plugin',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url || !req.url.startsWith('/api/tts')) {
+          return next();
+        }
+        try {
+          const parsed = new URL(req.url, 'http://localhost:3000');
+          const rawText = (parsed.searchParams.get('q') || '').trim().slice(0, 200);
+          if (!rawText) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Missing q parameter' }));
+            return;
+          }
+
+          const cached = ttsCache.get(rawText);
+          if (cached) {
+            res.writeHead(200, {
+              'Content-Type': 'audio/mpeg',
+              'Content-Length': String(cached.length),
+              'Cache-Control': 'public, max-age=86400',
+            });
+            res.end(cached);
+            return;
+          }
+
+          const encoded = encodeURIComponent(rawText);
+          const endpoints = [
+            `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=tr&q=${encoded}`,
+            `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=${encoded}`,
+          ];
+
+          let audioBuffer: Buffer | null = null;
+          for (const url of endpoints) {
+            try {
+              const upstream = await fetch(url, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                },
+              });
+              if (upstream.ok) {
+                const ab = await upstream.arrayBuffer();
+                if (ab.byteLength > 200) {
+                  audioBuffer = Buffer.from(ab);
+                  break;
+                }
+              }
+            } catch {
+              // try next endpoint
+            }
+          }
+
+          if (!audioBuffer) {
+            res.writeHead(502, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'TTS upstream unavailable' }));
+            return;
+          }
+
+          if (ttsCache.size >= 500) {
+            const firstKey = ttsCache.keys().next().value;
+            if (firstKey) ttsCache.delete(firstKey);
+          }
+          ttsCache.set(rawText, audioBuffer);
+
+          res.writeHead(200, {
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': String(audioBuffer.length),
+            'Cache-Control': 'public, max-age=86400',
+          });
+          res.end(audioBuffer);
+        } catch (err: any) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err?.message || 'TTS error' }));
+        }
+      });
+    },
+  };
+};
+
 export default defineConfig(() => {
   return {
     base: './',
-    plugins: [react(), tailwindcss(), webpFallbackPlugin(), videoUploadPlugin()],
+    plugins: [react(), tailwindcss(), webpFallbackPlugin(), videoUploadPlugin(), turkishTtsPlugin()],
     build: {
       // Ağır kütüphaneleri ayrı dosyalara böl: ilk açılış küçülür, tarayıcı sadece gerekeni indirir/derler.
       chunkSizeWarningLimit: 900,
