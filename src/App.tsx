@@ -8,6 +8,7 @@ import {
 import confetti from 'canvas-confetti';
 import { lazyComponent } from './utils/lazyComponent';
 import { QuestionTimerBadge, createTimerStore } from './components/QuestionTimerBadge';
+import { AdSenseBanner } from './components/AdSenseBanner';
 import { speakTurkish } from './utils/turkishSpeech';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
 import { auth, onAuthStateChanged, User } from './firebase';
@@ -11422,6 +11423,11 @@ export default function App() {
         </div>
       )}
 
+
+      {/* WEB REKLAM ALANI (GOOGLE ADSENSE — YALNIZCA MENÜ EKRANLARINDA, OYUN İÇİNDE GİZLİ) */}
+      {!showIntro && !isInsideAnyGame && gameState !== 'playing' && (
+        <AdSenseBanner />
+      )}
 
       {/* GLOBAL FOOTER WITH COPYRIGHT TEXT & DISCREET SAYAÇ BUTTON (SADECE OYUN OYNANMIYORKEN GÖSTERİLİR) */}
       {gameState !== 'playing' && (

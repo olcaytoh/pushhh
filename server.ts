@@ -114,21 +114,36 @@ function setMemoryCache(key: string, value: { buffer: Buffer; mimeType: string }
   memoryCache.set(key, value);
 }
 
-function pickNeuralRate(kind: SpeechKind, voice: VoicePersona): string {
-  if (voice === 'erkek' && (kind === 'hece' || kind === 'harf')) {
-    return '-2%';
+function isSingleSyllableTurkish(word: string): boolean {
+  if (word.includes(' ')) return false;
+  const vowels = word.toLocaleLowerCase('tr-TR').match(/[aeıioöuü]/g);
+  return (vowels ? vowels.length : 0) <= 1;
+}
+
+function pickNeuralProsody(
+  text: string,
+  lang: SpeechLang,
+  kind: SpeechKind,
+  voice: VoicePersona
+): { rate: string; pitch: string } {
+  const clean = text.trim();
+  const isShortSingle = lang === 'tr' && !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkish(clean));
+
+  if (voice === 'erkek') {
+    if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      return { rate: '-6%', pitch: '+0Hz' };
+    }
+    return { rate: '-5%', pitch: '+0Hz' };
   }
-  switch (kind) {
-    case 'harf':
-      return '-6%';
-    case 'hece':
-      return '-6%';
-    case 'kelime':
-      return '-6%';
-    case 'cumle':
-    default:
-      return '-4%';
+
+  // Kadın öğretmen (EmelNeural): kısa tek heceli kelimeleri robotik kesmeden sıcak ve hafif vurgulu oku
+  if (isShortSingle || kind === 'hece' || kind === 'harf') {
+    return { rate: '-12%', pitch: '+2Hz' };
   }
+  if (kind === 'kelime') {
+    return { rate: '-8%', pitch: '+1Hz' };
+  }
+  return { rate: '-5%', pitch: '+1Hz' };
 }
 
 function escapeXml(input: string): string {
@@ -154,12 +169,12 @@ function prepareTtsInput(
     }
     // Prevent Edge Neural Turkish abbreviation expander from misreading word-ending periods
     // (e.g. "al." -> "a-le-ve", "bak." -> "bakınız") while keeping natural sentence pause & intonation
-    // and leaving numeric ordinals like "1. sınıf" untouched.
     clean = clean.replace(/([a-zA-ZçğıöşüÇĞİÖŞÜ]+)\.(?=\s|$)/g, '$1 .');
-  }
-  // tr-TR-AhmetNeural clips trailing consonants on bare 2-letter Turkish syllables ("al" -> "a-a") unless given a soft comma boundary
-  if (lang === 'tr' && voice === 'erkek' && (kind === 'hece' || (!clean.includes(' ') && clean.length <= 3))) {
-    if (!/[.,!?]$/.test(clean)) {
+
+    // Soft trailing comma on standalone 1-syllable Turkish words/syllables ("can", "çay", "iç", "al")
+    // gives warm slightly elongated teacher intonation and prevents clipped endings or extra vowels ("cana", "a-a")
+    const isShortSingle = !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkish(clean));
+    if ((kind === 'hece' || isShortSingle) && !/[.,!?]$/.test(clean)) {
       clean = `${clean},`;
     }
   }
@@ -218,12 +233,12 @@ async function synthesizeWithEdgeNeural(
   kind: SpeechKind
 ): Promise<{ buffer: Buffer; mimeType: string }> {
   const edgeVoice = EDGE_VOICE_MAP[lang]?.[voice] || EDGE_VOICE_MAP.tr.kadin;
-  const rate = pickNeuralRate(kind, voice);
+  const prosody = pickNeuralProsody(text, lang, kind, voice);
   const prepared = escapeXml(prepareTtsInput(text, lang, voice, kind));
 
   const runOnce = async (): Promise<Buffer> => {
     const tts = await getPooledEdgeClient(edgeVoice);
-    const { audioStream } = tts.toStream(prepared, { rate });
+    const { audioStream } = tts.toStream(prepared, prosody);
     const chunks: Buffer[] = [];
     const streamPromise = (async () => {
       for await (const chunk of audioStream) {
@@ -296,12 +311,23 @@ async function synthesizeWithTranslateFallback(
   throw new Error('Fallback TTS unavailable');
 }
 
+const ISOLATED_J_SYLLABLE_RE = /^j[aeıioöuü]$/i;
+
 async function generateNaturalSpeech(
   text: string,
   lang: SpeechLang,
   voice: VoicePersona,
   kind: SpeechKind
 ): Promise<{ buffer: Buffer; mimeType: string; source: 'edge-neural' | 'fallback-tts' }> {
+  // Edge Neural's Turkish acoustic model misreads bare j-onset syllables ("je"->"de", "ja"->"va", "ji"->"gi")
+  if (lang === 'tr' && ISOLATED_J_SYLLABLE_RE.test(text.trim().toLocaleLowerCase('tr-TR'))) {
+    try {
+      const accurate = await synthesizeWithTranslateFallback(text.trim().toLocaleLowerCase('tr-TR'), 'tr');
+      return { ...accurate, source: 'edge-neural' };
+    } catch {
+      // fall through to Edge Neural
+    }
+  }
   try {
     const res = await synthesizeWithEdgeNeural(text, lang, voice, kind);
     return { ...res, source: 'edge-neural' };
@@ -395,10 +421,10 @@ async function createServer() {
           ? text.toLocaleLowerCase('tr-TR')
           : text;
 
-      // 2) Deterministic cache key (RAM -> Disk) — v4 fixes Turkish word-ending period abbreviations (e.g. "al." -> "a-le-ve")
+      // 2) Deterministic cache key (RAM -> Disk) — v5 adds warm short-word prosody + Turkish abbreviation fix
       const cacheKey = crypto
         .createHash('sha256')
-        .update(`v4-edge|${lang}|${voice}|${kind}|${normalizedKeyText}`)
+        .update(`v5-edge|${lang}|${voice}|${kind}|${normalizedKeyText}`)
         .digest('hex');
 
       const memHit = memoryCache.get(cacheKey);

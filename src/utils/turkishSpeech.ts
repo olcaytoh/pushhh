@@ -52,10 +52,23 @@ let customManifest: Record<string, string> | null = null;
 let customManifestPromise: Promise<Record<string, string>> | null = null;
 
 // Track if /api/tts is unavailable (e.g. static hosting without Node backend)
+let serverTtsPermanentlyUnavailable = false;
 let serverTtsFailures = 0;
 let serverTtsCooldownUntil = 0;
 
 let cachedVoices: SpeechSynthesisVoice[] = [];
+
+function resolvePublicUrl(relPath: string): string {
+  const cleanRel = relPath.replace(/^\/+/, '');
+  const base =
+    typeof import.meta !== 'undefined' &&
+    import.meta.env &&
+    typeof import.meta.env.BASE_URL === 'string'
+      ? import.meta.env.BASE_URL
+      : '/';
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  return `${normalizedBase}${cleanRel}`;
+}
 
 function readInitialVoice(): TeacherVoiceId {
   if (typeof window === 'undefined') return 'kadin';
@@ -227,7 +240,7 @@ function loadCustomManifest(): Promise<Record<string, string>> {
     customManifest = {};
     return Promise.resolve(customManifest);
   }
-  customManifestPromise = fetch('/sesler/manifest.json', { cache: 'no-cache' })
+  customManifestPromise = fetch(resolvePublicUrl('sesler/manifest.json'), { cache: 'default' })
     .then((res) => (res.ok ? res.json() : {}))
     .then((data: unknown) => {
       customManifest = data && typeof data === 'object' ? (data as Record<string, string>) : {};
@@ -376,12 +389,39 @@ function speakWithEmergencyBrowserFallback(
   }
 }
 
+async function fetchStaticMp3Asset(url: string): Promise<CachedAudioAsset | null> {
+  const resolved = url.startsWith('http://') || url.startsWith('https://') ? url : resolvePublicUrl(url);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(resolved, {
+      signal: controller.signal,
+      headers: { Accept: 'audio/mpeg, audio/wav, audio/*' },
+    });
+    if (!res.ok) return null;
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    // Static hosts return text/html (index.html) for missing files
+    if (contentType.includes('text/html')) return null;
+
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength < 200) return null;
+
+    const blob = new Blob([arrayBuffer], { type: contentType.includes('audio') ? contentType : 'audio/mpeg' });
+    const blobUrl = URL.createObjectURL(blob);
+    return { blobUrl, arrayBuffer, isStaticUrl: false };
+  } catch {
+    return null;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 async function fetchServerTtsOnce(
   text: string,
   lang: SpeechLang,
   voice: TeacherVoiceId,
   kind: SpeechKind
-): Promise<{ asset: CachedAudioAsset | null; hardUnavailable: boolean }> {
+): Promise<{ asset: CachedAudioAsset | null; staticHostMissingApi: boolean; hardUnavailable: boolean }> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -399,36 +439,64 @@ async function fetchServerTtsOnce(
     if (!res.ok) {
       return {
         asset: null,
+        staticHostMissingApi: res.status === 404,
         hardUnavailable: res.status === 404 || res.status === 503,
       };
     }
 
-    const contentType = res.headers.get('content-type') || '';
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
     if (!contentType.includes('audio')) {
-      return { asset: null, hardUnavailable: true };
+      // Static hosting SPA fallback redirected /api/tts -> index.html
+      return {
+        asset: null,
+        staticHostMissingApi: contentType.includes('text/html'),
+        hardUnavailable: true,
+      };
     }
 
     const arrayBuffer = await res.arrayBuffer();
     if (arrayBuffer.byteLength < 100) {
-      return { asset: null, hardUnavailable: false };
+      return { asset: null, staticHostMissingApi: false, hardUnavailable: false };
     }
 
     const blob = new Blob([arrayBuffer], { type: contentType || 'audio/mpeg' });
     const blobUrl = URL.createObjectURL(blob);
     return {
       asset: { blobUrl, arrayBuffer, isStaticUrl: false },
+      staticHostMissingApi: false,
       hardUnavailable: false,
     };
   } catch {
-    return { asset: null, hardUnavailable: false };
+    return { asset: null, staticHostMissingApi: false, hardUnavailable: false };
   } finally {
     window.clearTimeout(timeoutId);
   }
 }
 
+function lookupStaticManifestUrl(
+  manifest: Record<string, string>,
+  lang: SpeechLang,
+  voice: TeacherVoiceId,
+  slug: string
+): string | null {
+  if (!slug) return null;
+  // Priority:
+  // 1) Custom teacher override without voice subfolder (tr/{slug} or {slug})
+  // 2) Voice-specific pre-generated static MP3 pack ({lang}/{voice}/{slug})
+  // 3) Cross-voice fallback ({lang}/kadin/{slug})
+  return (
+    manifest[`${lang}/${slug}`] ||
+    (lang === 'tr' ? manifest[slug] : undefined) ||
+    manifest[`${lang}/${voice}/${slug}`] ||
+    manifest[`${lang}/kadin/${slug}`] ||
+    null
+  );
+}
+
 /**
- * Aynı kelime/hece için eşzamanlı istekleri tek bir sunucu çağrısında birleştirir,
- * geçici ağ takılmalarında 1 kez daha dener ve sonucu tarayıcı önbelleğine yazar.
+ * Aynı kelime/hece için önce statik doğal MP3 paketini (/public/sesler/) kontrol eder
+ * (GitHub Pages / Netlify / Vercel gibi sunucusuz statik sitelerde bile %100 çalışır);
+ * pakette yoksa sunucu /api/tts uç noktasını dener ve sonucu tarayıcı önbelleğine yazar.
  */
 async function ensureAudioAsset(
   text: string,
@@ -440,40 +508,51 @@ async function ensureAudioAsset(
   const cached = audioAssetCache.get(cacheKey);
   if (cached) return cached;
 
-  // Check Option 2 static custom recording manifest first (works offline / static hosting)
-  const manifest = customManifest || (await loadCustomManifest());
-  const slug = toSafeSlug(text);
-  const manifestKey = `${lang}/${slug}`;
-  const customUrl = manifest[manifestKey] || (lang === 'tr' ? manifest[slug] : undefined);
-  if (customUrl) {
-    const staticAsset: CachedAudioAsset = { blobUrl: customUrl, isStaticUrl: true };
-    setAssetCache(cacheKey, staticAsset);
-    return staticAsset;
-  }
-
-  // Respect short cooldown only if backend /api/tts is confirmed missing (e.g. static host)
-  if (Date.now() < serverTtsCooldownUntil) {
-    return null;
-  }
-
   const existing = inFlightFetches.get(cacheKey);
   if (existing) {
     return existing;
   }
 
   const reqPromise = (async (): Promise<CachedAudioAsset | null> => {
+    // 1) Static pre-generated natural MP3 pack (works everywhere, including static hosting!)
+    const manifest = customManifest || (await loadCustomManifest());
+    const slug = toSafeSlug(text);
+    const staticUrl = lookupStaticManifestUrl(manifest, lang, voice, slug);
+    if (staticUrl) {
+      const staticAsset = await fetchStaticMp3Asset(staticUrl);
+      if (staticAsset) {
+        setAssetCache(cacheKey, staticAsset);
+        return staticAsset;
+      }
+    }
+
+    // 2) If static hosting confirmed without /api/tts backend, skip /api/tts immediately
+    if (serverTtsPermanentlyUnavailable || Date.now() < serverTtsCooldownUntil) {
+      return null;
+    }
+
+    // 3) Live /api/tts server (for any dynamic or custom text not in the static pack)
     for (let attempt = 1; attempt <= 2; attempt++) {
-      const { asset, hardUnavailable } = await fetchServerTtsOnce(text, lang, voice, kind);
+      const { asset, staticHostMissingApi, hardUnavailable } = await fetchServerTtsOnce(
+        text,
+        lang,
+        voice,
+        kind
+      );
       if (asset) {
         serverTtsFailures = 0;
         serverTtsCooldownUntil = 0;
         setAssetCache(cacheKey, asset);
         return asset;
       }
+      if (staticHostMissingApi) {
+        serverTtsPermanentlyUnavailable = true;
+        return null;
+      }
       if (hardUnavailable) {
         serverTtsFailures += 1;
-        if (serverTtsFailures >= 3) {
-          serverTtsCooldownUntil = Date.now() + 15_000;
+        if (serverTtsFailures >= 2) {
+          serverTtsCooldownUntil = Date.now() + 20_000;
         }
         return null;
       }

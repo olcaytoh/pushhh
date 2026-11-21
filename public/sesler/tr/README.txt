@@ -1,15 +1,18 @@
-Özel Öğretmen Ses Kayıtları Klasörü (Hibrit MP3/WAV Desteği)
-==============================================================
-Bu klasöre herhangi bir hece, harf veya kelimenin kendi kaydettiğiniz
-.mp3 veya .wav dosyasını küçük harfle ekleyebilirsiniz.
+# Doğal Türkçe & İngilizce Statik Ses Paketi (public/sesler)
 
-Örnekler:
-  public/sesler/tr/el.mp3
-  public/sesler/tr/on.mp3
-  public/sesler/tr/lale.mp3
-  public/sesler/tr/anne.mp3
+Bu klasördeki tüm MP3 dosyaları Microsoft Edge Neural (Kadın Öğretmen: Emel, Erkek Öğretmen: Ahmet; İngilizce: Jenny & Guy) sesleriyle önceden üretilmiştir.
+Bu sayede proje GitHub Pages, Netlify, Vercel gibi sunucusuz (statik) web sitelerinde yayınlandığında dahi `/api/tts` sunucusuna ihtiyaç duymadan tüm harf, hece, kelime ve cümleler doğal Türkçe öğretmen sesiyle anında çalar.
 
-Sunucu çalışırken bu klasördeki dosyalar otomatik olarak yapay zeka sesinin
-önüne geçer ve 0 gecikme ile çalar. Statik yayın (GitHub Pages vb.) için
-dosya adını public/sesler/manifest.json içine şu biçimde ekleyebilirsiniz:
-  { "tr/el": "/sesler/tr/el.mp3", "tr/on": "/sesler/tr/on.mp3" }
+## Klasör Yapısı
+- `public/sesler/manifest.json` -> Tüm ses eşleştirme haritası (UTF-8 anahtar -> ASCII güvenli MP3 yolu)
+- `public/sesler/tr/kadin/*.mp3` -> Türkçe Kadın Öğretmen (Emel) sesleri
+- `public/sesler/tr/erkek/*.mp3` -> Türkçe Erkek Öğretmen (Ahmet) sesleri
+- `public/sesler/en/kadin/*.mp3` & `en/erkek/*.mp3` -> İngilizce etkinlik sesleri
+
+## Özel Öğretmen Kaydı Eklemek İsterseniz
+Herhangi bir hece/kelimeyi kendi sesinizle değiştirmek için örneğin `public/sesler/tr/kalem.mp3` dosyasını koyup `manifest.json` içine `"tr/kalem": "/sesler/tr/kalem.mp3"` eklemeniz yeterlidir (özel kayıt her zaman önceliklidir).
+
+## Yeni Kelimeler Ekledikten Sonra Paketi Güncelleme
+Proje klasöründe şu komutu çalıştırmanız yeterlidir (sadece eksik olan yeni sesleri üretir, mevcutları atlar):
+
+    npx tsx scripts/generate-static-tts.ts
