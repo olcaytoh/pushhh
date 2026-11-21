@@ -120,30 +120,106 @@ function isSingleSyllableTurkish(word: string): boolean {
   return (vowels ? vowels.length : 0) <= 1;
 }
 
+function isClosedSingleSyllableTurkish(word: string): boolean {
+  if (!word || word.includes(' ')) return false;
+  const clean = word.trim().toLocaleLowerCase('tr-TR').replace(/[.,!?]+$/, '');
+  const vowels = clean.match(/[aeıioöuü]/g);
+  if ((vowels ? vowels.length : 0) !== 1) return false;
+  if (clean.length < 2 || clean.length > 4) return false;
+  return /[bcçdfgğhjklmnprsştvyz]$/.test(clean);
+}
+
+const VALID_EDGE_RATE_RE = /^(x-slow|slow|medium|fast|[+-]\d{1,2}%)$/;
+const VALID_EDGE_PITCH_RE = /^(x-low|low|medium|high|x-high|[+-]\d{1,2}Hz)$/;
+
+function sanitizeEdgeRate(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim();
+  return VALID_EDGE_RATE_RE.test(trimmed) ? trimmed : undefined;
+}
+
+function sanitizeEdgePitch(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim();
+  return VALID_EDGE_PITCH_RE.test(trimmed) ? trimmed : undefined;
+}
+
+const EDGE_TR_PHONETIC_OVERRIDES: Record<string, string> = {
+  aş: 'aaş',
+  os: 'oos',
+  me: 'meğ',
+  mo: 'moğ',
+  to: 'toğ',
+  co: 'coğ',
+  civ: 'ciiv',
+  saj: 'saaj',
+  vuz: 'vuuz',
+  vuç: 'vuuç',
+  elli: 'el li',
+  elle: 'el le',
+};
+
+const GOOGLE_TR_ACCURACY_OVERRIDES = new Set<string>([
+  'dü',
+  'ja',
+  'je',
+  'ji',
+  'jı',
+  'jo',
+  'jö',
+  'ju',
+  'jü',
+]);
+
+// AhmetNeural çift 'll' ünsüzünü tek 'l' ('eli', 'ele') gibi yuttuğu için erkek seste Google Türkçe TTS kullan
+const GOOGLE_TR_ERKEK_OVERRIDES = new Set<string>(['elli', 'elle']);
+
 function pickNeuralProsody(
   text: string,
   lang: SpeechLang,
   kind: SpeechKind,
-  voice: VoicePersona
+  voice: VoicePersona,
+  override?: { rate?: string; pitch?: string }
 ): { rate: string; pitch: string } {
   const clean = text.trim();
+  const isClosedShort = lang === 'tr' && isClosedSingleSyllableTurkish(clean);
   const isShortSingle = lang === 'tr' && !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkish(clean));
 
+  let rate: string;
+  let pitch: string;
+
   if (voice === 'erkek') {
-    if (isShortSingle || kind === 'hece' || kind === 'harf') {
-      return { rate: '-6%', pitch: '+0Hz' };
+    if (isClosedShort) {
+      rate = 'slow';
+      pitch = '+4Hz';
+    } else if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      rate = '-4%';
+      pitch = '+2Hz';
+    } else {
+      rate = '-3%';
+      pitch = '+2Hz';
     }
-    return { rate: '-5%', pitch: '+0Hz' };
+  } else {
+    // Kadın öğretmen (EmelNeural): 'can', 'çay', 'iç' gibi kısa kapalı heceleri 'x-slow' ve +12Hz ile sıcak ve vurgulu oku
+    if (isClosedShort) {
+      rate = 'x-slow';
+      pitch = '+12Hz';
+    } else if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      rate = '-6%';
+      pitch = '+11Hz';
+    } else if (kind === 'kelime') {
+      rate = '-3%';
+      pitch = '+10Hz';
+    } else {
+      rate = '-2%';
+      pitch = '+9Hz';
+    }
   }
 
-  // Kadın öğretmen (EmelNeural): kısa tek heceli kelimeleri robotik kesmeden sıcak ve hafif vurgulu oku
-  if (isShortSingle || kind === 'hece' || kind === 'harf') {
-    return { rate: '-12%', pitch: '+2Hz' };
-  }
-  if (kind === 'kelime') {
-    return { rate: '-8%', pitch: '+1Hz' };
-  }
-  return { rate: '-5%', pitch: '+1Hz' };
+  return {
+    rate: override?.rate || rate,
+    pitch: override?.pitch || pitch,
+  };
 }
 
 function escapeXml(input: string): string {
@@ -158,14 +234,18 @@ function escapeXml(input: string): string {
 function prepareTtsInput(
   text: string,
   lang: SpeechLang,
-  voice: VoicePersona,
+  _voice: VoicePersona,
   kind: SpeechKind
 ): string {
   let clean = text.trim();
   if (lang === 'tr') {
+    const lower = clean.toLocaleLowerCase('tr-TR');
+    if (EDGE_TR_PHONETIC_OVERRIDES[lower]) {
+      return `${EDGE_TR_PHONETIC_OVERRIDES[lower]},`;
+    }
     if (!clean.includes(' ') && clean.length <= 3) {
       // Prevent uppercase 1-3 letter Turkish syllables (e.g. "AL", "EL", "İK") from being spelled out as acronyms ("a-le", "i-ke")
-      clean = clean.toLocaleLowerCase('tr-TR');
+      clean = lower;
     }
     // Prevent Edge Neural Turkish abbreviation expander from misreading word-ending periods
     // (e.g. "al." -> "a-le-ve", "bak." -> "bakınız") while keeping natural sentence pause & intonation
@@ -230,10 +310,11 @@ async function synthesizeWithEdgeNeural(
   text: string,
   lang: SpeechLang,
   voice: VoicePersona,
-  kind: SpeechKind
+  kind: SpeechKind,
+  prosodyOverride?: { rate?: string; pitch?: string }
 ): Promise<{ buffer: Buffer; mimeType: string }> {
   const edgeVoice = EDGE_VOICE_MAP[lang]?.[voice] || EDGE_VOICE_MAP.tr.kadin;
-  const prosody = pickNeuralProsody(text, lang, kind, voice);
+  const prosody = pickNeuralProsody(text, lang, kind, voice, prosodyOverride);
   const prepared = escapeXml(prepareTtsInput(text, lang, voice, kind));
 
   const runOnce = async (): Promise<Buffer> => {
@@ -311,25 +392,29 @@ async function synthesizeWithTranslateFallback(
   throw new Error('Fallback TTS unavailable');
 }
 
-const ISOLATED_J_SYLLABLE_RE = /^j[aeıioöuü]$/i;
-
 async function generateNaturalSpeech(
   text: string,
   lang: SpeechLang,
   voice: VoicePersona,
-  kind: SpeechKind
+  kind: SpeechKind,
+  prosodyOverride?: { rate?: string; pitch?: string }
 ): Promise<{ buffer: Buffer; mimeType: string; source: 'edge-neural' | 'fallback-tts' }> {
-  // Edge Neural's Turkish acoustic model misreads bare j-onset syllables ("je"->"de", "ja"->"va", "ji"->"gi")
-  if (lang === 'tr' && ISOLATED_J_SYLLABLE_RE.test(text.trim().toLocaleLowerCase('tr-TR'))) {
+  // Edge Neural's Turkish acoustic model misreads bare j-onset syllables ("je"->"de"), "dü"->"de ü", and Ahmet drops double-l in "elli"/"elle"
+  const lowerTr = text.trim().toLocaleLowerCase('tr-TR');
+  if (
+    lang === 'tr' &&
+    (GOOGLE_TR_ACCURACY_OVERRIDES.has(lowerTr) ||
+      (voice === 'erkek' && GOOGLE_TR_ERKEK_OVERRIDES.has(lowerTr)))
+  ) {
     try {
-      const accurate = await synthesizeWithTranslateFallback(text.trim().toLocaleLowerCase('tr-TR'), 'tr');
+      const accurate = await synthesizeWithTranslateFallback(lowerTr, 'tr');
       return { ...accurate, source: 'edge-neural' };
     } catch {
       // fall through to Edge Neural
     }
   }
   try {
-    const res = await synthesizeWithEdgeNeural(text, lang, voice, kind);
+    const res = await synthesizeWithEdgeNeural(text, lang, voice, kind, prosodyOverride);
     return { ...res, source: 'edge-neural' };
   } catch (err) {
     console.warn('[TTS] Edge Neural temporarily failed, using emergency fallback:', (err as Error)?.message);
@@ -404,16 +489,25 @@ async function createServer() {
       const lang: SpeechLang = req.query.lang === 'en' ? 'en' : 'tr';
       const voice: VoicePersona = req.query.voice === 'erkek' ? 'erkek' : 'kadin';
       const kind = inferSpeechKind(text, typeof req.query.kind === 'string' ? req.query.kind : null);
+      const requestedRate = sanitizeEdgeRate(req.query.prosodyRate);
+      const requestedPitch = sanitizeEdgePitch(req.query.prosodyPitch);
+      const hasCustomProsody = req.query.customProsody === '1' && Boolean(requestedRate || requestedPitch);
+      const resolvedProsody = pickNeuralProsody(text, lang, kind, voice, {
+        rate: requestedRate,
+        pitch: requestedPitch,
+      });
 
-      // 1) Option 2: Check custom/static MP3/WAV pack in public/sesler/{lang}/
-      const customAudio = findCustomLocalAudio(lang, voice, text);
-      if (customAudio) {
-        res.setHeader('Content-Type', customAudio.mimeType);
-        res.setHeader('Content-Length', String(customAudio.buffer.length));
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        res.setHeader('X-TTS-Source', 'custom-pack');
-        res.status(200).end(customAudio.buffer);
-        return;
+      // 1) Option 2: Check custom/static MP3/WAV pack in public/sesler/{lang}/ (skip if caller requested custom prosody)
+      if (!hasCustomProsody) {
+        const customAudio = findCustomLocalAudio(lang, voice, text);
+        if (customAudio) {
+          res.setHeader('Content-Type', customAudio.mimeType);
+          res.setHeader('Content-Length', String(customAudio.buffer.length));
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.setHeader('X-TTS-Source', 'custom-pack');
+          res.status(200).end(customAudio.buffer);
+          return;
+        }
       }
 
       const normalizedKeyText =
@@ -421,10 +515,12 @@ async function createServer() {
           ? text.toLocaleLowerCase('tr-TR')
           : text;
 
-      // 2) Deterministic cache key (RAM -> Disk) — v5 adds warm short-word prosody + Turkish abbreviation fix
+      // 2) Deterministic cache key (RAM -> Disk) — v8 adds elli/elle double-L fix + x-slow short-word prosody
       const cacheKey = crypto
         .createHash('sha256')
-        .update(`v5-edge|${lang}|${voice}|${kind}|${normalizedKeyText}`)
+        .update(
+          `v8-edge|${lang}|${voice}|${kind}|${resolvedProsody.rate}|${resolvedProsody.pitch}|${normalizedKeyText}`
+        )
         .digest('hex');
 
       const memHit = memoryCache.get(cacheKey);
@@ -460,7 +556,7 @@ async function createServer() {
       let pending = inFlightMap.get(cacheKey);
       let resolvedSource: 'edge-neural' | 'fallback-tts' = 'edge-neural';
       if (!pending) {
-        pending = generateNaturalSpeech(text, lang, voice, kind)
+        pending = generateNaturalSpeech(text, lang, voice, kind, resolvedProsody)
           .then((result) => {
             resolvedSource = result.source;
             if (result.source === 'edge-neural') {

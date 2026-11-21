@@ -2,11 +2,46 @@ export type TeacherVoiceId = 'kadin' | 'erkek';
 export type SpeechKind = 'hece' | 'kelime' | 'cumle' | 'harf';
 export type SpeechLang = 'tr' | 'en';
 
+export type EdgeProsodyRate =
+  | 'x-slow'
+  | 'slow'
+  | 'medium'
+  | 'fast'
+  | `${'+' | '-'}${number}%`;
+
+export type EdgeProsodyPitch =
+  | 'x-low'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'x-high'
+  | `${'+' | '-'}${number}Hz`;
+
+export type SpeechProsodyPreset = 'vurgulu' | 'yavas_vurgulu' | 'normal';
+
+export interface SpeechProsodyOptions {
+  /** Hazır vurgu profili ('vurgulu' varsayılan olarak kısa kelimeleri sıcak ve vurgulu okur) */
+  preset?: SpeechProsodyPreset;
+  /** Edge TTS SSML hız değeri (örn. 'x-slow', 'slow', '-12%', '-4%') */
+  edgeRate?: EdgeProsodyRate;
+  /** Edge TTS SSML perde/ton değeri (örn. '+12Hz', '+14Hz', 'high') */
+  edgePitch?: EdgeProsodyPitch;
+  /** 'can', 'çay', 'iç' gibi kısa tek heceli kelimelerde ekstra vurgulu ('x-slow' / yüksek pitch) okuma */
+  emphasizeShortWords?: boolean;
+}
+
+export interface ResolvedEdgeProsody {
+  rate: EdgeProsodyRate;
+  pitch: EdgeProsodyPitch;
+  isCustom: boolean;
+}
+
 export interface SpeakOptions {
   rate?: number;
   kind?: SpeechKind;
   lang?: SpeechLang;
   voice?: TeacherVoiceId;
+  prosody?: SpeechProsodyOptions;
   onStart?: () => void;
   onEnd?: () => void;
 }
@@ -24,6 +59,7 @@ interface CachedAudioAsset {
 }
 
 const VOICE_STORAGE_KEY = 'turkish_tts_teacher_voice_v1';
+const PROSODY_STORAGE_KEY = 'turkish_tts_prosody_preset_v1';
 const CLIENT_ASSET_CACHE_LIMIT = 320;
 const FETCH_TIMEOUT_MS = 9500;
 // Tiny valid silent WAV (44 bytes + 2 bytes of silence) to unlock HTMLAudioElement inside user clicks
@@ -31,7 +67,9 @@ const SILENT_WAV_DATA_URI =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 let activeTeacherVoice: TeacherVoiceId = readInitialVoice();
+let activeProsodyPreset: SpeechProsodyPreset = readInitialProsodyPreset();
 const voiceListeners = new Set<(voice: TeacherVoiceId) => void>();
+const prosodyListeners = new Set<(preset: SpeechProsodyPreset) => void>();
 
 let sharedAudioEl: HTMLAudioElement | null = null;
 let sharedAudioCtx: AudioContext | null = null;
@@ -102,6 +140,124 @@ export function setTeacherVoice(voice: TeacherVoiceId): void {
       // ignore listener errors
     }
   });
+}
+
+function readInitialProsodyPreset(): SpeechProsodyPreset {
+  if (typeof window === 'undefined') return 'vurgulu';
+  try {
+    const saved = window.localStorage.getItem(PROSODY_STORAGE_KEY);
+    if (saved === 'vurgulu' || saved === 'yavas_vurgulu' || saved === 'normal') return saved;
+  } catch {
+    // ignore storage restrictions
+  }
+  return 'vurgulu';
+}
+
+export function getSpeechProsodyPreset(): SpeechProsodyPreset {
+  return activeProsodyPreset;
+}
+
+export function setSpeechProsodyPreset(preset: SpeechProsodyPreset): void {
+  if (activeProsodyPreset === preset) return;
+  activeProsodyPreset = preset;
+  try {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PROSODY_STORAGE_KEY, preset);
+    }
+  } catch {
+    // ignore storage errors
+  }
+  prosodyListeners.forEach((listener) => {
+    try {
+      listener(preset);
+    } catch {
+      // ignore listener errors
+    }
+  });
+}
+
+export function subscribeSpeechProsodyPreset(
+  listener: (preset: SpeechProsodyPreset) => void
+): () => void {
+  prosodyListeners.add(listener);
+  return () => {
+    prosodyListeners.delete(listener);
+  };
+}
+
+function isSingleSyllableTurkishWord(word: string): boolean {
+  if (!word || word.includes(' ')) return false;
+  const vowels = word.toLocaleLowerCase('tr-TR').match(/[aeıioöuü]/g);
+  return (vowels ? vowels.length : 0) === 1;
+}
+
+function isClosedSingleSyllableTurkish(word: string): boolean {
+  if (!isSingleSyllableTurkishWord(word)) return false;
+  const clean = word.trim().toLocaleLowerCase('tr-TR').replace(/[.,!?]+$/, '');
+  if (clean.length < 2 || clean.length > 4) return false;
+  // Ünsüzle biten tek heceli kelimeler ('can', 'çay', 'iç', 'al', 'el', 'bal', 'top', 'gül')
+  return /[bcçdfgğhjklmnprsştvyz]$/.test(clean);
+}
+
+/**
+ * Edge TTS için vurgu (prosody) parametrelerini hesaplar.
+ * 'can', 'çay', 'iç' gibi kısa tek heceli Türkçe kelimelerde 'x-slow' hızı ve yüksek
+ * perde (+12Hz / +14Hz) kullanarak robotik kesilmeyi önler, sıcak ve vurgulu öğretmen tonlaması verir.
+ */
+export function resolveEdgeProsody(
+  text: string,
+  lang: SpeechLang,
+  kind: SpeechKind,
+  voice: TeacherVoiceId,
+  prosody?: SpeechProsodyOptions
+): ResolvedEdgeProsody {
+  const preset: SpeechProsodyPreset = prosody?.preset || activeProsodyPreset;
+  const emphasizeShort = prosody?.emphasizeShortWords ?? preset !== 'normal';
+  const clean = text.trim();
+  const isClosedShort = lang === 'tr' && isClosedSingleSyllableTurkish(clean);
+  const isShortSingle =
+    lang === 'tr' && !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkishWord(clean));
+
+  let defaultRate: EdgeProsodyRate;
+  let defaultPitch: EdgeProsodyPitch;
+
+  if (voice === 'erkek') {
+    if (emphasizeShort && isClosedShort) {
+      defaultRate = preset === 'yavas_vurgulu' ? 'x-slow' : 'slow';
+      defaultPitch = preset === 'yavas_vurgulu' ? '+5Hz' : '+4Hz';
+    } else if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      defaultRate = preset === 'yavas_vurgulu' ? 'slow' : '-4%';
+      defaultPitch = '+2Hz';
+    } else {
+      defaultRate = preset === 'yavas_vurgulu' ? '-8%' : '-3%';
+      defaultPitch = '+2Hz';
+    }
+  } else {
+    // Kadın öğretmen (EmelNeural): sıcak, güleryüzlü ve kısa kelimelerde belirgin vurgulu tonlama
+    if (emphasizeShort && isClosedShort) {
+      defaultRate = 'x-slow';
+      defaultPitch = preset === 'yavas_vurgulu' ? '+14Hz' : '+12Hz';
+    } else if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      defaultRate = preset === 'yavas_vurgulu' ? 'x-slow' : '-6%';
+      defaultPitch = preset === 'yavas_vurgulu' ? '+13Hz' : '+11Hz';
+    } else if (kind === 'kelime') {
+      defaultRate = preset === 'yavas_vurgulu' ? 'slow' : '-3%';
+      defaultPitch = preset === 'yavas_vurgulu' ? '+12Hz' : '+10Hz';
+    } else {
+      defaultRate = preset === 'yavas_vurgulu' ? '-8%' : '-2%';
+      defaultPitch = preset === 'yavas_vurgulu' ? '+11Hz' : '+9Hz';
+    }
+  }
+
+  const rate: EdgeProsodyRate = prosody?.edgeRate || defaultRate;
+  const pitch: EdgeProsodyPitch = prosody?.edgePitch || defaultPitch;
+  const isCustom =
+    Boolean(prosody?.edgeRate) ||
+    Boolean(prosody?.edgePitch) ||
+    preset !== 'vurgulu' ||
+    prosody?.emphasizeShortWords === false;
+
+  return { rate, pitch, isCustom };
 }
 
 export function subscribeTeacherVoice(listener: (voice: TeacherVoiceId) => void): () => void {
@@ -389,8 +545,13 @@ function speakWithEmergencyBrowserFallback(
   }
 }
 
+const STATIC_AUDIO_PACK_VERSION = 'v2-prosody';
+
 async function fetchStaticMp3Asset(url: string): Promise<CachedAudioAsset | null> {
-  const resolved = url.startsWith('http://') || url.startsWith('https://') ? url : resolvePublicUrl(url);
+  const baseResolved =
+    url.startsWith('http://') || url.startsWith('https://') ? url : resolvePublicUrl(url);
+  const sep = baseResolved.includes('?') ? '&' : '?';
+  const resolved = `${baseResolved}${sep}av=${STATIC_AUDIO_PACK_VERSION}`;
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -420,7 +581,8 @@ async function fetchServerTtsOnce(
   text: string,
   lang: SpeechLang,
   voice: TeacherVoiceId,
-  kind: SpeechKind
+  kind: SpeechKind,
+  prosody: ResolvedEdgeProsody
 ): Promise<{ asset: CachedAudioAsset | null; staticHostMissingApi: boolean; hardUnavailable: boolean }> {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -430,7 +592,12 @@ async function fetchServerTtsOnce(
       lang,
       voice,
       kind,
+      prosodyRate: prosody.rate,
+      prosodyPitch: prosody.pitch,
     });
+    if (prosody.isCustom) {
+      params.set('customProsody', '1');
+    }
     const res = await fetch(`/api/tts?${params.toString()}`, {
       signal: controller.signal,
       headers: { Accept: 'audio/mpeg, audio/wav, audio/*' },
@@ -502,9 +669,10 @@ async function ensureAudioAsset(
   text: string,
   lang: SpeechLang,
   voice: TeacherVoiceId,
-  kind: SpeechKind
+  kind: SpeechKind,
+  prosody: ResolvedEdgeProsody
 ): Promise<CachedAudioAsset | null> {
-  const cacheKey = `${lang}|${voice}|${kind}|${text}`;
+  const cacheKey = `${lang}|${voice}|${kind}|${prosody.rate}|${prosody.pitch}|${text}`;
   const cached = audioAssetCache.get(cacheKey);
   if (cached) return cached;
 
@@ -514,10 +682,53 @@ async function ensureAudioAsset(
   }
 
   const reqPromise = (async (): Promise<CachedAudioAsset | null> => {
-    // 1) Static pre-generated natural MP3 pack (works everywhere, including static hosting!)
+    // 1) Varsayılan vurgu profilinde statik doğal MP3 paketini öncelikle kullan (statik barındırmada %100 çalışır)
     const manifest = customManifest || (await loadCustomManifest());
     const slug = toSafeSlug(text);
     const staticUrl = lookupStaticManifestUrl(manifest, lang, voice, slug);
+
+    if (staticUrl && !prosody.isCustom) {
+      const staticAsset = await fetchStaticMp3Asset(staticUrl);
+      if (staticAsset) {
+        setAssetCache(cacheKey, staticAsset);
+        return staticAsset;
+      }
+    }
+
+    // 2) Canlı /api/tts sunucusu (özel prosody veya pakette olmayan metinler için)
+    if (!serverTtsPermanentlyUnavailable && Date.now() >= serverTtsCooldownUntil) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const { asset, staticHostMissingApi, hardUnavailable } = await fetchServerTtsOnce(
+          text,
+          lang,
+          voice,
+          kind,
+          prosody
+        );
+        if (asset) {
+          serverTtsFailures = 0;
+          serverTtsCooldownUntil = 0;
+          setAssetCache(cacheKey, asset);
+          return asset;
+        }
+        if (staticHostMissingApi) {
+          serverTtsPermanentlyUnavailable = true;
+          break;
+        }
+        if (hardUnavailable) {
+          serverTtsFailures += 1;
+          if (serverTtsFailures >= 2) {
+            serverTtsCooldownUntil = Date.now() + 20_000;
+          }
+          break;
+        }
+        if (attempt < 2) {
+          await new Promise((r) => window.setTimeout(r, 200));
+        }
+      }
+    }
+
+    // 3) Statik sunucuda özel prosody istendiyse dahi statik MP3 yedeğini oynat (robotik sese düşme!)
     if (staticUrl) {
       const staticAsset = await fetchStaticMp3Asset(staticUrl);
       if (staticAsset) {
@@ -526,40 +737,6 @@ async function ensureAudioAsset(
       }
     }
 
-    // 2) If static hosting confirmed without /api/tts backend, skip /api/tts immediately
-    if (serverTtsPermanentlyUnavailable || Date.now() < serverTtsCooldownUntil) {
-      return null;
-    }
-
-    // 3) Live /api/tts server (for any dynamic or custom text not in the static pack)
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      const { asset, staticHostMissingApi, hardUnavailable } = await fetchServerTtsOnce(
-        text,
-        lang,
-        voice,
-        kind
-      );
-      if (asset) {
-        serverTtsFailures = 0;
-        serverTtsCooldownUntil = 0;
-        setAssetCache(cacheKey, asset);
-        return asset;
-      }
-      if (staticHostMissingApi) {
-        serverTtsPermanentlyUnavailable = true;
-        return null;
-      }
-      if (hardUnavailable) {
-        serverTtsFailures += 1;
-        if (serverTtsFailures >= 2) {
-          serverTtsCooldownUntil = Date.now() + 20_000;
-        }
-        return null;
-      }
-      if (attempt < 2) {
-        await new Promise((r) => window.setTimeout(r, 200));
-      }
-    }
     return null;
   })();
 
@@ -781,6 +958,7 @@ export function speakTurkish(text: string, rateOrOptions?: number | SpeakOptions
   const rate = opts.rate ?? 0.94;
   const voice = opts.voice || activeTeacherVoice;
   const kind = inferKind(normalized, opts.kind);
+  const resolvedProsody = resolveEdgeProsody(normalized, lang, kind, voice, opts.prosody);
 
   // Unlock audio synchronously while still inside any user click/tap handler
   unlockAudioPlayback();
@@ -804,14 +982,14 @@ export function speakTurkish(text: string, rateOrOptions?: number | SpeakOptions
     }
   };
 
-  const cacheKey = `${lang}|${voice}|${kind}|${normalized}`;
+  const cacheKey = `${lang}|${voice}|${kind}|${resolvedProsody.rate}|${resolvedProsody.pitch}|${normalized}`;
   const instantAsset = audioAssetCache.get(cacheKey);
   if (instantAsset) {
     void playAssetOrEmergencyFallback(instantAsset);
     return;
   }
 
-  void ensureAudioAsset(normalized, lang, voice, kind).then((asset) => {
+  void ensureAudioAsset(normalized, lang, voice, kind, resolvedProsody).then((asset) => {
     void playAssetOrEmergencyFallback(asset);
   });
 }
@@ -831,6 +1009,7 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
   const rate = options.rate ?? 0.9;
   const voice = options.voice || activeTeacherVoice;
   const kind = inferKind(normalized, options.kind);
+  const resolvedProsody = resolveEdgeProsody(normalized, lang, kind, voice, options.prosody);
 
   unlockAudioPlayback();
   stopSpeaking();
@@ -849,7 +1028,7 @@ export function speakTurkishRepeated(text: string, options: RepeatSpeakOptions =
     });
 
   const runSequence = async () => {
-    const asset = await ensureAudioAsset(normalized, lang, voice, kind);
+    const asset = await ensureAudioAsset(normalized, lang, voice, kind, resolvedProsody);
     if (sessionId !== speechSessionId) return;
     if (options.shouldContinue && !options.shouldContinue()) return;
 
@@ -923,17 +1102,18 @@ export function prefetchTurkishItems(
   if (typeof window === 'undefined' || items.length === 0) return;
   const voice = activeTeacherVoice;
 
-  const deduped: Array<{ text: string; kind: SpeechKind }> = [];
+  const deduped: Array<{ text: string; kind: SpeechKind; prosody: ResolvedEdgeProsody }> = [];
   const seen = new Set<string>();
 
   for (const raw of items) {
     const normalized = normalizeForTts(raw.text, lang);
     if (!normalized) continue;
     const itemKind = inferKind(normalized, raw.kind);
-    const cacheKey = `${lang}|${voice}|${itemKind}|${normalized}`;
+    const prosody = resolveEdgeProsody(normalized, lang, itemKind, voice);
+    const cacheKey = `${lang}|${voice}|${itemKind}|${prosody.rate}|${prosody.pitch}|${normalized}`;
     if (seen.has(cacheKey) || audioAssetCache.has(cacheKey)) continue;
     seen.add(cacheKey);
-    deduped.push({ text: normalized, kind: itemKind });
+    deduped.push({ text: normalized, kind: itemKind, prosody });
     if (deduped.length >= 12) break;
   }
 
@@ -946,7 +1126,7 @@ export function prefetchTurkishItems(
     while (cursor < deduped.length) {
       const idx = cursor++;
       const item = deduped[idx];
-      await ensureAudioAsset(item.text, lang, voice, item.kind);
+      await ensureAudioAsset(item.text, lang, voice, item.kind, item.prosody);
     }
   };
 

@@ -69,6 +69,45 @@ function isSingleSyllableTurkish(word: string): boolean {
   return (vowels ? vowels.length : 0) <= 1;
 }
 
+function isClosedSingleSyllableTurkish(word: string): boolean {
+  if (!word || word.includes(' ')) return false;
+  const clean = word.trim().toLocaleLowerCase('tr-TR').replace(/[.,!?]+$/, '');
+  const vowels = clean.match(/[aeıioöuü]/g);
+  if ((vowels ? vowels.length : 0) !== 1) return false;
+  if (clean.length < 2 || clean.length > 4) return false;
+  return /[bcçdfgğhjklmnprsştvyz]$/.test(clean);
+}
+
+const EDGE_TR_PHONETIC_OVERRIDES: Record<string, string> = {
+  aş: 'aaş',
+  os: 'oos',
+  me: 'meğ',
+  mo: 'moğ',
+  to: 'toğ',
+  co: 'coğ',
+  civ: 'ciiv',
+  saj: 'saaj',
+  vuz: 'vuuz',
+  vuç: 'vuuç',
+  elli: 'el li',
+  elle: 'el le',
+};
+
+const GOOGLE_TR_ACCURACY_OVERRIDES = new Set<string>([
+  'dü',
+  'ja',
+  'je',
+  'ji',
+  'jı',
+  'jo',
+  'jö',
+  'ju',
+  'jü',
+]);
+
+// AhmetNeural çift 'll' ünsüzünü tek 'l' ('eli', 'ele') gibi yuttuğu için erkek seste Google Türkçe TTS kullan
+const GOOGLE_TR_ERKEK_OVERRIDES = new Set<string>(['elli', 'elle']);
+
 function pickNeuralProsody(
   text: string,
   lang: SpeechLang,
@@ -76,23 +115,31 @@ function pickNeuralProsody(
   voice: VoicePersona
 ): { rate: string; pitch: string } {
   const clean = text.trim();
+  const isClosedShort = lang === 'tr' && isClosedSingleSyllableTurkish(clean);
   const isShortSingle =
     lang === 'tr' && !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkish(clean));
 
   if (voice === 'erkek') {
-    if (isShortSingle || kind === 'hece' || kind === 'harf') {
-      return { rate: '-6%', pitch: '+0Hz' };
+    if (isClosedShort) {
+      return { rate: 'slow', pitch: '+4Hz' };
     }
-    return { rate: '-5%', pitch: '+0Hz' };
+    if (isShortSingle || kind === 'hece' || kind === 'harf') {
+      return { rate: '-4%', pitch: '+2Hz' };
+    }
+    return { rate: '-3%', pitch: '+2Hz' };
   }
 
+  // Sıcak, güleryüzlü ve kısa tek heceli kelimelerde ('can', 'çay', 'iç') vurgulu 'x-slow' + '+12Hz' tonlaması
+  if (isClosedShort) {
+    return { rate: 'x-slow', pitch: '+12Hz' };
+  }
   if (isShortSingle || kind === 'hece' || kind === 'harf') {
-    return { rate: '-12%', pitch: '+2Hz' };
+    return { rate: '-6%', pitch: '+11Hz' };
   }
   if (kind === 'kelime') {
-    return { rate: '-8%', pitch: '+1Hz' };
+    return { rate: '-3%', pitch: '+10Hz' };
   }
-  return { rate: '-5%', pitch: '+1Hz' };
+  return { rate: '-2%', pitch: '+9Hz' };
 }
 
 function escapeXml(input: string): string {
@@ -111,8 +158,12 @@ function prepareTtsInput(
 ): string {
   let clean = text.trim();
   if (lang === 'tr') {
+    const lower = clean.toLocaleLowerCase('tr-TR');
+    if (EDGE_TR_PHONETIC_OVERRIDES[lower]) {
+      return `${EDGE_TR_PHONETIC_OVERRIDES[lower]},`;
+    }
     if (!clean.includes(' ') && clean.length <= 3) {
-      clean = clean.toLocaleLowerCase('tr-TR');
+      clean = lower;
     }
     clean = clean.replace(/([a-zA-ZçğıöşüÇĞİÖŞÜ]+)\.(?=\s|$)/g, '$1 .');
     const isShortSingle = !clean.includes(' ') && (clean.length <= 4 || isSingleSyllableTurkish(clean));
@@ -227,7 +278,42 @@ function collectAllTexts(): {
   return { tr, en };
 }
 
+async function synthesizeWithGoogleTurkish(text: string): Promise<Buffer> {
+  const encoded = encodeURIComponent(text);
+  const endpoints = [
+    `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=tr&q=${encoded}`,
+    `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=${encoded}`,
+  ];
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
+      });
+      if (res.ok) {
+        const ab = await res.arrayBuffer();
+        if (ab.byteLength > 200) {
+          return Buffer.from(ab);
+        }
+      }
+    } catch {
+      // try next endpoint
+    }
+  }
+  throw new Error(`Google Turkish TTS failed for "${text}"`);
+}
+
 async function synthesizeBuffer(tts: MsEdgeTTS, job: TtsJob): Promise<Buffer> {
+  const lowerTr = job.text.trim().toLocaleLowerCase('tr-TR');
+  if (
+    job.lang === 'tr' &&
+    (GOOGLE_TR_ACCURACY_OVERRIDES.has(lowerTr) ||
+      (job.voice === 'erkek' && GOOGLE_TR_ERKEK_OVERRIDES.has(lowerTr)))
+  ) {
+    return synthesizeWithGoogleTurkish(lowerTr);
+  }
   const prepared = escapeXml(prepareTtsInput(job.text, job.lang, job.kind));
   const prosody = pickNeuralProsody(job.text, job.lang, job.kind, job.voice);
   const { audioStream } = tts.toStream(prepared, prosody);
