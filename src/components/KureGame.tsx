@@ -137,7 +137,9 @@ const violatesFourInLine = (
 
 /**
  * Hamle sonrası sıkıştırılan (iki kendi taşının arasında kalan) rakip taşları bulur.
- * Kendi isteğiyle iki rakip taş arasına giren taş alınmaz.
+ * Güncel kural: Yatay, dikey veya çapraz doğrultuda iki kendi taşın arasında
+ * aralıksız kalan 1 veya birden fazla rakip taş (ve birden fazla yöndeki tüm sıkıştırmalar)
+ * tek hamlede alınır. Kendi isteğiyle iki rakip taş arasına giren taş alınmaz.
  */
 const findCaptures = (
   boardAfter: CellValue[][],
@@ -149,20 +151,27 @@ const findCaptures = (
   const captured: Coord[] = [];
 
   for (const [dr, dc] of ALL_8_DIRS) {
-    const midR = nr + dr;
-    const midC = nc + dc;
-    const farR = nr + 2 * dr;
-    const farC = nc + 2 * dc;
+    const sandwiched: Coord[] = [];
+    let r = nr + dr;
+    let c = nc + dc;
+
+    while (
+      r >= 0 && r < BOARD_SIZE &&
+      c >= 0 && c < BOARD_SIZE &&
+      boardAfter[r][c] === opp
+    ) {
+      sandwiched.push({ r, c });
+      r += dr;
+      c += dc;
+    }
 
     if (
-      midR >= 0 && midR < BOARD_SIZE &&
-      midC >= 0 && midC < BOARD_SIZE &&
-      farR >= 0 && farR < BOARD_SIZE &&
-      farC >= 0 && farC < BOARD_SIZE &&
-      boardAfter[midR][midC] === opp &&
-      boardAfter[farR][farC] === player
+      sandwiched.length > 0 &&
+      r >= 0 && r < BOARD_SIZE &&
+      c >= 0 && c < BOARD_SIZE &&
+      boardAfter[r][c] === player
     ) {
-      captured.push({ r: midR, c: midC });
+      captured.push(...sandwiched);
     }
   }
   return captured;
@@ -699,8 +708,8 @@ export const KureGame: React.FC<KureGameProps> = ({
   };
 
   // Kalan taş sayıları
-  const p1Remaining = 7 - capturedBy[2];
-  const p2Remaining = 7 - capturedBy[1];
+  const p1Remaining = Math.max(0, 7 - capturedBy[2]);
+  const p2Remaining = Math.max(0, 7 - capturedBy[1]);
 
   return (
     <div
@@ -1102,9 +1111,9 @@ export const KureGame: React.FC<KureGameProps> = ({
                                   isCaptureTarget ? 'bg-rose-600 animate-bounce' : 'bg-emerald-600'
                                 }`}
                               />
-                              {isCaptureTarget && (
+                              {isCaptureTarget && validMove && (
                                 <span className="text-[8px] sm:text-[9px] font-black text-slate-950 uppercase leading-none mt-0.5">
-                                  AL!
+                                  {validMove.captures.length > 1 ? `AL ×${validMove.captures.length}` : 'AL!'}
                                 </span>
                               )}
                             </div>
@@ -1268,8 +1277,8 @@ export const KureGame: React.FC<KureGameProps> = ({
               </div>
 
               <div className="p-3 rounded-2xl bg-slate-800/75 border border-slate-700">
-                <strong className="text-rose-300 block mb-0.5">5. Sıkıştırma ve Araya Girme</strong>
-                Hamlenle rakibin bir taşını iki taşın arasında bırakırsan (yatay, dikey veya çapraz) o taş anında alınır. Ancak kendi isteğinle rakibin iki taşının arasına girersen taşın <strong>alınamaz</strong>, güvende kalırsın!
+                <strong className="text-rose-300 block mb-0.5">5. Çoklu Sıkıştırma ve Araya Girme</strong>
+                Hamlenle rakibin <strong>bir veya bitişik birden fazla taşını</strong> (yatay, dikey veya çapraz doğrultuda) kendi iki taşın arasında bırakırsan arada kalan <strong>tüm rakip taşlar</strong> anında alınır. Aynı hamlede birden fazla yönde sıkıştırma yapılırsa hepsi birden kazanılır. Ancak kendi isteğinle rakibin taşları arasına girersen taşın <strong>alınamaz</strong>, güvende kalırsın!
               </div>
             </div>
 
@@ -1308,7 +1317,7 @@ export const KureGame: React.FC<KureGameProps> = ({
             <p className="text-slate-300 text-xs sm:text-sm mb-4">
               {winReason === 'no_moves'
                 ? 'Rakibinin oynayabileceği hiçbir hamle kalmadı!'
-                : `Rakibinin 4 küresini sıkıştırarak ${moveCount} hamlede galibiyete ulaştı!`}
+                : `Rakibinin ${capturedBy[winner]} küresini sıkıştırarak ${moveCount} hamlede galibiyete ulaştı!`}
             </p>
 
             <div className="w-full flex items-center justify-center gap-4 text-xs font-mono tabular-nums text-slate-300 mb-4 py-2 px-3 rounded-xl bg-slate-900 border border-slate-800">
