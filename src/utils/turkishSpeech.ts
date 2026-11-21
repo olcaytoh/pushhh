@@ -109,13 +109,6 @@ function resolvePublicUrl(relPath: string): string {
 }
 
 function readInitialVoice(): TeacherVoiceId {
-  if (typeof window === 'undefined') return 'kadin';
-  try {
-    const saved = window.localStorage.getItem(VOICE_STORAGE_KEY);
-    if (saved === 'erkek' || saved === 'kadin') return saved;
-  } catch {
-    // ignore storage restrictions
-  }
   return 'kadin';
 }
 
@@ -123,19 +116,18 @@ export function getTeacherVoice(): TeacherVoiceId {
   return activeTeacherVoice;
 }
 
-export function setTeacherVoice(voice: TeacherVoiceId): void {
-  if (activeTeacherVoice === voice) return;
-  activeTeacherVoice = voice;
+export function setTeacherVoice(_voice: TeacherVoiceId): void {
+  activeTeacherVoice = 'kadin';
   try {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(VOICE_STORAGE_KEY, voice);
+      window.localStorage.setItem(VOICE_STORAGE_KEY, 'kadin');
     }
   } catch {
     // ignore storage errors
   }
   voiceListeners.forEach((listener) => {
     try {
-      listener(voice);
+      listener('kadin');
     } catch {
       // ignore listener errors
     }
@@ -545,7 +537,7 @@ function speakWithEmergencyBrowserFallback(
   }
 }
 
-const STATIC_AUDIO_PACK_VERSION = 'v2-prosody';
+const STATIC_AUDIO_PACK_VERSION = 'v3-marin';
 
 async function fetchStaticMp3Asset(url: string): Promise<CachedAudioAsset | null> {
   const baseResolved =

@@ -9,7 +9,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "tts:openai": "tsx scripts/generate-openai-marin-tts.ts",
+    "tts:openai:sample": "tsx scripts/generate-openai-marin-tts.ts --sample"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",

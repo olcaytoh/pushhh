@@ -392,6 +392,55 @@ async function synthesizeWithTranslateFallback(
   throw new Error('Fallback TTS unavailable');
 }
 
+const OPENAI_MARIN_INSTRUCTIONS_TR: Record<SpeechKind, string> = {
+  harf:
+    'Dil: Standart İstanbul Türkçesi. Konuşmacı: İlkokul 1. sınıf öğrencilerine okuma yazma öğreten çok sıcakkanlı, güleryüzlü, sevecen bir Türk kadın sınıf öğretmeni. Görev: Verilen tek Türkçe harf sesini net, yumuşak ve yabancı aksan olmadan oku.',
+  hece:
+    'Dil: Standart İstanbul Türkçesi. Konuşmacı: İlkokul 1. sınıf öğrencilerine okuma yazma öğreten çok sıcakkanlı, güleryüzlü, sevecen bir Türk kadın sınıf öğretmeni. Görev: Verilen Türkçe heceyi tek seferde, hecelemeden, net, tane tane ve sıcak bir tonla oku. Yabancı aksan kullanma.',
+  kelime:
+    'Dil: Standart İstanbul Türkçesi. Konuşmacı: İlkokul 1. sınıf öğrencilerine okuma yazma öğreten çok sıcakkanlı, güleryüzlü, sevecen bir Türk kadın sınıf öğretmeni. Görev: Verilen Türkçe kelimeyi doğal, sıcak, hafif vurgulu ve sonunu yutmadan net oku; çift ünsüzleri ("elli", "elle", "anne") belirgin telaffuz et. Yabancı aksan kullanma.',
+  cumle:
+    'Dil: Standart İstanbul Türkçesi. Konuşmacı: İlkokul 1. sınıf öğrencilerine okuma yazma öğreten çok sıcakkanlı, güleryüzlü, sevecen bir Türk kadın sınıf öğretmeni. Görev: Verilen Türkçe cümleyi güleryüzlü, akıcı, çocukların kolayca takip edeceği net bir sınıf temposuyla oku.',
+};
+
+async function synthesizeWithOpenAiMarin(
+  text: string,
+  lang: SpeechLang,
+  kind: SpeechKind
+): Promise<{ buffer: Buffer; mimeType: string } | null> {
+  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
+  if (!apiKey) return null;
+
+  const instructions =
+    lang === 'en'
+      ? 'Accent/Affect: Warm, friendly, cheerful elementary school English teacher. Pacing: Clear and slightly unhurried.'
+      : OPENAI_MARIN_INSTRUCTIONS_TR[kind];
+
+  const res = await fetch('https://api.openai.com/v1/audio/speech', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini-tts',
+      voice: 'marin',
+      input: text.trim(),
+      instructions,
+      response_format: 'mp3',
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`OpenAI TTS HTTP ${res.status}`);
+  }
+  const ab = await res.arrayBuffer();
+  const buffer = Buffer.from(ab);
+  if (buffer.length < 200) {
+    throw new Error('OpenAI TTS returned empty audio');
+  }
+  return { buffer, mimeType: 'audio/mpeg' };
+}
+
 async function generateNaturalSpeech(
   text: string,
   lang: SpeechLang,
@@ -399,6 +448,18 @@ async function generateNaturalSpeech(
   kind: SpeechKind,
   prosodyOverride?: { rate?: string; pitch?: string }
 ): Promise<{ buffer: Buffer; mimeType: string; source: 'edge-neural' | 'fallback-tts' }> {
+  // If OPENAI_API_KEY is configured on server, prefer OpenAI gpt-4o-mini-tts (marin female voice)
+  if ((process.env.OPENAI_API_KEY || '').trim()) {
+    try {
+      const marin = await synthesizeWithOpenAiMarin(text, lang, kind);
+      if (marin) {
+        return { ...marin, source: 'edge-neural' };
+      }
+    } catch (err) {
+      console.warn('[TTS] OpenAI Marin failed, falling back to Edge Neural:', (err as Error)?.message);
+    }
+  }
+
   // Edge Neural's Turkish acoustic model misreads bare j-onset syllables ("je"->"de"), "dü"->"de ü", and Ahmet drops double-l in "elli"/"elle"
   const lowerTr = text.trim().toLocaleLowerCase('tr-TR');
   if (
