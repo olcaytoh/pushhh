@@ -47,6 +47,7 @@ const SPECIAL_TOPICS: Record<string, { title: string; desc?: string; icon?: stri
   tug_of_war: { title: 'Halat Çekmece Yarışı', desc: 'Hızlı cevapla halatı grubuna çek', icon: '🪢' },
   basketball: { title: 'Basketbol Yarışı', desc: 'Doğru cevapla basket at', icon: '🏀' },
   abluka: { title: 'Abluka Strateji Oyunu', desc: 'Hedefi çevreleme ve abluka kurma zeka oyunu', icon: '🛡️' },
+  kure: { title: 'Küre Zeka Oyunu', desc: '7x7 tahtada taş sıkıştırma ve strateji oyunu (1 & 2 Kişilik)', icon: '🔮' },
   sudoku: { title: 'Sudoku Zeka Oyunu', desc: '4x4 & 6x6 Akıl ve Mantık Oyunu (1 & 2 Kişilik Zeka Düellosu)', icon: '🧩' },
   sivi_tahmin_akvaryum: { title: 'Sıvı Miktarını Tahmin Etme: Akvaryum Düellosu', desc: 'Sıvı miktarlarını kova, sürahi, bardak ve kaşıkla uygulamalı tahmin etme', icon: '🐠' },
   satir_sonu_hece: { title: 'Satır Sonu Heceleme Oyunu', desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma ve kısa çizgi kullanımı', icon: '✂️' },

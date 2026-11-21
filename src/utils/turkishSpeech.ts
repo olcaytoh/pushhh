@@ -60,6 +60,7 @@ interface CachedAudioAsset {
 
 const VOICE_STORAGE_KEY = 'turkish_tts_teacher_voice_v1';
 const PROSODY_STORAGE_KEY = 'turkish_tts_prosody_preset_v1';
+const STATIC_AUDIO_PACK_VERSION = 'v7-japon-tr-keywords';
 const CLIENT_ASSET_CACHE_LIMIT = 320;
 const FETCH_TIMEOUT_MS = 9500;
 // Tiny valid silent WAV (44 bytes + 2 bytes of silence) to unlock HTMLAudioElement inside user clicks
@@ -388,7 +389,10 @@ function loadCustomManifest(): Promise<Record<string, string>> {
     customManifest = {};
     return Promise.resolve(customManifest);
   }
-  customManifestPromise = fetch(resolvePublicUrl('sesler/manifest.json'), { cache: 'default' })
+  customManifestPromise = fetch(
+    `${resolvePublicUrl('sesler/manifest.json')}?av=${STATIC_AUDIO_PACK_VERSION}`,
+    { cache: 'default' }
+  )
     .then((res) => (res.ok ? res.json() : {}))
     .then((data: unknown) => {
       customManifest = data && typeof data === 'object' ? (data as Record<string, string>) : {};
@@ -536,8 +540,6 @@ function speakWithEmergencyBrowserFallback(
     onEnd?.();
   }
 }
-
-const STATIC_AUDIO_PACK_VERSION = 'v3-marin';
 
 async function fetchStaticMp3Asset(url: string): Promise<CachedAudioAsset | null> {
   const baseResolved =

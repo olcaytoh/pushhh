@@ -220,6 +220,11 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     desc: '7x7 Taktik & Alan Kıstırma Zeka Oyunu (2 Kişilik Strateji)',
     icon: '/MENUIKON/grid_icon_30.webp',
   },
+  kure: {
+    title: 'Küre Zeka Oyunu',
+    desc: '7x7 Tahtada Taş Sıkıştırma ve Strateji Oyunu (1 & 2 Kişilik)',
+    icon: '/MENUIKON/grid_icon_39.webp',
+  },
   satir_sonu_hece: {
     title: 'Satır Sonu Heceleme Oyunu',
     desc: 'Kelimeleri satır sonunda hecelerinden doğru ayırma ve kısa çizgi kullanımı',
@@ -574,6 +579,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'xox' ||
       key === 'xox_matematik' ||
       key === 'abluka' ||
+      key === 'kure' ||
       key === 'sudoku' ||
       key === 'school_life' ||
       key === 'other_3d_lab' ||

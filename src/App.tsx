@@ -67,6 +67,7 @@ const IstekIhtiyacGame = lazyComponent(() => import('./components/IstekIhtiyacGa
 const MevsimGardirobuGame = lazyComponent(() => import('./components/MevsimGardirobuGame'), 'MevsimGardirobuGame');
 const AdresimiBiliyorumGame = lazyComponent(() => import('./components/AdresimiBiliyorumGame'), 'AdresimiBiliyorumGame');
 const AblukaGame = lazyComponent(() => import('./components/AblukaGame'), 'AblukaGame');
+const KureGame = lazyComponent(() => import('./components/KureGame'), 'KureGame');
 const SudokuGame = lazyComponent(() => import('./components/SudokuGame'), 'SudokuGame');
 const GorselliSudokuGame = lazyComponent(() => import('./components/GorselliSudokuGame'), 'GorselliSudokuGame');
 const SchoolLifeGame = lazyComponent(() => import('./components/SchoolLifeGame'), 'SchoolLifeGame');
@@ -294,42 +295,89 @@ function getRastgeleOgrenci(): string {
   return toTitleCaseTR(raw);
 }
 
-// DYNAMIC QUESTION FONT SIZING HELPER (RESPONSIVE & AUTO-ADAPTIVE)
-function getDynamicQuestionFontClass(
+// DYNAMIC QUESTION FONT SIZING HELPER (RESPONSIVE, LENGTH & WORD-AWARE AUTO-SCALING)
+export function getDynamicQuestionFontClass(
   questionText: string = '',
   hasHTML: boolean = false,
   mode: 1 | 2 | 3 = 1
 ): string {
-  const cleanText = (questionText || '').replace(/<[^>]*>?/gm, '').trim();
+  const raw = questionText || '';
+  const cleanText = raw
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>?/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   const len = cleanText.length;
+  const lineCount = Math.max(1, raw.split(/<br\s*\/?>|\n/i).length);
+  const longestWord = cleanText
+    .split(/\s+/)
+    .reduce((max, w) => Math.max(max, w.length), 0);
+
+  // Uzun tek kelimeler ve çok satırlı sorular için etkili uzunluk ağırlığı
+  const effectiveLen = Math.max(len, longestWord * 2.2, lineCount > 1 ? len + (lineCount - 1) * 18 : len);
+  const baseFill = 'w-full max-w-full [text-wrap:balance] break-words';
 
   if (mode === 1) {
     if (hasHTML) {
-      return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+      if (effectiveLen <= 28) return `${baseFill} text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black leading-tight`;
+      if (effectiveLen <= 70) return `${baseFill} text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-snug`;
+      return `${baseFill} text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug`;
     }
-    if (len <= 25) return "text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black tracking-wide leading-tight";
-    if (len <= 65) return "text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black tracking-wide leading-tight";
-    if (len <= 125) return "text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-snug";
-    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    if (effectiveLen <= 14 && lineCount === 1) {
+      return `${baseFill} text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide leading-none whitespace-nowrap`;
+    }
+    if (effectiveLen <= 26 && lineCount === 1) {
+      return `${baseFill} text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-wide leading-tight`;
+    }
+    if (effectiveLen <= 48) {
+      return `${baseFill} text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-normal leading-tight`;
+    }
+    if (effectiveLen <= 85) {
+      return `${baseFill} text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black leading-snug`;
+    }
+    if (effectiveLen <= 140) {
+      return `${baseFill} text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black leading-snug`;
+    }
+    return `${baseFill} text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold leading-snug`;
   }
 
   if (mode === 2) {
     if (hasHTML) {
-      return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+      if (effectiveLen <= 30) return `${baseFill} text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-tight`;
+      return `${baseFill} text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug`;
     }
-    if (len <= 35) return "text-xl sm:text-2xl md:text-3xl font-black tracking-wide leading-tight";
-    if (len <= 85) return "text-lg sm:text-xl md:text-2xl font-black leading-snug";
-    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    if (effectiveLen <= 14 && lineCount === 1) {
+      return `${baseFill} text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black tracking-wide leading-none whitespace-nowrap`;
+    }
+    if (effectiveLen <= 30) {
+      return `${baseFill} text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black tracking-normal leading-tight`;
+    }
+    if (effectiveLen <= 65) {
+      return `${baseFill} text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-snug`;
+    }
+    if (effectiveLen <= 115) {
+      return `${baseFill} text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug`;
+    }
+    return `${baseFill} text-sm xs:text-base sm:text-lg md:text-xl font-extrabold leading-snug`;
   }
 
-  // mode === 3 (3 Players)
+  // mode === 3 (3 Players — dar kolon genişliği için optimize edilmiş ölçekleme)
   if (hasHTML) {
-    return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+    return `${baseFill} text-sm xs:text-base sm:text-lg md:text-xl font-black leading-snug`;
   }
-  if (len <= 35) return "text-xl sm:text-2xl md:text-3xl font-black tracking-wide leading-tight";
-  if (len <= 85) return "text-lg sm:text-xl md:text-2xl font-black leading-snug";
-  // Problem soruları ve her türlü soru metni için görsel sorularla birebir aynı büyük, net font boyutu:
-  return "text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug";
+  if (effectiveLen <= 12 && lineCount === 1) {
+    return `${baseFill} text-xl xs:text-2xl sm:text-3xl md:text-4xl font-black tracking-wide leading-none whitespace-nowrap`;
+  }
+  if (effectiveLen <= 28) {
+    return `${baseFill} text-lg xs:text-xl sm:text-2xl md:text-3xl font-black leading-tight`;
+  }
+  if (effectiveLen <= 65) {
+    return `${baseFill} text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug`;
+  }
+  if (effectiveLen <= 110) {
+    return `${baseFill} text-sm xs:text-base sm:text-lg md:text-xl font-black leading-snug`;
+  }
+  return `${baseFill} text-xs xs:text-sm sm:text-base md:text-lg font-extrabold leading-snug`;
 }
 
 // GUARANTEED EXACTLY 4 DISTINCT OPTIONS HELPER (PREVENTS MISSING 4TH OPTION)
@@ -2145,6 +2193,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   satir_sonu_hece: '/MENUIKON/grid_icon_31.webp',
   sudoku: '/MENUIKON/grid_icon_19.webp',
   abluka: '/MENUIKON/grid_icon_30.webp',
+  kure: '/MENUIKON/grid_icon_39.webp',
   lab3d: '/MENUIKON/grid_icon_38.webp',
   geoboard: '/MENUIKON/grid_icon_29.webp',
   sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.webp',
@@ -3196,6 +3245,7 @@ export default function App() {
   const [showMevsimGardirobu, setShowMevsimGardirobu] = useState(false);
   const [showAdresimiBiliyorum, setShowAdresimiBiliyorum] = useState(false);
   const [showAblukaGame, setShowAblukaGame] = useState(false);
+  const [showKureGame, setShowKureGame] = useState(false);
   const [showSudokuGame, setShowSudokuGame] = useState(false);
   const [showGorselliSudoku, setShowGorselliSudoku] = useState(false);
   const [showSchoolLifeGame, setShowSchoolLifeGame] = useState(false);
@@ -3252,6 +3302,7 @@ export default function App() {
     showMevsimGardirobu || 
     showAdresimiBiliyorum ||
     showAblukaGame ||
+    showKureGame ||
     showSudokuGame ||
     showGorselliSudoku ||
     showSchoolLifeGame ||
@@ -4935,6 +4986,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSiviTahminAkvaryum(false);
@@ -5267,6 +5319,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
@@ -5575,6 +5628,15 @@ export default function App() {
       }
       setGameState('welcome');
       setShowAblukaGame(true);
+    } else if (entry.type === 'kure' || entry.id === 'other_kure') {
+      if (entry.grade) {
+        setSelectedGrade(entry.grade);
+        setLastSelectedGrade(entry.grade);
+      } else {
+        setSelectedGrade(null);
+      }
+      setGameState('welcome');
+      setShowKureGame(true);
     } else if (entry.type === 'gorselli_sudoku' || entry.id === 'other_gorselli_sudoku' || entry.id.includes('gorselli_sudoku')) {
       if (entry.grade) {
         setSelectedGrade(entry.grade);
@@ -5729,6 +5791,7 @@ export default function App() {
         if (showIstekIhtiyac && (cur.type === 'istek_ihtiyac' || cur.id.includes('istek_ihtiyac')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showMevsimGardirobu && (cur.type === 'mevsim_gardirobu' || cur.id.includes('mevsim_gardirobu')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showAblukaGame && (cur.type === 'abluka' || cur.id.includes('abluka')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
+        if (showKureGame && (cur.type === 'kure' || cur.id === 'other_kure') && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showSudokuGame && (cur.type === 'sudoku' || cur.id.includes('sudoku')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showGorselliSudoku && (cur.type === 'gorselli_sudoku' || cur.id.includes('gorselli_sudoku')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showSchoolLifeGame && (cur.type === 'school_life' || cur.id === 'english_school_life')) return currentActivityIndex;
@@ -5923,6 +5986,10 @@ export default function App() {
       const idx = findActivityIndex('abluka', 'abluka', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
     }
+    if (showKureGame) {
+      const idx = findActivityIndex('kure', 'kure', selectedGrade, null, isOther);
+      if (idx !== -1) return idx;
+    }
     if (showSudokuGame) {
       const idx = findActivityIndex('sudoku', 'sudoku', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
@@ -5973,6 +6040,7 @@ export default function App() {
       if (item.id === 'other_istek_ihtiyac' && showIstekIhtiyac) return true;
       if (item.id === 'other_mevsim_gardirobu' && showMevsimGardirobu) return true;
       if (item.id === 'other_abluka' && showAblukaGame) return true;
+      if (item.id === 'other_kure' && showKureGame) return true;
       if (item.id === 'other_sudoku' && showSudokuGame) return true;
       if (item.id === 'other_gorselli_sudoku' && showGorselliSudoku) return true;
       if (item.id === 'other_saat_zaman' && showSaatZaman) return true;
@@ -6027,6 +6095,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
@@ -6078,6 +6147,7 @@ export default function App() {
     else if (entry.id === 'other_guvenli_internet' || entry.type === 'guvenli_internet' || entry.id === 'g2_hb_guvenli_internet') setShowGuvenliInternet(true);
     else if (entry.id === 'other_saglikli_buyume' || entry.type === 'saglikli_buyume' || entry.id === 'g2_hb_saglikli_buyume') setShowSaglikliBuyume(true);
     else if (entry.id === 'other_abluka') setShowAblukaGame(true);
+    else if (entry.id === 'other_kure') setShowKureGame(true);
     else if (entry.id === 'other_sudoku') setShowSudokuGame(true);
     else if (entry.id === 'other_gorselli_sudoku') setShowGorselliSudoku(true);
     else if (entry.id === 'other_sivi_tahmin_akvaryum') setShowSiviTahminAkvaryum(true);
@@ -6144,6 +6214,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
@@ -6253,6 +6324,9 @@ export default function App() {
     } else if (entry.type === 'abluka') {
       setGameState('welcome');
       setShowAblukaGame(true);
+    } else if (entry.type === 'kure') {
+      setGameState('welcome');
+      setShowKureGame(true);
     } else if (entry.type === 'gorselli_sudoku') {
       setGameState('welcome');
       setShowGorselliSudoku(true);
@@ -6358,6 +6432,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
@@ -6587,6 +6662,7 @@ export default function App() {
     setShowMevsimGardirobu(false);
     setShowAdresimiBiliyorum(false);
     setShowAblukaGame(false);
+    setShowKureGame(false);
     setShowSudokuGame(false);
     setShowGorselliSudoku(false);
     setShowSchoolLifeGame(false);
@@ -7185,6 +7261,7 @@ export default function App() {
     if (showMevsimGardirobu) return 'Mevsim Gardırobu';
     if (showAdresimiBiliyorum) return 'Adresimi Biliyorum';
     if (showAblukaGame) return 'Abluka Strateji Oyunu';
+    if (showKureGame) return 'Küre Zeka Oyunu';
     if (showSudokuGame) return 'Sudoku Zeka Oyunu';
     if (showGorselliSudoku) return 'Görselli Sudoku';
     if (showSchoolLifeGame) return 'School Life';
@@ -7292,8 +7369,8 @@ export default function App() {
             {[1, 2, 3, 4, 5, 6, 7].map((g) => {
               const isSelected = 
                 (g === 1 && (showOkumaYazmaHub || activeOkumaYazmaActivityId !== null)) ||
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showOkumaYazmaHub && activeOkumaYazmaActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && wordGameType === null) ||
-                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showOkumaYazmaHub && activeOkumaYazmaActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !showKureGame && wordGameType === null) ||
+                (g === 5 && (showOtherGamesModal || openedFromOtherGamesModal || showXOXGame || showAynisiniBul || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || showKodlamaMutfagi || showKureGame || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame)) ||
                 (g === 7 && (showBilsemHub || activeBilsemActivityId !== null));
               const iconSrc = g === 7 ? '/MENUIKON/grid_icon_27.webp' : `/icon_${g}.webp`;
@@ -7340,6 +7417,7 @@ export default function App() {
                       setShowMevsimGardirobu(false);
                       setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
+                      setShowKureGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
@@ -7384,6 +7462,7 @@ export default function App() {
                       setShowMevsimGardirobu(false);
                       setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
+                      setShowKureGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
@@ -7435,6 +7514,7 @@ export default function App() {
                       setShowMevsimGardirobu(false);
                       setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
+                      setShowKureGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
@@ -7486,6 +7566,7 @@ export default function App() {
                       setShowMevsimGardirobu(false);
                       setShowAdresimiBiliyorum(false);
                       setShowAblukaGame(false);
+                      setShowKureGame(false);
                       setShowSudokuGame(false);
                       setShowSchoolLifeGame(false);
                       setShowSiviTahminAkvaryum(false);
@@ -10928,6 +11009,11 @@ export default function App() {
                         questionText={currentQuestionData?.question}
                         mode={1}
                         notebookTheme={false}
+                        fontClassOverride={getDynamicQuestionFontClass(
+                          currentQuestionData?.question || currentQuestionData?.questionHTML || '',
+                          Boolean(currentQuestionData?.questionHTML),
+                          1
+                        )}
                       />
                     </div>
                   </div>
@@ -11261,6 +11347,11 @@ export default function App() {
                               questionText={p.currentQuestionData?.question}
                               mode={playerCountMode}
                               notebookTheme={false}
+                              fontClassOverride={getDynamicQuestionFontClass(
+                                p.currentQuestionData?.question || p.currentQuestionData?.questionHTML || '',
+                                Boolean(p.currentQuestionData?.questionHTML),
+                                playerCountMode
+                              )}
                             />
                           </div>
                         )}
@@ -12061,7 +12152,7 @@ export default function App() {
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAdresimiBiliyorum && !showAblukaGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAdresimiBiliyorum && !showAblukaGame && !showKureGame && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -12092,6 +12183,7 @@ export default function App() {
           onOpenIstekIhtiyac={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_istek_ihtiyac'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenMevsimGardirobu={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_mevsim_gardirobu'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenAbluka={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_abluka'); if (i !== -1) switchToOtherGameByIndex(i); }}
+          onOpenKure={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_kure'); if (i !== -1) switchToOtherGameByIndex(i); else setShowKureGame(true); }}
           onOpenGorselliSudoku={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_gorselli_sudoku'); if (i !== -1) switchToOtherGameByIndex(i); else setShowGorselliSudoku(true); }}
           onOpenSudoku={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_sudoku'); if (i !== -1) switchToOtherGameByIndex(i); }}
           onOpenSiviTahminAkvaryum={() => { const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_sivi_tahmin_akvaryum'); if (i !== -1) switchToOtherGameByIndex(i); }}
@@ -13197,6 +13289,39 @@ export default function App() {
         <AblukaGame
           onClose={() => {
             setShowAblukaGame(false);
+            if (openedFromOtherGamesModal || selectedGrade === null) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
+      {/* KÜRE ZEKA VE STRATEJİ OYUNU (TAZOF 7x7 / 1 VE 2 KİŞİLİK) */}
+      {showKureGame && (
+        <KureGame
+          onClose={() => {
+            setShowKureGame(false);
             if (openedFromOtherGamesModal || selectedGrade === null) {
               setShowOtherGamesModal(true);
             }

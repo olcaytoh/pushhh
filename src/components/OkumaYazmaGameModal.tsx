@@ -377,6 +377,25 @@ interface CloudPair {
   speakText: string;
 }
 
+const CLOUD_MATCH_PALETTE = [
+  {
+    card: 'bg-emerald-100 border-emerald-500 text-emerald-900',
+    icon: 'text-emerald-600',
+  },
+  {
+    card: 'bg-violet-100 border-violet-500 text-violet-900',
+    icon: 'text-violet-600',
+  },
+  {
+    card: 'bg-amber-100 border-amber-500 text-amber-900',
+    icon: 'text-amber-600',
+  },
+  {
+    card: 'bg-rose-100 border-rose-500 text-rose-900',
+    icon: 'text-rose-600',
+  },
+];
+
 const BulutEslestirmeGame: React.FC<{
   group: LetterGroupData;
   focusLetter: string | null;
@@ -402,7 +421,7 @@ const BulutEslestirmeGame: React.FC<{
         id: l.upper,
         leftText: l.upper,
         rightText: l.lower,
-        speakText: `${l.upper} harfi`,
+        speakText: l.lower,
       }));
     } else if (mode === 'emoji_word') {
       const emojiWords = getFilteredWords(group, focusLetter).filter((w) => Boolean(w.emoji));
@@ -531,8 +550,10 @@ const BulutEslestirmeGame: React.FC<{
         {/* SOL BULUTLAR */}
         <div className="flex flex-col gap-3">
           {leftCards.map((item) => {
-            const isMatched = matchedIds.includes(item.id);
+            const matchIdx = matchedIds.indexOf(item.id);
+            const isMatched = matchIdx !== -1;
             const isSelected = selectedLeft === item.id;
+            const matchTheme = CLOUD_MATCH_PALETTE[matchIdx % CLOUD_MATCH_PALETTE.length];
             return (
               <button
                 key={`L-${item.id}`}
@@ -544,18 +565,18 @@ const BulutEslestirmeGame: React.FC<{
                   setWrongMsg(null);
                   speakTurkish(item.speakText, 0.9);
                 }}
-                className={`min-h-[64px] sm:min-h-[74px] px-4 py-2 rounded-[28px] border-2 font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                className={`min-h-[64px] sm:min-h-[74px] px-4 py-2 rounded-[28px] border-2 font-black transition-all flex items-center justify-center gap-2 ${
                   mode === 'emoji_word' ? 'text-4xl' : 'text-2xl sm:text-3xl'
                 } ${
                   isMatched
-                    ? 'bg-emerald-50 border-emerald-400 text-emerald-700 opacity-75 cursor-default'
+                    ? `${matchTheme.card} cursor-default shadow-sm`
                     : isSelected
-                      ? 'bg-sky-600 border-sky-800 text-white scale-[1.03] shadow-lg ring-4 ring-sky-200'
-                      : 'bg-sky-50 hover:bg-sky-100 border-sky-300 text-slate-900 shadow-sm'
+                      ? 'bg-sky-600 border-sky-800 text-white scale-[1.03] shadow-lg ring-4 ring-sky-200 cursor-pointer'
+                      : 'bg-sky-50 hover:bg-sky-100 border-sky-300 text-slate-900 shadow-sm cursor-pointer'
                 }`}
               >
                 <span>{item.leftText}</span>
-                {isMatched && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
+                {isMatched && <CheckCircle2 className={`w-5 h-5 ${matchTheme.icon} shrink-0`} />}
               </button>
             );
           })}
@@ -564,23 +585,25 @@ const BulutEslestirmeGame: React.FC<{
         {/* SAĞ BULUTLAR */}
         <div className="flex flex-col gap-3">
           {rightCards.map((item) => {
-            const isMatched = matchedIds.includes(item.id);
+            const matchIdx = matchedIds.indexOf(item.id);
+            const isMatched = matchIdx !== -1;
+            const matchTheme = CLOUD_MATCH_PALETTE[matchIdx % CLOUD_MATCH_PALETTE.length];
             return (
               <button
                 key={`R-${item.id}`}
                 type="button"
                 disabled={isMatched}
                 onClick={() => handleRightClick(item)}
-                className={`min-h-[64px] sm:min-h-[74px] px-4 py-2 rounded-[28px] border-2 text-2xl sm:text-3xl font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                className={`min-h-[64px] sm:min-h-[74px] px-4 py-2 rounded-[28px] border-2 text-2xl sm:text-3xl font-black transition-all flex items-center justify-center gap-2 ${
                   isMatched
-                    ? 'bg-emerald-50 border-emerald-400 text-emerald-700 opacity-75 cursor-default'
+                    ? `${matchTheme.card} cursor-default shadow-sm`
                     : selectedLeft
-                      ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 hover:border-amber-500 text-slate-900 shadow-sm'
-                      : 'bg-slate-50 border-slate-300 text-slate-800'
+                      ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 hover:border-amber-500 text-slate-900 shadow-sm cursor-pointer'
+                      : 'bg-slate-50 border-slate-300 text-slate-800 cursor-pointer'
                 }`}
               >
                 <span>{item.rightText}</span>
-                {isMatched && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
+                {isMatched && <CheckCircle2 className={`w-5 h-5 ${matchTheme.icon} shrink-0`} />}
               </button>
             );
           })}
@@ -2161,7 +2184,9 @@ const CizgiliYaziTahtasiGame: React.FC<{
       : group.letters;
     const letterPrompts = letters.map((l) => ({
       text: `${l.upper} ${l.lower}`,
-      speak: `${l.upper} harfi. ${l.keyword}`,
+      speak: l.lower,
+      completeSpeak: l.lower,
+      kind: 'harf' as const,
       hint: `${l.emoji} ${l.keyword}`,
     }));
     const wordPrompts = getFilteredWords(group, focusLetter)
@@ -2169,6 +2194,8 @@ const CizgiliYaziTahtasiGame: React.FC<{
       .map((w) => ({
         text: w.word,
         speak: w.word,
+        completeSpeak: w.word,
+        kind: (w.word.length <= 3 ? 'hece' : 'kelime') as 'hece' | 'kelime',
         hint: `${w.emoji || '✏️'} ${w.syllables.join(' - ')}`,
       }));
     return [...letterPrompts, ...wordPrompts];
@@ -2180,6 +2207,20 @@ const CizgiliYaziTahtasiGame: React.FC<{
   const [isEraser, setIsEraser] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const advanceTimerRef = useRef<number | null>(null);
+  const fallbackTimerRef = useRef<number | null>(null);
+
+  const clearAdvanceTimers = () => {
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
+    if (fallbackTimerRef.current !== null) {
+      window.clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  };
 
   const currentItem = practiceItems[itemIdx % practiceItems.length];
 
@@ -2427,6 +2468,9 @@ const CizgiliYaziTahtasiGame: React.FC<{
   }, [currentItem.text, showGuide, boardSize.w, boardSize.h]);
 
   useEffect(() => {
+    clearAdvanceTimers();
+    stopSpeaking();
+    setIsAdvancing(false);
     setItemIdx(0);
     clearCanvas();
   }, [group.id, focusLetter]);
@@ -2434,6 +2478,13 @@ const CizgiliYaziTahtasiGame: React.FC<{
   useEffect(() => {
     clearCanvas();
   }, [itemIdx]);
+
+  useEffect(() => {
+    return () => {
+      clearAdvanceTimers();
+      stopSpeaking();
+    };
+  }, []);
 
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current!;
@@ -2492,7 +2543,7 @@ const CizgiliYaziTahtasiGame: React.FC<{
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => speakTurkish(currentItem.speak, 0.82)}
+            onClick={() => speakTurkish(currentItem.speak, { rate: 0.85, kind: currentItem.kind })}
             className="min-h-[44px] px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm flex items-center gap-2 cursor-pointer"
           >
             <Volume2 className="w-4 h-4" />
@@ -2584,6 +2635,9 @@ const CizgiliYaziTahtasiGame: React.FC<{
         <button
           type="button"
           onClick={() => {
+            clearAdvanceTimers();
+            stopSpeaking();
+            setIsAdvancing(false);
             playMp3?.('/op.mp3');
             setItemIdx((i) => (i - 1 + practiceItems.length) % practiceItems.length);
           }}
@@ -2595,19 +2649,50 @@ const CizgiliYaziTahtasiGame: React.FC<{
 
         <button
           type="button"
+          disabled={isAdvancing}
           onClick={() => {
+            if (isAdvancing) return;
+            clearAdvanceTimers();
+            setIsAdvancing(true);
             playMp3?.('/ding.mp3');
-            speakTurkish(`Harika yazdın! ${currentItem.text}`, 0.9);
             onScore(10, true);
             if (itemIdx >= 2) {
               onRoundDone();
             }
-            setItemIdx((i) => (i + 1) % practiceItems.length);
+
+            let moved = false;
+            const moveToNext = () => {
+              if (moved) return;
+              moved = true;
+              clearAdvanceTimers();
+              setIsAdvancing(false);
+              setItemIdx((i) => (i + 1) % practiceItems.length);
+            };
+
+            speakTurkish(currentItem.completeSpeak, {
+              rate: 0.9,
+              kind: currentItem.kind,
+              onEnd: () => {
+                advanceTimerRef.current = window.setTimeout(moveToNext, 260);
+              },
+            });
+            // Ses kapalı veya engelli olursa butonun takılı kalmaması için güvenlik zamanlayıcısı
+            fallbackTimerRef.current = window.setTimeout(moveToNext, 3200);
           }}
-          className="min-h-[48px] px-6 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base flex items-center gap-2 cursor-pointer shadow-md"
+          className={`min-h-[48px] px-6 py-2 rounded-2xl text-white font-black text-sm sm:text-base flex items-center gap-2 shadow-md transition ${
+            isAdvancing
+              ? 'bg-emerald-500 cursor-wait opacity-90'
+              : 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
+          }`}
         >
           <CheckCircle2 className="w-5 h-5" />
-          <span>{hasDrawn ? 'Yazdım, Sonrakine Geç (+10)' : 'Sonraki Örnek'}</span>
+          <span>
+            {isAdvancing
+              ? 'Okunuyor...'
+              : hasDrawn
+                ? 'Yazdım, Sonrakine Geç (+10)'
+                : 'Sonraki Örnek'}
+          </span>
         </button>
 
         <span className="text-xs sm:text-sm font-bold text-slate-500 tabular-nums">

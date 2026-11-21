@@ -602,7 +602,7 @@ export const LETTER_GROUPS: LetterGroupData[] = [
       { upper: 'V', lower: 'v', keyword: 'vazo', emoji: '🏺', syllables: ['ev', 'av', 've', 'va', 'vi', 'vo', 'var', 'ver'], sampleWords: ['vazo', 'mavi', 'havuz', 'havuç', 'tavuk', 'vapur', 'civciv', 'tavşan'] },
       { upper: 'Ğ', lower: 'ğ', keyword: 'ağaç', emoji: '🌳', syllables: ['ağ', 'dağ', 'yağ', 'bağ', 'çağ', 'sağ'], sampleWords: ['dağ', 'yağ', 'ağaç', 'kuğu', 'iğne', 'yoğurt', 'yağmur', 'kurbağa'] },
       { upper: 'F', lower: 'f', keyword: 'fil', emoji: '🐘', syllables: ['af', 'of', 'fe', 'fa', 'fi', 'fo', 'fu', 'fil', 'far', 'fen'], sampleWords: ['fil', 'fare', 'fener', 'fırın', 'fındık', 'futbol', 'defter', 'zürafa'] },
-      { upper: 'J', lower: 'j', keyword: 'jaguar', emoji: '🐆', syllables: ['je', 'ja', 'ji', 'jo', 'ju', 'jö', 'jel', 'jet'], sampleWords: ['jel', 'oje', 'judo', 'jöle', 'garaj', 'pijama', 'ejderha', 'jaguar'] },
+      { upper: 'J', lower: 'j', keyword: 'japon', emoji: '🇯🇵', syllables: ['je', 'ja', 'ji', 'jo', 'ju', 'jö', 'jel', 'jet'], sampleWords: ['jel', 'oje', 'judo', 'jöle', 'garaj', 'pijama', 'ejderha', 'japon'] },
     ],
     words: [
       { word: 'halı', syllables: ['ha', 'lı'], letter: 'H', emoji: '🧶' },
@@ -643,7 +643,7 @@ export const LETTER_GROUPS: LetterGroupData[] = [
       { word: 'garaj', syllables: ['ga', 'raj'], letter: 'J', emoji: '🚗' },
       { word: 'mesaj', syllables: ['me', 'saj'], letter: 'J', emoji: '💌' },
       { word: 'pijama', syllables: ['pi', 'ja', 'ma'], letter: 'J', emoji: '👚' },
-      { word: 'jaguar', syllables: ['ja', 'gu', 'ar'], letter: 'J', emoji: '🐆' },
+      { word: 'japon', syllables: ['ja', 'pon'], letter: 'J', emoji: '🇯🇵' },
       { word: 'ejderha', syllables: ['ej', 'der', 'ha'], letter: 'J', emoji: '🐉' },
     ],
     sentences: [

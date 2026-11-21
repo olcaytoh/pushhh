@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BookOpen, CheckCircle2, Home, Volume2, ArrowRight, Sparkles } from 'lucide-react';
 import {
   LETTER_GROUPS,
@@ -119,7 +119,17 @@ export const OkumaYazmaHub: React.FC<OkumaYazmaHubProps> = ({
   playMp3,
 }) => {
   const [speakingLetter, setSpeakingLetter] = useState<string | null>(null);
+  const speechTokenRef = useRef(0);
+  const keywordTimerRef = useRef<number | null>(null);
   const activeGroup = getLetterGroupById(selectedGroupId);
+
+  useEffect(() => {
+    return () => {
+      if (keywordTimerRef.current !== null) {
+        window.clearTimeout(keywordTimerRef.current);
+      }
+    };
+  }, []);
 
   const completedInGroup = OKUMA_YAZMA_ACTIVITIES.filter((a) =>
     completedIds.includes(`${selectedGroupId}:${a.id}`)
@@ -131,15 +141,35 @@ export const OkumaYazmaHub: React.FC<OkumaYazmaHubProps> = ({
     onSelectFocusLetter(null);
   };
 
-  const handleLetterClick = (upper: string, keyword: string) => {
-    playMp3?.('/op.mp3');
+  const handleLetterClick = (upper: string, lower: string, keyword: string) => {
+    if (keywordTimerRef.current !== null) {
+      window.clearTimeout(keywordTimerRef.current);
+      keywordTimerRef.current = null;
+    }
+    const token = ++speechTokenRef.current;
     const nextLetter = focusLetter === upper ? null : upper;
     onSelectFocusLetter(nextLetter);
     setSpeakingLetter(upper);
-    speakTurkish(`${upper} sesi. ${keyword}`);
-    window.setTimeout(() => {
-      setSpeakingLetter((prev) => (prev === upper ? null : prev));
-    }, 1100);
+
+    // Önce saf harf/ses kaydını (sessiz harflerde 'e' olmadan gerçek ses esaslı kayıt) çal,
+    // bittikten hemen sonra örnek kelimeyi oku.
+    speakTurkish(lower, {
+      kind: 'harf',
+      onEnd: () => {
+        if (speechTokenRef.current !== token) return;
+        keywordTimerRef.current = window.setTimeout(() => {
+          if (speechTokenRef.current !== token) return;
+          speakTurkish(keyword, {
+            kind: 'kelime',
+            onEnd: () => {
+              if (speechTokenRef.current === token) {
+                setSpeakingLetter((prev) => (prev === upper ? null : prev));
+              }
+            },
+          });
+        }, 200);
+      },
+    });
   };
 
   return (
@@ -248,7 +278,7 @@ export const OkumaYazmaHub: React.FC<OkumaYazmaHubProps> = ({
                 <button
                   key={letter.upper}
                   type="button"
-                  onClick={() => handleLetterClick(letter.upper, letter.keyword)}
+                  onClick={() => handleLetterClick(letter.upper, letter.lower, letter.keyword)}
                   title={`${letter.upper}${letter.lower} sesini dinle ve bu harfe odaklan`}
                   className={`min-h-[44px] px-3 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2 active:scale-95 ${
                     isSelected

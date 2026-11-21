@@ -12,6 +12,8 @@ interface AutoFitQuestionBoxProps {
   contentKey?: string | number;
   /** Geniş çerçeveyi doldur: daha geniş tasarım genişlikleri dener, daha az boşluk bırakır, ölçek sınırını yükseltir */
   fillWide?: boolean;
+  /** Dışarıdan hesaplanan dinamik soru font sınıfı (getDynamicQuestionFontClass) */
+  fontClassOverride?: string;
 }
 
 export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
@@ -23,6 +25,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
   children,
   contentKey,
   fillWide = false,
+  fontClassOverride,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
@@ -171,12 +174,12 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
     };
   }, [calculateScale, questionHTML, questionText, contentKey]);
 
-  // Responsive font size baseline based on mode - En az %50 daha büyük ve rahat okunur
-  const fontClass = mode === 1
+  // Responsive font size baseline based on mode (or smart dynamic override)
+  const fontClass = fontClassOverride || (mode === 1
     ? 'text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl'
     : mode === 2
     ? 'text-lg xs:text-xl sm:text-2xl md:text-3xl'
-    : 'text-base xs:text-lg sm:text-xl md:text-2xl';
+    : 'text-base xs:text-lg sm:text-xl md:text-2xl');
 
   // Detect if question contains a full-width/full-height visual container (like uzamsal iliskiler)
   const isFullImageQuestion = Boolean(
@@ -242,7 +245,7 @@ export const AutoFitQuestionBox: React.FC<AutoFitQuestionBoxProps> = ({
           </div>
         ) : (
           <div
-            className={`my-auto font-black tracking-wide leading-snug px-2 py-1 max-w-full text-center ${
+            className={`my-auto w-full font-black tracking-wide leading-snug px-2 py-1 max-w-full text-center [text-wrap:balance] ${
               notebookTheme
                 ? 'text-slate-900 drop-shadow-xs'
                 : 'text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] [text-shadow:_0_2px_6px_#000,_0_4px_14px_rgba(0,0,0,0.9)]'

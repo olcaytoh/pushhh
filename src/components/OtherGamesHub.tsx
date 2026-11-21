@@ -30,6 +30,7 @@ interface OtherGamesHubProps {
   onOpenIstekIhtiyac?: () => void;
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
+  onOpenKure?: () => void;
   onOpenSudoku?: () => void;
   onOpenGorselliSudoku?: () => void;
   onOpenSiviTahminAkvaryum?: () => void;
@@ -71,6 +72,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenIstekIhtiyac,
   onOpenMevsimGardirobu,
   onOpenAbluka,
+  onOpenKure,
   onOpenSudoku,
   onOpenGorselliSudoku,
   onOpenSiviTahminAkvaryum,
@@ -91,6 +93,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'kure',
+      title: 'Küre Zeka Oyunu',
+      subtitle: '1 & 2 Kişilik · 7x7 Strateji & Sıkıştırma',
+      icon: '/MENUIKON/grid_icon_39.webp',
+      sound: '/coin.mp3',
+      isNew: true,
+      action: () => {
+        if (onOpenKure) onOpenKure();
+      },
+    },
     {
       id: 'kodlama_mutfagi',
       title: 'Kodlama & Algoritma Mutfağı',
