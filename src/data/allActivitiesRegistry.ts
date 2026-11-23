@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'farkli_olani_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume' | 'trafik_levhalari';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -373,6 +373,14 @@ ALL_ACTIVITIES_LIST.push({
 // 2. SINIF HAYAT BİLGİSİ DERSİ ETKİNLİKLERİ
 // ==========================================
 export const G2_HAYAT_BILGISI_ACTIVITIES: ActivityRegistryItem[] = [
+  {
+    id: 'g2_hb_trafik_levhalari',
+    type: 'trafik_levhalari',
+    grade: 2,
+    topicKey: 'hb_trafik_levhalari',
+    title: 'Trafik İşaret Levhaları (Sürükle-Bırak)',
+    categoryLabel: '2. Sınıf Hayat Bilgisi'
+  },
   {
     id: 'g2_hb_guvenli_internet',
     type: 'guvenli_internet',
@@ -855,6 +863,12 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     id: 'other_kure',
     type: 'kure',
     title: 'Küre Zeka Oyunu',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_farkli_olani_bul',
+    type: 'farkli_olani_bul',
+    title: 'Farklı Olanı Bul',
     categoryLabel: 'Diğer Oyunlar'
   },
   {

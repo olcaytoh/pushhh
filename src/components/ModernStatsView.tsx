@@ -195,6 +195,11 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     desc: 'Hava durumuna ve mevsime uygun giysileri seçme',
     icon: '/MENUIKON/grid_icon_21.webp',
   },
+  trafik_levhalari: {
+    title: 'Trafik İşaret Levhaları (Sürükle-Bırak)',
+    desc: 'Bilgi, uyarı, yasak ve mecburi yol levhalarıyla 30 soruluk etkinlik',
+    icon: '/MENUIKON/grid_icon_14.webp',
+  },
   aynisini_bul: {
     title: 'Aynısını Bul Dikkat Düellosu',
     desc: 'Kartlar arasındaki ortak nesneyi ilk bulan kazanır',
@@ -224,6 +229,11 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
     title: 'Küre Zeka Oyunu',
     desc: '7x7 Tahtada Taş Sıkıştırma ve Strateji Oyunu (1 & 2 Kişilik)',
     icon: '/MENUIKON/grid_icon_39.webp',
+  },
+  farkli_olani_bul: {
+    title: 'Farklı Olanı Bul',
+    desc: '7 Kategori ve 140 Seviyeli Görsel Dikkat Oyunu (Tek Kişi & Düello)',
+    icon: '/MENUIKON/grid_icon_20.webp',
   },
   satir_sonu_hece: {
     title: 'Satır Sonu Heceleme Oyunu',
@@ -569,7 +579,11 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'saglikli_tabak' ||
       key === 'geri_donusum' ||
       key === 'istek_ihtiyac' ||
-      key === 'mevsim_gardirobu'
+      key === 'mevsim_gardirobu' ||
+      key === 'trafik_levhalari' ||
+      key === 'hb_trafik_levhalari' ||
+      key === 'guvenli_internet' ||
+      key === 'saglikli_buyume'
     ) return 'hayat_bilgisi';
 
     if (
@@ -580,6 +594,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
       key === 'xox_matematik' ||
       key === 'abluka' ||
       key === 'kure' ||
+      key === 'farkli_olani_bul' ||
       key === 'sudoku' ||
       key === 'school_life' ||
       key === 'other_3d_lab' ||

@@ -31,6 +31,7 @@ interface OtherGamesHubProps {
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
   onOpenKure?: () => void;
+  onOpenFarkliOlaniBul?: () => void;
   onOpenSudoku?: () => void;
   onOpenGorselliSudoku?: () => void;
   onOpenSiviTahminAkvaryum?: () => void;
@@ -73,6 +74,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenMevsimGardirobu,
   onOpenAbluka,
   onOpenKure,
+  onOpenFarkliOlaniBul,
   onOpenSudoku,
   onOpenGorselliSudoku,
   onOpenSiviTahminAkvaryum,
@@ -93,6 +95,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'farkli_olani_bul',
+      title: 'Farklı Olanı Bul',
+      subtitle: '7 Kategori · 140 Seviye · Tek Kişi & Düello',
+      icon: '/MENUIKON/grid_icon_20.webp',
+      sound: '/coin.mp3',
+      isNew: true,
+      action: () => {
+        if (onOpenFarkliOlaniBul) onOpenFarkliOlaniBul();
+      },
+    },
     {
       id: 'kure',
       title: 'Küre Zeka Oyunu',
@@ -481,11 +494,20 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
           {games.map((game, index) => {
             const isNew = (game as any).isNew;
             return (
-              <button
+              <div
                 key={game.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   triggerSound(game.sound);
                   game.action();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    triggerSound(game.sound);
+                    game.action();
+                  }
                 }}
                 className={`group relative w-full ${
                   isNew
@@ -519,15 +541,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   </div>
                   <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
                     {game.id === 'ritmik_balon' && onOpenRitmikBalon ? (
-                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                         {([3, 4, 5, 6] as const).map(step => (
                           <button
                             key={step}
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               triggerSound('/op.mp3');
                               onOpenRitmikBalon(step);
                             }}
+                            onKeyDown={(e) => e.stopPropagation()}
                             className="px-1.5 py-0.5 rounded bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-[10px] shadow cursor-pointer transition-all border border-amber-200"
                             title={`${step}'${step === 6 ? 'şar' : 'er'} Ritmik Balon`}
                           >
@@ -536,15 +560,17 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                         ))}
                       </div>
                     ) : game.id === 'carpim_balon' && onOpenCarpimBalon ? (
-                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 z-20" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                         {([2, 3, 4, 5, 6] as const).map(step => (
                           <button
                             key={step}
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               triggerSound('/op.mp3');
                               onOpenCarpimBalon(step);
                             }}
+                            onKeyDown={(e) => e.stopPropagation()}
                             className="px-1.5 py-0.5 rounded bg-emerald-400 hover:bg-emerald-300 active:scale-95 text-slate-950 font-black text-[10px] shadow cursor-pointer transition-all border border-emerald-200"
                             title={`${step}'${step === 6 ? 'lar' : 'ler'} Çarpım Tablosu Balonu`}
                           >
@@ -572,7 +598,7 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                     ▶
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
