@@ -139,7 +139,7 @@ export const TRAFFIC_SIGNS: Record<TrafficSignId, TrafficSignInfo> = {
     name: 'Işıklı İşaret Cihazı',
     shortName: 'Işıklı İşaret Cihazı',
     category: 'uyari',
-    shapeLabel: 'Kırmızı Üçgen',
+    shapeLabel: 'Trafik Işıkları',
     meaning: 'Yolda trafik ışıkları (ışıklı işaret cihazı) bulunduğunu bildirir.'
   },
   kontrolsuz_kavsak: {
@@ -194,229 +194,37 @@ export const TRAFFIC_SIGNS: Record<TrafficSignId, TrafficSignInfo> = {
 
 export const TRAFFIC_SIGN_LIST: TrafficSignInfo[] = Object.values(TRAFFIC_SIGNS);
 
-// ─── CRISP AUTHENTIC TURKISH TRAFFIC SIGN SVG ARTWORK ────────────────────────
+// ─── CROPPED REAL TRAFFIC SIGN IMAGES FROM USER POSTERS ──────────────────────
 
-const PedestrianWalking: React.FC<{ fill?: string; tx?: number; ty?: number; scale?: number }> = ({
-  fill = '#111827',
-  tx = 0,
-  ty = 0,
-  scale = 1
-}) => (
-  <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
-    <circle cx="50" cy="31" r="5.5" fill={fill} />
-    <path
-      d="M49 38 L44 52 L38 67 M51 38 L55 52 L61 67 M49 41 L38 49 M51 41 L61 48"
-      stroke={fill}
-      strokeWidth="5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path d="M46 39 L54 39 L53 54 L46 54 Z" fill={fill} rx="2" />
-  </g>
-);
-
-const TwoSchoolChildren: React.FC<{ fill?: string; tx?: number; ty?: number; scale?: number }> = ({
-  fill = '#111827',
-  tx = 0,
-  ty = 0,
-  scale = 1
-}) => (
-  <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
-    {/* Left student (boy with backpack) */}
-    <circle cx="38" cy="35" r="4.6" fill={fill} />
-    <rect x="30" y="42" width="5" height="9" rx="1.5" fill={fill} />
-    <path d="M35 42 L42 42 L42 56 L35 56 Z" fill={fill} />
-    <path
-      d="M36 56 L32 70 M41 56 L45 70 M36 44 L31 53 M42 44 L50 51"
-      stroke={fill}
-      strokeWidth="4.2"
-      strokeLinecap="round"
-    />
-    {/* Right student (girl with skirt & bag) */}
-    <circle cx="60" cy="37" r="4.3" fill={fill} />
-    <polygon points="56,43 64,43 67,58 53,58" fill={fill} />
-    <path
-      d="M57 58 L54 70 M63 58 L66 70 M56 45 L50 51 M64 45 L69 52"
-      stroke={fill}
-      strokeWidth="3.8"
-      strokeLinecap="round"
-    />
-  </g>
-);
-
-const BicycleGlyph: React.FC<{ color?: string; tx?: number; ty?: number; scale?: number }> = ({
-  color = '#111827',
-  tx = 0,
-  ty = 0,
-  scale = 1
-}) => (
-  <g transform={`translate(${tx} ${ty}) scale(${scale})`} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="31" cy="60" r="11" strokeWidth="4.2" />
-    <circle cx="69" cy="60" r="11" strokeWidth="4.2" />
-    <path d="M31 60 L46 43 L62 43 L69 60 M46 43 L50 60 L31 60 M62 43 L50 60" strokeWidth="3.8" />
-    <path d="M41 37 L50 37" strokeWidth="3.8" />
-    <path d="M59 35 L65 35 L62 43" strokeWidth="3.6" />
-  </g>
-);
+export const TRAFFIC_SIGN_IMAGES: Record<TrafficSignId, string> = {
+  yaya_gecidi_mavi: '/assets/trafik/yaya_gecidi_mavi.png',
+  okul_gecidi_mavi: '/assets/trafik/okul_gecidi_mavi.png',
+  alt_gecit: '/assets/trafik/alt_gecit.png',
+  ust_gecit: '/assets/trafik/ust_gecit.png',
+  yaya_gecidi_ucgen: '/assets/trafik/yaya_gecidi_ucgen.png',
+  okul_gecidi_ucgen: '/assets/trafik/okul_gecidi_ucgen.png',
+  isikli_isaret: '/assets/trafik/isikli_isaret.png',
+  kontrolsuz_kavsak: '/assets/trafik/kontrolsuz_kavsak.png',
+  yolda_calisma: '/assets/trafik/yolda_calisma.png',
+  bisiklet_giremez: '/assets/trafik/bisiklet_giremez.png',
+  yaya_giremez: '/assets/trafik/yaya_giremez.png',
+  mecburi_bisiklet: '/assets/trafik/mecburi_bisiklet.png',
+  mecburi_yaya: '/assets/trafik/mecburi_yaya.png'
+};
 
 export const TrafficSignSvg: React.FC<{ signId: TrafficSignId; className?: string }> = ({
   signId,
   className = 'w-20 h-20'
 }) => {
-  switch (signId) {
-    case 'yaya_gecidi_mavi':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Yaya Geçidi Mavi Levha">
-          <rect x="4" y="4" width="92" height="92" rx="12" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <rect x="9" y="9" width="82" height="82" rx="8" fill="none" stroke="#ffffff" strokeWidth="2.2" opacity="0.95" />
-          <polygon points="50,15 84,80 16,80" fill="#ffffff" stroke="#ffffff" strokeWidth="3" strokeLinejoin="round" />
-          <PedestrianWalking fill="#111827" tx={10} ty={16} scale={0.78} />
-          {/* Zebra crossing bars */}
-          <rect x="26" y="72" width="7" height="5" rx="1" fill="#111827" />
-          <rect x="37" y="72" width="7" height="5" rx="1" fill="#111827" />
-          <rect x="48" y="72" width="7" height="5" rx="1" fill="#111827" />
-          <rect x="59" y="72" width="7" height="5" rx="1" fill="#111827" />
-          <rect x="69" y="72" width="5" height="5" rx="1" fill="#111827" />
-        </svg>
-      );
-
-    case 'okul_gecidi_mavi':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Okul Geçidi Mavi Levha">
-          <rect x="4" y="4" width="92" height="92" rx="12" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <rect x="9" y="9" width="82" height="82" rx="8" fill="none" stroke="#ffffff" strokeWidth="2.2" opacity="0.95" />
-          <polygon points="50,15 84,80 16,80" fill="#ffffff" stroke="#ffffff" strokeWidth="3" strokeLinejoin="round" />
-          <TwoSchoolChildren fill="#111827" tx={12} ty={19} scale={0.76} />
-        </svg>
-      );
-
-    case 'alt_gecit':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Alt Geçit Levhası">
-          <rect x="4" y="4" width="92" height="92" rx="12" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <rect x="14" y="14" width="72" height="72" rx="6" fill="#ffffff" />
-          {/* Downward stairs */}
-          <path d="M22 44 L36 44 L36 53 L47 53 L47 62 L58 62 L58 71 L78 71" fill="none" stroke="#111827" strokeWidth="5.5" strokeLinejoin="miter" />
-          <polygon points="36,53 36,78 78,78 78,71 58,71 58,62 47,62 47,53" fill="#111827" opacity="0.16" />
-          {/* Down arrow + walking person going down */}
-          <circle cx="52" cy="27" r="5" fill="#111827" />
-          <path d="M51 33 L50 45 L44 53 M53 35 L58 45 L62 56 M51 36 L43 41 M53 36 L61 42" stroke="#111827" strokeWidth="4.4" strokeLinecap="round" fill="none" />
-          {/* Blue down indicator arrow */}
-          <path d="M68 24 L68 42 M62 36 L68 43 L74 36" stroke="#0b63ce" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        </svg>
-      );
-
-    case 'ust_gecit':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Üst Geçit Levhası">
-          <rect x="4" y="4" width="92" height="92" rx="12" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <rect x="14" y="14" width="72" height="72" rx="6" fill="#ffffff" />
-          {/* Upward stairs */}
-          <path d="M22 73 L38 73 L38 64 L49 64 L49 55 L60 55 L60 46 L78 46" fill="none" stroke="#111827" strokeWidth="5.5" />
-          <polygon points="38,73 78,73 78,46 60,46 60,55 49,55 49,64 38,64" fill="#111827" opacity="0.16" />
-          {/* Person climbing up */}
-          <circle cx="48" cy="26" r="5" fill="#111827" />
-          <path d="M47 32 L45 45 L38 56 M49 34 L55 43 L54 53 M47 35 L38 41 M49 35 L58 37" stroke="#111827" strokeWidth="4.4" strokeLinecap="round" fill="none" />
-          {/* Blue up indicator arrow */}
-          <path d="M29 45 L29 27 M23 33 L29 26 L35 33" stroke="#0b63ce" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        </svg>
-      );
-
-    case 'yaya_gecidi_ucgen':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Yaya Geçidi Uyarı Levhası">
-          <polygon points="50,7 94,86 6,86" fill="#ffffff" stroke="#dc2626" strokeWidth="9" strokeLinejoin="round" />
-          <PedestrianWalking fill="#111827" tx={10} ty={20} scale={0.78} />
-          <rect x="24" y="75" width="7.5" height="4.8" rx="1" fill="#111827" />
-          <rect x="35.5" y="75" width="7.5" height="4.8" rx="1" fill="#111827" />
-          <rect x="47" y="75" width="7.5" height="4.8" rx="1" fill="#111827" />
-          <rect x="58.5" y="75" width="7.5" height="4.8" rx="1" fill="#111827" />
-          <rect x="69.5" y="75" width="6.5" height="4.8" rx="1" fill="#111827" />
-        </svg>
-      );
-
-    case 'okul_gecidi_ucgen':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Okul Geçidi Uyarı Levhası">
-          <polygon points="50,7 94,86 6,86" fill="#ffffff" stroke="#dc2626" strokeWidth="9" strokeLinejoin="round" />
-          <TwoSchoolChildren fill="#111827" tx={11} ty={23} scale={0.77} />
-        </svg>
-      );
-
-    case 'isikli_isaret':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Işıklı İşaret Cihazı Levhası">
-          <polygon points="50,7 94,86 6,86" fill="#ffffff" stroke="#dc2626" strokeWidth="9" strokeLinejoin="round" />
-          <rect x="40" y="32" width="20" height="47" rx="5" fill="#111827" />
-          <circle cx="50" cy="42" r="5.5" fill="#ef4444" />
-          <circle cx="50" cy="55.5" r="5.5" fill="#facc15" />
-          <circle cx="50" cy="69" r="5.5" fill="#22c55e" />
-        </svg>
-      );
-
-    case 'kontrolsuz_kavsak':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Kontrolsüz Kavşak Levhası">
-          <polygon points="50,7 94,86 6,86" fill="#ffffff" stroke="#dc2626" strokeWidth="9" strokeLinejoin="round" />
-          <path d="M36 46 L64 74 M64 46 L36 74" stroke="#111827" strokeWidth="10" strokeLinecap="butt" />
-        </svg>
-      );
-
-    case 'yolda_calisma':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Yolda Çalışma Levhası">
-          <polygon points="50,7 94,86 6,86" fill="#ffffff" stroke="#dc2626" strokeWidth="9" strokeLinejoin="round" />
-          {/* Worker */}
-          <circle cx="44" cy="42" r="5" fill="#111827" />
-          <path d="M42 49 L35 61 L30 76 M45 50 L49 62 L44 76 M43 51 L55 58 M41 53 L49 63" stroke="#111827" strokeWidth="4.6" strokeLinecap="round" fill="none" />
-          {/* Shovel */}
-          <path d="M46 53 L64 73" stroke="#111827" strokeWidth="3.6" strokeLinecap="round" />
-          {/* Dirt pile */}
-          <path d="M54 78 Q65 60 76 78 Z" fill="#111827" />
-        </svg>
-      );
-
-    case 'bisiklet_giremez':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Bisiklet Giremez Levhası">
-          <circle cx="50" cy="50" r="43" fill="#ffffff" stroke="#dc2626" strokeWidth="10" />
-          <BicycleGlyph color="#111827" tx={4} ty={4} scale={0.92} />
-        </svg>
-      );
-
-    case 'yaya_giremez':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Yaya Giremez Levhası">
-          <circle cx="50" cy="50" r="43" fill="#ffffff" stroke="#dc2626" strokeWidth="10" />
-          <PedestrianWalking fill="#111827" tx={0} ty={2} scale={1} />
-        </svg>
-      );
-
-    case 'mecburi_bisiklet':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Mecburi Bisiklet Yolu Levhası">
-          <circle cx="50" cy="50" r="44" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <circle cx="50" cy="50" r="39" fill="none" stroke="#ffffff" strokeWidth="2.2" />
-          <BicycleGlyph color="#ffffff" tx={4} ty={4} scale={0.92} />
-        </svg>
-      );
-
-    case 'mecburi_yaya':
-      return (
-        <svg viewBox="0 0 100 100" className={className} aria-label="Mecburi Yaya Yolu Levhası">
-          <circle cx="50" cy="50" r="44" fill="#0b63ce" stroke="#ffffff" strokeWidth="4" />
-          <circle cx="50" cy="50" r="39" fill="none" stroke="#ffffff" strokeWidth="2.2" />
-          {/* Adult + child holding hands */}
-          <circle cx="41" cy="27" r="6" fill="#ffffff" />
-          <path d="M35 36 L47 36 L46 56 L36 56 Z" fill="#ffffff" />
-          <path d="M38 56 L35 76 M44 56 L47 76 M36 39 L30 53 M46 39 L55 51" stroke="#ffffff" strokeWidth="5.2" strokeLinecap="round" />
-          <circle cx="62" cy="43" r="4.8" fill="#ffffff" />
-          <path d="M58 50 L66 50 L68 64 L56 64 Z" fill="#ffffff" />
-          <path d="M60 64 L58 76 M64 64 L66 76 M58 52 L54 51 M66 52 L71 60" stroke="#ffffff" strokeWidth="4.2" strokeLinecap="round" />
-        </svg>
-      );
-  }
+  const info = TRAFFIC_SIGNS[signId];
+  return (
+    <img
+      src={TRAFFIC_SIGN_IMAGES[signId]}
+      alt={info.name}
+      draggable={false}
+      className={`${className} object-contain select-none pointer-events-none rounded-lg`}
+    />
+  );
 };
 
 // ─── 30 VARIED DRAG-AND-DROP QUESTIONS (4 DISTINCT STYLES) ────────────────────
@@ -540,8 +348,8 @@ export const TRAFIK_QUESTIONS: TrafikQuestion[] = [
   {
     id: 'q5',
     style: 'match_pairs',
-    title: 'Sürücüleri Uyaran Levhalar',
-    instruction: 'Kırmızı üçgen levhaları doğru açıklamalarıyla eşleştir.',
+    title: 'Sürücüleri Uyaran Trafik İşaretleri',
+    instruction: 'Sürücüleri uyaran trafik işaretlerini doğru açıklamalarıyla eşleştir.',
     pairs: [
       { signId: 'isikli_isaret', targetLabel: 'Işıklı İşaret Cihazı', targetSub: 'İleride trafik ışıkları var' },
       { signId: 'kontrolsuz_kavsak', targetLabel: 'Kontrolsüz Kavşak', targetSub: 'Kavşağa yaklaşırken dikkatli ol' },
