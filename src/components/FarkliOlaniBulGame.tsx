@@ -16,6 +16,7 @@ import {
   getLevelSpec,
   LevelSpec,
 } from './farkliOlaniBulArt';
+import { useAppLanguage } from '../utils/appLanguage';
 
 interface FarkliOlaniBulGameProps {
   onClose: () => void;
@@ -34,13 +35,12 @@ type GameMode = 'solo' | 'duel';
 type ViewState = 'lobby' | 'play';
 type RoundStatus = 'playing' | 'found' | 'timeout' | 'category_complete' | 'duel_over';
 
-const STORAGE_KEY = 'farkli_olani_bul_progress_v1';
+const STORAGE_KEY = 'farkli_olani_bul_progress_v2';
 const DUEL_WIN_TARGET = 4; // İlk 4 puanı toplayan kazanır (en fazla 7 tur)
 
 const DEFAULT_PROGRESS: Record<FarkliCategoryId, number> = {
-  cats: 1,
+  faces: 1,
   animals: 1,
-  emojis: 1,
   fruits: 1,
   vehicles: 1,
   numbers: 1,
@@ -53,9 +53,8 @@ const loadProgress = (): Record<FarkliCategoryId, number> => {
     if (!raw) return { ...DEFAULT_PROGRESS };
     const parsed = JSON.parse(raw);
     return {
-      cats: Math.max(1, Math.min(20, Number(parsed.cats) || 1)),
+      faces: Math.max(1, Math.min(20, Number(parsed.faces) || 1)),
       animals: Math.max(1, Math.min(20, Number(parsed.animals) || 1)),
-      emojis: Math.max(1, Math.min(20, Number(parsed.emojis) || 1)),
       fruits: Math.max(1, Math.min(20, Number(parsed.fruits) || 1)),
       vehicles: Math.max(1, Math.min(20, Number(parsed.vehicles) || 1)),
       numbers: Math.max(1, Math.min(20, Number(parsed.numbers) || 1)),
@@ -81,17 +80,11 @@ const formatClock = (seconds: number): string => {
   return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
 };
 
-// Her kart için referans görseldeki gibi doğal hafif kağıt eğimi (-2° .. +2°)
-const getTileTiltDeg = (index: number, seed: number): number => {
-  const tilts = [-1.8, 1.4, -1.1, 1.9, -1.5, 0.9, -1.7, 1.2, -0.8, 1.6, -1.4, 1.1];
-  return tilts[(index * 7 + seed * 3) % tilts.length];
-};
-
 const getDuelGridForRound = (round: number): { cols: number; rows: number } => {
-  if (round <= 1) return { cols: 3, rows: 3 };
-  if (round <= 3) return { cols: 4, rows: 3 };
-  if (round <= 5) return { cols: 4, rows: 4 };
-  return { cols: 5, rows: 4 };
+  if (round <= 2) return { cols: 3, rows: 2 }; // 6 kart
+  if (round <= 4) return { cols: 4, rows: 2 }; // 8 kart
+  if (round <= 6) return { cols: 5, rows: 2 }; // 10 kart
+  return { cols: 4, rows: 3 }; // 12 kart
 };
 
 export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
@@ -106,10 +99,12 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
   onOpenRosterModal,
   onGameCompleted,
 }) => {
+  const { effectiveLang } = useAppLanguage();
+  const isEn = effectiveLang === 'en';
   const [view, setView] = useState<ViewState>('lobby');
   const [mode, setMode] = useState<GameMode>('solo');
   const [progress, setProgress] = useState<Record<FarkliCategoryId, number>>(loadProgress);
-  const [activeCategory, setActiveCategory] = useState<FarkliCategoryId>('cats');
+  const [activeCategory, setActiveCategory] = useState<FarkliCategoryId>('faces');
   const [currentLevel, setCurrentLevel] = useState<number>(1);
 
   // Oyun içi durumlar
@@ -182,13 +177,14 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
 
   const p1Student = selectedStudentIds[0] ? students?.find(s => s.id === selectedStudentIds[0]) : null;
   const p2Student = selectedStudentIds[1] ? students?.find(s => s.id === selectedStudentIds[1]) : null;
-  const p1Label = p1Student ? p1Student.name : '1. Oyuncu';
-  const p2Label = p2Student ? p2Student.name : '2. Oyuncu';
+  const p1Label = p1Student ? p1Student.name : (isEn ? 'Player 1' : '1. Oyuncu');
+  const p2Label = p2Student ? p2Student.name : (isEn ? 'Player 2' : '2. Oyuncu');
 
   const categoryMeta = useMemo(
     () => FARKLI_CATEGORIES.find(c => c.id === activeCategory) || FARKLI_CATEGORIES[0],
     [activeCategory]
   );
+  const categoryTitle = isEn ? categoryMeta.titleEn : categoryMeta.title;
 
   // Aktif seviye / düello turu spesifikasyonu
   const activeSpec: LevelSpec = useMemo(() => {
@@ -472,14 +468,14 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
           <div className="flex flex-col min-w-0 ml-0.5">
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-base font-black tracking-wide text-cyan-300 uppercase whitespace-nowrap">
-                Farklı Olanı Bul
+                {isEn ? 'Spot the Odd One' : 'Farklı Olanı Bul'}
               </h1>
               <span className="hidden md:inline text-xs font-semibold text-slate-400 whitespace-nowrap">
-                · Görsel Dikkat Oyunları
+                {isEn ? '· Visual Attention Games' : '· Görsel Dikkat Oyunları'}
               </span>
             </div>
             <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden lg:inline truncate">
-              7 kategori · 140 seviye · Tek kişi veya 2 kişilik düello
+              {isEn ? '6 categories · 120 levels · Solo or 2-player duel' : '6 kategori · 120 seviye · Tek kişi veya 2 kişilik düello'}
             </span>
           </div>
         </div>
@@ -501,7 +497,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                 }`}
               >
                 <User size={14} />
-                <span>Tek Kişi</span>
+                <span>{isEn ? 'Solo' : 'Tek Kişi'}</span>
               </button>
               <button
                 type="button"
@@ -516,27 +512,27 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                 }`}
               >
                 <Zap size={14} />
-                <span>Düello (2K)</span>
+                <span>{isEn ? 'Duel (2P)' : 'Düello (2K)'}</span>
               </button>
             </div>
           ) : mode === 'solo' ? (
             <div className="hidden sm:flex items-center gap-3 text-xs font-mono tabular-nums text-slate-200 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80">
               <span className={`font-sans font-black ${categoryMeta.accentText}`}>
-                {categoryMeta.title}
+                {categoryTitle}
               </span>
               <span className="text-slate-600">·</span>
               <span>
-                Seviye <strong className="text-white">{currentLevel}/20</strong>
+                {isEn ? 'Level' : 'Seviye'} <strong className="text-white">{currentLevel}/20</strong>
               </span>
               <span className="text-slate-600">·</span>
               <span className={mistakes > 0 ? 'text-rose-300 font-bold' : 'text-slate-300'}>
-                Hata <strong className="text-white">{mistakes}</strong>
+                {isEn ? 'Mistakes' : 'Hata'} <strong className="text-white">{mistakes}</strong>
               </span>
               <span className="text-slate-600">·</span>
               <span className={`inline-flex items-center gap-1 font-bold ${timeLeft <= 8 ? 'text-rose-400' : 'text-cyan-300'}`}>
                 <Clock size={13} />
                 {formatClock(timeLeft)}
-                {penaltyFlash && <span className="text-rose-400 font-black ml-0.5">-2sn</span>}
+                {penaltyFlash && <span className="text-rose-400 font-black ml-0.5">{isEn ? '-2s' : '-2sn'}</span>}
               </span>
             </div>
           ) : (
@@ -546,7 +542,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               </span>
               <span className="text-slate-500">·</span>
               <span className="text-amber-300 font-bold font-sans">
-                {categoryMeta.title} · Tur {duelRound}
+                {categoryTitle} · {isEn ? 'Round' : 'Tur'} {duelRound}
               </span>
               <span className="text-slate-500">·</span>
               <span className="text-orange-300 font-black">
@@ -564,10 +560,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               onClick={handleUseHint}
               disabled={hintUsed || roundStatus !== 'playing'}
               className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-35 disabled:cursor-not-allowed text-amber-200 border border-amber-400/50 flex items-center gap-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap"
-              title="Doğru satırı göster (seviye başına 1 kez)"
+              title={isEn ? 'Highlight the correct row (once per level)' : 'Doğru satırı göster (seviye başına 1 kez)'}
             >
               <Lightbulb size={15} />
-              <span className="hidden lg:inline">İpucu</span>
+              <span className="hidden lg:inline">{isEn ? 'Hint' : 'İpucu'}</span>
             </button>
           )}
 
@@ -575,10 +571,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
             type="button"
             onClick={() => setShowRulesModal(true)}
             className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-cyan-400/40 flex items-center gap-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap"
-            title="Oyun Kuralları"
+            title={isEn ? 'Game Rules' : 'Oyun Kuralları'}
           >
             <HelpCircle size={16} />
-            <span className="hidden lg:inline">Kurallar</span>
+            <span className="hidden lg:inline">{isEn ? 'Rules' : 'Kurallar'}</span>
           </button>
 
           {view === 'play' && (
@@ -603,19 +599,26 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
           {/* ÜST BAŞLIK BLOĞU (Tam opak, net okunaklı çerçeve) */}
           <div className="w-full flex flex-col gap-1 text-left bg-[#0b1324] border-2 border-cyan-400/50 rounded-2xl px-4 sm:px-6 py-3.5 shadow-[0_12px_28px_rgba(0,0,0,0.6)]">
             <div className="text-xs font-bold text-cyan-300 tracking-wide">
-              7 Oyun · 140 Seviye · {mode === 'solo' ? 'Tek Kişilik İlerleme' : '2 Kişilik Hız Düellosu'}
+              {isEn
+                ? `6 Categories · 120 Levels · ${mode === 'solo' ? 'Solo Progression' : '2-Player Speed Duel'}`
+                : `6 Kategori · 120 Seviye · ${mode === 'solo' ? 'Tek Kişilik İlerleme' : '2 Kişilik Hız Düellosu'}`}
             </div>
             <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight [text-wrap:balance]">
-              Bir oyun seç,{' '}
-              <span className="text-amber-300">farkı yakala.</span>
+              {isEn ? (
+                <>Pick a set, <span className="text-amber-300">spot the odd one.</span></>
+              ) : (
+                <>Bir oyun seç, <span className="text-amber-300">farkı yakala.</span></>
+              )}
             </h2>
             <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
-              Bir tanesinin bir ayrıntısı eksik: bir bıyık, bir parıltı, bir yaprak veya küçük bir çizgi. Seviye yükseldikçe kalabalık artar, fark küçülür.
+              {isEn
+                ? 'One tile hides a subtle difference among colorful 3D icons: a different expression, angle, color, or symbol. Grids grow larger as levels rise!'
+                : 'Canlı 3D görsellerden yalnızca bir tanesi diğerlerinden farklı! Seviye yükseldikçe kartlar çoğalır, fark daha dikkat gerektirir.'}
             </p>
           </div>
 
-          {/* 7 KATEGORİ KARTI IZGARASI (Tam opak yüksek kontrast kartlar) */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5 my-auto">
+          {/* 6 KATEGORİ KARTI IZGARASI (Dengeli 3x2 yüksek kontrast kartlar) */}
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 my-auto">
             {FARKLI_CATEGORIES.map(cat => {
               const unlocked = progress[cat.id] || 1;
               return (
@@ -623,7 +626,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                   key={cat.id}
                   type="button"
                   onClick={() => handleSelectCategory(cat.id)}
-                  className={`group relative overflow-hidden flex flex-col justify-between text-left p-4 pt-5 rounded-2xl ${cat.cardBg} border-2 ${cat.borderColor} shadow-[0_12px_26px_rgba(0,0,0,0.65)] hover:-translate-y-1 active:translate-y-0 transition-all duration-150 cursor-pointer min-h-[172px] sm:min-h-[186px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300`}
+                  className={`group relative overflow-hidden flex flex-col justify-between text-left p-4 pt-5 rounded-2xl ${cat.cardBg} border-2 ${cat.borderColor} shadow-[0_12px_26px_rgba(0,0,0,0.65)] hover:-translate-y-1 active:translate-y-0 transition-all duration-150 cursor-pointer min-h-[168px] sm:min-h-[182px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300`}
                 >
                   {/* Üst Canlı Renk Şeridi */}
                   <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${cat.topBarGradient}`} />
@@ -631,23 +634,25 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                   <div>
                     {/* 3D Canlı İkon Kutusu */}
                     <div
-                      className={`w-13 h-13 rounded-2xl ${cat.iconBg} border-2 border-white/90 shadow-[0_6px_14px_rgba(0,0,0,0.45)] flex items-center justify-center p-1 mb-3 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-150`}
+                      className={`w-16 h-16 sm:w-[70px] sm:h-[70px] rounded-2xl ${cat.iconBg} border-2 border-white/95 shadow-[0_8px_18px_rgba(0,0,0,0.48)] flex items-center justify-center p-1.5 mb-3 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-150`}
                     >
                       <CategoryEmblem category={cat.id} />
                     </div>
 
                     <h3 className="text-base sm:text-lg font-black text-white tracking-tight leading-snug">
-                      {cat.title}
+                      {isEn ? cat.titleEn : cat.title}
                     </h3>
                     <p className="text-xs text-slate-200 mt-1 leading-relaxed">
-                      {cat.description}
+                      {isEn ? cat.descriptionEn : cat.description}
                     </p>
                   </div>
 
                   {/* Alt İlerleme & Başlat Oku */}
                   <div className="mt-4 pt-2.5 border-t border-slate-700/80 flex items-center justify-between gap-2">
                     <span className={`text-xs font-mono tabular-nums font-bold ${cat.accentText}`}>
-                      {mode === 'duel' ? '7 Turlu Yarış' : `${unlocked}/20. seviye`}
+                      {mode === 'duel'
+                        ? (isEn ? '7-Round Duel' : '7 Turlu Yarış')
+                        : (isEn ? `Level ${unlocked}/20` : `${unlocked}/20. seviye`)}
                     </span>
                     <span
                       className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-150 group-hover:translate-x-0.5 shadow ${cat.accentBtn}`}
@@ -664,7 +669,11 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
           <div className="w-full px-4 py-2.5 rounded-2xl bg-[#0b1324] border border-cyan-400/50 shadow-lg flex items-center gap-2.5 text-xs sm:text-sm text-slate-100 shrink-0">
             <Lightbulb size={16} className="text-amber-300 shrink-0" />
             <span>
-              <strong className="text-amber-300">İpucu:</strong> Şeklin tamamına değil; bıyıklara, göz ışıltılarına, yaprak damarlarına ve küçük çizgilere bak.
+              {isEn ? (
+                <><strong className="text-amber-300">Tip:</strong> Scan row by row and watch expressions, directions, shapes, and colors carefully.</>
+              ) : (
+                <><strong className="text-amber-300">İpucu:</strong> Satır satır tara; yüz ifadelerine, yönlere, renklere ve küçük detaylara dikkat et.</>
+              )}
             </span>
           </div>
         </main>
@@ -679,22 +688,24 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               className="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition cursor-pointer whitespace-nowrap shrink-0"
             >
               <ArrowLeft size={14} />
-              <span>Oyunlar</span>
+              <span>{isEn ? 'Games' : 'Oyunlar'}</span>
             </button>
 
             <div className="flex-1 flex flex-col items-center text-center min-w-0 px-1">
               {roundStatus === 'found' ? (
                 <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm md:text-base font-black text-emerald-300 truncate">
                   <Check size={16} className="shrink-0" />
-                  <span className="truncate">Harika! {activeSpec.diffLabel}</span>
+                  <span className="truncate">
+                    {isEn ? `Awesome! ${activeSpec.diffLabelEn}` : `Harika! ${activeSpec.diffLabel}`}
+                  </span>
                 </div>
               ) : (
                 <>
                   <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${categoryMeta.accentText}`}>
-                    {categoryMeta.title} · {currentLevel}. Seviye
+                    {isEn ? `${categoryTitle} · Level ${currentLevel}` : `${categoryTitle} · ${currentLevel}. Seviye`}
                   </span>
                   <h2 className="text-sm sm:text-lg md:text-xl font-black text-white tracking-tight leading-tight truncate max-w-full">
-                    Diğerlerinden farklı olanı bul
+                    {isEn ? 'Find the odd one out' : 'Diğerlerinden farklı olanı bul'}
                   </h2>
                 </>
               )}
@@ -711,19 +722,19 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                   disabled={currentLevel <= 1}
                   onClick={() => setupSoloLevel(activeCategory, currentLevel - 1)}
                   className="w-7 h-7 rounded-lg hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-200 cursor-pointer"
-                  title="Önceki Seviye"
+                  title={isEn ? 'Previous Level' : 'Önceki Seviye'}
                 >
                   <ChevronLeft size={15} />
                 </button>
                 <span className="px-2 text-xs font-mono tabular-nums font-black text-amber-300 whitespace-nowrap">
-                  Seviye {currentLevel}
+                  {isEn ? `Level ${currentLevel}` : `Seviye ${currentLevel}`}
                 </span>
                 <button
                   type="button"
                   disabled={currentLevel >= maxUnlocked || currentLevel >= 20}
                   onClick={() => setupSoloLevel(activeCategory, currentLevel + 1)}
                   className="w-7 h-7 rounded-lg hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-200 cursor-pointer"
-                  title="Sonraki Açık Seviye"
+                  title={isEn ? 'Next Unlocked Level' : 'Sonraki Açık Seviye'}
                 >
                   <ChevronRight size={15} />
                 </button>
@@ -754,7 +765,6 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                   const isWrong = wrongTileIdx === idx;
                   const rowIdx = Math.floor(idx / activeSpec.cols);
                   const isHintedRow = hintRow === rowIdx && roundStatus === 'playing';
-                  const tilt = getTileTiltDeg(idx, roundSeed);
 
                   return (
                     <button
@@ -762,11 +772,9 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                       type="button"
                       onClick={() => handleSoloTileClick(idx)}
                       style={{
-                        transform: isRevealed
-                          ? 'rotate(0deg) scale(1.04)'
-                          : `rotate(${tilt}deg)`,
+                        transform: isRevealed ? 'scale(1.04)' : undefined,
                       }}
-                      className={`relative w-full h-full min-h-0 min-w-0 rounded-xl sm:rounded-2xl bg-white border-2 flex items-center justify-center p-1 sm:p-2 transition-transform duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-cyan-500 ${
+                      className={`relative w-full h-full min-h-0 min-w-0 rounded-xl sm:rounded-2xl bg-white border-2 flex items-center justify-center p-1.5 sm:p-2.5 transition-transform duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-cyan-500 ${
                         isRevealed
                           ? 'border-emerald-500 ring-4 ring-emerald-400/80 shadow-[0_0_24px_rgba(16,185,129,0.55)] z-20'
                           : isWrong
@@ -776,7 +784,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                               : 'border-slate-900 shadow-[0_2px_0_rgba(15,23,42,0.18)] hover:scale-[1.03] hover:z-10 active:scale-95'
                       }`}
                     >
-                      <div className="w-full h-full max-w-[118px] max-h-[118px] flex items-center justify-center">
+                      <div className="w-full h-full max-w-[144px] max-h-[144px] flex items-center justify-center">
                         <TileArtwork category={activeCategory} spec={activeSpec} isOdd={isOdd} />
                       </div>
 
@@ -788,7 +796,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
 
                       {isWrong && (
                         <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black shadow">
-                          -2sn
+                          {isEn ? '-2s' : '-2sn'}
                         </span>
                       )}
                     </button>
@@ -802,8 +810,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
           <div className="w-full max-w-[1120px] flex items-center gap-3 px-1 shrink-0">
             <span className="text-[11px] sm:text-xs text-slate-300 font-medium whitespace-nowrap flex items-center gap-1.5 shrink-0">
               <AlertCircle size={13} className="text-amber-300 shrink-0" />
-              <span className="hidden xs:inline">Yanlış dokunuş süreden 2 saniye götürür.</span>
-              <span className="xs:hidden">Yanlış: -2 sn</span>
+              <span className="hidden xs:inline">
+                {isEn ? 'Each wrong tap deducts 2 seconds.' : 'Yanlış dokunuş süreden 2 saniye götürür.'}
+              </span>
+              <span className="xs:hidden">{isEn ? 'Wrong: -2s' : 'Yanlış: -2 sn'}</span>
             </span>
             <div className="flex-1 h-2.5 sm:h-3 rounded-full bg-slate-900 border border-slate-700 overflow-hidden shadow-inner">
               <div
@@ -837,17 +847,19 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
             <div className="text-center flex-1 min-w-0">
               {duelRoundWinner !== null ? (
                 <span className="text-xs sm:text-sm font-black text-emerald-300">
-                  {duelRoundWinner === 1 ? p1Label : p2Label} farkı yakaladı! ({activeSpec.diffLabel})
+                  {duelRoundWinner === 1 ? p1Label : p2Label} {isEn ? 'spotted it!' : 'farkı yakaladı!'} ({isEn ? activeSpec.diffLabelEn : activeSpec.diffLabel})
                 </span>
               ) : (
                 <span className="text-xs sm:text-sm font-bold text-slate-200">
-                  Farklı olanı ilk bulan puanı kapar · İlk {DUEL_WIN_TARGET} puana ulaşan kazanır
+                  {isEn
+                    ? `First to spot the odd one scores · First to ${DUEL_WIN_TARGET} points wins`
+                    : `Farklı olanı ilk bulan puanı kapar · İlk ${DUEL_WIN_TARGET} puana ulaşan kazanır`}
                 </span>
               )}
             </div>
 
             <span className="text-xs font-mono tabular-nums font-bold text-amber-300 whitespace-nowrap">
-              Tur {duelRound}
+              {isEn ? `Round ${duelRound}` : `Tur ${duelRound}`}
             </span>
           </div>
 
@@ -924,7 +936,6 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                         const isOdd = idx === oddIndex;
                         const isRevealed = roundStatus === 'found' && isOdd;
                         const isWrong = wrongIdx === idx;
-                        const tilt = getTileTiltDeg(idx, roundSeed);
 
                         return (
                           <button
@@ -933,11 +944,9 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                             disabled={isFrozen || roundStatus !== 'playing'}
                             onClick={() => handleDuelTileClick(player, idx)}
                             style={{
-                              transform: isRevealed
-                                ? 'rotate(0deg) scale(1.04)'
-                                : `rotate(${tilt}deg)`,
+                              transform: isRevealed ? 'scale(1.04)' : undefined,
                             }}
-                            className={`relative w-full h-full min-h-0 min-w-0 rounded-xl bg-white border-2 flex items-center justify-center p-1 transition-transform duration-150 cursor-pointer disabled:cursor-not-allowed ${
+                            className={`relative w-full h-full min-h-0 min-w-0 rounded-xl bg-white border-2 flex items-center justify-center p-1.5 transition-transform duration-150 cursor-pointer disabled:cursor-not-allowed ${
                               isRevealed
                                 ? 'border-emerald-500 ring-4 ring-emerald-400/80 z-20'
                                 : isWrong
@@ -945,7 +954,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                                   : 'border-slate-900 hover:scale-[1.03] active:scale-95'
                             }`}
                           >
-                            <div className="w-full h-full max-w-[92px] max-h-[92px] flex items-center justify-center">
+                            <div className="w-full h-full max-w-[110px] max-h-[110px] flex items-center justify-center">
                               <TileArtwork category={activeCategory} spec={activeSpec} isOdd={isOdd} />
                             </div>
                             {isRevealed && (
@@ -963,7 +972,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                       <div className="absolute inset-0 bg-rose-950/60 backdrop-blur-[1px] flex items-center justify-center z-30">
                         <div className="px-4 py-2 rounded-xl bg-rose-600 text-white font-black text-xs sm:text-sm shadow-lg flex items-center gap-1.5">
                           <X size={16} strokeWidth={3} />
-                          <span>Yanlış! Kısa mola...</span>
+                          <span>{isEn ? 'Wrong! Short pause...' : 'Yanlış! Kısa mola...'}</span>
                         </div>
                       </div>
                     )}
@@ -999,10 +1008,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
             <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
               <div>
                 <h2 className="text-base sm:text-lg font-black text-cyan-300">
-                  Farklı Olanı Bul · Nasıl Oynanır?
+                  {isEn ? 'Spot the Odd One · How to Play?' : 'Farklı Olanı Bul · Nasıl Oynanır?'}
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  7 Kategori · 140 Seviye · Tek Kişi &amp; 2 Kişilik Düello
+                  {isEn ? '6 Categories · 120 Levels · Solo & 2-Player Duel' : '6 Kategori · 120 Seviye · Tek Kişi & 2 Kişilik Düello'}
                 </p>
               </div>
               <button
@@ -1016,16 +1025,28 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
 
             <div className="space-y-2.5 text-xs sm:text-sm leading-relaxed">
               <div className="p-3 rounded-2xl bg-slate-800/75 border border-slate-700">
-                <strong className="text-cyan-300 block mb-0.5">1. Küçük Ayrıntıyı Yakala</strong>
-                Tahtadaki tüm kartlar birbirinin aynısıdır — yalnızca <strong>1 tanesinde</strong> küçük bir ayrıntı farklıdır (eksik bir bıyık, siyah çerçevesi olmayan bir göz, eksik bir yaprak damarı veya karışan bir harf/rakam).
+                <strong className="text-cyan-300 block mb-0.5">
+                  {isEn ? '1. Spot the Subtle Detail' : '1. Küçük Ayrıntıyı Yakala'}
+                </strong>
+                {isEn
+                  ? 'All tiles on the board match except ONE tile that shows a different icon, orientation, or subtle twist.'
+                  : 'Tahtadaki tüm kartlar birbirinin aynısıdır — yalnızca 1 tanesinde farklı bir simge, yön veya küçük bir ayrıntı bulunur.'}
               </div>
               <div className="p-3 rounded-2xl bg-slate-800/75 border border-slate-700">
-                <strong className="text-amber-300 block mb-0.5">2. Süre ve Hata Cezası (Tek Kişi)</strong>
-                Seviye yükseldikçe kart sayısı 9&apos;dan 42&apos;ye kadar artar. Her yanlış dokunuş sürenden <strong>2 saniye</strong> götürür. Zorlandığında her seviyede 1 kez <strong>İpucu</strong> butonunu kullanabilirsin.
+                <strong className="text-amber-300 block mb-0.5">
+                  {isEn ? '2. Timer & Mistake Penalty (Solo)' : '2. Süre ve Hata Cezası (Tek Kişi)'}
+                </strong>
+                {isEn
+                  ? 'As levels go up, the board grows from 6 up to 15 tiles. Each wrong tap deducts 2 seconds. You can use the Hint button once per level.'
+                  : 'Seviye yükseldikçe kart sayısı 6\'dan 15\'e kadar artar. Her yanlış dokunuş sürenden 2 saniye götürür. Zorlandığında her seviyede 1 kez İpucu butonunu kullanabilirsin.'}
               </div>
               <div className="p-3 rounded-2xl bg-slate-800/75 border border-slate-700">
-                <strong className="text-purple-300 block mb-0.5">3. 2 Kişilik Düello Modu</strong>
-                İki oyuncu aynı bulmacada yan yana yarışır! Farklı kartı ilk dokunan puanı kapar. Yanlış dokunan oyuncu 1.5 saniye bekler. İlk <strong>{DUEL_WIN_TARGET} puana</strong> ulaşan düelloyu kazanır.
+                <strong className="text-purple-300 block mb-0.5">
+                  {isEn ? '3. 2-Player Duel Mode' : '3. 2 Kişilik Düello Modu'}
+                </strong>
+                {isEn
+                  ? `Two players race side by side on the same board! First to tap the odd tile scores. A wrong tap freezes that player for 1.5s. First to ${DUEL_WIN_TARGET} points wins.`
+                  : `İki oyuncu aynı bulmacada yan yana yarışır! Farklı kartı ilk dokunan puanı kapar. Yanlış dokunan oyuncu 1.5 saniye bekler. İlk ${DUEL_WIN_TARGET} puana ulaşan düelloyu kazanır.`}
               </div>
             </div>
 
@@ -1034,7 +1055,7 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               onClick={() => setShowRulesModal(false)}
               className="mt-4 w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-sm uppercase tracking-wide cursor-pointer transition-colors"
             >
-              Anladım, Oyuna Başla
+              {isEn ? 'Got It, Let\'s Play' : 'Anladım, Oyuna Başla'}
             </button>
           </div>
         </div>
@@ -1047,9 +1068,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
             <div className="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-400 flex items-center justify-center mb-3 text-rose-300">
               <Clock size={28} />
             </div>
-            <h3 className="text-xl font-black text-white mb-1">Süre Doldu!</h3>
+            <h3 className="text-xl font-black text-white mb-1">{isEn ? 'Time\'s Up!' : 'Süre Doldu!'}</h3>
             <p className="text-xs sm:text-sm text-slate-300 mb-3">
-              Fark şuydu: <strong className="text-amber-300">{activeSpec.diffLabel}</strong>
+              {isEn ? 'The difference was:' : 'Fark şuydu:'}{' '}
+              <strong className="text-amber-300">{isEn ? activeSpec.diffLabelEn : activeSpec.diffLabel}</strong>
             </p>
             <div className="w-full flex items-center gap-2">
               <button
@@ -1057,14 +1079,14 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                 onClick={() => setupSoloLevel(activeCategory, currentLevel)}
                 className="flex-1 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-sm cursor-pointer transition-colors"
               >
-                Tekrar Dene
+                {isEn ? 'Try Again' : 'Tekrar Dene'}
               </button>
               <button
                 type="button"
                 onClick={handleBackToLobby}
                 className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 cursor-pointer transition-colors"
               >
-                Oyunlar
+                {isEn ? 'Games' : 'Oyunlar'}
               </button>
             </div>
           </div>
@@ -1079,13 +1101,15 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               <Trophy size={32} className="text-slate-950" />
             </div>
             <span className="text-xs font-bold text-amber-300 uppercase tracking-widest mb-1">
-              20 / 20 Seviye Tamamlandı
+              {isEn ? '20 / 20 Levels Complete' : '20 / 20 Seviye Tamamlandı'}
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-white mb-1.5">
-              {categoryMeta.title} Ustası!
+              {isEn ? `${categoryTitle} Master!` : `${categoryTitle} Ustası!`}
             </h3>
             <p className="text-slate-300 text-xs sm:text-sm mb-4">
-              Bütün seviyelerdeki gizli farkları başarıyla yakaladın!
+              {isEn
+                ? 'You spotted every hidden difference across all levels!'
+                : 'Bütün seviyelerdeki gizli farkları başarıyla yakaladın!'}
             </p>
             <div className="flex items-center gap-2 w-full">
               <button
@@ -1093,14 +1117,14 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                 onClick={() => setupSoloLevel(activeCategory, 1)}
                 className="flex-1 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-sm cursor-pointer transition-colors"
               >
-                Baştan Oyna
+                {isEn ? 'Play Again' : 'Baştan Oyna'}
               </button>
               <button
                 type="button"
                 onClick={handleBackToLobby}
                 className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 cursor-pointer transition-colors"
               >
-                Diğer Oyunlar
+                {isEn ? 'Other Games' : 'Diğer Oyunlar'}
               </button>
             </div>
           </div>
@@ -1121,10 +1145,10 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
               <Trophy size={32} className="text-white" />
             </div>
             <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest mb-1">
-              Düello Bitti
+              {isEn ? 'Duel Over' : 'Düello Bitti'}
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-white mb-1.5">
-              {duelMatchWinner === 1 ? p1Label : p2Label} Kazandı!
+              {duelMatchWinner === 1 ? p1Label : p2Label} {isEn ? 'Won!' : 'Kazandı!'}
             </h3>
             <div className="w-full flex items-center justify-center gap-4 text-xs font-mono tabular-nums text-slate-300 mb-4 py-2 px-3 rounded-xl bg-slate-900 border border-slate-800">
               <span className="text-purple-300 font-bold">
@@ -1141,14 +1165,14 @@ export const FarkliOlaniBulGame: React.FC<FarkliOlaniBulGameProps> = ({
                 onClick={() => setupDuelRound(activeCategory, 1, true)}
                 className="flex-1 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-sm cursor-pointer transition-colors"
               >
-                Tekrar Düello
+                {isEn ? 'Rematch' : 'Tekrar Düello'}
               </button>
               <button
                 type="button"
                 onClick={handleBackToLobby}
                 className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 cursor-pointer transition-colors"
               >
-                Oyunlar
+                {isEn ? 'Games' : 'Oyunlar'}
               </button>
             </div>
           </div>

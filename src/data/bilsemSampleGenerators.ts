@@ -263,7 +263,24 @@ const FRUIT_PAIRS: { a: string; b: string; aName: string; bName: string }[] = [
   { a: 'apple', b: 'plum', aName: 'elma', bName: 'erik' },
   { a: 'orange', b: 'lemon', aName: 'portakal', bName: 'limon' },
   { a: 'plum', b: 'strawberry', aName: 'erik', bName: 'çilek' },
+  { a: 'apple', b: 'strawberry', aName: 'elma', bName: 'çilek' },
+  { a: 'pear', b: 'plum', aName: 'armut', bName: 'erik' },
+  { a: 'orange', b: 'pear', aName: 'portakal', bName: 'armut' },
+  { a: 'plum', b: 'lemon', aName: 'erik', bName: 'limon' },
+  { a: 'strawberry', b: 'lemon', aName: 'çilek', bName: 'limon' },
+  { a: 'apple', b: 'orange', aName: 'elma', bName: 'portakal' },
 ];
+
+type FruitEqTemplate = {
+  ratio: number; // 1 A = ratio * B
+  eq1A: number;  // sol taraftaki A sayısı (sağ taraf: (eq1A + eq1Gain) A)
+  eq1Gain: number; // sol tarafta eq1Gain*ratio adet B var -> eq1Gain adet A'ya denk
+  eq2A: number;
+  eq2B: number;
+  ansA: number;
+  ansB: number;
+  mode: 'toA' | 'toB';
+};
 
 export const generateFruitEquationQuestions = (
   prefix: string,
@@ -271,56 +288,84 @@ export const generateFruitEquationQuestions = (
   seed: number
 ): QuizVisualQuestion[] => {
   const rnd = makeRng(seed);
-  // 1 A = ratio * B  (ratio = 2 veya 3)
-  // Row 1: a1 A + ratio B = (a1 + 1) A
-  // Row 2: a2 A + (k*ratio + rem) B = (a2 + k) A + rem B
-  const templates = [
-    { ratio: 2, a1: 2, a2: 3, k: 1, rem: 1 }, // 2A+2B=3A, 3A+3B = 4A+1B (Q13 birebir kalıbı!)
-    { ratio: 2, a1: 1, a2: 2, k: 1, rem: 1 }, // 1A+2B=2A, 2A+3B = 3A+1B
-    { ratio: 2, a1: 2, a2: 1, k: 2, rem: 0 }, // 2A+2B=3A, 1A+4B = 3A
-    { ratio: 2, a1: 1, a2: 2, k: 2, rem: 1 }, // 1A+2B=2A, 2A+5B = 4A+1B
-    { ratio: 3, a1: 1, a2: 2, k: 1, rem: 1 }, // 1A+3B=2A, 2A+4B = 3A+1B
-    { ratio: 3, a1: 2, a2: 1, k: 1, rem: 2 }, // 2A+3B=3A, 1A+5B = 2A+2B
-    { ratio: 2, a1: 3, a2: 2, k: 1, rem: 1 }, // 3A+2B=4A, 2A+3B = 3A+1B
-    { ratio: 2, a1: 1, a2: 3, k: 1, rem: 1 }, // 1A+2B=2A, 3A+3B = 4A+1B
+
+  // Her biri farklı sonuç (ansA, ansB) ve farklı işlem adımı üreten 14 zengin kalıp:
+  // Hem B'leri A'ya dönüştüren ('toA') hem A'ları B'ye açan ('toB') sorular içerir.
+  const templates: FruitEqTemplate[] = [
+    // 1A = 2B (oran 2) - farklı sonuçlar
+    { ratio: 2, eq1A: 1, eq1Gain: 1, eq2A: 2, eq2B: 2, ansA: 3, ansB: 0, mode: 'toA' }, // 1A+2B=2A -> 2A+2B = 3A
+    { ratio: 2, eq1A: 2, eq1Gain: 1, eq2A: 1, eq2B: 4, ansA: 3, ansB: 0, mode: 'toA' }, // 2A+2B=3A -> 1A+4B = 3A
+    { ratio: 2, eq1A: 1, eq1Gain: 1, eq2A: 2, eq2B: 3, ansA: 3, ansB: 1, mode: 'toA' }, // 1A+2B=2A -> 2A+3B = 3A+1B
+    { ratio: 2, eq1A: 2, eq1Gain: 1, eq2A: 2, eq2B: 4, ansA: 4, ansB: 0, mode: 'toA' }, // 2A+2B=3A -> 2A+4B = 4A
+    { ratio: 2, eq1A: 0, eq1Gain: 1, eq2A: 1, eq2B: 3, ansA: 2, ansB: 1, mode: 'toA' }, // 2B=1A    -> 1A+3B = 2A+1B
+    { ratio: 2, eq1A: 1, eq1Gain: 1, eq2A: 3, eq2B: 4, ansA: 5, ansB: 0, mode: 'toA' }, // 1A+2B=2A -> 3A+4B = 5A
+    { ratio: 2, eq1A: 0, eq1Gain: 1, eq2A: 2, eq2B: 1, ansA: 0, ansB: 5, mode: 'toB' }, // 2B=1A    -> 2A+1B = 5B
+    { ratio: 2, eq1A: 1, eq1Gain: 1, eq2A: 2, eq2B: 0, ansA: 0, ansB: 4, mode: 'toB' }, // 1A+2B=2A -> 2A    = 4B
+    { ratio: 2, eq1A: 2, eq1Gain: 1, eq2A: 1, eq2B: 1, ansA: 0, ansB: 3, mode: 'toB' }, // 2A+2B=3A -> 1A+1B = 3B
+    // 1A = 3B (oran 3) - farklı sonuçlar
+    { ratio: 3, eq1A: 1, eq1Gain: 1, eq2A: 1, eq2B: 5, ansA: 2, ansB: 2, mode: 'toA' }, // 1A+3B=2A -> 1A+5B = 2A+2B
+    { ratio: 3, eq1A: 0, eq1Gain: 1, eq2A: 2, eq2B: 3, ansA: 3, ansB: 0, mode: 'toA' }, // 3B=1A    -> 2A+3B = 3A
+    { ratio: 3, eq1A: 1, eq1Gain: 1, eq2A: 2, eq2B: 4, ansA: 3, ansB: 1, mode: 'toA' }, // 1A+3B=2A -> 2A+4B = 3A+1B
+    { ratio: 3, eq1A: 2, eq1Gain: 1, eq2A: 1, eq2B: 2, ansA: 0, ansB: 5, mode: 'toB' }, // 2A+3B=3A -> 1A+2B = 5B
+    { ratio: 3, eq1A: 0, eq1Gain: 1, eq2A: 2, eq2B: 0, ansA: 0, ansB: 6, mode: 'toB' }, // 3B=1A    -> 2A    = 6B
   ];
+
+  const shuffledPairs = shuffle(FRUIT_PAIRS, rnd);
+  const shuffledTemplates = shuffle(templates, rnd);
 
   const makeItems = (fa: string, na: number, fb: string, nb: number) => [
     ...Array.from({ length: na }, () => fa),
     ...Array.from({ length: nb }, () => fb),
   ];
 
+  const formatGroup = (aCount: number, aName: string, bCount: number, bName: string) => {
+    if (aCount > 0 && bCount > 0) return `${aCount} ${aName} ve ${bCount} ${bName}`;
+    if (aCount > 0) return `${aCount} ${aName}`;
+    return `${bCount} ${bName}`;
+  };
+
   const out: QuizVisualQuestion[] = [];
   for (let i = 0; i < count; i++) {
-    const pair = FRUIT_PAIRS[i % FRUIT_PAIRS.length];
-    const tpl = templates[Math.floor(i / FRUIT_PAIRS.length) % templates.length];
-    const { ratio, a1, a2, k, rem } = tpl;
+    const pair = shuffledPairs[i % shuffledPairs.length];
+    const tpl = shuffledTemplates[i % shuffledTemplates.length];
+    const { ratio, eq1A, eq1Gain, eq2A, eq2B, ansA, ansB, mode } = tpl;
 
-    const eq1Left = makeItems(pair.a, a1, pair.b, ratio);
-    const eq1Right = makeItems(pair.a, a1 + 1, pair.b, 0);
-    const b2 = k * ratio + rem;
-    const eq2Left = makeItems(pair.a, a2, pair.b, b2);
+    const eq1Left = makeItems(pair.a, eq1A, pair.b, eq1Gain * ratio);
+    const eq1Right = makeItems(pair.a, eq1A + eq1Gain, pair.b, 0);
+    const eq2Left = makeItems(pair.a, eq2A, pair.b, eq2B);
 
-    const ansA = a2 + k;
-    const ansB = rem;
     const targetVal = ansA * ratio + ansB;
 
     // Farklı toplam değere sahip 3 çeldirici üret (hiçbiri gizlice eşit olmasın!)
     const distractorPairs: [number, number][] = [];
-    const seenPair = new Set<string>([`${ansA},${ansB}`]);
-    const poolPairs: [number, number][] = [
-      [ansA - 1, ansB + 1],
-      [ansA + 1, ansB],
-      [ansA, ansB + 1],
-      [Math.max(1, ansA - 1), ansB],
-      [ansA + 1, Math.max(0, ansB - 1)],
-      [ansA - 1, ansB + 2],
-      [ansA + 2, 0],
-      [ansA, Math.max(0, ansB + 2)],
-    ];
+    const seenPair = new Set<string>([`${ansA},${ansB}`, `${eq2A},${eq2B}`]);
+    const poolPairs: [number, number][] =
+      mode === 'toB'
+        ? [
+            [0, ansB - 1],
+            [0, ansB + 1],
+            [0, ansB - 2],
+            [1, Math.max(1, ansB - ratio + 1)],
+            [1, Math.max(1, ansB - ratio - 1)],
+            [2, 1],
+            [0, ansB + 2],
+            [1, 2],
+          ]
+        : [
+            [ansA - 1, ansB + 1],
+            [ansA + 1, ansB],
+            [ansA, ansB + 1],
+            [Math.max(1, ansA - 1), ansB],
+            [ansA + 1, Math.max(0, ansB - 1)],
+            [ansA - 1, ansB + 2],
+            [ansA + 2, 0],
+            [ansA, ansB + 2],
+            [Math.max(1, ansA - 2), ansB + 1],
+          ];
+
     for (const [da, db] of shuffle(poolPairs, rnd)) {
       if (da < 0 || db < 0 || da + db < 2 || da + db > 6) continue;
-      if (da * ratio + db === targetVal) continue; // denk olanı reddet!
+      if (da * ratio + db === targetVal) continue; // denk olanı kesinlikle reddet!
       const pk = `${da},${db}`;
       if (!seenPair.has(pk)) {
         seenPair.add(pk);
@@ -329,11 +374,34 @@ export const generateFruitEquationQuestions = (
       }
     }
 
+    // Garanti yedek döngü: her zaman tam 3 benzersiz ve denk olmayan çeldirici olsun
+    for (let da = 0; da <= 5 && distractorPairs.length < 3; da++) {
+      for (let db = 0; db <= 6 && distractorPairs.length < 3; db++) {
+        if (da + db < 2 || da + db > 6) continue;
+        if (da * ratio + db === targetVal) continue;
+        const pk = `${da},${db}`;
+        if (!seenPair.has(pk)) {
+          seenPair.add(pk);
+          distractorPairs.push([da, db]);
+        }
+      }
+    }
+
+    const hintText =
+      eq1A === 0
+        ? `İlk eşitlik doğrudan ${ratio} ${pair.bName} = 1 ${pair.aName} olduğunu gösteriyor.`
+        : `İlk eşitlikte her iki taraftan ${eq1A} ${pair.aName} çıkarırsan ${ratio} ${pair.bName} = 1 ${pair.aName} olduğunu görürsün.`;
+
+    const expText =
+      mode === 'toB'
+        ? `İlk satırdan 1 ${pair.aName} = ${ratio} ${pair.bName} bulunur. İkinci satırdaki ${eq2A} ${pair.aName} yerine ${eq2A * ratio} ${pair.bName} yazıp${eq2B > 0 ? ` eldeki ${eq2B} ${pair.bName} ile toplarsak` : ' hesaplarsak'} sonuç ${formatGroup(ansA, pair.aName, ansB, pair.bName)} olur.`
+        : `İlk satırdan ${ratio} ${pair.bName} = 1 ${pair.aName} bulunur. İkinci satırdaki ${eq2B} ${pair.bName} yerine ${ansA - eq2A} ${pair.aName}${ansB > 0 ? ` ve ${ansB} ${pair.bName}` : ''} yazarsak sonuç ${formatGroup(ansA, pair.aName, ansB, pair.bName)} olur.`;
+
     out.push({
       id: `${prefix}-feq-${i + 1}`,
       prompt: 'Üstteki eşitliğe göre alttaki "?" yerine hangi meyve grubu gelmelidir?',
-      hint: `İlk eşitlikte her iki taraftan ${a1} ${pair.aName} çıkarırsan ${ratio} ${pair.bName} = 1 ${pair.aName} olduğunu görürsün.`,
-      explanation: `İlk satırdan ${ratio} ${pair.bName} = 1 ${pair.aName} bulunur. İkinci satırdaki ${b2} ${pair.bName} yerine ${k} ${pair.aName}${rem > 0 ? ` ve ${rem} ${pair.bName}` : ''} yazarsak sonuç ${ansA} ${pair.aName}${ansB > 0 ? ` + ${ansB} ${pair.bName}` : ''} olur.`,
+      hint: hintText,
+      explanation: expText,
       visualType: 'fruit_equation',
       visualData: { eq1Left, eq1Right, eq2Left },
       options: [

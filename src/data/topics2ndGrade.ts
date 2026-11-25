@@ -1,4 +1,7 @@
 import { QuestionData } from "../types";
+import { getAppLanguage } from "../utils/appLanguage";
+
+const isEn = (): boolean => getAppLanguage() === 'en';
 
 // --- SVG & IMAGE DATA & HELPERS ---
 const SINIF_OGRENCILERI = [
@@ -6,6 +9,11 @@ const SINIF_OGRENCILERI = [
   "ELİF SU", "ESLEM", "EYMEN", "GÜNEŞ", "HARUN", "MİRAÇ", "MUHAMMED EYMEN",
   "OSMAN EMİR", "ÖMER ASAF", "ÖMER FARUK", "RAVZA", "SUDEM", "UMUT", "ZEYNEP",
   "ZİLAN", "HATİCE KÜBRA", "HARUN ALİ"
+];
+
+const EN_STUDENTS = [
+  "Emma", "Liam", "Olivia", "Noah", "Maya", "Lucas", "Sophia", "Leo",
+  "Chloe", "Ethan", "Mia", "Oliver", "Ava", "Jack", "Ella", "Zoe"
 ];
 
 function toTitleCaseTR(str: string): string {
@@ -20,9 +28,60 @@ function toTitleCaseTR(str: string): string {
 }
 
 function getRastgeleOgrenci(): string {
+  if (isEn()) {
+    return EN_STUDENTS[Math.floor(Math.random() * EN_STUDENTS.length)];
+  }
   const raw = SINIF_OGRENCILERI[Math.floor(Math.random() * SINIF_OGRENCILERI.length)];
   return toTitleCaseTR(raw);
 }
+
+function numberToWordsEn(n: number): string {
+  if (n === 100) return "ONE HUNDRED";
+  const ones = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"];
+  const teens = ["TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"];
+  const tens = ["", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"];
+  if (n < 10) return ones[n];
+  if (n < 20) return teens[n - 10];
+  const t = Math.floor(n / 10);
+  const o = n % 10;
+  return o === 0 ? tens[t] : `${tens[t]}-${ones[o]}`;
+}
+
+const ITEM_EN: Record<string, { singular: string; plural: string; article: string }> = {
+  "bilye": { singular: "marble", plural: "marbles", article: "a marble" },
+  "fındık": { singular: "hazelnut", plural: "hazelnuts", article: "a hazelnut" },
+  "kalem": { singular: "pencil", plural: "pencils", article: "a pencil" },
+  "çıkartma": { singular: "sticker", plural: "stickers", article: "a sticker" },
+  "balon": { singular: "balloon", plural: "balloons", article: "a balloon" },
+  "elma": { singular: "apple", plural: "apples", article: "an apple" },
+  "çilek": { singular: "strawberry", plural: "strawberries", article: "a strawberry" },
+  "muz": { singular: "banana", plural: "bananas", article: "a banana" },
+  "portakal": { singular: "orange", plural: "oranges", article: "an orange" },
+  "karpuz": { singular: "watermelon", plural: "watermelons", article: "a watermelon" },
+  "şeftali": { singular: "peach", plural: "peaches", article: "a peach" },
+  "üzüm": { singular: "grape", plural: "grapes", article: "a grape" },
+  "kiraz": { singular: "cherry", plural: "cherries", article: "a cherry" },
+  "ceviz": { singular: "walnut", plural: "walnuts", article: "a walnut" },
+  "mandalina": { singular: "tangerine", plural: "tangerines", article: "a tangerine" },
+  "erik": { singular: "plum", plural: "plums", article: "a plum" },
+  "kitap": { singular: "book", plural: "books", article: "a book" },
+  "oyuncak": { singular: "toy", plural: "toys", article: "a toy" },
+  "defter": { singular: "notebook", plural: "notebooks", article: "a notebook" },
+  "top": { singular: "ball", plural: "balls", article: "a ball" },
+  "şapka": { singular: "hat", plural: "hats", article: "a hat" },
+  "çanta": { singular: "bag", plural: "bags", article: "a bag" },
+  "kalemlik": { singular: "pencil case", plural: "pencil cases", article: "a pencil case" },
+  "silgi": { singular: "eraser", plural: "erasers", article: "an eraser" },
+  "ekmek": { singular: "loaf of bread", plural: "loaves of bread", article: "a loaf of bread" },
+  "pasta": { singular: "cake", plural: "cakes", article: "a cake" },
+  "pide": { singular: "flatbread", plural: "flatbreads", article: "a flatbread" },
+  "simit": { singular: "bagel", plural: "bagels", article: "a bagel" },
+  "pizza": { singular: "pizza", plural: "pizzas", article: "a pizza" },
+  "kivi": { singular: "kiwi", plural: "kiwis", article: "a kiwi" },
+  "kavun": { singular: "melon", plural: "melons", article: "a melon" },
+  "limon": { singular: "lemon", plural: "lemons", article: "a lemon" },
+  "ananas": { singular: "pineapple", plural: "pineapples", article: "a pineapple" },
+};
 
 const CISIM_SVG: Record<string, string> = {
   kup: '<img src="/geos/kups.webp" alt="Küp" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />',
@@ -33,13 +92,13 @@ const CISIM_SVG: Record<string, string> = {
   ucgen_prizma: '<img src="/geos/ucgenprz.webp" alt="Üçgen Prizma" class="geo-cisim-img w-full h-full max-h-full max-w-full object-contain filter drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)] mx-auto block hover:scale-105 transition-transform" />'
 };
 
-const CISIM_OZELLIK: Record<string, { ad: string; yüz: number; ayrıt: number; köşe: number }> = {
-  kup: { ad: 'Küp', yüz: 6, ayrıt: 12, köşe: 8 },
-  kure: { ad: 'Küre', yüz: 1, ayrıt: 0, köşe: 0 },
-  silindir: { ad: 'Silindir', yüz: 3, ayrıt: 0, köşe: 0 },
-  dikdortgen_prizma: { ad: 'Dikdörtgenler Prizması', yüz: 6, ayrıt: 12, köşe: 8 },
-  kare_prizma: { ad: 'Kare Prizma', yüz: 6, ayrıt: 12, köşe: 8 },
-  ucgen_prizma: { ad: 'Üçgen Prizma', yüz: 5, ayrıt: 9, köşe: 6 }
+const CISIM_OZELLIK: Record<string, { ad: string; adEn: string; yüz: number; ayrıt: number; köşe: number }> = {
+  kup: { ad: 'Küp', adEn: 'Cube', yüz: 6, ayrıt: 12, köşe: 8 },
+  kure: { ad: 'Küre', adEn: 'Sphere', yüz: 1, ayrıt: 0, köşe: 0 },
+  silindir: { ad: 'Silindir', adEn: 'Cylinder', yüz: 3, ayrıt: 0, köşe: 0 },
+  dikdortgen_prizma: { ad: 'Dikdörtgenler Prizması', adEn: 'Rectangular Prism', yüz: 6, ayrıt: 12, köşe: 8 },
+  kare_prizma: { ad: 'Kare Prizma', adEn: 'Square Prism', yüz: 6, ayrıt: 12, köşe: 8 },
+  ucgen_prizma: { ad: 'Üçgen Prizma', adEn: 'Triangular Prism', yüz: 5, ayrıt: 9, köşe: 6 }
 };
 
 function getCisimTamlayan(ad: string): string {
@@ -371,10 +430,10 @@ function getNesneIyelik(nesne: string): string {
   return stem + suffix;
 }
 
-const OZELLIK_EK: Record<string, { buyuk: string; kucuk: string }> = {
-  yüz: { buyuk: 'YÜZÜ', kucuk: 'yüzü' },
-  ayrıt: { buyuk: 'AYRITI', kucuk: 'ayrıtı' },
-  köşe: { buyuk: 'KÖŞESİ', kucuk: 'köşesi' }
+const OZELLIK_EK: Record<string, { buyuk: string; kucuk: string; buyukEn: string; kucukEn: string }> = {
+  yüz: { buyuk: 'YÜZÜ', kucuk: 'yüzü', buyukEn: 'FACES', kucukEn: 'faces' },
+  ayrıt: { buyuk: 'AYRITI', kucuk: 'ayrıtı', buyukEn: 'EDGES', kucukEn: 'edges' },
+  köşe: { buyuk: 'KÖŞESİ', kucuk: 'köşesi', buyukEn: 'VERTICES', kucukEn: 'vertices' }
 };
 
 function generateClockSVG(hour: number, minute: number): string {
@@ -485,7 +544,7 @@ function benzersizYanlislarString(correctStr: string, adaylar: string[]): string
   }
   let fallbackCount = 1;
   while (sonuc.length < 3) {
-    const fallback = `${fallbackCount} Bütün`;
+    const fallback = isEn() ? `${fallbackCount} Whole` : `${fallbackCount} Bütün`;
     if (!gorulen.has(fallback)) {
       gorulen.add(fallback);
       sonuc.push(fallback);
@@ -1079,14 +1138,15 @@ function rastgeleSec<T>(dizi: T[], adet: number): T[] {
 }
 
 const RITMIK_KARE_RENKLERI = [
-  { emoji: '🟥', ad: 'kırmızı kare', bgClass: 'from-rose-500 via-red-500 to-rose-600 border-rose-200' },
-  { emoji: '🟦', ad: 'mavi kare', bgClass: 'from-blue-500 via-indigo-500 to-sky-600 border-blue-200' },
-  { emoji: '🟩', ad: 'yeşil kare', bgClass: 'from-emerald-500 via-green-500 to-teal-600 border-emerald-200' },
-  { emoji: '🟧', ad: 'turuncu kare', bgClass: 'from-amber-500 via-orange-500 to-amber-600 border-amber-200' },
-  { emoji: '🟪', ad: 'mor kare', bgClass: 'from-purple-500 via-fuchsia-500 to-violet-600 border-purple-200' },
+  { emoji: '🟥', ad: 'kırmızı kare', adEn: 'red square', bgClass: 'from-rose-500 via-red-500 to-rose-600 border-rose-200' },
+  { emoji: '🟦', ad: 'mavi kare', adEn: 'blue square', bgClass: 'from-blue-500 via-indigo-500 to-sky-600 border-blue-200' },
+  { emoji: '🟩', ad: 'yeşil kare', adEn: 'green square', bgClass: 'from-emerald-500 via-green-500 to-teal-600 border-emerald-200' },
+  { emoji: '🟧', ad: 'turuncu kare', adEn: 'orange square', bgClass: 'from-amber-500 via-orange-500 to-amber-600 border-amber-200' },
+  { emoji: '🟪', ad: 'mor kare', adEn: 'purple square', bgClass: 'from-purple-500 via-fuchsia-500 to-violet-600 border-purple-200' },
 ];
 
 function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
+  const en = isEn();
   const maxBaslangicKati = Math.max(Math.floor((ustSinir - adim * 4) / adim), 1);
   const kat = Math.floor(Math.random() * maxBaslangicKati) + 1;
   const baslangic = kat * adim;
@@ -1107,7 +1167,9 @@ function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
 
   const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1">
     <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
-      Aşağıdaki ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+      ${en
+        ? `Which number belongs in the <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.adEn}</span> in this skip-counting chain?`
+        : `Aşağıdaki ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?`}
     </div>
     <div class="ritmik-sequence-container flex items-center justify-center gap-2 xs:gap-3 sm:gap-4 md:gap-5 flex-nowrap max-w-full my-2 sm:my-3 px-1">
       ${sequenceHTML}
@@ -1115,7 +1177,9 @@ function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
   </div>`;
 
   return {
-    question: `Aşağıdaki ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" ")}`,
+    question: en
+      ? `Which number belongs in the ${secilenKare.adEn} (${secilenKare.emoji}) in this skip-counting chain?\n\n ${gosterilecek.join(" ")}`
+      : `Aşağıdaki ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" ")}`,
     questionHTML: soruHTML,
     correct: dogruCevap,
     wrong: benzersizYanlislar(dogruCevap, [dogruCevap + adim, dogruCevap - adim, dogruCevap + 1, dogruCevap - 1, dogruCevap + adim * 2], 1),
@@ -1124,6 +1188,7 @@ function ritmikIleriUret(adim: number, ustSinir: number): QuestionData {
 }
 
 function ritmikGeriUret(adim: number): QuestionData {
+  const en = isEn();
   const minBaslangic = adim * 4 + adim;
   const baslangicKati = Math.floor(Math.random() * Math.floor((100 - minBaslangic) / adim + 1)) + Math.ceil(minBaslangic / adim);
   const baslangic = Math.min(baslangicKati * adim, 100);
@@ -1144,7 +1209,9 @@ function ritmikGeriUret(adim: number): QuestionData {
 
   const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1">
     <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] px-1.5 leading-snug sm:leading-normal">
-      Aşağıdaki geriye ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+      ${en
+        ? `Which number belongs in the <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.adEn}</span> in this backward skip-counting chain?`
+        : `Aşağıdaki geriye ritmik sayma zincirinde <span class="text-white underline decoration-white/60 font-extrabold">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?`}
     </div>
     <div class="ritmik-sequence-container flex items-center justify-center gap-2 xs:gap-3 sm:gap-4 md:gap-5 flex-nowrap max-w-full my-2 sm:my-3 px-1">
       ${sequenceHTML}
@@ -1152,7 +1219,9 @@ function ritmikGeriUret(adim: number): QuestionData {
   </div>`;
 
   return {
-    question: `Aşağıdaki geriye ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
+    question: en
+      ? `Which number belongs in the ${secilenKare.adEn} (${secilenKare.emoji}) in this backward skip-counting chain?\n\n ${gosterilecek.join(" - ")}`
+      : `Aşağıdaki geriye ritmik sayma zincirinde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi sayı gelmelidir?\n\n ${gosterilecek.join(" - ")}`,
     questionHTML: soruHTML,
     correct: dogruCevap,
     wrong: benzersizYanlislar(dogruCevap, [dogruCevap + adim, dogruCevap - adim, dogruCevap - 1, dogruCevap + 1, dogruCevap - adim * 2], 0),
@@ -1196,14 +1265,16 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Geometrik Şekil ve Cisimler",
       desc: "Küp, küre, silindir, dikdörtgenler prizması gibi geometrik cisimleri tanıma.",
       generate: () => {
+        const en = isEn();
         const cisimAnahtarlari = Object.keys(CISIM_SVG);
         const secilenKey = cisimAnahtarlari[Math.floor(Math.random() * cisimAnahtarlari.length)];
-        const dogruAd = CISIM_OZELLIK[secilenKey].ad;
-        const tumAdlar = Object.values(CISIM_OZELLIK).map(o => o.ad);
+        const dogruAd = en ? CISIM_OZELLIK[secilenKey].adEn : CISIM_OZELLIK[secilenKey].ad;
+        const tumAdlar = Object.values(CISIM_OZELLIK).map(o => (en ? o.adEn : o.ad));
         const wrong = rastgeleSec(tumAdlar.filter(a => a !== dogruAd), 3);
-        const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto max-h-full py-1 gap-2"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1">Yukarıdaki geometrik cismin adı nedir?</div></div>`;
+        const promptText = en ? "What is the name of the 3D geometric solid above?" : "Yukarıdaki geometrik cismin adı nedir?";
+        const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto max-h-full py-1 gap-2"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1">${promptText}</div></div>`;
         return {
-          question: "Yukarıdaki geometrik cismin adı nedir?",
+          question: promptText,
           questionHTML: soruHTML,
           correct: dogruAd,
           wrong,
@@ -1215,6 +1286,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Geometrik Cisimler: Yüz, Ayrıt, Köşe",
       desc: "Geometrik cisimlerin yüz, ayrıt ve köşe sayılarını bulma.",
       generate: () => {
+        const en = isEn();
         const cisimAnahtarlari = Object.keys(CISIM_SVG);
         const secilenKey = cisimAnahtarlari[Math.floor(Math.random() * cisimAnahtarlari.length)];
         const ozellik = CISIM_OZELLIK[secilenKey];
@@ -1222,9 +1294,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const cevap = ozellik[sorulan];
         const ek = OZELLIK_EK[sorulan];
         const tamlayan = getCisimTamlayan(ozellik.ad);
-        const soruHTML = `<div class="flex flex-col items-center justify-center w-full gap-2.5 sm:gap-3.5 my-auto max-h-full py-1"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1"><b>${tamlayan}</b> kaç <b>${ek.buyuk}</b> vardır?</div></div>`;
+        const soruHTML = `<div class="flex flex-col items-center justify-center w-full gap-2.5 sm:gap-3.5 my-auto max-h-full py-1"><div class="w-40 h-40 xs:w-48 xs:h-48 sm:w-60 sm:h-60 md:w-64 md:h-64 p-3 sm:p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_25px_rgba(0,0,0,0.4)] flex items-center justify-center shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.85)]">${CISIM_SVG[secilenKey]}</div><div class="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] w-full px-1">${en ? `How many <b>${ek.buyukEn}</b> does a <b>${ozellik.adEn}</b> have?` : `<b>${tamlayan}</b> kaç <b>${ek.buyuk}</b> vardır?`}</div></div>`;
         return {
-          question: `${tamlayan} kaç ${ek.kucuk} vardır?`,
+          question: en ? `How many ${ek.kucukEn} does a ${ozellik.adEn} have?` : `${tamlayan} kaç ${ek.kucuk} vardır?`,
           questionHTML: soruHTML,
           correct: cevap,
           wrong: benzersizYanlislar(cevap, [cevap + 1, cevap - 1, cevap + 2, cevap - 2], 0),
@@ -1236,7 +1308,14 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Geometri Tahtası",
       desc: "Noktaları parmağınla birleştirerek kare, dikdörtgen, üçgen, altıgen ve geometrik şekiller çiz.",
       generate: () => {
-        const sekiller = [
+        const en = isEn();
+        const sekiller = en ? [
+          { ad: "Hexagon", ipucu: "a polygon with 6 sides and 6 vertices", yanlis: ["Pentagon", "Square", "Triangle"] },
+          { ad: "Pentagon", ipucu: "a polygon with 5 sides and 5 vertices", yanlis: ["Hexagon", "Trapezoid", "Rectangle"] },
+          { ad: "Parallelogram", ipucu: "a quadrilateral whose opposite sides are parallel and equal in length", yanlis: ["Triangle", "Circle", "Sphere"] },
+          { ad: "Trapezoid", ipucu: "a quadrilateral with only one pair of parallel sides", yanlis: ["Square", "Hexagon", "Circle"] },
+          { ad: "Circle", ipucu: "a round geometric shape with no sides and no vertices", yanlis: ["Square", "Pentagon", "Hexagon"] }
+        ] : [
           { ad: "Altıgen", ipucu: "6 kenarı ve 6 köşesi olan çokgendir.", yanlis: ["Beşgen", "Kare", "Üçgen"] },
           { ad: "Beşgen", ipucu: "5 kenarı ve 5 köşesi olan çokgendir.", yanlis: ["Altıgen", "Yamuk", "Dikdörtgen"] },
           { ad: "Paralelkenar", ipucu: "Karşılıklı kenarları paralel ve eşit uzunlukta olan dörtgendir.", yanlis: ["Üçgen", "Çember", "Küre"] },
@@ -1245,7 +1324,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         ];
         const s = sekiller[Math.floor(Math.random() * sekiller.length)];
         return {
-          question: `Geometri tahtasında "${s.ipucu}" olan geometrik şekil hangisidir?`,
+          question: en
+            ? `On the geoboard, which geometric shape is "${s.ipucu}"?`
+            : `Geometri tahtasında "${s.ipucu}" olan geometrik şekil hangisidir?`,
           correct: s.ad,
           wrong: s.yanlis,
           isLong: false
@@ -1256,88 +1337,88 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Uzamsal İlişkiler & Simetri",
       desc: "Üstteki 4 görsel arasından simetrik olanı ve olmayanı ayırt etme.",
       generate: () => {
+        const en = isEn();
         interface SimetriNesnesi {
           id: string;
           ad: string;
+          adEn: string;
           img: string;
           isSymmetric: boolean;
         }
 
         const SIMETRIK_NESNELER: SimetriNesnesi[] = [
-          { id: 'kelebek', ad: 'Kelebek', img: '/simetri/kelebek.webp', isSymmetric: true },
-          { id: 'kalp', ad: 'Kırmızı Kalp', img: '/simetri/kalp.webp', isSymmetric: true },
-          { id: 'yildiz', ad: 'Sarı Yıldız', img: '/simetri/yildiz.webp', isSymmetric: true },
-          { id: 'tac', ad: 'Altın Taç', img: '/simetri/tac.webp', isSymmetric: true },
-          { id: 'gunes', ad: 'Güneş', img: '/simetri/gunes.webp', isSymmetric: true },
-          { id: 'cam_agaci', ad: 'Çam Ağacı', img: '/simetri/cam_agaci.webp', isSymmetric: true },
-          { id: 'cicek', ad: 'Çiçek', img: '/simetri/cicek.webp', isSymmetric: true },
-          { id: 'ugur_bocegi', ad: 'Uğur Böceği', img: '/simetri/ugur_bocegi.webp', isSymmetric: true },
-          { id: 'ayicik', ad: 'Ayıcık', img: '/simetri/ayicik.webp', isSymmetric: true },
-          { id: 'kurbaga', ad: 'Kurbağa', img: '/simetri/kurbaga.webp', isSymmetric: true },
+          { id: 'kelebek', ad: 'Kelebek', adEn: 'Butterfly', img: '/simetri/kelebek.webp', isSymmetric: true },
+          { id: 'kalp', ad: 'Kırmızı Kalp', adEn: 'Red Heart', img: '/simetri/kalp.webp', isSymmetric: true },
+          { id: 'yildiz', ad: 'Sarı Yıldız', adEn: 'Yellow Star', img: '/simetri/yildiz.webp', isSymmetric: true },
+          { id: 'tac', ad: 'Altın Taç', adEn: 'Gold Crown', img: '/simetri/tac.webp', isSymmetric: true },
+          { id: 'gunes', ad: 'Güneş', adEn: 'Sun', img: '/simetri/gunes.webp', isSymmetric: true },
+          { id: 'cam_agaci', ad: 'Çam Ağacı', adEn: 'Pine Tree', img: '/simetri/cam_agaci.webp', isSymmetric: true },
+          { id: 'cicek', ad: 'Çiçek', adEn: 'Flower', img: '/simetri/cicek.webp', isSymmetric: true },
+          { id: 'ugur_bocegi', ad: 'Uğur Böceği', adEn: 'Ladybug', img: '/simetri/ugur_bocegi.webp', isSymmetric: true },
+          { id: 'ayicik', ad: 'Ayıcık', adEn: 'Teddy Bear', img: '/simetri/ayicik.webp', isSymmetric: true },
+          { id: 'kurbaga', ad: 'Kurbağa', adEn: 'Frog', img: '/simetri/kurbaga.webp', isSymmetric: true },
         ];
 
-        // Net ve tartışmasız asimetrik nesneler havuzu (çelişkili/yapraklı elma ve tek kulplu kupa gibi kafa karıştırıcı nesneler kaldırıldı)
         const ASIMETRIK_NESNELER: SimetriNesnesi[] = [
-          { id: 'makas', ad: 'Makas', img: '/simetri/makas.webp', isSymmetric: false },
-          { id: 'keman', ad: 'Keman', img: '/simetri/keman.webp', isSymmetric: false },
-          { id: 'tren', ad: 'Tren', img: '/simetri/tren.webp', isSymmetric: false },
-          { id: 'traktor', ad: 'Traktör', img: '/simetri/traktor.webp', isSymmetric: false },
-          { id: 'damperli_kamyon', ad: 'Kamyon', img: '/simetri/damperli_kamyon.webp', isSymmetric: false },
-          { id: 'itfaiye_araci', ad: 'İtfaiye', img: '/simetri/itfaiye_araci.webp', isSymmetric: false },
-          { id: 'helikopter', ad: 'Helikopter', img: '/simetri/helikopter.webp', isSymmetric: false },
-          { id: 'mavi_araba', ad: 'Mavi Araba', img: '/simetri/mavi_araba.webp', isSymmetric: false },
-          { id: 'yelkenli', ad: 'Yelkenli', img: '/simetri/yelkenli.webp', isSymmetric: false },
-          { id: 'balik', ad: 'Balık', img: '/simetri/balik.webp', isSymmetric: false },
-          { id: 'yunus', ad: 'Yunus', img: '/simetri/yunus.webp', isSymmetric: false },
-          { id: 'ordek', ad: 'Ördek', img: '/simetri/ordek.webp', isSymmetric: false },
-          { id: 'spor_ayakkabi', ad: 'Ayakkabı', img: '/simetri/spor_ayakkabi.webp', isSymmetric: false },
-          { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', img: '/simetri/fotograf_makinesi.webp', isSymmetric: false },
-          { id: 'semsiye', ad: 'Şemsiye', img: '/simetri/semsiye.webp', isSymmetric: false },
-          { id: 'ucak', ad: 'Uçak', img: '/simetri/ucak.webp', isSymmetric: false },
+          { id: 'makas', ad: 'Makas', adEn: 'Scissors', img: '/simetri/makas.webp', isSymmetric: false },
+          { id: 'keman', ad: 'Keman', adEn: 'Violin', img: '/simetri/keman.webp', isSymmetric: false },
+          { id: 'tren', ad: 'Tren', adEn: 'Train', img: '/simetri/tren.webp', isSymmetric: false },
+          { id: 'traktor', ad: 'Traktör', adEn: 'Tractor', img: '/simetri/traktor.webp', isSymmetric: false },
+          { id: 'damperli_kamyon', ad: 'Kamyon', adEn: 'Truck', img: '/simetri/damperli_kamyon.webp', isSymmetric: false },
+          { id: 'itfaiye_araci', ad: 'İtfaiye', adEn: 'Fire Truck', img: '/simetri/itfaiye_araci.webp', isSymmetric: false },
+          { id: 'helikopter', ad: 'Helikopter', adEn: 'Helicopter', img: '/simetri/helikopter.webp', isSymmetric: false },
+          { id: 'mavi_araba', ad: 'Mavi Araba', adEn: 'Blue Car', img: '/simetri/mavi_araba.webp', isSymmetric: false },
+          { id: 'yelkenli', ad: 'Yelkenli', adEn: 'Sailboat', img: '/simetri/yelkenli.webp', isSymmetric: false },
+          { id: 'balik', ad: 'Balık', adEn: 'Fish', img: '/simetri/balik.webp', isSymmetric: false },
+          { id: 'yunus', ad: 'Yunus', adEn: 'Dolphin', img: '/simetri/yunus.webp', isSymmetric: false },
+          { id: 'ordek', ad: 'Ördek', adEn: 'Duck', img: '/simetri/ordek.webp', isSymmetric: false },
+          { id: 'spor_ayakkabi', ad: 'Ayakkabı', adEn: 'Sneaker', img: '/simetri/spor_ayakkabi.webp', isSymmetric: false },
+          { id: 'fotograf_makinesi', ad: 'Fotoğraf Mak.', adEn: 'Camera', img: '/simetri/fotograf_makinesi.webp', isSymmetric: false },
+          { id: 'semsiye', ad: 'Şemsiye', adEn: 'Umbrella', img: '/simetri/semsiye.webp', isSymmetric: false },
+          { id: 'ucak', ad: 'Uçak', adEn: 'Airplane', img: '/simetri/ucak.webp', isSymmetric: false },
         ];
 
-        // Soru Tipleri:
-        // 0: Hangisi Simetriktir? (1 Simetrik, 3 Asimetrik)
-        // 1: Hangisi Simetrik Değildir? (3 Simetrik, 1 Asimetrik)
-        // 2: Hangisi iki eş parçaya katlanabilir (simetrik)? (1 Simetrik, 3 Asimetrik)
-        // 3: Aynada sağ-sol yarısı aynı olan hangisidir? (1 Simetrik, 3 Asimetrik)
         const soruTipi = Math.floor(Math.random() * 4);
         let kartlar: SimetriNesnesi[] = [];
         let dogruIndex = 0;
         let soruMetni = "";
 
         if (soruTipi === 0) {
-          // Hangisi Simetriktir?
           const secilenSimetrik = SIMETRIK_NESNELER[Math.floor(Math.random() * SIMETRIK_NESNELER.length)];
           const secilenAsimetrikler = [...ASIMETRIK_NESNELER].sort(() => Math.random() - 0.5).slice(0, 3);
           dogruIndex = Math.floor(Math.random() * 4);
           kartlar = [...secilenAsimetrikler];
           kartlar.splice(dogruIndex, 0, secilenSimetrik);
-          soruMetni = `Yukarıdaki görsellerden hangisi dikey eksende <span class="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-black shadow">SİMETRİKTİR</span>?`;
+          soruMetni = en
+            ? `Which of the images above is <span class="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-black shadow">SYMMETRIC</span> along the vertical line?`
+            : `Yukarıdaki görsellerden hangisi dikey eksende <span class="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-black shadow">SİMETRİKTİR</span>?`;
         } else if (soruTipi === 1) {
-          // Hangisi Simetrik Değildir?
           const secilenAsimetrik = ASIMETRIK_NESNELER[Math.floor(Math.random() * ASIMETRIK_NESNELER.length)];
           const secilenSimetrikler = [...SIMETRIK_NESNELER].sort(() => Math.random() - 0.5).slice(0, 3);
           dogruIndex = Math.floor(Math.random() * 4);
           kartlar = [...secilenSimetrikler];
           kartlar.splice(dogruIndex, 0, secilenAsimetrik);
-          soruMetni = `Yukarıdaki görsellerden hangisi <span class="px-2 py-0.5 rounded-md bg-rose-500 text-white font-black shadow">SİMETRİK DEĞİLDİR</span>?`;
+          soruMetni = en
+            ? `Which of the images above is <span class="px-2 py-0.5 rounded-md bg-rose-500 text-white font-black shadow">NOT SYMMETRIC</span>?`
+            : `Yukarıdaki görsellerden hangisi <span class="px-2 py-0.5 rounded-md bg-rose-500 text-white font-black shadow">SİMETRİK DEĞİLDİR</span>?`;
         } else if (soruTipi === 2) {
-          // İki eş parçaya katlanabilen
           const secilenSimetrik = SIMETRIK_NESNELER[Math.floor(Math.random() * SIMETRIK_NESNELER.length)];
           const secilenAsimetrikler = [...ASIMETRIK_NESNELER].sort(() => Math.random() - 0.5).slice(0, 3);
           dogruIndex = Math.floor(Math.random() * 4);
           kartlar = [...secilenAsimetrikler];
           kartlar.splice(dogruIndex, 0, secilenSimetrik);
-          soruMetni = `Ortasından katlandığında iki parçası tam üst üste gelen <span class="px-2 py-0.5 rounded-md bg-cyan-500 text-white font-black shadow">(SİMETRİK)</span> görsel hangisidir?`;
+          soruMetni = en
+            ? `Which image folds in half into two matching parts <span class="px-2 py-0.5 rounded-md bg-cyan-500 text-white font-black shadow">(SYMMETRIC)</span>?`
+            : `Ortasından katlandığında iki parçası tam üst üste gelen <span class="px-2 py-0.5 rounded-md bg-cyan-500 text-white font-black shadow">(SİMETRİK)</span> görsel hangisidir?`;
         } else {
-          // Ayna yansıması aynı olan
           const secilenSimetrik = SIMETRIK_NESNELER[Math.floor(Math.random() * SIMETRIK_NESNELER.length)];
           const secilenAsimetrikler = [...ASIMETRIK_NESNELER].sort(() => Math.random() - 0.5).slice(0, 3);
           dogruIndex = Math.floor(Math.random() * 4);
           kartlar = [...secilenAsimetrikler];
           kartlar.splice(dogruIndex, 0, secilenSimetrik);
-          soruMetni = `Ortasından ayna tutulduğunda sağ ve sol yarısı <span class="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black shadow">BİRBİRİNİN AYNISI</span> olan görsel hangisidir?`;
+          soruMetni = en
+            ? `Which image has left and right halves that are <span class="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black shadow">MIRROR IMAGES</span>?`
+            : `Ortasından ayna tutulduğunda sağ ve sol yarısı <span class="px-2 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black shadow">BİRBİRİNİN AYNISI</span> olan görsel hangisidir?`;
         }
 
         const borderColors = [
@@ -1347,34 +1428,34 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           'border-rose-400/80'
         ];
 
-        const cardsHTML = kartlar.map((kart, idx) => `
+        const cardsHTML = kartlar.map((kart, idx) => {
+          const label = en ? kart.adEn : kart.ad;
+          return `
           <div class="flex flex-col items-center justify-between rounded-xl sm:rounded-2xl bg-slate-900/90 border-2 ${borderColors[idx]} p-2 sm:p-2.5 md:p-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)] aspect-square min-w-0">
             <div class="w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center p-1 my-auto">
-              <img src="${kart.img}" alt="${kart.ad}" class="max-w-full max-h-full object-contain filter drop-shadow scale-105" />
+              <img src="${kart.img}" alt="${label}" class="max-w-full max-h-full object-contain filter drop-shadow scale-105" />
             </div>
-            <span class="text-xs xs:text-sm sm:text-base font-black text-slate-100 text-center truncate max-w-full px-1 py-0.5 leading-tight">${kart.ad}</span>
+            <span class="text-xs xs:text-sm sm:text-base font-black text-slate-100 text-center truncate max-w-full px-1 py-0.5 leading-tight">${label}</span>
           </div>
-        `).join('');
+        `;
+        }).join('');
 
         const questionHTML = `
           <div class="flex flex-col items-center justify-between w-full h-full max-w-full overflow-hidden min-h-0 select-none py-1">
-            <!-- Üstte 4 Görsel: Ferah, normal ve belirgin -->
             <div class="grid grid-cols-4 gap-2.5 xs:gap-3 sm:gap-4 md:gap-5 w-full max-w-[560px] xs:max-w-[640px] sm:max-w-[740px] md:max-w-[840px] mx-auto shrink-0 my-auto items-center justify-center px-1">
               ${cardsHTML}
             </div>
-
-            <!-- Soru Metni: Okunaklı, net ve belirgin -->
             <div class="w-full text-center font-black text-white text-sm xs:text-base sm:text-lg md:text-xl leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] shrink-0 z-10 pt-1.5 pb-1 px-2">
               ${soruMetni}
             </div>
           </div>
         `;
 
-        // KULLANICI KURALI: Şıklarda nesnenin kendi görseli gösterilsin (Normal derecede büyütüldü)
-        const correct = `<img src="${kartlar[dogruIndex].img}" alt="${kartlar[dogruIndex].ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`;
+        const correctLabel = en ? kartlar[dogruIndex].adEn : kartlar[dogruIndex].ad;
+        const correct = `<img src="${kartlar[dogruIndex].img}" alt="${correctLabel}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`;
         const wrong = kartlar
           .filter((_, idx) => idx !== dogruIndex)
-          .map((k) => `<img src="${k.img}" alt="${k.ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`);
+          .map((k) => `<img src="${k.img}" alt="${en ? k.adEn : k.ad}" class="h-11 xs:h-12 sm:h-14 md:h-16 w-auto max-w-[85%] max-h-full object-contain mx-auto filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)] pointer-events-none" />`);
 
         return {
           question: soruMetni.replace(/<[^>]*>/g, ''),
@@ -1389,6 +1470,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Geometrik Örüntüler",
       desc: "Belirli bir kurala göre dizilmiş geometrik şekillerdeki eksik elemanı bulma.",
       generate: () => {
+        const en = isEn();
         const SEKIL_GORSLLERI: Record<string, { ad: string; svgBox: string; svgBtn: string }> = {
           "🔴": {
             ad: "kırmızı daire",
@@ -1431,7 +1513,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
 
         const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-2.5 py-0.5">
           <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug">
-            Aşağıdaki geometrik örüntüde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi şekil gelmelidir?
+            ${en
+              ? `Which shape belongs in the <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.adEn}</span> in the pattern below?`
+              : `Aşağıdaki geometrik örüntüde <span class="text-amber-300 underline decoration-amber-400 font-extrabold">${secilenKare.ad}</span> yerine hangi şekil gelmelidir?`}
           </div>
           <div class="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2 flex-nowrap max-w-full overflow-hidden px-0.5 my-1">
             ${patternHTML}
@@ -1439,7 +1523,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         </div>`;
 
         return {
-          question: `Aşağıdaki geometrik örüntüde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi şekil gelmelidir?\n\n${gosterim.join("  -  ")}`,
+          question: en
+            ? `Which shape belongs in the ${secilenKare.adEn} (${secilenKare.emoji}) in the pattern below?\n\n${gosterim.join("  -  ")}`
+            : `Aşağıdaki geometrik örüntüde ${secilenKare.ad} (${secilenKare.emoji}) yerine hangi şekil gelmelidir?\n\n${gosterim.join("  -  ")}`,
           questionHTML: soruHTML,
           correct: SEKIL_GORSLLERI[correctKey].svgBtn,
           wrong: anahtarlar.filter(s => s !== correctKey).map(s => SEKIL_GORSLLERI[s].svgBtn),
@@ -1453,6 +1539,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Nesne Sayısı",
       desc: "Verilen nesnelerin miktarını sayma ve belirleme.",
       generate: () => {
+        const en = isEn();
         const adet = Math.floor(Math.random() * 15) + 5;
         const emojis = ["🍎", "⭐", "🚗", "🎈", "🐱", "🐶", "🍓", "⚽"];
         const secilenEmoji = emojis[Math.floor(Math.random() * emojis.length)];
@@ -1463,13 +1550,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         nesnelerHTML += '</div>';
 
         return {
-          question: `Yukarıdaki grupta kaç tane nesne vardır?`,
+          question: en ? `How many objects are in the group above?` : `Yukarıdaki grupta kaç tane nesne vardır?`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 py-1 text-center">
               <div class="p-3 bg-slate-900/90 rounded-2xl border-2 border-amber-400/80 shadow-md">
                 ${nesnelerHTML}
               </div>
-              <div class="text-base sm:text-lg font-black text-white">Grupta kaç tane nesne vardır?</div>
+              <div class="text-base sm:text-lg font-black text-white">${en ? 'How many objects are in this group?' : 'Grupta kaç tane nesne vardır?'}</div>
             </div>
           `,
           correct: adet,
@@ -1482,19 +1569,24 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sayı Basketi",
       desc: "Potadaki sayının okunuşunu bul, doğru sayıyı potaya at! İlk 5 sayıyı yapan kazanır.",
       generate: () => {
+        const en = isEn();
         const n = Math.floor(Math.random() * 99) + 1;
         const ones = ["", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"];
         const tens = ["", "on", "yirmi", "otuz", "kırk", "elli", "altmış", "yetmiş", "seksen", "doksan"];
-        const word = n === 100 ? "YÜZ" : `${tens[Math.floor(n / 10)]} ${ones[n % 10]}`.trim().toLocaleUpperCase('tr-TR');
+        const word = en
+          ? numberToWordsEn(n)
+          : (n === 100 ? "YÜZ" : `${tens[Math.floor(n / 10)]} ${ones[n % 10]}`.trim().toLocaleUpperCase('tr-TR'));
         return {
-          question: `Potada "${word}" yazıyor. Hangi top potaya atılmalıdır?`,
+          question: en
+            ? `The hoop says "${word}". Which numbered ball should go into the hoop?`
+            : `Potada "${word}" yazıyor. Hangi top potaya atılmalıdır?`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 py-1 text-center">
               <div class="p-3 bg-gradient-to-r from-blue-900 to-indigo-950 rounded-2xl border-2 border-amber-400 shadow-md">
-                <span class="text-xs uppercase text-amber-300 font-bold block mb-1">Potadaki Sayı</span>
+                <span class="text-xs uppercase text-amber-300 font-bold block mb-1">${en ? 'Number on the Hoop' : 'Potadaki Sayı'}</span>
                 <span class="text-2xl sm:text-3xl font-black text-white">${word}</span>
               </div>
-              <div class="text-base sm:text-lg font-black text-white">Bu okunuşa karşılık gelen sayı hangisidir?</div>
+              <div class="text-base sm:text-lg font-black text-white">${en ? 'Which number matches this word?' : 'Bu okunuşa karşılık gelen sayı hangisidir?'}</div>
             </div>
           `,
           correct: n,
@@ -1507,26 +1599,30 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "En Yakın Onluğa Yuvarlama (100'e Kadar)",
       desc: "100'e kadar olan iki basamaklı sayıları en yakın onluğa yuvarlama alıştırması yapıyoruz.",
       generate: () => {
+        const en = isEn();
         const mode = Math.random();
 
         if (mode < 0.6) {
-          // Doğrudan 2 basamaklı sayıyı en yakın onluğa yuvarlama (Sonu 0 asla olamaz)
-          const onlar = Math.floor(Math.random() * 9) + 1; // 1..9
-          const birler = Math.floor(Math.random() * 9) + 1; // 1..9 (0 hariç)
-          const sayi = onlar * 10 + birler; // 11..99
+          const onlar = Math.floor(Math.random() * 9) + 1;
+          const birler = Math.floor(Math.random() * 9) + 1;
+          const sayi = onlar * 10 + birler;
           const dogruOnluk = birler >= 5 ? (onlar + 1) * 10 : onlar * 10;
           const adaylar = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100].filter(o => o !== dogruOnluk);
           const yanlislar = adaylar.sort(() => 0.5 - Math.random()).slice(0, 3);
 
           return {
-            question: `${sayi} sayısı en yakın onluğa yuvarlandığında hangi sayı olur?`,
+            question: en
+              ? `What is ${sayi} rounded to the nearest ten?`
+              : `${sayi} sayısı en yakın onluğa yuvarlandığında hangi sayı olur?`,
             questionHTML: `
               <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3 py-1 text-center">
                 <div class="px-6 py-2.5 sm:px-8 sm:py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black text-2xl sm:text-3xl md:text-4xl border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide">
                   <span class="text-white">${sayi}</span> <span class="text-amber-300 mx-1">=</span> <span class="text-yellow-300 font-black">?</span>
                 </div>
                 <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-                  <span class="text-amber-300 font-black">${sayi}</span> sayısı <span class="text-cyan-300 underline decoration-cyan-400 font-black">en yakın onluğa</span> yuvarlandığında hangi sayı olur?
+                  ${en
+                    ? `What is <span class="text-amber-300 font-black">${sayi}</span> rounded to the <span class="text-cyan-300 underline decoration-cyan-400 font-black">nearest ten</span>?`
+                    : `<span class="text-amber-300 font-black">${sayi}</span> sayısı <span class="text-cyan-300 underline decoration-cyan-400 font-black">en yakın onluğa</span> yuvarlandığında hangi sayı olur?`}
                 </div>
               </div>
             `,
@@ -1535,16 +1631,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
             isLong: false
           };
         } else {
-          // Belirli bir onluğa yuvarlanan sayıyı bulma
-          const hedefOnluk = (Math.floor(Math.random() * 8) + 2) * 10; // 20, 30, 40, 50, 60, 70, 80, 90
-          // Hedef onluğa yuvarlanan sayılar: (hedefOnluk - 5) .. (hedefOnluk + 4) - hedefOnluk hariç
+          const hedefOnluk = (Math.floor(Math.random() * 8) + 2) * 10;
           const yuvarlananlar: number[] = [];
           for (let s = hedefOnluk - 5; s <= hedefOnluk + 4; s++) {
             if (s !== hedefOnluk) yuvarlananlar.push(s);
           }
           const dogru = yuvarlananlar[Math.floor(Math.random() * yuvarlananlar.length)];
 
-          // Yuvarlanmayan adaylar
           const baskaSayilar: number[] = [];
           for (let s = 11; s <= 99; s++) {
             if (s % 10 !== 0 && !yuvarlananlar.includes(s) && s !== hedefOnluk) {
@@ -1554,14 +1647,18 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const yanlislar = baskaSayilar.sort(() => 0.5 - Math.random()).slice(0, 3);
 
           return {
-            question: `Aşağıdaki sayılardan hangisi en yakın onluğa yuvarlandığında ${hedefOnluk} olur?`,
+            question: en
+              ? `Which number below rounds to ${hedefOnluk} when rounded to the nearest ten?`
+              : `Aşağıdaki sayılardan hangisi en yakın onluğa yuvarlandığında ${hedefOnluk} olur?`,
             questionHTML: `
               <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3 py-1 text-center">
                 <div class="px-5 py-2 sm:px-7 sm:py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black text-xl sm:text-2xl md:text-3xl border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] whitespace-nowrap tracking-wide">
-                  🎯 Hedef Onluk: ${hedefOnluk}
+                  ${en ? `🎯 Target Ten: ${hedefOnluk}` : `🎯 Hedef Onluk: ${hedefOnluk}`}
                 </div>
                 <div class="text-base sm:text-lg md:text-xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-                  Aşağıdaki sayılardan hangisi <span class="text-cyan-300 underline decoration-cyan-400 font-black">en yakın onluğa</span> yuvarlandığında <span class="text-amber-300 font-black">${hedefOnluk}</span> olur?
+                  ${en
+                    ? `Which number rounds to <span class="text-amber-300 font-black">${hedefOnluk}</span> at the <span class="text-cyan-300 underline decoration-cyan-400 font-black">nearest ten</span>?`
+                    : `Aşağıdaki sayılardan hangisi <span class="text-cyan-300 underline decoration-cyan-400 font-black">en yakın onluğa</span> yuvarlandığında <span class="text-amber-300 font-black">${hedefOnluk}</span> olur?`}
                 </div>
               </div>
             `,
@@ -1576,9 +1673,12 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Onluk - Birlik (Sürükle Bırak)",
       desc: "Onluk çubuklarını ve birlik küplerini sürükleyerek verilen sayıyı oluşturma.",
       generate: () => {
+        const en = isEn();
         const n = Math.floor(Math.random() * 91) + 10;
         return {
-          question: `${Math.floor(n / 10)} onluk ve ${n % 10} birlik kaç eder?`,
+          question: en
+            ? `What number is ${Math.floor(n / 10)} tens and ${n % 10} ones?`
+            : `${Math.floor(n / 10)} onluk ve ${n % 10} birlik kaç eder?`,
           correct: n,
           wrong: [n + 1, n + 10, Math.max(10, n - 1)],
           isLong: false
@@ -1589,17 +1689,21 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sayı ve Basamak Değeri",
       desc: "İki basamaklı sayılarda rakamların basamak ve sayı değerlerini bulma.",
       generate: () => {
+        const en = isEn();
         const onlar = Math.floor(Math.random() * 8) + 1;
         const birler = Math.floor(Math.random() * 9) + 1;
         const sayi = onlar * 10 + birler;
         const sorulanBasamak = Math.random() < 0.5 ? 'onlar' : 'birler';
+        const placeEn = sorulanBasamak === 'onlar' ? 'tens' : 'ones';
         const soruTuru = Math.random() < 0.5 ? 'basamak' : 'sayi';
         const rakam = sorulanBasamak === 'onlar' ? onlar : birler;
 
         if (soruTuru === 'basamak') {
           const basamakDegeri = sorulanBasamak === 'onlar' ? onlar * 10 : birler;
           return {
-            question: `${sayi} sayısının ${sorulanBasamak} basamağındaki rakamın BASAMAK DEĞERİ kaçtır?`,
+            question: en
+              ? `In the number ${sayi}, what is the PLACE VALUE of the digit in the ${placeEn} place?`
+              : `${sayi} sayısının ${sorulanBasamak} basamağındaki rakamın BASAMAK DEĞERİ kaçtır?`,
             correct: basamakDegeri,
             wrong: benzersizYanlislar(basamakDegeri, [rakam, basamakDegeri + 10, basamakDegeri - 10, basamakDegeri + 5], 0),
             isLong: true
@@ -1607,7 +1711,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         } else {
           const digerRakam = sorulanBasamak === 'onlar' ? birler : onlar;
           return {
-            question: `${sayi} sayısının ${sorulanBasamak} basamağındaki rakamın SAYI DEĞERİ kaçtır?`,
+            question: en
+              ? `In the number ${sayi}, what is the FACE VALUE (digit) in the ${placeEn} place?`
+              : `${sayi} sayısının ${sorulanBasamak} basamağındaki rakamın SAYI DEĞERİ kaçtır?`,
             correct: rakam,
             wrong: benzersizYanlislar(rakam, [rakam + 1, rakam - 1, digerRakam, rakam * 10], 0),
             isLong: true
@@ -1619,12 +1725,16 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Deste ve Düzine",
       desc: "Deste (10 tane) ve Düzine (12 tane) kavramlarını öğrenme.",
       generate: () => {
+        const en = isEn();
         const k = Math.floor(Math.random() * 5) + 1;
         const isDeste = Math.random() < 0.5;
         const miktar = isDeste ? k * 10 : k * 12;
         const etiket = isDeste ? 'DESTE' : 'DÜZİNE';
+        const labelEn = isDeste ? 'SETS OF TEN (10 each)' : 'DOZENS (12 each)';
         return {
-          question: `${miktar} tane nesne kaç ${etiket} eder?`,
+          question: en
+            ? `How many ${labelEn} make ${miktar} objects?`
+            : `${miktar} tane nesne kaç ${etiket} eder?`,
           correct: k,
           wrong: benzersizYanlislar(k, [k + 1, k - 1, k + 2, k + 3], 1),
           isLong: true
@@ -1635,12 +1745,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sayı Karşılaştırma & Semboller",
       desc: "İki basamaklı sayıları Büyüktür (>), Küçüktür (<) veya Eşittir (=) sembolleriyle karşılaştırma.",
       generate: () => {
+        const en = isEn();
         const a = Math.floor(Math.random() * 89) + 10;
         let b = Math.floor(Math.random() * 89) + 10;
         if (Math.random() < 0.2) b = a;
         let correct = '=';
         if (a > b) correct = '>';
         if (a < b) correct = '<';
+
+        const promptText = en
+          ? 'Which symbol belongs in the red box?'
+          : 'Kırmızı kutu yerine hangi sembol gelmelidir?';
 
         const soruHTML = `
           <div class="flex flex-col items-center justify-center w-full gap-2 sm:gap-3 my-auto max-h-full">
@@ -1652,13 +1767,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               <span class="bg-black/40 px-3 sm:px-5 py-1 sm:py-2 rounded-2xl border border-amber-300/40 shadow-inner">${b}</span>
             </div>
             <div class="text-xs sm:text-sm md:text-base font-black text-amber-200 text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] bg-slate-950/70 px-3.5 py-1 sm:py-1.5 rounded-xl border border-amber-300/40">
-              Kırmızı kutu yerine hangi sembol gelmelidir?
+              ${promptText}
             </div>
           </div>
         `;
 
         return {
-          question: `${a}   [ 🟥 ]   ${b}\n\nKırmızı kutu yerine hangi sembol gelmelidir?`,
+          question: `${a}   [ 🟥 ]   ${b}\n\n${promptText}`,
           questionHTML: soruHTML,
           correct,
           wrong: ['>', '<', '='].filter(s => s !== correct),
@@ -1670,18 +1785,32 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sıra Bildiren Sayılar",
       desc: "1., 2., 3. gibi sıra bildiren sayıların okunuşlarını bulma.",
       generate: () => {
+        const en = isEn();
         const sayilar = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20];
         const num = sayilar[Math.floor(Math.random() * sayilar.length)];
-        const okunuslar: Record<number, string> = {
+        const okunuslarTr: Record<number, string> = {
           1: "Birinci", 2: "İkinci", 3: "Üçüncü", 4: "Dördüncü", 5: "Beşinci",
           6: "Altıncı", 7: "Yedinci", 8: "Sekizinci", 9: "Dokuzuncu", 10: "Onuncu",
           12: "On ikinci", 15: "On beşinci", 20: "Yirminci"
         };
-        const correct = okunuslar[num];
-        const tumOkunuslar = Object.values(okunuslar).filter(o => o !== correct);
+        const okunuslarEn: Record<number, string> = {
+          1: "First", 2: "Second", 3: "Third", 4: "Fourth", 5: "Fifth",
+          6: "Sixth", 7: "Seventh", 8: "Eighth", 9: "Ninth", 10: "Tenth",
+          12: "Twelfth", 15: "Fifteenth", 20: "Twentieth"
+        };
+        const ordinalBadgeEn: Record<number, string> = {
+          1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th",
+          6: "6th", 7: "7th", 8: "8th", 9: "9th", 10: "10th",
+          12: "12th", 15: "15th", 20: "20th"
+        };
+        const map = en ? okunuslarEn : okunuslarTr;
+        const correct = map[num];
+        const tumOkunuslar = Object.values(map).filter(o => o !== correct);
         const wrong = rastgeleSec(tumOkunuslar, 3);
         return {
-          question: `"${num}." sayısının okunuşu aşağıdakilerden hangisidir?`,
+          question: en
+            ? `How do you read the ordinal number "${ordinalBadgeEn[num]}"?`
+            : `"${num}." sayısının okunuşu aşağıdakilerden hangisidir?`,
           correct,
           wrong,
           isLong: true
@@ -1749,6 +1878,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Tek İşlemli Toplama Problemleri",
       desc: "Tek adımlı toplama problemleri çözme alıştırması.",
       generate: () => {
+        const en = isEn();
         const nesneler = ["bilye", "fındık", "kalem", "çıkartma", "balon", "elma", "çilek", "muz", "portakal", "karpuz", "şeftali", "üzüm", "kiraz", "ceviz"];
         const isim = getRastgeleOgrenci();
         const nesne = nesneler[Math.floor(Math.random() * nesneler.length)];
@@ -1757,8 +1887,11 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const correct = baslangic + degisim;
         const tamlayanIsim = getIsimTamlayan(isim);
         const iyelikNesne = getNesneIyelik(nesne);
+        const pluralEn = ITEM_EN[nesne]?.plural || `${nesne}s`;
         return {
-          question: `${tamlayanIsim} ${baslangic} tane ${iyelikNesne} vardı. Arkadaşı ona ${degisim} tane daha verdi. ${tamlayanIsim} toplam kaç ${iyelikNesne} oldu?`,
+          question: en
+            ? `${isim} had ${baslangic} ${pluralEn}. A friend gave ${isim} ${degisim} more. How many ${pluralEn} does ${isim} have in total?`
+            : `${tamlayanIsim} ${baslangic} tane ${iyelikNesne} vardı. Arkadaşı ona ${degisim} tane daha verdi. ${tamlayanIsim} toplam kaç ${iyelikNesne} oldu?`,
           correct,
           wrong: benzersizYanlislar(correct, [correct - degisim, correct + 5, correct - 5, baslangic], 1),
           isLong: true
@@ -1769,12 +1902,15 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "İki İşlemli Toplama Problemleri",
       desc: "İki adımlı toplama problemleri çözme alıştırması.",
       generate: () => {
+        const en = isEn();
         const s1 = Math.floor(Math.random() * 15) + 5;
         const s2 = Math.floor(Math.random() * 15) + 5;
         const s3 = Math.floor(Math.random() * 15) + 5;
         const correct = s1 + s2 + s3;
         return {
-          question: `Bir kütüphanede 1. rafta ${s1}, 2. rafta ${s2} ve 3. rafta ${s3} kitap vardır. Kütüphanede toplam kaç kitap vardır?`,
+          question: en
+            ? `In a library, there are ${s1} books on the 1st shelf, ${s2} on the 2nd shelf, and ${s3} on the 3rd shelf. How many books are there in total?`
+            : `Bir kütüphanede 1. rafta ${s1}, 2. rafta ${s2} ve 3. rafta ${s3} kitap vardır. Kütüphanede toplam kaç kitap vardır?`,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 5, correct - 5, s1 + s2, correct + 10], 1),
           isLong: true
@@ -1785,6 +1921,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Eldesiz Toplama",
       desc: "Toplamı 50'yi geçmeyen eldesiz toplama alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const { s1, s2, correct } = toplamaUret(20, 50, false);
         const questionHTML = `
           <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3.5 py-1 text-center">
@@ -1792,13 +1929,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${s1} + ${s2} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Eldesiz toplama işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>?
+              ${en
+                ? `What is the <span class="text-amber-300 underline decoration-amber-400 font-black">sum</span> of this addition?`
+                : `Eldesiz toplama işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>?`}
             </div>
           </div>
         `;
 
         return {
-          question: `${s1} + ${s2} = ?\n\nEldesiz toplama işleminin sonucu kaçtır?`,
+          question: en
+            ? `${s1} + ${s2} = ?\n\nWhat is the sum of this addition?`
+            : `${s1} + ${s2} = ?\n\nEldesiz toplama işleminin sonucu kaçtır?`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 10, correct - 2, correct + 5, correct - 5], 0),
@@ -1810,6 +1951,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Eldeli Toplama",
       desc: "Toplamı 50'yi geçmeyen eldeli toplama alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const { s1, s2, correct } = toplamaUret(20, 50, true);
         const questionHTML = `
           <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3.5 py-1 text-center">
@@ -1817,13 +1959,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${s1} + ${s2} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Eldeli toplama işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>? <span class="text-yellow-300 font-black">(Eldeye dikkat!)</span>
+              ${en
+                ? `What is the <span class="text-amber-300 underline decoration-amber-400 font-black">sum</span>? <span class="text-yellow-300 font-black">(Remember to carry!)</span>`
+                : `Eldeli toplama işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>? <span class="text-yellow-300 font-black">(Eldeye dikkat!)</span>`}
             </div>
           </div>
         `;
 
         return {
-          question: `${s1} + ${s2} = ?\n(Eldeye dikkat!)`,
+          question: en
+            ? `${s1} + ${s2} = ?\n(Remember to carry!)`
+            : `${s1} + ${s2} = ?\n(Eldeye dikkat!)`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct - 10, correct + 2, correct - 1, correct + 10], 0),
@@ -1835,8 +1981,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Verilmeyen Toplananı Bul",
       desc: "Toplama işleminde verilmeyen toplananı bulma alıştırmaları (100'den küçük sayılar).",
       generate: () => {
-        const sum = Math.floor(Math.random() * 75) + 20; // 20 .. 94 (100'den küçük)
-        const s1 = Math.floor(Math.random() * (sum - 10)) + 5; // 5 .. sum - 5
+        const en = isEn();
+        const sum = Math.floor(Math.random() * 75) + 20;
+        const s1 = Math.floor(Math.random() * (sum - 10)) + 5;
         const s2 = sum - s1;
         const isFirstMissing = Math.random() < 0.5;
 
@@ -1856,20 +2003,26 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const questionHTML = `
           <div class="flex flex-col items-center justify-center w-full my-auto py-1">
             <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#008d7a] border border-[#14b8a6] text-white font-black text-xs sm:text-sm tracking-wider shadow-md uppercase mb-2">
-              <span class="text-sm sm:text-base font-black">+</span> VERİLMEYEN TOPLANANI BUL
+              <span class="text-sm sm:text-base font-black">+</span> ${en ? 'FIND THE MISSING ADDEND' : 'VERİLMEYEN TOPLANANI BUL'}
             </div>
             <div class="flex items-center justify-center gap-1.5 sm:gap-3 md:gap-4 my-2">
               ${equationHTML}
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center tracking-wide [text-shadow:0_2px_6px_rgba(0,0,0,0.95)] drop-shadow-md mt-2 px-2">
-              Soru işareti (<span class="text-amber-300 font-black">?</span>) yerine hangi sayı gelmelidir?
+              ${en
+                ? `Which number replaces the question mark (<span class="text-amber-300 font-black">?</span>)?`
+                : `Soru işareti (<span class="text-amber-300 font-black">?</span>) yerine hangi sayı gelmelidir?`}
             </div>
           </div>
         `;
 
-        const question = isFirstMissing
-          ? `? + ${s2} = ${sum}\nSoru işareti (?) yerine hangi sayı gelmelidir?`
-          : `${s1} + ? = ${sum}\nSoru işareti (?) yerine hangi sayı gelmelidir?`;
+        const question = en
+          ? (isFirstMissing
+              ? `? + ${s2} = ${sum}\nWhich number replaces the question mark (?)?`
+              : `${s1} + ? = ${sum}\nWhich number replaces the question mark (?)?`)
+          : (isFirstMissing
+              ? `? + ${s2} = ${sum}\nSoru işareti (?) yerine hangi sayı gelmelidir?`
+              : `${s1} + ? = ${sum}\nSoru işareti (?) yerine hangi sayı gelmelidir?`);
 
         const distractors = [
           correct + 10,
@@ -1895,6 +2048,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Tek İşlemli Çıkarma Problemleri",
       desc: "Tek adımlı çıkarma problemleri çözme alıştırması.",
       generate: () => {
+        const en = isEn();
         const nesneler = ["bilye", "fındık", "kalem", "çıkartma", "balon", "elma", "çilek", "muz", "portakal", "karpuz", "şeftali", "üzüm", "kiraz", "ceviz"];
         const isim = getRastgeleOgrenci();
         const nesne = nesneler[Math.floor(Math.random() * nesneler.length)];
@@ -1903,8 +2057,11 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         const correct = baslangic - degisim;
         const tamlayanIsim = getIsimTamlayan(isim);
         const iyelikNesne = getNesneIyelik(nesne);
+        const pluralEn = ITEM_EN[nesne]?.plural || `${nesne}s`;
         return {
-          question: `${tamlayanIsim} ${baslangic} tane ${iyelikNesne} vardı. ${degisim} tanesini arkadaşlarına dağıttı. ${tamlayanIsim} kaç ${iyelikNesne} kaldı?`,
+          question: en
+            ? `${isim} had ${baslangic} ${pluralEn} and shared ${degisim} of them with friends. How many ${pluralEn} does ${isim} have left?`
+            : `${tamlayanIsim} ${baslangic} tane ${iyelikNesne} vardı. ${degisim} tanesini arkadaşlarına dağıttı. ${tamlayanIsim} kaç ${iyelikNesne} kaldı?`,
           correct,
           wrong: benzersizYanlislar(correct, [baslangic + degisim, correct + 5, correct - 5, degisim], 1),
           isLong: true
@@ -1915,12 +2072,15 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "İki İşlemli Çıkarma Problemleri",
       desc: "İki adımlı çıkarma problemleri çözme alıştırması.",
       generate: () => {
+        const en = isEn();
         const baslangic = Math.floor(Math.random() * 20) + 30;
         const cikan1 = Math.floor(Math.random() * 8) + 5;
         const cikan2 = Math.floor(Math.random() * 8) + 5;
         const correct = baslangic - cikan1 - cikan2;
         return {
-          question: `Bir kümeste ${baslangic} tavuk vardı. Önce ${cikan1} tavuk, sonra ${cikan2} tavuk satıldı. Kümeste kaç tavuk kaldı?`,
+          question: en
+            ? `There were ${baslangic} chickens in a coop. First ${cikan1} chickens were sold, then ${cikan2} more were sold. How many chickens are left?`
+            : `Bir kümeste ${baslangic} tavuk vardı. Önce ${cikan1} tavuk, sonra ${cikan2} tavuk satıldı. Kümeste kaç tavuk kaldı?`,
           correct,
           wrong: benzersizYanlislar(correct, [baslangic - cikan1, correct + 5, correct - 5, baslangic - cikan2], 1),
           isLong: true
@@ -1931,12 +2091,15 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Toplama ve Çıkarma Problemleri",
       desc: "Toplama ve çıkarma işlemlerini içeren karma problemler.",
       generate: () => {
+        const en = isEn();
         const baslangic = Math.floor(Math.random() * 20) + 15;
         const eklenen = Math.floor(Math.random() * 15) + 5;
         const cikarilan = Math.floor(Math.random() * 10) + 5;
         const correct = baslangic + eklenen - cikarilan;
         return {
-          question: `Bir otobüste ${baslangic} yolcu vardı. İlk durakta ${eklenen} yolcu bindi, 2. durakta ${cikarilan} yolcu indi. Otobüste kaç yolcu kaldı?`,
+          question: en
+            ? `A bus had ${baslangic} passengers. At the first stop ${eklenen} passengers got on, and at the second stop ${cikarilan} passengers got off. How many passengers are left on the bus?`
+            : `Bir otobüste ${baslangic} yolcu vardı. İlk durakta ${eklenen} yolcu bindi, 2. durakta ${cikarilan} yolcu indi. Otobüste kaç yolcu kaldı?`,
           correct,
           wrong: benzersizYanlislar(correct, [baslangic + eklenen, baslangic - cikarilan, correct + 5, correct - 5], 1),
           isLong: true
@@ -1947,6 +2110,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Onluk Bozmadan",
       desc: "Onluk bozma gerektirmeyen çıkarma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const { s1, s2, correct } = cikarmaUret(21, 50, false);
         const questionHTML = `
           <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3.5 py-1 text-center">
@@ -1954,13 +2118,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${s1} - ${s2} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Onluk bozmadan çıkarma işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>?
+              ${en
+                ? `What is the <span class="text-amber-300 underline decoration-amber-400 font-black">difference</span> of this subtraction?`
+                : `Onluk bozmadan çıkarma işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>?`}
             </div>
           </div>
         `;
 
         return {
-          question: `${s1} - ${s2} = ?\n\nOnluk bozmadan çıkarma işleminin sonucu kaçtır?`,
+          question: en
+            ? `${s1} - ${s2} = ?\n\nWhat is the difference of this subtraction?`
+            : `${s1} - ${s2} = ?\n\nOnluk bozmadan çıkarma işleminin sonucu kaçtır?`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 10, correct - 5, correct + 2, correct - 2], 0),
@@ -1972,6 +2140,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Onluk Bozarak",
       desc: "Onluk bozarak çıkarma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const { s1, s2, correct } = cikarmaUret(21, 50, true);
         const questionHTML = `
           <div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2.5 sm:gap-3.5 py-1 text-center">
@@ -1979,13 +2148,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${s1} - ${s2} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Onluk bozarak çıkarma işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>? <span class="text-yellow-300 font-black">(Komşudan onluk al!)</span>
+              ${en
+                ? `What is the <span class="text-amber-300 underline decoration-amber-400 font-black">difference</span>? <span class="text-yellow-300 font-black">(Borrow a ten!)</span>`
+                : `Onluk bozarak çıkarma işleminin <span class="text-amber-300 underline decoration-amber-400 font-black">sonucu kaçtır</span>? <span class="text-yellow-300 font-black">(Komşudan onluk al!)</span>`}
             </div>
           </div>
         `;
 
         return {
-          question: `${s1} - ${s2} = ?\n(Komşudan onluk al!)`,
+          question: en
+            ? `${s1} - ${s2} = ?\n(Borrow a ten!)`
+            : `${s1} - ${s2} = ?\n(Komşudan onluk al!)`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 10, correct - 10, correct + 1, correct - 1], 0),
@@ -1997,6 +2170,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Zihinden Toplama",
       desc: "Zihinden toplama işlemleri yapma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const onlar = (Math.floor(Math.random() * 4) + 1) * 10;
         const birler = Math.floor(Math.random() * 30) + 10;
         const correct = onlar + birler;
@@ -2006,13 +2180,15 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${onlar} + ${birler} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Zihinden topla: <span class="text-amber-300 underline decoration-amber-400 font-black">sonuç kaçtır</span>?
+              ${en
+                ? `Add mentally: <span class="text-amber-300 underline decoration-amber-400 font-black">what is the answer</span>?`
+                : `Zihinden topla: <span class="text-amber-300 underline decoration-amber-400 font-black">sonuç kaçtır</span>?`}
             </div>
           </div>
         `;
 
         return {
-          question: `${onlar} + ${birler} = ?\n(Zihinden topla)`,
+          question: en ? `${onlar} + ${birler} = ?\n(Mental addition)` : `${onlar} + ${birler} = ?\n(Zihinden topla)`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 10, correct - 10, correct + 5, correct - 5], 0),
@@ -2024,6 +2200,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Zihinden Çıkarma",
       desc: "Zihinden çıkarma işlemleri yapma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const s1 = Math.floor(Math.random() * 40) + 30;
         const s2 = (Math.floor(Math.random() * 2) + 1) * 10;
         const correct = s1 - s2;
@@ -2033,13 +2210,15 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               ${s1} - ${s2} = ?
             </div>
             <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2">
-              Zihinden çıkar: <span class="text-amber-300 underline decoration-amber-400 font-black">sonuç kaçtır</span>?
+              ${en
+                ? `Subtract mentally: <span class="text-amber-300 underline decoration-amber-400 font-black">what is the answer</span>?`
+                : `Zihinden çıkar: <span class="text-amber-300 underline decoration-amber-400 font-black">sonuç kaçtır</span>?`}
             </div>
           </div>
         `;
 
         return {
-          question: `${s1} - ${s2} = ?\n(Zihinden çıkar)`,
+          question: en ? `${s1} - ${s2} = ?\n(Mental subtraction)` : `${s1} - ${s2} = ?\n(Zihinden çıkar)`,
           questionHTML,
           correct,
           wrong: benzersizYanlislar(correct, [correct + 10, correct - 10, correct + 5, correct - 5], 0),
@@ -2051,6 +2230,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Ardışık Toplama",
       desc: "Aynı sayının ardışık toplanması alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const sayi = Math.floor(Math.random() * 4) + 2;
         const adet = Math.floor(Math.random() * 3) + 3;
         const dizi = Array(adet).fill(sayi);
@@ -2061,9 +2241,10 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
 
         const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1 text-center">
           <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug">
-            İşlemde <span class="text-amber-300 underline decoration-amber-400 font-black">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+            ${en
+              ? `Which number belongs in the <span class="text-amber-300 underline decoration-amber-400 font-black">${secilenKare.adEn}</span>?`
+              : `İşlemde <span class="text-amber-300 underline decoration-amber-400 font-black">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?`}
           </div>
-          <!-- Yan yana taşmayan, görsel ve sayıyı birlikte gösteren esnek bloklar -->
           <div class="flex items-center justify-center gap-1 xs:gap-1.5 sm:gap-2.5 text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white flex-wrap max-w-full px-1 my-1">
             ${dizi.map(n => `
               <div class="flex flex-col items-center justify-center px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl bg-blue-900/95 border-2 border-blue-400/90 shadow-md shrink-0 text-center min-w-[32px]">
@@ -2091,6 +2272,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Ritmik Çarpım",
       desc: "Ritmik sayma ile çarpma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const carpanlar = [2, 3, 4, 5, 10];
         const c1 = carpanlar[Math.floor(Math.random() * carpanlar.length)];
         const c2 = Math.floor(Math.random() * 9) + 1;
@@ -2099,24 +2281,19 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
 
         const soruHTML = `<div class="flex flex-col items-center justify-center w-full h-full my-auto gap-2 sm:gap-3 py-1">
           <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug max-w-md">
-            İşlemde <span class="text-white underline decoration-white/60 font-black">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?
+            ${en
+              ? `Which number belongs in the <span class="text-white underline decoration-white/60 font-black">${secilenKare.adEn}</span>?`
+              : `İşlemde <span class="text-white underline decoration-white/60 font-black">${secilenKare.ad}</span> yerine hangi sayı gelmelidir?`}
           </div>
           <div class="flex items-center justify-center gap-2 xs:gap-3 sm:gap-4 flex-nowrap max-w-full my-1 sm:my-2">
-            <!-- 1. Çarpan (Kutuyu Dolduran İri Rakam) -->
             <div class="min-w-[54px] xs:min-w-[64px] sm:min-w-[76px] h-14 xs:h-16 sm:h-20 px-3 rounded-2xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 shadow-[0_8px_20px_rgba(0,0,0,0.7)] flex items-center justify-center text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black text-white shrink-0 select-none">
               ${c1}
             </div>
-
             <span class="text-2xl xs:text-3xl sm:text-4xl font-black text-slate-300 filter drop-shadow-md mx-0.5 shrink-0 select-none">✕</span>
-
-            <!-- 2. Çarpan (Kutuyu Dolduran İri Rakam) -->
             <div class="min-w-[54px] xs:min-w-[64px] sm:min-w-[76px] h-14 xs:h-16 sm:h-20 px-3 rounded-2xl bg-gradient-to-b from-[#16233b] to-[#0c1424] border-2 border-slate-600 shadow-[0_8px_20px_rgba(0,0,0,0.7)] flex items-center justify-center text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black text-white shrink-0 select-none">
               ${c2}
             </div>
-
             <span class="text-2xl xs:text-3xl sm:text-4xl font-black text-slate-300 filter drop-shadow-md mx-0.5 shrink-0 select-none">=</span>
-
-            <!-- Renkli Kare Kutusu (İri, Sabit, Titreşimsiz) -->
             <div class="w-14 h-14 xs:w-16 xs:h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr ${secilenKare.bgClass} border-2 border-white shadow-[0_8px_24px_rgba(0,0,0,0.7)] flex items-center justify-center text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black text-white ring-4 ring-white/30 shrink-0 select-none">
               ?
             </div>
@@ -2136,14 +2313,18 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Eşit Paylaştırma",
       desc: "Eşit şekilde paylaştırma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const nesneler = ["elma", "çilek", "muz", "portakal", "karpuz", "şeftali", "üzüm", "kiraz", "mandalina", "erik", "fındık", "ceviz", "bilye", "balon"];
         const nesne = nesneler[Math.floor(Math.random() * nesneler.length)];
         const nesneBelirtme = getNesneBelirtme(nesne);
         const kisiler = Math.floor(Math.random() * 3) + 2;
         const kisiBasi = Math.floor(Math.random() * 5) + 2;
         const toplam = kisiler * kisiBasi;
+        const pluralEn = ITEM_EN[nesne]?.plural || `${nesne}s`;
         return {
-          question: `${toplam} ${nesneBelirtme} ${kisiler} arkadaş eşit paylaşıyor. Her birine kaç ${nesne} düşer?`,
+          question: en
+            ? `${kisiler} friends share ${toplam} ${pluralEn} equally. How many ${pluralEn} does each friend get?`
+            : `${toplam} ${nesneBelirtme} ${kisiler} arkadaş eşit paylaşıyor. Her birine kaç ${nesne} düşer?`,
           correct: kisiBasi,
           wrong: benzersizYanlislar(kisiBasi, [kisiBasi + 1, kisiBasi - 1, kisiBasi + 2, kisiler], 1),
           isLong: true
@@ -2154,11 +2335,14 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Ardışık Çıkarma",
       desc: "Ardışık çıkarma alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const cikan = Math.floor(Math.random() * 3) + 2;
         const tekrar = Math.floor(Math.random() * 3) + 3;
         const eksilen = cikan * tekrar;
         return {
-          question: `${eksilen} sayısından sıfıra ulaşana kadar kaç kez ${cikan} çıkarılır?`,
+          question: en
+            ? `How many times can you subtract ${cikan} from ${eksilen} to reach zero?`
+            : `${eksilen} sayısından sıfıra ulaşana kadar kaç kez ${cikan} çıkarılır?`,
           correct: tekrar,
           wrong: benzersizYanlislar(tekrar, [tekrar + 1, tekrar - 1, tekrar + 2, cikan], 1),
           isLong: true
@@ -2169,6 +2353,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Kalansız Bölme",
       desc: "Kalansız bölme alıştırmaları.",
       generate: () => {
+        const en = isEn();
         const bolen = [2, 3, 4, 5, 10][Math.floor(Math.random() * 5)];
         const bolum = Math.floor(Math.random() * 8) + 1;
         const bolunen = bolen * bolum;
@@ -2183,7 +2368,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               <span class="text-yellow-300 font-black">?</span>
             </div>
             <div class="text-xs xs:text-sm sm:text-base md:text-lg font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug mt-1">
-              Bölme işleminin sonucu kaçtır?
+              ${en ? 'What is the quotient of this division?' : 'Bölme işleminin sonucu kaçtır?'}
             </div>
           </div>
         `;
@@ -2203,48 +2388,63 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Kesirler (Bütün, Yarım, Çeyrek)",
       desc: "Bütün, yarım ve çeyrek kesir dönüşümleri.",
       generate: () => {
+        const en = isEn();
         const yiyecekler = ["ekmek", "elma", "pasta", "pide", "karpuz", "portakal", "simit", "pizza", "kivi", "şeftali"];
         const yiyecek = yiyecekler[Math.floor(Math.random() * yiyecekler.length)];
+        const foodEn = ITEM_EN[yiyecek]?.plural || `${yiyecek}s`;
+        const foodSingEn = ITEM_EN[yiyecek]?.singular || yiyecek;
         const tur = Math.floor(Math.random() * 4);
 
+        const wholeLabel = (n: number) => en ? `${n} ${n === 1 ? 'Whole' : 'Wholes'}` : `${n} Bütün`;
+        const halfLabel = (n: number) => en ? `${n} ${n === 1 ? 'Half' : 'Halves'}` : `${n} Yarım`;
+        const quarterLabel = (n: number) => en ? `${n} ${n === 1 ? 'Quarter' : 'Quarters'}` : `${n} Çeyrek`;
+
         if (tur === 0) {
-          // Yarım -> Bütün
           const yarim = (Math.floor(Math.random() * 5) + 1) * 2;
           const buton = yarim / 2;
+          const c = wholeLabel(buton);
           return {
-            question: `${yarim} yarım ${yiyecek} kaç BÜTÜN ${yiyecek} eder?`,
-            correct: `${buton} Bütün`,
-            wrong: benzersizYanlislarString(`${buton} Bütün`, [`${buton + 1} Bütün`, `${Math.max(1, buton - 1)} Bütün`, `${yarim} Bütün`, `${buton * 2} Bütün`]),
+            question: en
+              ? `How many WHOLE ${foodEn} do ${yarim} half ${foodEn} make?`
+              : `${yarim} yarım ${yiyecek} kaç BÜTÜN ${yiyecek} eder?`,
+            correct: c,
+            wrong: benzersizYanlislarString(c, [wholeLabel(buton + 1), wholeLabel(Math.max(1, buton - 1)), wholeLabel(yarim), wholeLabel(buton * 2)]),
             isLong: false
           };
         } else if (tur === 1) {
-          // Bütün -> Çeyrek
           const buton = Math.floor(Math.random() * 4) + 1;
           const ceyrek = buton * 4;
+          const c = quarterLabel(ceyrek);
           return {
-            question: `${buton} bütün ${yiyecek} kaç ÇEYREK ${yiyecek} eder?`,
-            correct: `${ceyrek} Çeyrek`,
-            wrong: benzersizYanlislarString(`${ceyrek} Çeyrek`, [`${ceyrek + 2} Çeyrek`, `${ceyrek - 2} Çeyrek`, `${buton * 2} Çeyrek`, `${ceyrek + 4} Çeyrek`]),
+            question: en
+              ? `How many QUARTER ${foodEn} are in ${buton} whole ${buton === 1 ? foodSingEn : foodEn}?`
+              : `${buton} bütün ${yiyecek} kaç ÇEYREK ${yiyecek} eder?`,
+            correct: c,
+            wrong: benzersizYanlislarString(c, [quarterLabel(ceyrek + 2), quarterLabel(ceyrek - 2), quarterLabel(buton * 2), quarterLabel(ceyrek + 4)]),
             isLong: false
           };
         } else if (tur === 2) {
-          // Çeyrek -> Bütün
           const ceyrek = (Math.floor(Math.random() * 4) + 1) * 4;
           const buton = ceyrek / 4;
+          const c = wholeLabel(buton);
           return {
-            question: `${ceyrek} çeyrek ${yiyecek} kaç BÜTÜN ${yiyecek} eder?`,
-            correct: `${buton} Bütün`,
-            wrong: benzersizYanlislarString(`${buton} Bütün`, [`${buton + 1} Bütün`, `${buton + 2} Bütün`, `${ceyrek / 2} Bütün`, `${ceyrek} Bütün`]),
+            question: en
+              ? `How many WHOLE ${foodEn} do ${ceyrek} quarter ${foodEn} make?`
+              : `${ceyrek} çeyrek ${yiyecek} kaç BÜTÜN ${yiyecek} eder?`,
+            correct: c,
+            wrong: benzersizYanlislarString(c, [wholeLabel(buton + 1), wholeLabel(buton + 2), wholeLabel(ceyrek / 2), wholeLabel(ceyrek)]),
             isLong: false
           };
         } else {
-          // Bütün -> Yarım
           const buton = Math.floor(Math.random() * 5) + 1;
           const yarim = buton * 2;
+          const c = halfLabel(yarim);
           return {
-            question: `${buton} bütün ${yiyecek} kaç YARIM ${yiyecek} eder?`,
-            correct: `${yarim} Yarım`,
-            wrong: benzersizYanlislarString(`${yarim} Yarım`, [`${buton} Yarım`, `${yarim + 2} Yarım`, `${buton * 4} Yarım`, `${yarim + 1} Yarım`]),
+            question: en
+              ? `How many HALF ${foodEn} are in ${buton} whole ${buton === 1 ? foodSingEn : foodEn}?`
+              : `${buton} bütün ${yiyecek} kaç YARIM ${yiyecek} eder?`,
+            correct: c,
+            wrong: benzersizYanlislarString(c, [halfLabel(buton), halfLabel(yarim + 2), halfLabel(buton * 4), halfLabel(yarim + 1)]),
             isLong: false
           };
         }
@@ -2254,9 +2454,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Zaman Ölçme & Saatler",
       desc: "Görsel analog saatler üzerinde akrep ve yelkovanla saat okuma.",
       generate: () => {
+        const en = isEn();
         const h = Math.floor(Math.random() * 12) + 1;
         const tur = Math.floor(Math.random() * 5);
         const formatDigit = (num: number) => (num < 10 ? '0' + num : '' + num);
+        const sep = en ? ':' : '.';
+        const akrepLabel = en ? '🔴 Hour Hand' : '🔴 Akrep';
+        const yelkovanLabel = en ? '🔵 Minute Hand' : '🔵 Yelkovan';
 
         if (tur === 0) {
           // Tam Saat (e.g. 03:00)
@@ -2271,125 +2475,129 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           ];
 
           const svg = generateClockSVG(h, minute);
+          const qText = en ? 'What time does the clock show?' : 'Görseldeki saat kaçı göstermektedir?';
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
               <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
                 ${svg}
               </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${akrepLabel}</span>
+                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${yelkovanLabel}</span>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
-                Görseldeki saat kaçı göstermektedir?
+                ${qText}
               </div>
             </div>
           `;
 
           return {
-            question: "Görseldeki saat kaçı göstermektedir?",
+            question: qText,
             questionHTML: soruHTML,
             correct: dogruCevap,
             wrong,
             isLong: false
           };
         } else if (tur === 1) {
-          // Buçuk / Yarım Saat (e.g. 04.30)
+          // Buçuk / Yarım Saat (e.g. 04.30 / 04:30)
           const minute = 30;
-          const dogruCevap = `${formatDigit(h)}.30`;
+          const dogruCevap = `${formatDigit(h)}${sep}30`;
           const nextH = h === 12 ? 1 : h + 1;
           const wrong = [
-            `${formatDigit(h)}.00`,
-            `${formatDigit(nextH)}.30`,
-            `${formatDigit(nextH)}.00`
+            `${formatDigit(h)}${sep}00`,
+            `${formatDigit(nextH)}${sep}30`,
+            `${formatDigit(nextH)}${sep}00`
           ];
 
           const svg = generateClockSVG(h, minute);
+          const qText = en ? 'What time does the analog clock show?' : 'Görseldeki analog saat kaçı göstermektedir?';
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
               <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
                 ${svg}
               </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${akrepLabel}</span>
+                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${yelkovanLabel}</span>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
-                Görseldeki analog saat kaçı göstermektedir?
+                ${qText}
               </div>
             </div>
           `;
 
           return {
-            question: "Görseldeki analog saat kaçı göstermektedir?",
+            question: qText,
             questionHTML: soruHTML,
             correct: dogruCevap,
             wrong,
             isLong: false
           };
         } else if (tur === 2) {
-          // Çeyrek Geçe (e.g. 02.15)
+          // Çeyrek Geçe (e.g. 02.15 / 02:15)
           const minute = 15;
-          const dogruCevap = `${formatDigit(h)}.15`;
+          const dogruCevap = `${formatDigit(h)}${sep}15`;
           const nextH = h === 12 ? 1 : h + 1;
           const wrong = [
-            `${formatDigit(h)}.30`,
-            `${formatDigit(h)}.00`,
-            `${formatDigit(nextH)}.15`
+            `${formatDigit(h)}${sep}30`,
+            `${formatDigit(h)}${sep}00`,
+            `${formatDigit(nextH)}${sep}15`
           ];
 
           const svg = generateClockSVG(h, minute);
+          const qText = en ? 'What time does the clock show?' : 'Görseldeki saat kaçı göstermektedir?';
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
               <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
                 ${svg}
               </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${akrepLabel}</span>
+                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${yelkovanLabel}</span>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
-                Görseldeki saat kaçı göstermektedir?
+                ${qText}
               </div>
             </div>
           `;
 
           return {
-            question: "Görseldeki saat kaçı göstermektedir?",
+            question: qText,
             questionHTML: soruHTML,
             correct: dogruCevap,
             wrong,
             isLong: false
           };
         } else if (tur === 3) {
-          // Çeyrek Kala (e.g. 05.45)
+          // Çeyrek Kala (e.g. 05.45 / 05:45)
           const minute = 45;
-          const dogruCevap = `${formatDigit(h)}.45`;
+          const dogruCevap = `${formatDigit(h)}${sep}45`;
           const nextH = h === 12 ? 1 : h + 1;
           const wrong = [
-            `${formatDigit(h)}.15`,
-            `${formatDigit(h)}.30`,
-            `${formatDigit(nextH)}.45`
+            `${formatDigit(h)}${sep}15`,
+            `${formatDigit(h)}${sep}30`,
+            `${formatDigit(nextH)}${sep}45`
           ];
 
           const svg = generateClockSVG(h, minute);
+          const qText = en ? 'What time does the clock show?' : 'Görseldeki saat kaçı göstermektedir?';
           const soruHTML = `
             <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
               <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
                 ${svg}
               </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${akrepLabel}</span>
+                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${yelkovanLabel}</span>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
-                Görseldeki saat kaçı göstermektedir?
+                ${qText}
               </div>
             </div>
           `;
 
           return {
-            question: "Görseldeki saat kaçı göstermektedir?",
+            question: qText,
             questionHTML: soruHTML,
             correct: dogruCevap,
             wrong,
@@ -2398,13 +2606,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
         } else {
           // 1 saat sonrası sorusu
           const minute = 0;
-          const simdikiSaat = `${formatDigit(h)}.00`;
+          const simdikiSaat = `${formatDigit(h)}${sep}00`;
           const sonrakiH = h === 12 ? 1 : h + 1;
-          const dogruCevap = `${formatDigit(sonrakiH)}.00`;
+          const dogruCevap = `${formatDigit(sonrakiH)}${sep}00`;
           const wrong = [
             simdikiSaat,
-            `${formatDigit(sonrakiH)}.30`,
-            `${formatDigit(h === 1 ? 12 : h - 1)}.00`
+            `${formatDigit(sonrakiH)}${sep}30`,
+            `${formatDigit(h === 1 ? 12 : h - 1)}${sep}00`
           ];
 
           const svg = generateClockSVG(h, minute);
@@ -2414,17 +2622,17 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
                 ${svg}
               </div>
               <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+                <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${akrepLabel}</span>
+                <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${yelkovanLabel}</span>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">
-                Görseldeki saatten <b>1 SAAT SONRA</b> saat kaç olur?
+                ${en ? 'What time will it be <b>1 HOUR AFTER</b> the clock shown?' : 'Görseldeki saatten <b>1 SAAT SONRA</b> saat kaç olur?'}
               </div>
             </div>
           `;
 
           return {
-            question: "Görseldeki saatten 1 SAAT SONRA saat kaç olur?",
+            question: en ? 'What time will it be 1 HOUR AFTER the clock shown?' : 'Görseldeki saatten 1 SAAT SONRA saat kaç olur?',
             questionHTML: soruHTML,
             correct: dogruCevap,
             wrong,
@@ -2437,136 +2645,151 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Tam Saatler",
       desc: "Tam saatleri okuma ve ayırt etme.",
       generate: () => {
+        const en = isEn();
         const h = Math.floor(Math.random() * 12) + 1;
         const formatDigit = (num: number) => (num < 10 ? '0' + num : '' + num);
-        const dogruCevap = `${formatDigit(h)}.00`;
+        const sep = en ? ':' : '.';
+        const dogruCevap = `${formatDigit(h)}${sep}00`;
         const nextH = h === 12 ? 1 : h + 1;
         const prevH = h === 1 ? 12 : h - 1;
-        const wrong = [`${formatDigit(h)}.30`, `${formatDigit(nextH)}.00`, `${formatDigit(prevH)}.00`];
+        const wrong = [`${formatDigit(h)}${sep}30`, `${formatDigit(nextH)}${sep}00`, `${formatDigit(prevH)}${sep}00`];
         const svg = generateClockSVG(h, 0);
+        const qText = en ? 'What time does the analog clock show?' : 'Görseldeki analog saat kaçı göstermektedir?';
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
             <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
               ${svg}
             </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${en ? '🔴 Hour Hand' : '🔴 Akrep'}</span>
+              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${en ? '🔵 Minute Hand' : '🔵 Yelkovan'}</span>
             </div>
-            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">Görseldeki analog saat kaçı göstermektedir?</div>
+            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">${qText}</div>
           </div>
         `;
-        return { question: "Görseldeki analog saat kaçı göstermektedir?", questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
+        return { question: qText, questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
       }
     },
     saat_yarim: {
       title: "Yarım Saatler",
       desc: "Yarım (buçuk) saatleri okuma alıştırması.",
       generate: () => {
+        const en = isEn();
         const h = Math.floor(Math.random() * 12) + 1;
         const formatDigit = (num: number) => (num < 10 ? '0' + num : '' + num);
-        const dogruCevap = `${formatDigit(h)}.30`;
+        const sep = en ? ':' : '.';
+        const dogruCevap = `${formatDigit(h)}${sep}30`;
         const nextH = h === 12 ? 1 : h + 1;
-        const wrong = [`${formatDigit(h)}.00`, `${formatDigit(nextH)}.30`, `${formatDigit(nextH)}.00`];
+        const wrong = [`${formatDigit(h)}${sep}00`, `${formatDigit(nextH)}${sep}30`, `${formatDigit(nextH)}${sep}00`];
         const svg = generateClockSVG(h, 30);
+        const qText = en ? 'What time does the analog clock show?' : 'Görseldeki analog saat kaçı göstermektedir?';
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
             <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
               ${svg}
             </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${en ? '🔴 Hour Hand' : '🔴 Akrep'}</span>
+              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${en ? '🔵 Minute Hand' : '🔵 Yelkovan'}</span>
             </div>
-            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">Görseldeki analog saat kaçı göstermektedir?</div>
+            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">${qText}</div>
           </div>
         `;
-        return { question: "Görseldeki analog saat kaçı göstermektedir?", questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
+        return { question: qText, questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
       }
     },
     saat_ceyrek_gece: {
       title: "Çeyrek Geçiyor",
       desc: "Çeyrek geçe saatlerini okuma alıştırması.",
       generate: () => {
+        const en = isEn();
         const h = Math.floor(Math.random() * 12) + 1;
         const formatDigit = (num: number) => (num < 10 ? '0' + num : '' + num);
-        const dogruCevap = `${formatDigit(h)}.15`;
+        const sep = en ? ':' : '.';
+        const dogruCevap = `${formatDigit(h)}${sep}15`;
         const nextH = h === 12 ? 1 : h + 1;
-        const wrong = [`${formatDigit(h)}.30`, `${formatDigit(h)}.00`, `${formatDigit(nextH)}.15`];
+        const wrong = [`${formatDigit(h)}${sep}30`, `${formatDigit(h)}${sep}00`, `${formatDigit(nextH)}${sep}15`];
         const svg = generateClockSVG(h, 15);
+        const qText = en ? 'What time does the analog clock show?' : 'Görseldeki analog saat kaçı göstermektedir?';
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
             <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
               ${svg}
             </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${en ? '🔴 Hour Hand' : '🔴 Akrep'}</span>
+              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${en ? '🔵 Minute Hand' : '🔵 Yelkovan'}</span>
             </div>
-            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">Görseldeki analog saat kaçı göstermektedir?</div>
+            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">${qText}</div>
           </div>
         `;
-        return { question: "Görseldeki analog saat kaçı göstermektedir?", questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
+        return { question: qText, questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
       }
     },
     saat_ceyrek_kala: {
       title: "Çeyrek Var",
       desc: "Çeyrek kala saatlerini okuma alıştırması.",
       generate: () => {
+        const en = isEn();
         const h = Math.floor(Math.random() * 12) + 1;
         const formatDigit = (num: number) => (num < 10 ? '0' + num : '' + num);
-        const dogruCevap = `${formatDigit(h)}.45`;
+        const sep = en ? ':' : '.';
+        const dogruCevap = `${formatDigit(h)}${sep}45`;
         const nextH = h === 12 ? 1 : h + 1;
-        const wrong = [`${formatDigit(h)}.15`, `${formatDigit(h)}.30`, `${formatDigit(nextH)}.45`];
+        const wrong = [`${formatDigit(h)}${sep}15`, `${formatDigit(h)}${sep}30`, `${formatDigit(nextH)}${sep}45`];
         const svg = generateClockSVG(h, 45);
+        const qText = en ? 'What time does the analog clock show?' : 'Görseldeki analog saat kaçı göstermektedir?';
         const soruHTML = `
           <div class="flex flex-col items-center justify-center gap-1 my-auto w-full">
             <div class="clock-svg-container flex items-center justify-center shrink-0 my-0.5">
               ${svg}
             </div>
             <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-black">
-              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">🔴 Akrep</span>
-              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">🔵 Yelkovan</span>
+              <span class="flex items-center gap-1 text-red-200 bg-red-950/80 px-1.5 py-0.5 rounded-md border border-red-500/50">${en ? '🔴 Hour Hand' : '🔴 Akrep'}</span>
+              <span class="flex items-center gap-1 text-blue-200 bg-blue-950/80 px-1.5 py-0.5 rounded-md border border-blue-500/50">${en ? '🔵 Minute Hand' : '🔵 Yelkovan'}</span>
             </div>
-            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">Görseldeki analog saat kaçı göstermektedir?</div>
+            <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center leading-snug drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] max-w-lg px-2 mt-1">${qText}</div>
           </div>
         `;
-        return { question: "Görseldeki analog saat kaçı göstermektedir?", questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
+        return { question: qText, questionHTML: soruHTML, correct: dogruCevap, wrong, isLong: false };
       }
     },
     takvim_olcme: {
       title: "Takvim, Günler & Aylar",
       desc: "Gün, hafta, ay, mevsim kavramları ve takvim okuma.",
       generate: () => {
+        const en = isEn();
         const t = Math.floor(Math.random() * 4);
         if (t === 0) {
           return {
-            question: "1 yılda kaç mevsim vardır?",
+            question: en ? "How many seasons are in 1 year?" : "1 yılda kaç mevsim vardır?",
             correct: 4,
             wrong: [2, 7, 12],
             isLong: false
           };
         } else if (t === 1) {
           return {
-            question: "1 yılda kaç ay vardır?",
+            question: en ? "How many months are in 1 year?" : "1 yılda kaç ay vardır?",
             correct: 12,
             wrong: [4, 7, 30],
             isLong: false
           };
         } else if (t === 2) {
           return {
-            question: "1 haftada kaç gün vardır?",
+            question: en ? "How many days are in 1 week?" : "1 haftada kaç gün vardır?",
             correct: 7,
             wrong: [5, 12, 30],
             isLong: false
           };
         } else {
-          const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+          const aylar = en
+            ? ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            : ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
           const index = Math.floor(Math.random() * 11);
           const onceki = aylar[index];
           const sonraki = aylar[index + 1];
           return {
-            question: `${onceki} ayından sonra hangi ay gelir?`,
+            question: en ? `Which month comes right after ${onceki}?` : `${onceki} ayından sonra hangi ay gelir?`,
             correct: sonraki,
             wrong: rastgeleSec(aylar.filter(a => a !== sonraki && a !== onceki), 3),
             isLong: true
@@ -2578,6 +2801,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Paralarımız",
       desc: "Lira ve Kuruş hesabı ile alışveriş problemleri.",
       generate: () => {
+        const en = isEn();
         const getParaGorselleriByTL = (tl: number): string[] => {
           if (tl === 200) return ['/paralar/200_tl_kagit_para.webp'];
           if (tl === 100) return ['/paralar/100_tl_kagit_para.webp'];
@@ -2615,7 +2839,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
                   return `
                     <img 
                       src="${imgSrc}" 
-                      alt="Para" 
+                      alt="${en ? 'Money' : 'Para'}" 
                       class="${isCoin ? 'para-madeni' : 'para-kagit'} object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.85)]" 
                     />
                   `;
@@ -2672,8 +2896,19 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           return wr;
         };
 
-        const nesneler = ["kitap", "oyuncak", "kalem", "defter", "top", "şapka", "çanta", "kalemlik", "silgi"];
-        const nesne = nesneler[Math.floor(Math.random() * nesneler.length)];
+        const nesneler = [
+          { tr: "kitap", singEn: "book", plurEn: "books", article: "a" },
+          { tr: "oyuncak", singEn: "toy", plurEn: "toys", article: "a" },
+          { tr: "kalem", singEn: "pencil", plurEn: "pencils", article: "a" },
+          { tr: "defter", singEn: "notebook", plurEn: "notebooks", article: "a" },
+          { tr: "top", singEn: "ball", plurEn: "balls", article: "a" },
+          { tr: "şapka", singEn: "hat", plurEn: "hats", article: "a" },
+          { tr: "çanta", singEn: "bag", plurEn: "bags", article: "a" },
+          { tr: "kalemlik", singEn: "pencil case", plurEn: "pencil cases", article: "a" },
+          { tr: "silgi", singEn: "eraser", plurEn: "erasers", article: "an" }
+        ];
+        const nesneObj = nesneler[Math.floor(Math.random() * nesneler.length)];
+        const nesne = nesneObj.tr;
         const ogrenci = getRastgeleOgrenci();
 
         const tur = Math.floor(Math.random() * 5);
@@ -2687,7 +2922,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const toplam = birimFiyat * adet; // strictly <= 100
 
           const images = getParaGorselleriByTL(birimFiyat);
-          const questionText = `Tanesi ${birimFiyat} TL olan ${getNesneAyrilma(nesne)} ${adet} tane alan ${ogrenci} kaç TL öder?`;
+          const questionText = en
+            ? `${ogrenci} buys ${adet} ${nesneObj.plurEn} costing ${birimFiyat} TL each. How many TL does ${ogrenci} pay?`
+            : `Tanesi ${birimFiyat} TL olan ${getNesneAyrilma(nesne)} ${adet} tane alan ${ogrenci} kaç TL öder?`;
 
           return {
             question: questionText,
@@ -2705,7 +2942,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const kalan = verilecek - harcanan; // strictly <= 100
 
           const images = getParaGorselleriByTL(verilecek);
-          const questionText = `${verilecek} TL parası olan ${ogrenci}, ${harcanan} TL'ye bir ${nesne} alırsa kaç TL parası kalır?`;
+          const questionText = en
+            ? `${ogrenci} has ${verilecek} TL and buys ${nesneObj.article} ${nesneObj.singEn} for ${harcanan} TL. How many TL does ${ogrenci} have left?`
+            : `${verilecek} TL parası olan ${ogrenci}, ${harcanan} TL'ye bir ${nesne} alırsa kaç TL parası kalır?`;
 
           return {
             question: questionText,
@@ -2723,9 +2962,11 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const toplam = fiyat1 + fiyat2; // strictly <= 100
 
           const images = [...getParaGorselleriByTL(fiyat1), ...getParaGorselleriByTL(fiyat2)];
-          const nesne2Options = nesneler.filter(n => n !== nesne);
-          const nesne2 = nesne2Options[Math.floor(Math.random() * nesne2Options.length)];
-          const questionText = `Fiyatı ${fiyat1} TL olan ${nesne} ile ${fiyat2} TL olan ${getNesneBelirtme(nesne2)} alan ${ogrenci} toplam kaç TL öder?`;
+          const nesne2Options = nesneler.filter(n => n.tr !== nesne);
+          const nesne2Obj = nesne2Options[Math.floor(Math.random() * nesne2Options.length)];
+          const questionText = en
+            ? `${ogrenci} buys ${nesneObj.article} ${nesneObj.singEn} for ${fiyat1} TL and ${nesne2Obj.article} ${nesne2Obj.singEn} for ${fiyat2} TL. How many TL does ${ogrenci} pay in total?`
+            : `Fiyatı ${fiyat1} TL olan ${nesne} ile ${fiyat2} TL olan ${getNesneBelirtme(nesne2Obj.tr)} alan ${ogrenci} toplam kaç TL öder?`;
 
           return {
             question: questionText,
@@ -2740,32 +2981,32 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
             {
               images: ['/paralar/50_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp'],
               toplam: 75,
-              text: "Görseldeki paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the money shown (in TL)?" : "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
               images: ['/paralar/50_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp'],
               toplam: 80,
-              text: "Görseldeki paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the money shown (in TL)?" : "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
               images: ['/paralar/20_tl_kagit_para.webp', '/paralar/20_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp'],
               toplam: 50,
-              text: "Görseldeki paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the money shown (in TL)?" : "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
               images: ['/paralar/50_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp'],
               toplam: 70,
-              text: "Görseldeki paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the money shown (in TL)?" : "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
               images: ['/paralar/20_tl_kagit_para.webp', '/paralar/10_tl_kagit_para.webp', '/paralar/5_tl_kagit_para.webp', '/paralar/1_tl_madeni_para.webp'],
               toplam: 36,
-              text: "Görseldeki paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the money shown (in TL)?" : "Görseldeki paraların toplam değeri kaç TL'dir?"
             },
             {
               images: ['/paralar/50_kurus_madeni_para.webp', '/paralar/50_kurus_madeni_para.webp', '/paralar/1_tl_madeni_para.webp'],
               toplam: 2,
-              text: "Görseldeki madeni paraların toplam değeri kaç TL'dir?"
+              text: en ? "What is the total value of the coins shown (in TL)?" : "Görseldeki madeni paraların toplam değeri kaç TL'dir?"
             }
           ];
           const k = kombinasyonlar[Math.floor(Math.random() * kombinasyonlar.length)];
@@ -2781,20 +3022,25 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const liraList = [1, 2, 3, 4, 5];
           const lira = liraList[Math.floor(Math.random() * liraList.length)];
           const kurus = lira * 100;
+          const unitKurus = en ? 'Kurus' : 'Kuruş';
 
-          const questionText = `Kumbarasından <span class="text-amber-300 font-black">${kurus} Kuruş</span> çıkan ${getIsimTamlayan(ogrenci)} toplam kaç TL parası vardır?`;
+          const questionText = en
+            ? `${ogrenci} found <span class="text-amber-300 font-black">${kurus} ${unitKurus}</span> in the piggy bank. How many TL does ${ogrenci} have in total?`
+            : `Kumbarasından <span class="text-amber-300 font-black">${kurus} Kuruş</span> çıkan ${getIsimTamlayan(ogrenci)} toplam kaç TL parası vardır?`;
 
           return {
-            question: `Kumbarasından ${kurus} Kuruş çıkan ${ogrenci} toplam kaç TL parası vardır?`,
+            question: en
+              ? `${ogrenci} found ${kurus} ${unitKurus} in the piggy bank. How many TL does ${ogrenci} have in total?`
+              : `Kumbarasından ${kurus} Kuruş çıkan ${ogrenci} toplam kaç TL parası vardır?`,
             questionHTML: `
               <div class="flex flex-col items-center justify-center w-full gap-2 my-auto max-h-full px-2 text-center">
                 <div class="px-5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-xl sm:text-2xl border-2 border-white shadow-md inline-block my-1">
-                  ${kurus} Kuruş
+                  ${kurus} ${unitKurus}
                 </div>
                 <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-1 leading-snug">
                   ${questionText}
                 </div>
-                <div class="text-xs sm:text-sm font-bold text-amber-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">(100 Kuruş = 1 TL)</div>
+                <div class="text-xs sm:text-sm font-bold text-amber-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">(100 ${unitKurus} = 1 TL)</div>
               </div>
             `,
             correct: `${lira} TL`,
@@ -2808,23 +3054,22 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Uzunluk Ölçme",
       desc: "Standart olan/olmayan birimler, uzunluk tahmin etme ve problemler.",
       generate: () => {
+        const en = isEn();
         // 3 Farklı Soru Tipi (Karma Etkinlik)
-        // 1: Standart Olmayan Ölçme Araçları (Görsel 2 & 3 referanslı)
+        // 1: Standart Olmayan Ölçme Araçları
         // 2: Uzunluk Tahmin Etme
         // 3: Metre/Santimetre Dönüştürme ve Problemler
         const category = Math.floor(Math.random() * 3) + 1;
 
         if (category === 0) {
           // --- KATEGORİ 0: CETVEL ÜZERİNDE ÖLÇÜM (GÖRSEL CETVEL) ---
-          // Cetvel 0 - 20 cm arasında
-          const start = Math.floor(Math.random() * 6); // 0, 1, 2, 3, 4, 5
-          const length = Math.floor(Math.random() * 10) + 3; // 3 - 12 cm arası
+          const start = Math.floor(Math.random() * 6);
+          const length = Math.floor(Math.random() * 10) + 3;
           const end = start + length;
 
           const startPct = (start / 20) * 100;
           const lengthPct = (length / 20) * 100;
 
-          // 0'dan 20'ye kadar çizgiler
           let ticksHTML = '';
           for (let i = 0; i <= 20; i++) {
             const leftPct = (i / 20) * 100;
@@ -2842,51 +3087,40 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
             <div class="w-full flex flex-col justify-center items-center gap-1.5 sm:gap-2 my-auto">
               <div class="bg-slate-900/95 border-2 border-amber-400 rounded-2xl p-2.5 sm:p-3.5 shadow-xl w-full max-w-md sm:max-w-lg mx-auto flex flex-col items-center gap-2.5">
                 <div class="text-[10px] sm:text-xs font-black text-amber-300 uppercase tracking-widest flex items-center justify-center gap-1">
-                  <span>📏 CETVEL İLE UZUNLUK ÖLÇME</span>
+                  <span>📏 ${en ? 'MEASURING LENGTH WITH A RULER' : 'CETVEL İLE UZUNLUK ÖLÇME'}</span>
                 </div>
                 
                 <div class="w-full bg-amber-100/95 border-2 border-amber-500 rounded-xl p-3 sm:p-4 shadow-inner flex flex-col gap-1">
-                  {/* ORTAK ÖLÇÜM SKALA KAPSAYICISI (px-4 sm:px-6) */}
                   <div class="relative w-full px-4 sm:px-6 pt-1 pb-1">
-                    
-                    {/* 1. ÇUBUK VE REHBER ÇİZGİLER (Tam W Genişliğinde) */}
                     <div class="relative w-full h-8 sm:h-10 mb-2">
-                      {/* Pembe Çubuk */}
                       <div 
                         style="left: ${startPct}%; width: ${lengthPct}%;" 
                         class="absolute top-0 bottom-0 bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 border-2 border-white rounded-md shadow-md flex items-center justify-center px-1 font-black z-10"
                       >
-                        <span class="text-[10px] sm:text-xs font-black text-white drop-shadow-sm whitespace-nowrap overflow-hidden">ÇUBUK</span>
+                        <span class="text-[10px] sm:text-xs font-black text-white drop-shadow-sm whitespace-nowrap overflow-hidden">${en ? 'BAR' : 'ÇUBUK'}</span>
                       </div>
-
-                      {/* Başlangıç Kırmızı Dikey Çizgisi (Cetvele Tam Uzanır) */}
                       <div 
                         style="left: ${startPct}%;" 
                         class="absolute top-0 -bottom-4 sm:-bottom-5 w-[2px] bg-rose-600 z-30 pointer-events-none transform -translate-x-1/2"
                       ></div>
-
-                      {/* Bitiş Kırmızı Dikey Çizgisi (Cetvele Tam Uzanır) */}
                       <div 
                         style="left: ${startPct + lengthPct}%;" 
                         class="absolute top-0 -bottom-4 sm:-bottom-5 w-[2px] bg-rose-600 z-30 pointer-events-none transform -translate-x-1/2"
                       ></div>
                     </div>
-
-                    {/* 2. AHŞAP CETVEL GÖVDESİ VE ÇİZGİLERİ */}
                     <div class="relative w-full h-11 sm:h-13 bg-gradient-to-b from-yellow-200 via-amber-300 to-amber-400 border-2 border-amber-800 rounded-xl shadow-md select-none">
-                      {/* Çizgiler Katmanı (border-2 offsetini sıfırlamak için -left-[2px] -right-[2px]) */}
                       <div class="absolute inset-y-0 -left-[2px] -right-[2px] pt-0.5">
                         ${ticksHTML}
                       </div>
                     </div>
-
                   </div>
                 </div>
 
                 <div class="bg-amber-400/20 border border-amber-400/50 rounded-lg p-2 text-center w-full">
                   <div class="text-sm xs:text-base sm:text-lg md:text-xl font-black text-white leading-snug">
-                    Cetvel üzerinde gösterilen çubuğun uzunluğu kaç <b>santimetredir (cm)</b>? <br/>
-                    <span class="text-xs sm:text-sm font-bold text-amber-200">(Çubuğun bittiği sayıdan başladığı sayıyı çıkarabilirsin)</span>
+                    ${en
+                      ? 'How many <b>centimeters (cm)</b> long is the bar shown on the ruler? <br/><span class="text-xs sm:text-sm font-bold text-amber-200">(Subtract the starting number from the ending number)</span>'
+                      : 'Cetvel üzerinde gösterilen çubuğun uzunluğu kaç <b>santimetredir (cm)</b>? <br/><span class="text-xs sm:text-sm font-bold text-amber-200">(Çubuğun bittiği sayıdan başladığı sayıyı çıkarabilirsin)</span>'}
                   </div>
                 </div>
               </div>
@@ -2894,7 +3128,6 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           `;
 
           const dogruCevap = `${length} cm`;
-          // Yanıltıcı şıklar: end cm (en sık yapılan hata), length + 1, length - 1, start cm
           const wrongList = [
             `${end} cm`,
             `${length + 2} cm`,
@@ -2911,7 +3144,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           }
 
           return {
-            question: "Cetvel üzerinde gösterilen çubuğun uzunluğu kaç santimetredir?",
+            question: en
+              ? "How many centimeters (cm) long is the bar shown on the ruler?"
+              : "Cetvel üzerinde gösterilen çubuğun uzunluğu kaç santimetredir?",
             questionHTML: wrapCetvelHTML,
             correct: dogruCevap,
             wrong: uniqueWrong,
@@ -2919,8 +3154,51 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           };
 
         } else if (category === 1) {
-          // --- KATEGORİ 1: STANDART OLMAYAN ÖLÇME ARAÇLARI (REFERANS GÖRSELLER) ---
-          const STANDART_OLMAYAN_SORULAR = [
+          // --- KATEGORİ 1: STANDART OLMAYAN ÖLÇME ARAÇLARI ---
+          const STANDART_OLMAYAN_SORULAR = en ? [
+            {
+              soru: "Which non-standard measuring unit is the easiest and most accurate for measuring an eraser?",
+              emoji: "🧽",
+              baslik: "ERASER MEASUREMENT",
+              dogru: "Finger Width",
+              yanlis: ["Pace (Step)", "Arm Span", "Foot Length"]
+            },
+            {
+              soru: "Which unit lets us measure a 90-meter-long wall <b>more quickly</b>: pace, hand span, or foot length?",
+              emoji: "🧱",
+              baslik: "WALL MEASUREMENT",
+              dogru: "Pace (Step)",
+              yanlis: ["Hand Span", "Finger Width", "Foot Length"]
+            },
+            {
+              soru: "What is the non-standard measuring unit for the distance between two stretched arms?",
+              emoji: "🫂",
+              baslik: "ARM REACH",
+              dogru: "Arm Span",
+              yanlis: ["Hand Span", "Foot Length", "Finger Width"]
+            },
+            {
+              soru: "What is the distance between the tip of the thumb and the little finger of an open hand called?",
+              emoji: "🖐️",
+              baslik: "HAND MEASUREMENT",
+              dogru: "Hand Span",
+              yanlis: ["Arm Span", "Pace (Step)", "Finger Width"]
+            },
+            {
+              soru: "Which unit should we choose to measure our classroom length <b>the fastest</b> with the fewest counts?",
+              emoji: "🏫",
+              baslik: "CLASSROOM LENGTH",
+              dogru: "Pace (Step)",
+              yanlis: ["Hand Span", "Finger Width", "Arm Span"]
+            },
+            {
+              soru: "Which of the following is a <b>STANDARD</b> unit for measuring length?",
+              emoji: "📏",
+              baslik: "STANDARD UNIT",
+              dogru: "Meter (m)",
+              yanlis: ["Hand Span", "Arm Span", "Pace (Step)"]
+            }
+          ] : [
             {
               soru: "Silgilerimizi hangi standart olmayan ölçme aracıyla ölçmemiz daha doğru ve kolay olur?",
               emoji: "🧽",
@@ -2975,7 +3253,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               </div>
               <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                 <div class="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest flex items-center justify-center gap-1 mb-0.5">
-                  <span>📐 ÖLÇME ARAÇLARI</span>
+                  <span>📐 ${en ? 'MEASURING TOOLS' : 'ÖLÇME ARAÇLARI'}</span>
                 </div>
                 <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">${item.soru}</div>
               </div>
@@ -2992,7 +3270,80 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
 
         } else if (category === 2) {
           // --- KATEGORİ 2: UZUNLUK TAHMİN ETME ---
-          const TAHMIN_NESNELERI = [
+          const TAHMIN_NESNELERI = en ? [
+            {
+              nesne: "Pencil",
+              emoji: "✏️",
+              soru: "About how many centimeters (cm) long is a standard <b>Pencil</b>?",
+              plainSoru: "About how many cm long is a pencil?",
+              dogru: "15 cm",
+              yanlis: ["1 cm", "100 cm", "5 meters"]
+            },
+            {
+              nesne: "School Eraser",
+              emoji: "🧽",
+              soru: "About how long is a standard <b>School Eraser</b>?",
+              plainSoru: "About how long is a school eraser?",
+              dogru: "5 cm",
+              yanlis: ["1 cm", "50 cm", "2 meters"]
+            },
+            {
+              nesne: "Classroom Board",
+              emoji: "📋",
+              soru: "About how wide is a <b>Classroom Board</b>?",
+              plainSoru: "About how wide is a classroom board?",
+              dogru: "3 meters",
+              yanlis: ["3 cm", "50 meters", "500 cm"]
+            },
+            {
+              nesne: "Math Textbook",
+              emoji: "📘",
+              soru: "About how long is a <b>Math Textbook</b> on a desk?",
+              plainSoru: "About how long is a math textbook?",
+              dogru: "30 cm",
+              yanlis: ["2 cm", "200 cm", "10 meters"]
+            },
+            {
+              nesne: "Classroom Door",
+              emoji: "🚪",
+              soru: "About how tall is a <b>Classroom Door</b>?",
+              plainSoru: "About how tall is a classroom door?",
+              dogru: "2 meters",
+              yanlis: ["10 cm", "50 meters", "100 meters"]
+            },
+            {
+              nesne: "Garden Tree",
+              emoji: "🌳",
+              soru: "About how tall is a large <b>Tree</b> in the schoolyard?",
+              plainSoru: "About how tall is a schoolyard tree?",
+              dogru: "5 meters",
+              yanlis: ["5 cm", "100 meters", "1000 meters"]
+            },
+            {
+              nesne: "Paper Clip",
+              emoji: "📎",
+              soru: "About how long is a standard <b>Paper Clip</b>?",
+              plainSoru: "About how long is a paper clip?",
+              dogru: "3 cm",
+              yanlis: ["50 cm", "2 meters", "10 meters"]
+            },
+            {
+              nesne: "Smartphone",
+              emoji: "📱",
+              soru: "About how long is a <b>Smartphone</b>?",
+              plainSoru: "About how long is a smartphone?",
+              dogru: "15 cm",
+              yanlis: ["1 cm", "100 cm", "10 meters"]
+            },
+            {
+              nesne: "School Ruler",
+              emoji: "📏",
+              soru: "About how long is a standard <b>School Ruler</b>?",
+              plainSoru: "About how long is a school ruler?",
+              dogru: "30 cm",
+              yanlis: ["1 cm", "10 meters", "100 meters"]
+            }
+          ] : [
             {
               nesne: "Kurşun Kalem",
               emoji: "✏️",
@@ -3077,7 +3428,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               </div>
               <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                 <div class="text-xs sm:text-sm font-black text-amber-300 uppercase tracking-widest flex items-center justify-center gap-1 mb-0.5">
-                  <span>📏 UZUNLUK TAHMİNİ</span>
+                  <span>📏 ${en ? 'LENGTH ESTIMATION' : 'UZUNLUK TAHMİNİ'}</span>
                 </div>
                 <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">${item.soru}</div>
               </div>
@@ -3097,100 +3448,109 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const problemType = Math.floor(Math.random() * 4);
 
           if (problemType === 0) {
-            // 1 metre = 100 cm dönüşüm sorusu
-            const metre = Math.floor(Math.random() * 4) + 1; // 1, 2, 3, 4 metre
+            const metre = Math.floor(Math.random() * 4) + 1;
             const dogruCm = metre * 100;
+            const unitEn = metre === 1 ? 'meter' : 'meters';
             const wrapHTML = `
               <div class="w-full flex flex-col justify-center items-center gap-1.5 sm:gap-2 my-auto">
                 <div class="bg-gradient-to-br from-amber-300 via-yellow-200 to-amber-400 text-slate-950 border-2 border-white rounded-2xl px-4 py-1.5 sm:py-2 shadow-xl text-center w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center gap-0.5 shrink-0">
                   <div class="text-3xl sm:text-4xl filter drop-shadow-md">📐</div>
-                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">BİRİM DÖNÜŞÜMÜ</div>
+                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">${en ? 'UNIT CONVERSION' : 'BİRİM DÖNÜŞÜMÜ'}</div>
                 </div>
                 <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                   <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">
-                    <b>${metre} metre</b> kaç santimetredir (cm)?
+                    ${en ? `How many centimeters (cm) is <b>${metre} ${unitEn}</b>?` : `<b>${metre} metre</b> kaç santimetredir (cm)?`}
                   </div>
                 </div>
               </div>
             `;
             return {
-              question: `${metre} metre kaç santimetredir (cm)?`,
+              question: en ? `How many centimeters (cm) is ${metre} ${unitEn}?` : `${metre} metre kaç santimetredir (cm)?`,
               questionHTML: wrapHTML,
               correct: `${dogruCm} cm`,
               wrong: [`${metre * 10} cm`, `${metre * 50} cm`, `${metre * 1000} cm`],
               isLong: false
             };
           } else if (problemType === 1) {
-            // Kurdele kesme problemi
-            const toplam = (Math.floor(Math.random() * 5) + 4) * 10; // 40, 50, 60, 70, 80 cm
-            const kesilen = (Math.floor(Math.random() * 3) + 1) * 10; // 10, 20, 30 cm
+            const toplam = (Math.floor(Math.random() * 5) + 4) * 10;
+            const kesilen = (Math.floor(Math.random() * 3) + 1) * 10;
             const kalan = toplam - kesilen;
 
             const wrapHTML = `
               <div class="w-full flex flex-col justify-center items-center gap-1.5 sm:gap-2 my-auto">
                 <div class="bg-gradient-to-br from-amber-300 via-yellow-200 to-amber-400 text-slate-950 border-2 border-white rounded-2xl px-4 py-1.5 sm:py-2 shadow-xl text-center w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center gap-0.5 shrink-0">
                   <div class="text-3xl sm:text-4xl filter drop-shadow-md">🎀</div>
-                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">UZUNLUK PROBLEMİ</div>
+                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">${en ? 'LENGTH PROBLEM' : 'UZUNLUK PROBLEMİ'}</div>
                 </div>
                 <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                   <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">
-                    <b>${toplam} cm</b> uzunluğundaki kurdelenin <b>${kesilen} cm'si</b> kesildi. Geriye kaç cm kurdele kaldı?
+                    ${en
+                      ? `<b>${kesilen} cm</b> was cut from a <b>${toplam} cm</b> ribbon. How many cm of ribbon is left?`
+                      : `<b>${toplam} cm</b> uzunluğundaki kurdelenin <b>${kesilen} cm'si</b> kesildi. Geriye kaç cm kurdele kaldı?`}
                   </div>
                 </div>
               </div>
             `;
             return {
-              question: `${toplam} cm uzunluğundaki kurdelenin ${kesilen} cm'si kesilirse geriye kaç cm kalır?`,
+              question: en
+                ? `${kesilen} cm was cut from a ${toplam} cm ribbon. How many cm of ribbon is left?`
+                : `${toplam} cm uzunluğundaki kurdelenin ${kesilen} cm'si kesilirse geriye kaç cm kalır?`,
               questionHTML: wrapHTML,
               correct: `${kalan} cm`,
               wrong: [`${toplam + kesilen} cm`, `${kalan + 10} cm`, `${Math.max(5, kalan - 10)} cm`],
               isLong: false
             };
           } else if (problemType === 2) {
-            // Metre ve cm toplam boy
-            const cmEk = (Math.floor(Math.random() * 8) + 1) * 5 + 10; // 15, 20, 25 ... 50 cm
+            const cmEk = (Math.floor(Math.random() * 8) + 1) * 5 + 10;
             const toplamCm = 100 + cmEk;
 
             const wrapHTML = `
               <div class="w-full flex flex-col justify-center items-center gap-1.5 sm:gap-2 my-auto">
                 <div class="bg-gradient-to-br from-amber-300 via-yellow-200 to-amber-400 text-slate-950 border-2 border-white rounded-2xl px-4 py-1.5 sm:py-2 shadow-xl text-center w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center gap-0.5 shrink-0">
                   <div class="text-3xl sm:text-4xl filter drop-shadow-md">🧍</div>
-                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">BOY ÖLÇÜSÜ</div>
+                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">${en ? 'HEIGHT MEASUREMENT' : 'BOY ÖLÇÜSÜ'}</div>
                 </div>
                 <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                   <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">
-                    Ali'nin boyu <b>1 metre ${cmEk} cm'dir</b>. Ali'nin boyu toplam kaç santimetredir?
+                    ${en
+                      ? `Alex is <b>1 meter ${cmEk} cm</b> tall. How tall is Alex in total centimeters?`
+                      : `Ali'nin boyu <b>1 metre ${cmEk} cm'dir</b>. Ali'nin boyu toplam kaç santimetredir?`}
                   </div>
                 </div>
               </div>
             `;
             return {
-              question: `Ali'nin boyu 1 metre ${cmEk} cm'dir. Ali'nin boyu toplam kaç santimetredir?`,
+              question: en
+                ? `Alex is 1 meter ${cmEk} cm tall. How tall is Alex in total centimeters?`
+                : `Ali'nin boyu 1 metre ${cmEk} cm'dir. Ali'nin boyu toplam kaç santimetredir?`,
               questionHTML: wrapHTML,
               correct: `${toplamCm} cm`,
               wrong: [`${cmEk + 10} cm`, `${toplamCm + 20} cm`, `${toplamCm - 10} cm`],
               isLong: false
             };
           } else {
-            // 1 Metrelik kumaştan kesilen
-            const kesilen = (Math.floor(Math.random() * 6) + 2) * 10; // 20, 30, 40, 50, 60, 70 cm
+            const kesilen = (Math.floor(Math.random() * 6) + 2) * 10;
             const kalan = 100 - kesilen;
 
             const wrapHTML = `
               <div class="w-full flex flex-col justify-center items-center gap-1.5 sm:gap-2 my-auto">
                 <div class="bg-gradient-to-br from-amber-300 via-yellow-200 to-amber-400 text-slate-950 border-2 border-white rounded-2xl px-4 py-1.5 sm:py-2 shadow-xl text-center w-full max-w-xs sm:max-w-sm mx-auto flex flex-col items-center gap-0.5 shrink-0">
                   <div class="text-3xl sm:text-4xl filter drop-shadow-md">🧵</div>
-                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">KUMAŞ PROBLEMİ</div>
+                  <div class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wider bg-white/80 px-3 py-0.5 rounded-full border border-amber-400/60 shadow-2xs">${en ? 'FABRIC PROBLEM' : 'KUMAŞ PROBLEMİ'}</div>
                 </div>
                 <div class="bg-slate-900/90 text-white border-2 border-amber-400 rounded-xl p-2.5 shadow-lg text-center w-full max-w-sm sm:max-w-md mx-auto shrink-0">
                   <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">
-                    <b>1 metrelik (100 cm)</b> bir kumaşın <b>${kesilen} cm'si</b> satıldı. Geriye kaç cm kumaş kaldı?
+                    ${en
+                      ? `<b>${kesilen} cm</b> was sold from a <b>1 meter (100 cm)</b> piece of fabric. How many cm of fabric is left?`
+                      : `<b>1 metrelik (100 cm)</b> bir kumaşın <b>${kesilen} cm'si</b> satıldı. Geriye kaç cm kumaş kaldı?`}
                   </div>
                 </div>
               </div>
             `;
             return {
-              question: `1 metrelik kumaşın ${kesilen} cm'si satıldı. Geriye kaç cm kumaş kaldı?`,
+              question: en
+                ? `${kesilen} cm was sold from a 1 meter (100 cm) piece of fabric. How many cm of fabric is left?`
+                : `1 metrelik kumaşın ${kesilen} cm'si satıldı. Geriye kaç cm kumaş kaldı?`,
               questionHTML: wrapHTML,
               correct: `${kalan} cm`,
               wrong: [`${kesilen} cm`, `${kalan + 10} cm`, `${Math.max(10, kalan - 20)} cm`],
@@ -3204,16 +3564,19 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Ağırlık Ölçme",
       desc: "Kütleleri ölçme, Kilogram (kg) kavramı ve nesneleri karşılaştırma.",
       generate: () => {
+        const en = isEn();
         const t = Math.floor(Math.random() * 3);
         if (t === 0) {
-          const questionText = "Kütle (ağırlık) ölçüm birimi aşağıdakilerden hangisidir?";
+          const questionText = en
+            ? "Which of the following is the unit for measuring mass (weight)?"
+            : "Kütle (ağırlık) ölçüm birimi aşağıdakilerden hangisidir?";
           return {
             question: questionText,
             questionHTML: `
               <div class="flex flex-col items-center justify-center w-full gap-1.5 sm:gap-2.5 my-auto px-1 text-center">
                 <div class="flex items-center justify-center gap-2 flex-nowrap max-w-full overflow-hidden my-0.5">
                   <div class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-900/90 border-2 border-amber-400 text-amber-300 font-black text-xs xs:text-sm sm:text-lg shadow-md shrink-0 whitespace-nowrap">
-                    ⚖️ Kütle (Ağırlık) Birimi = ❓
+                    ${en ? '⚖️ Unit of Mass (Weight) = ❓' : '⚖️ Kütle (Ağırlık) Birimi = ❓'}
                   </div>
                 </div>
                 <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug">
@@ -3222,11 +3585,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
               </div>
             `,
             correct: "Kilogram (kg)",
-            wrong: ["Litre (L)", "Metre (m)", "Saat"],
+            wrong: en ? ["Liter (L)", "Meter (m)", "Hour"] : ["Litre (L)", "Metre (m)", "Saat"],
             isLong: true
           };
         } else if (t === 1) {
-          const meyveler = ["elma 🍎", "karpuz 🍉", "portakal 🍊", "çilek 🍓", "muz 🍌", "şeftali 🍑", "kavun 🍈", "üzüm 🍇", "limon 🍋", "ananas 🍍"];
+          const meyveler = en
+            ? ["apples 🍎", "watermelon 🍉", "oranges 🍊", "strawberries 🍓", "bananas 🍌", "peaches 🍑", "melon 🍈", "grapes 🍇", "lemons 🍋", "pineapple 🍍"]
+            : ["elma 🍎", "karpuz 🍉", "portakal 🍊", "çilek 🍓", "muz 🍌", "şeftali 🍑", "kavun 🍈", "üzüm 🍇", "limon 🍋", "ananas 🍍"];
           const m1 = meyveler[Math.floor(Math.random() * meyveler.length)];
           let m2 = meyveler[Math.floor(Math.random() * meyveler.length)];
           while (m2 === m1) m2 = meyveler[Math.floor(Math.random() * meyveler.length)];
@@ -3234,7 +3599,9 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
           const k1 = Math.floor(Math.random() * 5) + 2;
           const k2 = Math.floor(Math.random() * 5) + 2;
           const toplam = k1 + k2;
-          const questionText = `${k1} kg ${m1} ile ${k2} kg ${m2} toplam kaç kg eder?`;
+          const questionText = en
+            ? `How many kg are ${k1} kg of ${m1} and ${k2} kg of ${m2} in total?`
+            : `${k1} kg ${m1} ile ${k2} kg ${m2} toplam kaç kg eder?`;
           return {
             question: questionText,
             questionHTML: `
@@ -3256,14 +3623,18 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
             isLong: false
           };
         } else {
-          const meyveler = ["elma 🍎", "çilek 🍓", "muz 🍌", "portakal 🍊", "şeftali 🍑", "karpuz 🍉", "kavun 🍈", "üzüm 🍇"];
+          const meyveler = en
+            ? ["apples 🍎", "strawberries 🍓", "bananas 🍌", "oranges 🍊", "peaches 🍑", "watermelon 🍉", "melon 🍈", "grapes 🍇"]
+            : ["elma 🍎", "çilek 🍓", "muz 🍌", "portakal 🍊", "şeftali 🍑", "karpuz 🍉", "kavun 🍈", "üzüm 🍇"];
           const m = meyveler[Math.floor(Math.random() * meyveler.length)];
           const ogrenci = getRastgeleOgrenci();
           const k1 = Math.floor(Math.random() * 6) + 5;
           const k2 = Math.floor(Math.random() * 4) + 1;
           const kalan = k1 - k2;
-          const mAyrilma = getNesneAyrilma(m.split(' ')[0]);
-          const questionText = `${ogrenci} pazardan ${k1} kg ${m} aldı. Ailesi ile birlikte ${k2} kg ${mAyrilma} yedi. Geride kaç kg ${m} kaldı?`;
+          const mAyrilma = en ? m : getNesneAyrilma(m.split(' ')[0]);
+          const questionText = en
+            ? `${ogrenci} bought ${k1} kg of ${m} from the market and ate ${k2} kg with family. How many kg of ${m} are left?`
+            : `${ogrenci} pazardan ${k1} kg ${m} aldı. Ailesi ile birlikte ${k2} kg ${mAyrilma} yedi. Geride kaç kg ${m} kaldı?`;
           return {
             question: questionText,
             questionHTML: `
@@ -3271,7 +3642,7 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
                 <div class="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-full my-0.5">
                   <span class="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-white font-black text-xs xs:text-sm sm:text-base shadow-sm whitespace-nowrap">🛒 ${k1} kg ${m}</span>
                   <span class="px-2.5 py-1 rounded-lg bg-rose-950/90 border border-rose-600 text-rose-300 font-black text-xs xs:text-sm sm:text-base shadow-sm whitespace-nowrap">-${k2} kg</span>
-                  <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs xs:text-sm sm:text-base shadow-sm whitespace-nowrap">Kalan: ❓ kg</span>
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-black text-xs xs:text-sm sm:text-base shadow-sm whitespace-nowrap">${en ? 'Left: ❓ kg' : 'Kalan: ❓ kg'}</span>
                 </div>
                 <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white text-center drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] px-2 leading-snug">
                   ${questionText}
@@ -3289,10 +3660,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Standart Olmayan Sıvı Ölçme Araçları",
       desc: "KONU ANLATIMI",
       generate: () => {
+        const en = isEn();
         return {
-          question: "Aşağıdakilerden hangisi standart olmayan bir sıvı ölçme aracıdır?",
-          correct: "Su Bardağı",
-          wrong: ["Metre", "Kilogram", "Termometre"],
+          question: en
+            ? "Which of the following is a non-standard tool for measuring liquids?"
+            : "Aşağıdakilerden hangisi standart olmayan bir sıvı ölçme aracıdır?",
+          correct: en ? "Water Glass" : "Su Bardağı",
+          wrong: en ? ["Meter", "Kilogram", "Thermometer"] : ["Metre", "Kilogram", "Termometre"],
           isLong: true
         };
       }
@@ -3301,10 +3675,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sıvı Ölçme",
       desc: "Sıvıları bardak, sürahi, kova gibi birimlerle ölçme.",
       generate: () => {
+        const en = isEn();
         const b = Math.floor(Math.random() * 4) + 2;
         const s = b * 4;
         return {
-          question: `1 sürahi 4 bardak su almaktadır. Buna göre ${b} sürahi kaç bardak su alır?`,
+          question: en
+            ? `1 pitcher holds 4 glasses of water. How many glasses of water do ${b} pitchers hold?`
+            : `1 sürahi 4 bardak su almaktadır. Buna göre ${b} sürahi kaç bardak su alır?`,
           correct: s,
           wrong: benzersizYanlislar(s, [s + 2, s - 2, b + 4, s + 4], 1),
           isLong: true
@@ -3315,10 +3692,13 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Sıvı Ölçme Tahmini",
       desc: "Kova, cam akvaryum ve sürahiyi farklı dolum araçlarıyla doldurma tahmin düellosu.",
       generate: () => {
+        const en = isEn();
         const surahi = Math.floor(Math.random() * 3) + 3;
         const bardak = surahi * 4;
         return {
-          question: `1 sürahi 4 su bardağı su almaktadır. ${surahi} sürahi kaç bardak su ile dolar?`,
+          question: en
+            ? `1 pitcher holds 4 glasses of water. How many glasses of water are needed to fill ${surahi} pitchers?`
+            : `1 sürahi 4 su bardağı su almaktadır. ${surahi} sürahi kaç bardak su ile dolar?`,
           correct: bardak,
           wrong: [bardak + 2, bardak - 2, bardak + 4],
           isLong: true
@@ -3329,7 +3709,24 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Geometrik Cisimler Açılımı",
       desc: "Küp, prizma, silindir ve koninin 3D katlanışını ve açınımını etkileşimli keşfetme.",
       generate: () => {
-        const sorular = [
+        const en = isEn();
+        const sorular = en ? [
+          {
+            q: "Which net is made of 6 equal squares and folds into a cube?",
+            c: "Cube Net",
+            w: ["Cylinder Net", "Cone Net", "Triangular Prism"]
+          },
+          {
+            q: "Which 3D solid has a RECTANGLE side face and 2 circles on the top and bottom when unfolded?",
+            c: "Cylinder",
+            w: ["Cube", "Square Prism", "Cone"]
+          },
+          {
+            q: "Which 3D solid has a net made of 1 circle and 1 curved sector?",
+            c: "Cone",
+            w: ["Cylinder", "Cube", "Sphere"]
+          }
+        ] : [
           {
             q: "6 adet eş kareden oluşan ve katlandığında küp oluşturan açınım hangisidir?",
             c: "Küp Açınımı",
@@ -3359,65 +3756,84 @@ export const topics2ndGrade: Record<string, { title: string; desc: string; gener
       title: "Veri Toplama ve Grafik Okuma",
       desc: "Nesne grafiği ve çetele tablolarını okuyup soruları cevaplama.",
       generate: () => {
-        const elma = Math.floor(Math.random() * 5) + 3; // 3..7
-        const muz = Math.floor(Math.random() * 4) + 2; // 2..5
-        const cilek = Math.floor(Math.random() * 4) + 3; // 3..6
+        const en = isEn();
+        let elma = Math.floor(Math.random() * 5) + 3; // 3..7
+        let muz = Math.floor(Math.random() * 4) + 2; // 2..5
+        let cilek = Math.floor(Math.random() * 4) + 3; // 3..6
+
+        const appleName = en ? "Apple" : "Elma";
+        const bananaName = en ? "Banana" : "Muz";
+        const strawberryName = en ? "Strawberry" : "Çilek";
+        const orangeName = en ? "Orange" : "Portakal";
 
         const soruTuru = Math.floor(Math.random() * 3);
         let soru = "";
         let dogru = 0;
 
         if (soruTuru === 0) {
-          soru = "Grafiğe göre en çok sevilen meyve hangisidir?";
+          // Ensure a strictly unique maximum so there is never an ambiguous tie
+          if (elma === muz && elma >= cilek) elma += 1;
+          if (elma === cilek && elma >= muz) elma += 1;
+          if (muz === cilek && muz >= elma) cilek += 1;
+
+          soru = en
+            ? "According to the chart, which fruit is liked the most?"
+            : "Grafiğe göre en çok sevilen meyve hangisidir?";
           const enCok = Math.max(elma, muz, cilek);
-          const meyve = elma === enCok ? "Elma" : muz === enCok ? "Muz" : "Çilek";
+          const meyve = elma === enCok ? appleName : muz === enCok ? bananaName : strawberryName;
           return {
-            question: `Grafiğe göre: Elma(${elma}), Muz(${muz}), Çilek(${cilek}). En çok sevilen meyve hangisidir?`,
+            question: en
+              ? `According to the chart: ${appleName}(${elma}), ${bananaName}(${muz}), ${strawberryName}(${cilek}). Which fruit is liked the most?`
+              : `Grafiğe göre: Elma(${elma}), Muz(${muz}), Çilek(${cilek}). En çok sevilen meyve hangisidir?`,
             questionHTML: `
               <div class="flex flex-col items-center justify-center gap-2 sm:gap-2.5 text-center my-auto">
                 <div class="p-2 sm:p-3 rounded-2xl bg-slate-900/85 border-2 border-amber-300 text-left text-sm xs:text-base sm:text-lg font-black text-white space-y-1">
-                  <div>🍎 Elma: ${"🟥".repeat(elma)} (${elma})</div>
-                  <div>🍌 Muz: ${"🟨".repeat(muz)} (${muz})</div>
-                  <div>🍓 Çilek: ${"🟩".repeat(cilek)} (${cilek})</div>
+                  <div>🍎 ${appleName}: ${"🟥".repeat(elma)} (${elma})</div>
+                  <div>🍌 ${bananaName}: ${"🟨".repeat(muz)} (${muz})</div>
+                  <div>🍓 ${strawberryName}: ${"🟩".repeat(cilek)} (${cilek})</div>
                 </div>
                 <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mt-0.5">
-                  Grafiğe göre en çok sevilen meyve hangisidir?
+                  ${soru}
                 </div>
               </div>
             `,
             correct: meyve,
-            wrong: ["Elma", "Muz", "Çilek", "Portakal"].filter(m => m !== meyve).slice(0, 3),
+            wrong: [appleName, bananaName, strawberryName, orangeName].filter(m => m !== meyve).slice(0, 3),
             isLong: false
           };
         } else if (soruTuru === 1) {
           dogru = elma + muz;
-          soru = `Elma ve Muz seven çocukların toplamı kaçtır?`;
+          soru = en
+            ? `How many children like ${appleName} and ${bananaName} in total?`
+            : `Elma ve Muz seven çocukların toplamı kaçtır?`;
         } else {
-          // Her zaman çok olandan az olanı çıkarıyoruz ki fark daima pozitif olsun (eksi sayı kavramı yok)
-          let meyve1 = "Elma";
-          let meyve2 = "Muz";
+          if (elma === muz) elma += 2;
+          let meyve1 = appleName;
+          let meyve2 = bananaName;
           let sayi1 = elma;
           let sayi2 = muz;
           if (muz > elma) {
-            meyve1 = "Muz";
-            meyve2 = "Elma";
+            meyve1 = bananaName;
+            meyve2 = appleName;
             sayi1 = muz;
             sayi2 = elma;
-          } else if (elma === muz) {
-            sayi1 = elma + 2;
           }
           dogru = sayi1 - sayi2;
-          soru = `${meyve1} sevenler, ${meyve2} sevenlerden kaç fazladır?`;
+          soru = en
+            ? `How many more children like ${meyve1} than ${meyve2}?`
+            : `${meyve1} sevenler, ${meyve2} sevenlerden kaç fazladır?`;
         }
 
         return {
-          question: `Grafiğe göre: Elma(${elma}), Muz(${muz}), Çilek(${cilek}). ${soru}`,
+          question: en
+            ? `According to the chart: ${appleName}(${elma}), ${bananaName}(${muz}), ${strawberryName}(${cilek}). ${soru}`
+            : `Grafiğe göre: Elma(${elma}), Muz(${muz}), Çilek(${cilek}). ${soru}`,
           questionHTML: `
             <div class="flex flex-col items-center justify-center gap-2 sm:gap-2.5 text-center my-auto">
               <div class="p-2 sm:p-3 rounded-2xl bg-slate-900/85 border-2 border-amber-300 text-left text-sm xs:text-base sm:text-lg font-black text-white space-y-1">
-                <div>🍎 Elma: ${"🟥".repeat(elma)} (${elma})</div>
-                <div>🍌 Muz: ${"🟨".repeat(muz)} (${muz})</div>
-                <div>🍓 Çilek: ${"🟩".repeat(cilek)} (${cilek})</div>
+                <div>🍎 ${appleName}: ${"🟥".repeat(elma)} (${elma})</div>
+                <div>🍌 ${bananaName}: ${"🟨".repeat(muz)} (${muz})</div>
+                <div>🍓 ${strawberryName}: ${"🟩".repeat(cilek)} (${cilek})</div>
               </div>
               <div class="text-base xs:text-lg sm:text-xl md:text-2xl font-black text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mt-0.5">
                 ${soru}

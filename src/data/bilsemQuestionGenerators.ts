@@ -170,8 +170,8 @@ export function generateExtraCokluZeka(): QuizVisualQuestion[] {
       const ans = k1 * 2 + 1;
       out.push({
         id: `cz-g-bal-${i + 1}`,
-        prompt: 'İlk terazide 1 Yıldız = 2 Üçgen, ikinci terazide 1 Altıgen = 1 Yıldız + 1 Üçgendir. 1 Altıgen + 1 Yıldız kaç Üçgen eder?',
-        hint: 'Her Yıldız yerine 2 Üçgen koyarak değerleri topla.',
+        prompt: `İlk terazide 1 Yıldız = ${k1} Üçgen, ikinci terazide 1 Altıgen = 1 Yıldız + 1 Üçgendir. 1 Altıgen + 1 Yıldız kaç Üçgen eder?`,
+        hint: `Her Yıldız yerine ${k1} Üçgen koyarak değerleri topla.`,
         explanation: `Yıldız ${k1} birimse Altıgen ${k1 + 1} birim olur; toplam ${ans} birim eder.`,
         visualType: 'balance',
         visualData: {

@@ -1,7 +1,32 @@
 import React from 'react';
-import { Sparkles, ArrowLeft, Swords, BookOpen, Brain, Play, Star, Flame, Trophy, Home } from 'lucide-react';
+import { Sparkles, ArrowLeft, Swords, BookOpen, Brain, Play, Star, Flame, Trophy, Home, Globe } from 'lucide-react';
 import { getIconAccentColor } from '../App';
 import { ActivityBackground } from './ActivityBackground';
+import { useAppLanguage } from '../utils/appLanguage';
+
+const EN_COMPATIBLE_GAME_IDS = new Set([
+  'farkli_olani_bul',
+  'kure',
+  'kodlama_mutfagi',
+  'ritmik_balon',
+  'carpim_balon',
+  'aynisini_bul',
+  'onu_bul',
+  'yirmiyi_bul',
+  'xox',
+  'lab3d',
+  'geoboard',
+  'cisimler_acilimi',
+  'geometrik_sekilleri_bul',
+  'abluka',
+  'gorselli_sudoku',
+  'sudoku',
+  'sivi_tahmin_akvaryum',
+  'saat_zaman',
+  'market_kasasi',
+  'kesir_duvari_pizza',
+  'denge_terazisi',
+]);
 
 interface OtherGamesHubProps {
   onClose: () => void;
@@ -88,6 +113,9 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenCarpimBalon,
   playMp3
 }) => {
+  const { lang, setLang, effectiveLang } = useAppLanguage();
+  const isEn = effectiveLang === 'en';
+
   const triggerSound = (src: string) => {
     if (playMp3) {
       playMp3(src);
@@ -98,8 +126,8 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
     {
       id: 'farkli_olani_bul',
       title: 'Farklı Olanı Bul',
-      subtitle: '7 Kategori · 140 Seviye · Tek Kişi & Düello',
-      icon: '/MENUIKON/grid_icon_20.webp',
+      subtitle: '6 Kategori · 120 Seviye · Tek Kişi & Düello',
+      icon: '/assets/farkbl/faces_odd_18.webp',
       sound: '/coin.mp3',
       isNew: true,
       action: () => {
@@ -466,6 +494,8 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
     }
   ];
 
+  const visibleGames = isEn ? games.filter((g) => EN_COMPATIBLE_GAME_IDS.has(g.id)) : games;
+
   return (
     <div className="fixed inset-x-0 bottom-0 top-[52px] sm:top-[60px] z-[200] flex flex-col font-sans select-none overflow-hidden bg-slate-900 text-white">
       {/* ÇOCUKLAR İÇİN CANLI, EĞLENCELİ DİĞER OYUNLAR MERKEZİ ARKA PLANI (DOĞA GÖRSELİMİZ) */}
@@ -475,23 +505,55 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       <main className="relative z-10 flex-1 p-2 sm:p-4 max-w-6xl mx-auto w-full overflow-y-auto no-scrollbar flex flex-col items-center gap-2 sm:gap-2.5 pt-3 sm:pt-4 md:pt-5">
         {/* GLOWING HEADER BADGE - 5. DİĞER OYUNLAR */}
         <div className="flex flex-col items-center justify-center mt-0.5 sm:mt-1 mb-1.5 sm:mb-2 max-w-2xl w-full mx-auto shrink-0 py-0.5">
-          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
-            <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-full flex items-center justify-between gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#121c2e] via-[#1b2b48] to-[#121c2e] border-2 border-amber-400/90 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-l-4 border-l-amber-400">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img src="/icon_5.webp" alt="5. Diğer Oyunlar" className="w-6 h-6 sm:w-7 sm:h-7 object-contain filter drop-shadow-sm shrink-0" />
               <span className="text-xs sm:text-sm md:text-base font-black text-white tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
                 5. DİĞER OYUNLAR
               </span>
-              <span className="text-amber-400/60 font-bold">•</span>
-              <span className="text-[10px] sm:text-xs md:text-sm font-black text-amber-300 tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+              <span className="text-amber-400/60 font-bold hidden sm:inline">•</span>
+              <span className="hidden sm:inline text-[10px] sm:text-xs md:text-sm font-black text-amber-300 tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
                 OYUNUNU SEÇ VE BAŞLA
               </span>
             </div>
-            <span className="text-amber-400 text-sm sm:text-base animate-pulse">✨</span>
+            <div className="flex items-center gap-1.5 shrink-0" data-no-translate="true">
+              <div className="inline-flex items-center bg-slate-950/90 p-0.5 rounded-xl border border-amber-400/50 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerSound('/op.mp3');
+                    setLang('tr');
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                    lang === 'tr'
+                      ? 'bg-amber-400 text-slate-950 shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  TR
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerSound('/op.mp3');
+                    setLang('en');
+                  }}
+                  className={`px-2 py-1 rounded-lg text-[10px] sm:text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                    lang === 'en'
+                      ? 'bg-cyan-400 text-slate-950 shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Globe size={11} />
+                  EN
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2 md:gap-2.5 w-full">
-          {games.map((game, index) => {
+          {visibleGames.map((game, index) => {
             const isNew = (game as any).isNew;
             return (
               <div
@@ -528,7 +590,9 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   <img
                     src={game.icon}
                     alt={game.title}
-                    className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform select-none pointer-events-none"
+                    className={`w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform select-none pointer-events-none ${
+                      game.icon.startsWith('/assets/farkbl/') ? 'rounded-xl bg-white p-0.5' : ''
+                    }`}
                   />
                 </div>
 

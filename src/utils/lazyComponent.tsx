@@ -15,16 +15,26 @@ function LoadingSpinner() {
 
 /**
  * Bir bileşeni ilk kullanıldığında yükler (code splitting).
- * Kullanım: const SudokuGame = lazyComponent(() => import('./components/SudokuGame'), 'SudokuGame');
- * JSX tarafında hiçbir değişiklik gerekmez; Suspense otomatik sarılır.
+ * İstenen named export yoksa default export'u dener; ikisi de yoksa
+ * React'in belirsiz "lazy element type is invalid" hatası yerine export adlarını bildirir.
  */
 export function lazyComponent<M extends Record<string, any>, K extends keyof M>(
   loader: () => Promise<M>,
   name: K
 ): M[K] {
   const LazyInner = lazy(() =>
-    loader().then((m) => ({ default: m[name] as React.ComponentType<any> }))
+    loader().then((module) => {
+      const component = module[name] ?? module.default;
+      if (!component) {
+        const availableExports = Object.keys(module).join(', ') || '(hiçbiri)';
+        throw new Error(
+          `lazyComponent: "${String(name)}" export'u bulunamadı. Modüldeki export'lar: ${availableExports}`
+        );
+      }
+      return { default: component as React.ComponentType<any> };
+    })
   );
+
   const Wrapped = (props: any) => (
     <Suspense fallback={<LoadingSpinner />}>
       <LazyInner {...props} />

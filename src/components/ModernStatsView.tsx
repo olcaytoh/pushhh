@@ -232,8 +232,8 @@ const ALL_INTERACTIVE_TOPICS: Record<string, { title: string; desc?: string; ico
   },
   farkli_olani_bul: {
     title: 'Farklı Olanı Bul',
-    desc: '7 Kategori ve 140 Seviyeli Görsel Dikkat Oyunu (Tek Kişi & Düello)',
-    icon: '/MENUIKON/grid_icon_20.webp',
+    desc: '6 Kategori ve 120 Seviyeli Görsel Dikkat Oyunu (Tek Kişi & Düello)',
+    icon: '/assets/farkbl/faces_odd_18.webp',
   },
   satir_sonu_hece: {
     title: 'Satır Sonu Heceleme Oyunu',

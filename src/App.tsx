@@ -10,7 +10,97 @@ import { lazyComponent } from './utils/lazyComponent';
 import { QuestionTimerBadge, createTimerStore } from './components/QuestionTimerBadge';
 import { AdSenseBanner } from './components/AdSenseBanner';
 import { speakTurkish } from './utils/turkishSpeech';
+import { AppLanguageProvider, useAppLanguage } from './utils/appLanguage';
 import { QuestionData, StatRecord, PlayerData, GroupStatsRecord, SinglePlayerStatsRecord } from './types';
+import { RecentTopicsTicker, RecentTopicActionId } from './components/RecentTopicsTicker';
+
+const HeaderLanguageToggle: React.FC<{ onPlayClick?: () => void; variant?: 'header' | 'home' }> = ({
+  onPlayClick,
+  variant = 'header',
+}) => {
+  const { lang, setLang } = useAppLanguage();
+
+  if (variant === 'home') {
+    return (
+      <div
+        data-no-translate="true"
+        role="group"
+        aria-label="Dil Seçimi / Language Selection"
+        className="inline-flex items-center gap-1 bg-gradient-to-r from-[#0e1729] via-[#152442] to-[#0e1729] p-1 rounded-2xl border-2 border-cyan-400/75 shadow-[0_0_20px_rgba(34,211,238,0.28)] shrink-0"
+        title={lang === 'en' ? 'Türkçeye Geç (TR)' : 'Switch to English (EN)'}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            onPlayClick?.();
+            setLang('tr');
+          }}
+          className={`px-3 sm:px-3.5 h-8 sm:h-9 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            lang === 'tr'
+              ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-[0_0_12px_rgba(251,191,36,0.5)]'
+              : 'text-slate-300 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <span>🇹🇷</span>
+          <span>Türkçe</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            onPlayClick?.();
+            setLang('en');
+          }}
+          className={`px-3 sm:px-3.5 h-8 sm:h-9 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            lang === 'en'
+              ? 'bg-gradient-to-r from-cyan-400 to-sky-300 text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.5)]'
+              : 'text-slate-300 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Globe size={14} className="shrink-0" />
+          <span>English</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      data-no-translate="true"
+      className="flex items-center bg-[#0f182c] p-0.5 rounded-xl sm:rounded-2xl border border-cyan-400/50 shadow-md shrink-0"
+      title={lang === 'en' ? 'Türkçeye Geç (TR)' : 'Switch to English (EN)'}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          onPlayClick?.();
+          setLang('tr');
+        }}
+        className={`px-2 sm:px-2.5 h-7 min-[390px]:h-8 sm:h-10 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black transition-all cursor-pointer flex items-center justify-center ${
+          lang === 'tr'
+            ? 'bg-amber-400 text-slate-950 shadow-sm'
+            : 'text-slate-300 hover:text-white'
+        }`}
+      >
+        TR
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onPlayClick?.();
+          setLang('en');
+        }}
+        className={`px-2 sm:px-2.5 h-7 min-[390px]:h-8 sm:h-10 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          lang === 'en'
+            ? 'bg-cyan-400 text-slate-950 shadow-sm'
+            : 'text-slate-300 hover:text-white'
+        }`}
+      >
+        <Globe size={12} className="hidden sm:inline" />
+        EN
+      </button>
+    </div>
+  );
+};
 import { auth, onAuthStateChanged, User } from './firebase';
 import { GoogleAuthSyncModal } from './components/GoogleAuthSyncModal';
 import {
@@ -2196,7 +2286,7 @@ export const TOPIC_3D_ICONS: Record<string, string> = {
   sudoku: '/MENUIKON/grid_icon_19.webp',
   abluka: '/MENUIKON/grid_icon_30.webp',
   kure: '/MENUIKON/grid_icon_39.webp',
-  farkli_olani_bul: '/MENUIKON/grid_icon_20.webp',
+  farkli_olani_bul: '/assets/farkbl/faces_odd_18.webp',
   lab3d: '/MENUIKON/grid_icon_38.webp',
   geoboard: '/MENUIKON/grid_icon_29.webp',
   sureli_toplama_cikarma: '/MENUIKON/grid_icon_22.webp',
@@ -3325,6 +3415,72 @@ export default function App() {
     activeOkumaYazmaActivityId !== null ||
     wordGameType !== null
   );
+
+  // SADECE 2. SINIF MATEMATİK VE İNGİLİZCEYE UYGUN DİĞER OYUNLARDA İNGİLİZCE DİL SEÇENEĞİ AKTİF OLUR
+  const isNonEnglishEligibleOverlay = Boolean(
+    showIntro ||
+    showEnglishGamesModal ||
+    showBilsemHub ||
+    activeBilsemActivityId !== null ||
+    showOkumaYazmaHub ||
+    activeOkumaYazmaActivityId !== null ||
+    showKuralliCumle ||
+    showHeceSayisi ||
+    showSozlukSirala ||
+    showKelimeSirala ||
+    showHeceMakasi ||
+    showYazimDedektifi ||
+    showDedektif5N1K ||
+    showSatirSonuHece ||
+    showNoktalamaAvcisi ||
+    showNoktalamaSurukle ||
+    showHarfCorbasi ||
+    showGeriDonusum ||
+    showSaglikliTabak ||
+    showGuvenliInternet ||
+    showSaglikliBuyume ||
+    showTrafikLevhalari ||
+    showIstekIhtiyac ||
+    showMevsimGardirobu ||
+    showAdresimiBiliyorum ||
+    showSchoolLifeGame ||
+    showEsSesli ||
+    wordGameType !== null
+  );
+
+  const isGrade2OrOtherContext = selectedGrade === 2 || selectedGrade === null || openedFromOtherGamesModal;
+
+  const isEnScopeActive =
+    !isNonEnglishEligibleOverlay &&
+    Boolean(
+      showOtherGamesModal ||
+      showFarkliOlaniBul ||
+      showKureGame ||
+      showAblukaGame ||
+      showAynisiniBul ||
+      showOnuBul ||
+      showYirmiyiBul ||
+      showXOXGame ||
+      showSudokuGame ||
+      showGorselliSudoku ||
+      showKodlamaMutfagi ||
+      (isGrade2OrOtherContext &&
+        (showRitmikBalon ||
+          showCarpimBalon ||
+          show3DLab ||
+          showGeoboard ||
+          showGeometricNets ||
+          showGeometrikSekilleriBul ||
+          showOnlukBirlik ||
+          showSayiBasketi ||
+          showOnlukYuvarlamaOyunu ||
+          showSaatZaman ||
+          showMarketKasasi ||
+          showKesirDuvariPizza ||
+          showDengeTerazisi ||
+          showSiviTahminAkvaryum)) ||
+      (selectedGrade === 2 && selectedSubject === 'matematik')
+    );
 
   useEffect(() => {
     const updateHeaderHeight = () => {
@@ -4798,6 +4954,38 @@ export default function App() {
     const data = generateUniqueQuestion(targetTopicKey);
     setQuestionAndPrepareOptions(data);
   };
+
+  // 2. Sınıf Matematik test sorusu açıkken TR ↔ EN değiştirildiğinde aktif soruyu yeni dilde anında yenile
+  useEffect(() => {
+    const handleLangChanged = () => {
+      if (gameState !== 'playing' || selectedGrade !== 2 || selectedSubject !== 'matematik' || !currentTopic) {
+        return;
+      }
+      if (playerCountMode === 1) {
+        setSelectedOption(null);
+        setFeedbackState('none');
+        const fresh = generateQuestionForPlayer(currentTopic, [], 2);
+        setCurrentQuestionData(fresh.data);
+        setShuffledOptions(fresh.shuffledOptions);
+      } else {
+        setPlayers(prev =>
+          prev.map(p => {
+            if (p.lives <= 0) return p;
+            const fresh = generateQuestionForPlayer(currentTopic, [], 2);
+            return {
+              ...p,
+              currentQuestionData: fresh.data,
+              shuffledOptions: fresh.shuffledOptions,
+              selectedOption: null,
+              feedbackState: 'none',
+            };
+          })
+        );
+      }
+    };
+    window.addEventListener('app-lang-changed', handleLangChanged);
+    return () => window.removeEventListener('app-lang-changed', handleLangChanged);
+  }, [gameState, selectedGrade, selectedSubject, currentTopic, playerCountMode]);
 
   const switchPlayerCountMode = (newMode: 1 | 2 | 3) => {
     if (gameState === 'playing' && isHalatCekmeTopic(currentTopic) && newMode !== 2) {
@@ -7386,7 +7574,10 @@ export default function App() {
 
   const currentActivityTitle = isInsideAnyGame ? getCurrentActivityTitle() : '';
 
+  const isRootHomeScreen = gameState === 'welcome' && selectedGrade === null && !isInsideAnyGame;
+
   return (
+    <AppLanguageProvider isEnScopeActive={true} translationScope={isEnScopeActive ? 'full' : 'titles'}>
     <div 
       onContextMenu={(e) => {
         const target = e.target as HTMLElement | null;
@@ -8171,6 +8362,9 @@ export default function App() {
             )}
           </button>
         </div>
+
+        {/* DİL SEÇİCİ (TR / EN) - Anasayfa dışında üst çubukta her sınıfta görünür */}
+        {!isRootHomeScreen && <HeaderLanguageToggle onPlayClick={() => playMp3('/op.mp3')} />}
       </div>
 
       {/* GOOGLE GİRİŞ / BULUT EŞİTLEME & HATA GERİ BİLDİRİM BÖLÜMÜ (KOMPAKT İKON, ÜSTÜNE GELİNCE AÇILIR) */}
@@ -8329,10 +8523,13 @@ export default function App() {
         <div className="flex-1 flex flex-col items-center justify-start pt-0 pb-6 px-2 sm:px-4 md:px-6 overflow-y-auto w-full min-h-0">
           {selectedGrade === null ? (
             /* GRADE / CLASS SELECTION SCREEN (1. SINIF, 2. SINIF, 3. SINIF, 4. SINIF) */
-            <div className="max-w-4xl xl:max-w-5xl w-full mx-auto flex flex-col items-center justify-start pb-2">
-              {/* 1. ÜST BAŞLIK (BUTONLARIN ÜSTÜNDE / HEADER'IN HEMEN ALTINDA) */}
-              <div className="w-full flex items-center justify-center mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
-                <div className="relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-5 sm:px-9 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#0e1729] via-[#1b2e52] to-[#0e1729] border-2 border-amber-400/95 border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.38)]">
+            <div className="w-full max-w-[1400px] mx-auto flex flex-col items-center justify-start pb-2">
+              {/* 1. ÜST BAŞLIK + SAĞ KÖŞE SON 15 GÜNDE EKLENENLER ÇERÇEVESİ */}
+              <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-2 lg:gap-4 mb-2.5 sm:mb-3.5 px-2 shrink-0 z-20">
+                <div className="flex justify-center lg:justify-end lg:pr-1">
+                  <HeaderLanguageToggle variant="home" onPlayClick={() => playMp3('/op.mp3')} />
+                </div>
+                <div className="justify-self-center relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-5 sm:px-9 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#0e1729] via-[#1b2e52] to-[#0e1729] border-2 border-amber-400/95 border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.38)]">
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-amber-400/10 via-sky-400/10 to-emerald-400/10" />
                   <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">🎓</span>
                   <div className="relative flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
@@ -8346,6 +8543,85 @@ export default function App() {
                     </h2>
                   </div>
                   <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">✨</span>
+                </div>
+
+                {/* SAĞ KÖŞE: SON 15 GÜNDE EKLENEN KONULAR & ETKİNLİKLER */}
+                <div className="flex justify-center lg:justify-start lg:pl-1">
+                  <RecentTopicsTicker
+                    onSelectTopic={(actionId: RecentTopicActionId) => {
+                      playMp3('/op.mp3');
+                      switch (actionId) {
+                        case 'trafik_levhalari':
+                          setSelectedGrade(2);
+                          setSelectedSubject('hayat_bilgisi');
+                          setLastSelectedGrade(2);
+                          setOpenedFromOtherGamesModal(false);
+                          setShowTrafikLevhalari(true);
+                          break;
+                        case 'farkli_olani_bul':
+                          setOpenedFromOtherGamesModal(false);
+                          setShowFarkliOlaniBul(true);
+                          break;
+                        case 'bilsem_hub':
+                          setBilsemSelectedGrade(normalizeBilsemGrade(selectedGrade));
+                          setActiveBilsemActivityId(null);
+                          setShowBilsemHub(true);
+                          break;
+                        case 'adresimi_biliyorum':
+                          setSelectedGrade(2);
+                          setSelectedSubject('hayat_bilgisi');
+                          setLastSelectedGrade(2);
+                          setOpenedFromOtherGamesModal(false);
+                          setShowAdresimiBiliyorum(true);
+                          break;
+                        case 'guvenli_internet':
+                          setSelectedGrade(2);
+                          setSelectedSubject('hayat_bilgisi');
+                          setLastSelectedGrade(2);
+                          setOpenedFromOtherGamesModal(false);
+                          setShowGuvenliInternet(true);
+                          break;
+                        case 'saglikli_buyume':
+                          setSelectedGrade(2);
+                          setSelectedSubject('hayat_bilgisi');
+                          setLastSelectedGrade(2);
+                          setOpenedFromOtherGamesModal(false);
+                          setShowSaglikliBuyume(true);
+                          break;
+                        case 'okuma_yazma':
+                          setSelectedGrade(1);
+                          setLastSelectedGrade(1);
+                          setActiveOkumaYazmaActivityId(null);
+                          setShowOkumaYazmaHub(true);
+                          break;
+                        case 'noktalama_surukle':
+                          setSelectedGrade(2);
+                          setSelectedSubject('turkce');
+                          setLastSelectedGrade(2);
+                          setShowNoktalamaSurukle(true);
+                          break;
+                        case 'kure':
+                          setOpenedFromOtherGamesModal(false);
+                          setShowKureGame(true);
+                          break;
+                        case 'kodlama_mutfagi':
+                          setOpenedFromOtherGamesModal(false);
+                          setShowKodlamaMutfagi(true);
+                          break;
+                        case 'ritmik_balon':
+                          setRitmikBalonStep(3);
+                          setShowRitmikBalon(true);
+                          break;
+                        case 'carpim_balon':
+                          setCarpimBalonStep(2);
+                          setShowCarpimBalon(true);
+                          break;
+                        case 'en_yakin_onluk_oyunu':
+                          selectTopicAndStart('en_yakin_onluk_oyunu', 2);
+                          break;
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -14544,5 +14820,6 @@ export default function App() {
         playMp3={playMp3}
       />
     </div>
+    </AppLanguageProvider>
   );
 }
