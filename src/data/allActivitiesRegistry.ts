@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'farkli_olani_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume' | 'trafik_levhalari';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'farkli_olani_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'pentago' | 'dortlu_sira' | 'trafikten_cikis' | 'hafiza_melodisi' | 'hanoi_kulesi' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume' | 'trafik_levhalari';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -863,6 +863,36 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     id: 'other_kure',
     type: 'kure',
     title: 'Küre Zeka Oyunu',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_pentago',
+    type: 'pentago',
+    title: 'Pentago (Dönen Bloklar)',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_dortlu_sira',
+    type: 'dortlu_sira',
+    title: 'Dörtlü Sıra (Connect 4)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_trafikten_cikis',
+    type: 'trafikten_cikis',
+    title: 'Trafikten Çıkış (Akıllı Otopark)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_hafiza_melodisi',
+    type: 'hafiza_melodisi',
+    title: 'Hafıza Melodisi (Renk & Nota)',
+    categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_hanoi_kulesi',
+    type: 'hanoi_kulesi',
+    title: 'Hanoi Kulesi (Mantık Halkaları)',
     categoryLabel: 'Diğer Oyunlar'
   },
   {

@@ -1,7 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import iconDortluSira from '../assets/images/icon_dortlu_sira_1795634814162.jpg';
+import iconTrafiktenCikis from '../assets/images/icon_trafikten_cikis_1795634815553.jpg';
+import iconHafizaMelodisi from '../assets/images/icon_hafiza_melodisi_1795634816857.jpg';
+import iconHanoiKulesi from '../assets/images/icon_hanoi_kulesi_1795634815180.jpg';
 
 export type RecentTopicActionId =
+  | 'pentago'
+  | 'dortlu_sira'
+  | 'trafikten_cikis'
+  | 'hafiza_melodisi'
+  | 'hanoi_kulesi'
   | 'trafik_levhalari'
   | 'farkli_olani_bul'
   | 'bilsem_hub'
@@ -32,6 +41,47 @@ export interface RecentTopicEntry {
  * bileşen otomatik olarak son 15 gün içindeki kayıtları süzer ve sırayla döndürür.
  */
 export const RECENT_TOPICS_CATALOG: RecentTopicEntry[] = [
+  {
+    id: 'pentago',
+    title: 'Pentago (5’li Sıra & Dönen Bloklar)',
+    categoryLabel: 'Akıl ve Zeka Oyunları',
+    addedAt: '2026-11-25',
+    icon: '/assets/aistudio/Ekran_Resmi_2026-11-25_22.43.00_9e54085f.png',
+    whiteIconBg: true,
+    accentText: 'text-rose-300',
+  },
+  {
+    id: 'dortlu_sira',
+    title: 'Dörtlü Sıra (Connect 4)',
+    categoryLabel: 'Akıl ve Zeka Oyunları',
+    addedAt: '2026-11-25',
+    icon: iconDortluSira,
+    accentText: 'text-amber-300',
+  },
+  {
+    id: 'trafikten_cikis',
+    title: 'Trafikten Çıkış (Akıllı Otopark)',
+    categoryLabel: 'Akıl ve Zeka Oyunları',
+    addedAt: '2026-11-25',
+    icon: iconTrafiktenCikis,
+    accentText: 'text-rose-300',
+  },
+  {
+    id: 'hafiza_melodisi',
+    title: 'Hafıza Melodisi (Renk & Nota)',
+    categoryLabel: 'Akıl ve Zeka Oyunları',
+    addedAt: '2026-11-25',
+    icon: iconHafizaMelodisi,
+    accentText: 'text-fuchsia-300',
+  },
+  {
+    id: 'hanoi_kulesi',
+    title: 'Hanoi Kulesi (Mantık Halkaları)',
+    categoryLabel: 'Akıl ve Zeka Oyunları',
+    addedAt: '2026-11-25',
+    icon: iconHanoiKulesi,
+    accentText: 'text-emerald-300',
+  },
   {
     id: 'trafik_levhalari',
     title: 'Trafik İşaret Levhaları Atölyesi',

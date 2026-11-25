@@ -5,6 +5,10 @@ import { ActivityBackground } from './ActivityBackground';
 import { useAppLanguage } from '../utils/appLanguage';
 
 const EN_COMPATIBLE_GAME_IDS = new Set([
+  'dortlu_sira',
+  'trafikten_cikis',
+  'hafiza_melodisi',
+  'hanoi_kulesi',
   'farkli_olani_bul',
   'kure',
   'kodlama_mutfagi',
@@ -56,6 +60,10 @@ interface OtherGamesHubProps {
   onOpenMevsimGardirobu?: () => void;
   onOpenAbluka?: () => void;
   onOpenKure?: () => void;
+  onOpenDortluSira?: () => void;
+  onOpenTrafiktenCikis?: () => void;
+  onOpenHafizaMelodisi?: () => void;
+  onOpenHanoiKulesi?: () => void;
   onOpenFarkliOlaniBul?: () => void;
   onOpenSudoku?: () => void;
   onOpenGorselliSudoku?: () => void;
@@ -99,6 +107,10 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   onOpenMevsimGardirobu,
   onOpenAbluka,
   onOpenKure,
+  onOpenDortluSira,
+  onOpenTrafiktenCikis,
+  onOpenHafizaMelodisi,
+  onOpenHanoiKulesi,
   onOpenFarkliOlaniBul,
   onOpenSudoku,
   onOpenGorselliSudoku,
@@ -123,39 +135,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
   };
 
   const games = [
-    {
-      id: 'farkli_olani_bul',
-      title: 'Farklı Olanı Bul',
-      subtitle: '6 Kategori · 120 Seviye · Tek Kişi & Düello',
-      icon: '/assets/farkbl/faces_odd_18.webp',
-      sound: '/coin.mp3',
-      isNew: true,
-      action: () => {
-        if (onOpenFarkliOlaniBul) onOpenFarkliOlaniBul();
-      },
-    },
-    {
-      id: 'kure',
-      title: 'Küre Zeka Oyunu',
-      subtitle: '1 & 2 Kişilik · 7x7 Strateji & Sıkıştırma',
-      icon: '/MENUIKON/grid_icon_39.webp',
-      sound: '/coin.mp3',
-      isNew: true,
-      action: () => {
-        if (onOpenKure) onOpenKure();
-      },
-    },
-    {
-      id: 'kodlama_mutfagi',
-      title: 'Kodlama & Algoritma Mutfağı',
-      subtitle: 'Tarifi Sırala & Hata Ayıkla',
-      icon: '/MENUIKON/grid_icon_27.webp',
-      sound: '/coin.mp3',
-      isNew: true,
-      action: () => {
-        if (onOpenKodlamaMutfagi) onOpenKodlamaMutfagi();
-      },
-    },
     {
       id: 'ritmik_balon',
       title: 'Ritmik Balon Patlatma Düellosu',
@@ -219,16 +198,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       },
     },
     {
-      id: 'aynisini_bul',
-      title: 'Aynısını Bul',
-      subtitle: '2 Kişilik Dikkat Yarışı',
-      icon: '/MENUIKON/grid_icon_20.webp',
-      sound: '/coin.mp3',
-      action: () => {
-        if (onOpenAynisiniBul) onOpenAynisiniBul();
-      },
-    },
-    {
       id: 'onu_bul',
       title: "10'u Bul",
       subtitle: 'Toplamı 10 Yapan Çiftler',
@@ -247,14 +216,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       action: () => {
         if (onOpenYirmiyiBul) onOpenYirmiyiBul();
       },
-    },
-    {
-      id: 'xox',
-      title: 'XOX & Zeka Düellosu',
-      subtitle: 'Zeka & Strateji Düellosu',
-      icon: '/MENUIKON/grid_icon_32.webp',
-      sound: '/coin.mp3',
-      action: onOpenXOX,
     },
     {
       id: 'zit_anlam',
@@ -400,36 +361,6 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
       sound: '/farklilvl.mp3',
       action: () => {
         if (onOpenMevsimGardirobu) onOpenMevsimGardirobu();
-      },
-    },
-    {
-      id: 'abluka',
-      title: 'Abluka Zeka Oyunu',
-      subtitle: '7x7 Taktik & Kıstırma',
-      icon: '/MENUIKON/grid_icon_30.webp',
-      sound: '/coin.mp3',
-      action: () => {
-        if (onOpenAbluka) onOpenAbluka();
-      },
-    },
-    {
-      id: 'gorselli_sudoku',
-      title: '2 Kişilik Görselli Sudoku',
-      subtitle: '4x4 & 6x6 Yan Yana Şekilli Akıl Oyunu',
-      icon: '/assets/sudoku/gorselli.png',
-      sound: '/coin.mp3',
-      action: () => {
-        if (onOpenGorselliSudoku) onOpenGorselliSudoku();
-      },
-    },
-    {
-      id: 'sudoku',
-      title: 'Sudoku Zeka Oyunu',
-      subtitle: '4x4 & 6x6 Sayısal Akıl Oyunu',
-      icon: '/MENUIKON/grid_icon_19.webp',
-      sound: '/coin.mp3',
-      action: () => {
-        if (onOpenSudoku) onOpenSudoku();
       },
     },
     {
@@ -590,8 +521,12 @@ export const OtherGamesHub: React.FC<OtherGamesHubProps> = ({
                   <img
                     src={game.icon}
                     alt={game.title}
-                    className={`w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform select-none pointer-events-none ${
-                      game.icon.startsWith('/assets/farkbl/') ? 'rounded-xl bg-white p-0.5' : ''
+                    className={`w-full h-full filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] group-hover:scale-115 group-hover:-rotate-3 transition-transform select-none pointer-events-none ${
+                      game.icon.startsWith('/assets/farkbl/')
+                        ? 'object-contain rounded-xl bg-white p-0.5'
+                        : (game as { isRoundedIcon?: boolean }).isRoundedIcon
+                          ? 'object-cover rounded-xl border border-white/30'
+                          : 'object-contain'
                     }`}
                   />
                 </div>
