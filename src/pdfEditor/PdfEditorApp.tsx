@@ -180,10 +180,15 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
   useEffect(() => {
     const syncFullscreen = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      const doc = document as Document & { webkitFullscreenElement?: Element | null };
+      setIsFullscreen(Boolean(document.fullscreenElement || doc.webkitFullscreenElement));
     };
     document.addEventListener('fullscreenchange', syncFullscreen);
-    return () => document.removeEventListener('fullscreenchange', syncFullscreen);
+    document.addEventListener('webkitfullscreenchange', syncFullscreen);
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreen);
+      document.removeEventListener('webkitfullscreenchange', syncFullscreen);
+    };
   }, []);
 
   const computeFitWidthZoom = useCallback((firstPageWidth: number): number => {
@@ -880,10 +885,20 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
   const handleToggleFullscreen = useCallback(async () => {
     try {
-      if (!document.fullscreenElement) {
-        const target = appRootRef.current || document.documentElement;
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element | null;
+        webkitExitFullscreen?: () => Promise<void> | void;
+      };
+      const isCurrentlyFs = Boolean(document.fullscreenElement || doc.webkitFullscreenElement);
+
+      if (!isCurrentlyFs) {
+        const target = (appRootRef.current || document.documentElement) as HTMLElement & {
+          webkitRequestFullscreen?: () => Promise<void> | void;
+        };
         if (typeof target.requestFullscreen === 'function') {
           await target.requestFullscreen();
+        } else if (typeof target.webkitRequestFullscreen === 'function') {
+          await target.webkitRequestFullscreen();
         } else {
           showToast(
             'warning',
@@ -893,6 +908,8 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         }
       } else if (typeof document.exitFullscreen === 'function') {
         await document.exitFullscreen();
+      } else if (typeof doc.webkitExitFullscreen === 'function') {
+        await doc.webkitExitFullscreen();
       }
     } catch {
       showToast(
