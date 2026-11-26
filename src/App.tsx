@@ -160,6 +160,7 @@ const AdresimiBiliyorumGame = lazyComponent(() => import('./components/AdresimiB
 const AblukaGame = lazyComponent(() => import('./components/AblukaGame'), 'AblukaGame');
 const KureGame = lazyComponent(() => import('./components/KureGame'), 'KureGame');
 const PentagoGame = lazyComponent(() => import('./components/PentagoGame'), 'PentagoGame');
+const QBitzGame = lazyComponent(() => import('./components/QBitzGame'), 'QBitzGame');
 const AkilZekaHub = lazyComponent(() => import('./components/AkilZekaHub'), 'AkilZekaHub');
 const DortluSiraGame = lazyComponent(() => import('./components/DortluSiraGame'), 'DortluSiraGame');
 const TrafiktenCikisGame = lazyComponent(() => import('./components/TrafiktenCikisGame'), 'TrafiktenCikisGame');
@@ -257,7 +258,7 @@ import { topics3rdGrade } from './data/topics3rdGrade';
 import { topics4thGrade } from './data/topics4thGrade';
 import { halatCekmeTopics, sureliExtraTopics } from './data/halatCekmeTopics';
 import { ZIT_ANLAM_DATA, ES_ANLAM_DATA, INGILIZCE_DATA } from './data/wordPairsData';
-import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, getGradeOtherGamesList, G2_HAYAT_BILGISI_ACTIVITIES } from './data/allActivitiesRegistry';
+import { ALL_ACTIVITIES_LIST, findActivityIndex, OTHER_GAMES_HUB_LIST, AKIL_ZEKA_GAMES_LIST, getGradeOtherGamesList, G2_HAYAT_BILGISI_ACTIVITIES } from './data/allActivitiesRegistry';
 import {
   BILSEM_ACTIVITIES,
   BilsemActivityId,
@@ -3349,6 +3350,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   const [showAblukaGame, setShowAblukaGame] = useState(false);
   const [showKureGame, setShowKureGame] = useState(false);
   const [showPentago, setShowPentago] = useState(false);
+  const [showQBitz, setShowQBitz] = useState(false);
   const [showDortluSira, setShowDortluSira] = useState(false);
   const [showTrafiktenCikis, setShowTrafiktenCikis] = useState(false);
   const [showHafizaMelodisi, setShowHafizaMelodisi] = useState(false);
@@ -3413,6 +3415,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     showAblukaGame ||
     showKureGame ||
     showPentago ||
+    showQBitz ||
     showDortluSira ||
     showTrafiktenCikis ||
     showHafizaMelodisi ||
@@ -3476,6 +3479,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       showFarkliOlaniBul ||
       showKureGame ||
       showPentago ||
+      showQBitz ||
       showDortluSira ||
       showTrafiktenCikis ||
       showHafizaMelodisi ||
@@ -5208,6 +5212,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -5548,6 +5553,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -5875,6 +5881,10 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       setSelectedGrade(null);
       setGameState('welcome');
       setShowPentago(true);
+    } else if (entry.type === 'qbitz' || entry.id === 'other_qbitz') {
+      setSelectedGrade(null);
+      setGameState('welcome');
+      setShowQBitz(true);
     } else if (entry.type === 'dortlu_sira' || entry.id === 'other_dortlu_sira') {
       setSelectedGrade(null);
       setGameState('welcome');
@@ -6062,6 +6072,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
         if (showAblukaGame && (cur.type === 'abluka' || cur.id.includes('abluka')) && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showKureGame && (cur.type === 'kure' || cur.id === 'other_kure') && (!cur.grade || cur.grade === selectedGrade)) return currentActivityIndex;
         if (showPentago && (cur.type === 'pentago' || cur.id === 'other_pentago')) return currentActivityIndex;
+        if (showQBitz && (cur.type === 'qbitz' || cur.id === 'other_qbitz')) return currentActivityIndex;
         if (showDortluSira && (cur.type === 'dortlu_sira' || cur.id === 'other_dortlu_sira')) return currentActivityIndex;
         if (showTrafiktenCikis && (cur.type === 'trafikten_cikis' || cur.id === 'other_trafikten_cikis')) return currentActivityIndex;
         if (showHafizaMelodisi && (cur.type === 'hafiza_melodisi' || cur.id === 'other_hafiza_melodisi')) return currentActivityIndex;
@@ -6273,6 +6284,10 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       const idx = findActivityIndex('pentago', 'pentago', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
     }
+    if (showQBitz) {
+      const idx = findActivityIndex('qbitz', 'qbitz', selectedGrade, null, isOther);
+      if (idx !== -1) return idx;
+    }
     if (showDortluSira) {
       const idx = findActivityIndex('dortlu_sira', 'dortlu_sira', selectedGrade, null, isOther);
       if (idx !== -1) return idx;
@@ -6345,6 +6360,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       if (item.id === 'other_abluka' && showAblukaGame) return true;
       if (item.id === 'other_kure' && showKureGame) return true;
       if (item.id === 'other_pentago' && showPentago) return true;
+      if (item.id === 'other_qbitz' && showQBitz) return true;
       if (item.id === 'other_dortlu_sira' && showDortluSira) return true;
       if (item.id === 'other_trafikten_cikis' && showTrafiktenCikis) return true;
       if (item.id === 'other_hafiza_melodisi' && showHafizaMelodisi) return true;
@@ -6408,6 +6424,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -6467,6 +6484,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     else if (entry.id === 'other_abluka') setShowAblukaGame(true);
     else if (entry.id === 'other_kure') setShowKureGame(true);
     else if (entry.id === 'other_pentago') setShowPentago(true);
+    else if (entry.id === 'other_qbitz') setShowQBitz(true);
     else if (entry.id === 'other_dortlu_sira') setShowDortluSira(true);
     else if (entry.id === 'other_trafikten_cikis') setShowTrafiktenCikis(true);
     else if (entry.id === 'other_hafiza_melodisi') setShowHafizaMelodisi(true);
@@ -6542,6 +6560,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -6665,6 +6684,9 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     } else if (entry.type === 'pentago') {
       setGameState('welcome');
       setShowPentago(true);
+    } else if (entry.type === 'qbitz') {
+      setGameState('welcome');
+      setShowQBitz(true);
     } else if (entry.type === 'dortlu_sira') {
       setGameState('welcome');
       setShowDortluSira(true);
@@ -6790,6 +6812,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -6853,9 +6876,135 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   };
 
   /**
+   * 8. Akıl ve Zeka Oyunları Hub'ındaki 14 oyun arasında kesintisiz, birebir ekran sırasıyla geçiş yapar.
+   */
+  const getCurrentAkilZekaIndex = (): number => {
+    if (showQBitz) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'qbitz');
+    if (showPentago) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'pentago');
+    if (showDortluSira) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'dortlu_sira');
+    if (showTrafiktenCikis) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'trafikten_cikis');
+    if (showHafizaMelodisi) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'hafiza_melodisi');
+    if (showHanoiKulesi) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'hanoi_kulesi');
+    if (showKureGame) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'kure');
+    if (showAblukaGame) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'abluka');
+    if (showFarkliOlaniBul) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'farkli_olani_bul');
+    if (showGorselliSudoku) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'gorselli_sudoku');
+    if (showSudokuGame) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'sudoku');
+    if (showKodlamaMutfagi) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'kodlama_mutfagi');
+    if (showAynisiniBul) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'aynisini_bul');
+    if (showXOXGame) return AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'xox');
+    return -1;
+  };
+
+  const switchToAkilZekaGameByIndex = (azIdx: number) => {
+    if (azIdx < 0 || azIdx >= AKIL_ZEKA_GAMES_LIST.length) return;
+    const entry = AKIL_ZEKA_GAMES_LIST[azIdx];
+    if (!entry) return;
+
+    playFarkliLvlSound();
+    setSelectedGrade(null);
+    setSelectedCategoryId(null);
+    setGameState('welcome');
+    setShowAkilZekaHub(false);
+    setOpenedFromAkilZekaHub(true);
+    setOpenedFromOtherGamesModal(false);
+
+    // Tüm diğer oyunları ve modalları kapat
+    setShow3DLab(false);
+    setShowGeoboard(false);
+    setShowGeometricNets(false);
+    setShowXOXGame(false);
+    setShowAynisiniBul(false);
+    setShowOnuBul(false);
+    setShowYirmiyiBul(false);
+    setShowRitmikBalon(false);
+    setShowCarpimBalon(false);
+    setShowKuralliCumle(false);
+    setShowSozlukSirala(false);
+    setShowKelimeSirala(false);
+    setShowHeceMakasi(false);
+    setShowYazimDedektifi(false);
+    setShowHeceSayisi(false);
+    setShowGeometrikSekilleriBul(false);
+    setShowDedektif5N1K(false);
+    setShowOnlukBirlik(false);
+    setShowSayiBasketi(false);
+    setShowOnlukYuvarlamaOyunu(false);
+    setShowSatirSonuHece(false);
+    setShowLessonVideo(false);
+    setShowNoktalamaAvcisi(false);
+    setShowNoktalamaSurukle(false);
+    setShowHarfCorbasi(false);
+    setShowGeriDonusum(false);
+    setShowSaglikliTabak(false);
+    setShowGuvenliInternet(false);
+    setShowSaglikliBuyume(false);
+    setShowTrafikLevhalari(false);
+    setShowIstekIhtiyac(false);
+    setShowMevsimGardirobu(false);
+    setShowAdresimiBiliyorum(false);
+    setShowAblukaGame(false);
+    setShowKureGame(false);
+    setShowPentago(false);
+    setShowQBitz(false);
+    setShowDortluSira(false);
+    setShowTrafiktenCikis(false);
+    setShowHafizaMelodisi(false);
+    setShowHanoiKulesi(false);
+    setShowFarkliOlaniBul(false);
+    setShowSudokuGame(false);
+    setShowGorselliSudoku(false);
+    setShowSchoolLifeGame(false);
+    setShowSiviTahminAkvaryum(false);
+    setShowSiviOlcmeVideoModal(false);
+    setShowSaatZaman(false);
+    setShowMarketKasasi(false);
+    setShowKesirDuvariPizza(false);
+    setShowEsSesli(false);
+    setShowDengeTerazisi(false);
+    setShowKodlamaMutfagi(false);
+    setShowOtherGamesModal(false);
+    setShowEnglishGamesModal(false);
+    setShowBilsemHub(false);
+    setActiveBilsemActivityId(null);
+    setShowOkumaYazmaHub(false);
+    setActiveOkumaYazmaActivityId(null);
+    setShowTopicModal(false);
+    setShowStatsModal(false);
+    setShowPodiumVideoModal(false);
+    setTrackVictoryVideoActive(false);
+    setWordGameType(null);
+
+    if (entry.type === 'qbitz') setShowQBitz(true);
+    else if (entry.type === 'pentago') setShowPentago(true);
+    else if (entry.type === 'dortlu_sira') setShowDortluSira(true);
+    else if (entry.type === 'trafikten_cikis') setShowTrafiktenCikis(true);
+    else if (entry.type === 'hafiza_melodisi') setShowHafizaMelodisi(true);
+    else if (entry.type === 'hanoi_kulesi') setShowHanoiKulesi(true);
+    else if (entry.type === 'kure') setShowKureGame(true);
+    else if (entry.type === 'abluka') setShowAblukaGame(true);
+    else if (entry.type === 'farkli_olani_bul') setShowFarkliOlaniBul(true);
+    else if (entry.type === 'gorselli_sudoku') setShowGorselliSudoku(true);
+    else if (entry.type === 'sudoku') setShowSudokuGame(true);
+    else if (entry.type === 'kodlama_mutfagi') setShowKodlamaMutfagi(true);
+    else if (entry.type === 'aynisini_bul') setShowAynisiniBul(true);
+    else if (entry.type === 'xox') setShowXOXGame(true);
+
+    const allIdx = ALL_ACTIVITIES_LIST.findIndex(a => a.id === entry.id);
+    if (allIdx !== -1) {
+      setCurrentActivityIndex(allIdx);
+    }
+
+    setActivityToast(`[${azIdx + 1}/${AKIL_ZEKA_GAMES_LIST.length}] Akıl ve Zeka Oyunları ➜ ${entry.title}`);
+    setTimeout(() => {
+      setActivityToast(null);
+    }, 2800);
+  };
+
+  /**
    * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
    * kesintisiz, sırayla bir önceki etkinliğe geçer.
-   * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
+   * Hayat Bilgisi ve Akıl ve Zeka Oyunları kendi içlerinde eksiksiz sırayla dolaşır.
    */
   const handlePrevActivity = () => {
     if (activeOkumaYazmaActivityId !== null) {
@@ -6870,6 +7019,26 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       const idx = list.findIndex(a => a.id === activeBilsemActivityId);
       const prevIdx = idx >= 0 ? (idx - 1 + list.length) % list.length : 0;
       setActiveBilsemActivityId(list[prevIdx].id);
+      return;
+    }
+
+    // 8. Akıl ve Zeka Oyunları İçindeyken Sıralı Geçiş (Tüm 14 oyun eksiksiz sırayla)
+    const curAkilZekaIdx = getCurrentAkilZekaIndex();
+    const isInsideAkilZekaContext =
+      curAkilZekaIdx !== -1 &&
+      (openedFromAkilZekaHub ||
+        (selectedGrade === null && !openedFromOtherGamesModal) ||
+        showQBitz ||
+        showPentago ||
+        showDortluSira ||
+        showTrafiktenCikis ||
+        showHafizaMelodisi ||
+        showHanoiKulesi ||
+        showKureGame);
+
+    if (isInsideAkilZekaContext) {
+      const prevAzIdx = (curAkilZekaIdx - 1 + AKIL_ZEKA_GAMES_LIST.length) % AKIL_ZEKA_GAMES_LIST.length;
+      switchToAkilZekaGameByIndex(prevAzIdx);
       return;
     }
 
@@ -6920,7 +7089,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   /**
    * 1. Sınıftan başlayıp en son 6. İngilizce Oyunlara kadar tüm etkinlikler arasında
    * kesintisiz, sırayla bir sonraki etkinliğe geçer.
-   * Hayat Bilgisi etkinliğindeyken Hayat Bilgisi etkinlikleri arasında sırayla dolaşır.
+   * Hayat Bilgisi ve Akıl ve Zeka Oyunları kendi içlerinde eksiksiz sırayla dolaşır.
    */
   const handleNextActivity = () => {
     if (activeOkumaYazmaActivityId !== null) {
@@ -6935,6 +7104,31 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       const idx = list.findIndex(a => a.id === activeBilsemActivityId);
       const nextIdx = idx >= 0 ? (idx + 1) % list.length : 0;
       setActiveBilsemActivityId(list[nextIdx].id);
+      return;
+    }
+
+    // 8. Akıl ve Zeka Oyunları İçindeyken veya Hub Açıkken Sıralı Geçiş (Tüm 14 oyun eksiksiz sırayla)
+    const curAkilZekaIdx = getCurrentAkilZekaIndex();
+    const isInsideAkilZekaContext =
+      curAkilZekaIdx !== -1 &&
+      (openedFromAkilZekaHub ||
+        (selectedGrade === null && !openedFromOtherGamesModal) ||
+        showQBitz ||
+        showPentago ||
+        showDortluSira ||
+        showTrafiktenCikis ||
+        showHafizaMelodisi ||
+        showHanoiKulesi ||
+        showKureGame);
+
+    if (isInsideAkilZekaContext) {
+      const nextAzIdx = (curAkilZekaIdx + 1) % AKIL_ZEKA_GAMES_LIST.length;
+      switchToAkilZekaGameByIndex(nextAzIdx);
+      return;
+    }
+
+    if (showAkilZekaHub && !isInsideAnyGame) {
+      switchToAkilZekaGameByIndex(0);
       return;
     }
 
@@ -7035,6 +7229,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     setShowAblukaGame(false);
     setShowKureGame(false);
     setShowPentago(false);
+    setShowQBitz(false);
     setShowDortluSira(false);
     setShowTrafiktenCikis(false);
     setShowHafizaMelodisi(false);
@@ -7641,6 +7836,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
     if (showAblukaGame) return 'Abluka Strateji Oyunu';
     if (showKureGame) return 'Küre Zeka Oyunu';
     if (showPentago) return 'Pentago';
+    if (showQBitz) return 'Q-Bitz (2 Kişilik)';
     if (showDortluSira) return 'Dörtlü Sıra';
     if (showTrafiktenCikis) return 'Trafikten Çıkış';
     if (showHafizaMelodisi) return 'Hafıza Melodisi';
@@ -7757,11 +7953,11 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
             {[1, 2, 3, 4, 5, 6, 7, 8].map((g) => {
               const isSelected = 
                 (g === 1 && (showOkumaYazmaHub || activeOkumaYazmaActivityId !== null)) ||
-                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showAkilZekaHub && !openedFromAkilZekaHub && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showOkumaYazmaHub && activeOkumaYazmaActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !showKureGame && !showPentago && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showFarkliOlaniBul && wordGameType === null) ||
+                (g <= 4 && selectedGrade === g && !showOtherGamesModal && !showAkilZekaHub && !openedFromAkilZekaHub && !showEnglishGamesModal && !showBilsemHub && activeBilsemActivityId === null && !showOkumaYazmaHub && activeOkumaYazmaActivityId === null && !openedFromOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showOnlukYuvarlamaOyunu && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showHeceSayisi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showNoktalamaAvcisi && !showNoktalamaSurukle && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !showKureGame && !showPentago && !showQBitz && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showFarkliOlaniBul && wordGameType === null) ||
                 (g === 5 && !openedFromAkilZekaHub && !showAkilZekaHub && (showOtherGamesModal || openedFromOtherGamesModal || showOnuBul || showYirmiyiBul || (showRitmikBalon && openedFromOtherGamesModal) || (showCarpimBalon && openedFromOtherGamesModal) || (showOnlukYuvarlamaOyunu && openedFromOtherGamesModal) || showKuralliCumle || showSozlukSirala || showKelimeSirala || showHeceMakasi || showYazimDedektifi || showHeceSayisi || showGeometrikSekilleriBul || showDedektif5N1K || showNoktalamaAvcisi || showHarfCorbasi || showGeriDonusum || showSaglikliTabak || showIstekIhtiyac || showMevsimGardirobu || showSiviTahminAkvaryum || showSaatZaman || showMarketKasasi || showKesirDuvariPizza || showEsSesli || showDengeTerazisi || (wordGameType !== null && wordGameType !== 'ingilizce'))) ||
                 (g === 6 && (showEnglishGamesModal || wordGameType === 'ingilizce' || showSchoolLifeGame)) ||
                 (g === 7 && (showBilsemHub || activeBilsemActivityId !== null)) ||
-                (g === 8 && (showAkilZekaHub || openedFromAkilZekaHub || showPentago || showDortluSira || showTrafiktenCikis || showHafizaMelodisi || showHanoiKulesi || showKureGame || showAblukaGame || showFarkliOlaniBul || showSudokuGame || showGorselliSudoku || showKodlamaMutfagi || showAynisiniBul || showXOXGame));
+                (g === 8 && (showAkilZekaHub || openedFromAkilZekaHub || showQBitz || showPentago || showDortluSira || showTrafiktenCikis || showHafizaMelodisi || showHanoiKulesi || showKureGame || showAblukaGame || showFarkliOlaniBul || showSudokuGame || showGorselliSudoku || showKodlamaMutfagi || showAynisiniBul || showXOXGame));
               const iconSrc = g === 7 ? '/MENUIKON/grid_icon_27.webp' : g === 8 ? '/assets/aistudio/Ekran_Resmi_2026-11-25_22.43.00_9e54085f.png' : `/icon_${g}.webp`;
               const title = g <= 4 ? `${g}. Sınıf` : g === 5 ? '5. Diğer Oyunlar' : g === 6 ? '6. İngilizce Oyunlar' : g === 7 ? '7. BİLSEM Etkinlikleri' : '8. Akıl ve Zeka Oyunları';
               return (
@@ -7808,6 +8004,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       setShowAblukaGame(false);
                       setShowKureGame(false);
                       setShowPentago(false);
+                      setShowQBitz(false);
                       setShowAkilZekaHub(false);
                       setOpenedFromAkilZekaHub(false);
                       setShowDortluSira(false);
@@ -7861,6 +8058,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       setShowAblukaGame(false);
                       setShowKureGame(false);
                       setShowPentago(false);
+                      setShowQBitz(false);
                       setShowAkilZekaHub(false);
                       setOpenedFromAkilZekaHub(false);
                       setShowDortluSira(false);
@@ -7921,6 +8119,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       setShowAblukaGame(false);
                       setShowKureGame(false);
                       setShowPentago(false);
+                      setShowQBitz(false);
                       setShowAkilZekaHub(false);
                       setOpenedFromAkilZekaHub(false);
                       setShowDortluSira(false);
@@ -7981,6 +8180,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       setShowAblukaGame(false);
                       setShowKureGame(false);
                       setShowPentago(false);
+                      setShowQBitz(false);
                       setShowAkilZekaHub(false);
                       setOpenedFromAkilZekaHub(false);
                       setShowDortluSira(false);
@@ -8044,6 +8244,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       setShowAblukaGame(false);
                       setShowKureGame(false);
                       setShowPentago(false);
+                      setShowQBitz(false);
                       setShowDortluSira(false);
                       setShowTrafiktenCikis(false);
                       setShowHafizaMelodisi(false);
@@ -8335,6 +8536,15 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
             // 5.2.1 If inside Pentago
             if (showPentago) {
               setShowPentago(false);
+              if (openedFromAkilZekaHub || selectedGrade === null) {
+                setShowAkilZekaHub(true);
+              }
+              return;
+            }
+
+            // 5.2.1b If inside Q-Bitz
+            if (showQBitz) {
+              setShowQBitz(false);
               if (openedFromAkilZekaHub || selectedGrade === null) {
                 setShowAkilZekaHub(true);
               }
@@ -9342,7 +9552,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
                       8. Akıl ve Zeka Oyunları
                     </h3>
                     <p className="text-[10px] sm:text-xs md:text-sm font-normal text-slate-300 mt-0.5 break-words leading-tight">
-                      Pentago, Küre, Abluka, Sudoku, Dörtlü Sıra &amp; Hanoi
+                      Q-Bitz, Pentago, Küre, Abluka, Sudoku, Dörtlü Sıra &amp; Hanoi
                     </p>
                   </div>
                   <div className="z-10 shrink-0 relative w-[54px] h-[22px] sm:w-[74px] sm:h-[30px] md:w-[90px] md:h-[38px] group-hover:scale-105 transition-all filter drop-shadow-sm flex items-center justify-center">
@@ -12933,7 +13143,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       )}
 
       {/* DİĞER OYUNLAR ANA SEÇİM HUB MODAL */}
-      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAdresimiBiliyorum && !showAblukaGame && !showKureGame && !showPentago && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showFarkliOlaniBul && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
+      {showOtherGamesModal && !showXOXGame && !showAynisiniBul && !showOnuBul && !showYirmiyiBul && !showRitmikBalon && !showCarpimBalon && !showKuralliCumle && !showSozlukSirala && !showKelimeSirala && !showHeceMakasi && !showYazimDedektifi && !showGeometrikSekilleriBul && !showDedektif5N1K && !showSatirSonuHece && !showNoktalamaAvcisi && !showHarfCorbasi && !showGeriDonusum && !showSaglikliTabak && !showIstekIhtiyac && !showMevsimGardirobu && !showAdresimiBiliyorum && !showAblukaGame && !showKureGame && !showPentago && !showQBitz && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showFarkliOlaniBul && !showSudokuGame && !showGorselliSudoku && !showSchoolLifeGame && !showSiviTahminAkvaryum && !showSaatZaman && !showMarketKasasi && !showKesirDuvariPizza && !showEsSesli && !showDengeTerazisi && !showKodlamaMutfagi && !wordGameType && !show3DLab && !showGeoboard && !showGeometricNets && (
         <OtherGamesHub
           onClose={() => {
             setShowOtherGamesModal(false);
@@ -14171,6 +14381,41 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
         />
       )}
 
+      {/* Q-BITZ (2 KİŞİLİK GÖRSEL KÜP & DESEN YARIŞI) */}
+      {showQBitz && (
+        <QBitzGame
+          onClose={() => {
+            setShowQBitz(false);
+            if (openedFromAkilZekaHub || selectedGrade === null) {
+              setShowAkilZekaHub(true);
+            } else if (openedFromOtherGamesModal) {
+              setShowOtherGamesModal(true);
+            }
+          }}
+          onGoHome={handleGoHome}
+          onPrevActivity={handlePrevActivity}
+          onNextActivity={handleNextActivity}
+          playMp3={playMp3}
+          students={students}
+          selectedStudentIds={selectedStudentIds}
+          onSelectStudentForPlayer={(pIdx, id) => {
+            setSelectedStudentIds(prev => {
+              const updated = [...prev];
+              updated[pIdx] = id;
+              return updated;
+            });
+            if (id) playMp3?.('/ding.mp3');
+          }}
+          onOpenRosterModal={(grade) => {
+            setRosterModalGrade(grade || selectedGrade || 2);
+            setShowStudentRosterModal(true);
+          }}
+          onGameCompleted={(winnerIdx, pCount) => {
+            handleUniversalGameCompleted(winnerIdx, pCount);
+          }}
+        />
+      )}
+
       {/* DÖRTLÜ SIRA (CONNECT 4) */}
       {showDortluSira && (
         <DortluSiraGame
@@ -14637,104 +14882,27 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       )}
 
       {/* 8. TEMA: AKIL VE ZEKA OYUNLARI HUB MODAL */}
-      {showAkilZekaHub && !showPentago && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showKureGame && !showAblukaGame && !showFarkliOlaniBul && !showSudokuGame && !showGorselliSudoku && !showKodlamaMutfagi && !showAynisiniBul && !showXOXGame && (
+      {showAkilZekaHub && !showQBitz && !showPentago && !showDortluSira && !showTrafiktenCikis && !showHafizaMelodisi && !showHanoiKulesi && !showKureGame && !showAblukaGame && !showFarkliOlaniBul && !showSudokuGame && !showGorselliSudoku && !showKodlamaMutfagi && !showAynisiniBul && !showXOXGame && (
         <AkilZekaHub
           onClose={() => {
             setShowAkilZekaHub(false);
             setOpenedFromAkilZekaHub(false);
           }}
           onGoHome={handleGoHome}
-          onOpenPentago={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_pentago');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowPentago(true);
-          }}
-          onOpenDortluSira={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_dortlu_sira');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowDortluSira(true);
-          }}
-          onOpenTrafiktenCikis={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_trafikten_cikis');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowTrafiktenCikis(true);
-          }}
-          onOpenHafizaMelodisi={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_hafiza_melodisi');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowHafizaMelodisi(true);
-          }}
-          onOpenHanoiKulesi={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_hanoi_kulesi');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowHanoiKulesi(true);
-          }}
-          onOpenKure={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_kure');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowKureGame(true);
-          }}
-          onOpenAbluka={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_abluka');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowAblukaGame(true);
-          }}
-          onOpenFarkliOlaniBul={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_farkli_olani_bul');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowFarkliOlaniBul(true);
-          }}
-          onOpenGorselliSudoku={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_gorselli_sudoku');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowGorselliSudoku(true);
-          }}
-          onOpenSudoku={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_sudoku');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowSudokuGame(true);
-          }}
-          onOpenKodlamaMutfagi={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_kodlama_mutfagi');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowKodlamaMutfagi(true);
-          }}
-          onOpenAynisiniBul={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_aynisini_bul');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowAynisiniBul(true);
-          }}
-          onOpenXOX={() => {
-            setShowAkilZekaHub(false);
-            setOpenedFromAkilZekaHub(true);
-            const i = OTHER_GAMES_HUB_LIST.findIndex(g => g.id === 'other_xox');
-            if (i !== -1) switchToOtherGameByIndex(i);
-            else setShowXOXGame(true);
-          }}
+          onOpenQBitz={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'qbitz'))}
+          onOpenPentago={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'pentago'))}
+          onOpenDortluSira={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'dortlu_sira'))}
+          onOpenTrafiktenCikis={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'trafikten_cikis'))}
+          onOpenHafizaMelodisi={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'hafiza_melodisi'))}
+          onOpenHanoiKulesi={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'hanoi_kulesi'))}
+          onOpenKure={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'kure'))}
+          onOpenAbluka={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'abluka'))}
+          onOpenFarkliOlaniBul={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'farkli_olani_bul'))}
+          onOpenGorselliSudoku={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'gorselli_sudoku'))}
+          onOpenSudoku={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'sudoku'))}
+          onOpenKodlamaMutfagi={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'kodlama_mutfagi'))}
+          onOpenAynisiniBul={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'aynisini_bul'))}
+          onOpenXOX={() => switchToAkilZekaGameByIndex(AKIL_ZEKA_GAMES_LIST.findIndex(g => g.type === 'xox'))}
           playMp3={playMp3}
         />
       )}

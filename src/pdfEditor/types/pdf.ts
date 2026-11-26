@@ -5,7 +5,9 @@ export type ToolMode = 'select' | 'text' | 'pen' | 'shape' | 'stamp' | 'eraser';
 export type ShapeType =
   | 'line'
   | 'arrow'
+  | 'square'
   | 'rectangle'
+  | 'circle'
   | 'ellipse'
   | 'triangle'
   | 'right-triangle'
@@ -16,11 +18,13 @@ export type ShapeType =
   | 'exclamation'
   | 'heart';
 
+export type ShapeFillMode = 'none' | 'translucent' | 'solid';
 export type StampType = 'check' | 'cross' | 'star' | 'question' | 'exclamation' | 'heart';
 export type StampSizeKey = 'small' | 'medium' | 'large';
 
 export type FontSizeKey = 'small' | 'medium' | 'large';
 export type PenWidthKey = 'thin' | 'medium' | 'thick';
+export type StrokeSmoothingLevel = 'off' | 'normal' | 'high';
 
 export interface StrokePoint {
   /** Sayfa genişliğine göre 0-1 arası normalize X koordinatı */
@@ -59,10 +63,15 @@ export interface ShapeAnnotation {
   /** Bitiş noktası (0-1 normalize) */
   x2: number;
   y2: number;
+  /** Kenar (çerçeve) rengi */
   color: string;
+  /** İç dolgu rengi (belirtilmezse kenar rengiyle aynı kullanılır) */
+  fillColor?: string;
+  /** Dolgu stili: boş, yarı saydam veya tam dolu */
+  fillMode?: ShapeFillMode;
   /** Sayfa genişliğine oranlı çizgi kalınlığı */
   widthRatio: number;
-  /** Kapalı şekillerde yarı saydam dolgu */
+  /** Geriye dönük uyumluluk için eski boolean dolgu alanı */
   filled?: boolean;
 }
 
@@ -137,6 +146,18 @@ export const COLOR_OPTIONS: ColorOption[] = [
   { label: 'Yeşil', value: '#15803d' },
 ];
 
+/** Geometrik şekillerin kenar ve iç dolgu seçimi için genişletilmiş renk paleti */
+export const SHAPE_COLOR_OPTIONS: ColorOption[] = [
+  { label: 'Siyah', value: '#111827' },
+  { label: 'Kırmızı', value: '#dc2626' },
+  { label: 'Mavi', value: '#2563eb' },
+  { label: 'Yeşil', value: '#15803d' },
+  { label: 'Sarı', value: '#eab308' },
+  { label: 'Turuncu', value: '#ea580c' },
+  { label: 'Mor', value: '#9333ea' },
+  { label: 'Beyaz', value: '#ffffff' },
+];
+
 /** Sayfa yüksekliğine oranlı metin boyutu seçenekleri */
 export const FONT_SIZE_RATIOS: Record<FontSizeKey, { label: string; ratio: number }> = {
   small: { label: 'Küçük', ratio: 0.017 },
@@ -151,15 +172,34 @@ export const PEN_WIDTH_RATIOS: Record<PenWidthKey, { label: string; ratio: numbe
   thick: { label: 'Kalın', ratio: 0.0092 },
 };
 
+/** Kalem çizgi yumuşatma (Stroke Smoothing) düzeyleri */
+export const STROKE_SMOOTHING_OPTIONS: Record<
+  StrokeSmoothingLevel,
+  { label: string; description: string }
+> = {
+  off: { label: 'Kapalı', description: 'Ham el hareketi (yumuşatma yok)' },
+  normal: { label: 'Normal', description: 'Dengeli titreme giderme ve akıcı eğriler' },
+  high: { label: 'Yüksek', description: 'Güçlü sabitleme, çok pürüzsüz çizgiler' },
+};
+
 /** Geometrik şekil seçenekleri */
 export const SHAPE_OPTIONS: { type: ShapeType; label: string; closable: boolean }[] = [
   { type: 'line', label: 'Çizgi', closable: false },
   { type: 'arrow', label: 'Ok', closable: false },
+  { type: 'square', label: 'Kare', closable: true },
   { type: 'rectangle', label: 'Dikdörtgen', closable: true },
-  { type: 'ellipse', label: 'Çember / Elips', closable: true },
+  { type: 'circle', label: 'Daire', closable: true },
+  { type: 'ellipse', label: 'Elips', closable: true },
   { type: 'triangle', label: 'Üçgen', closable: true },
   { type: 'right-triangle', label: 'Dik Üçgen', closable: true },
 ];
+
+/** Şekil dolgu modu seçenekleri */
+export const SHAPE_FILL_MODE_OPTIONS: Record<ShapeFillMode, { label: string; opacity: number }> = {
+  none: { label: 'Boş', opacity: 0 },
+  translucent: { label: 'Saydam', opacity: 0.24 },
+  solid: { label: 'Tam Dolu', opacity: 1 },
+};
 
 /** Hızlı değerlendirme ve işaretleme sembolleri (damgalar) */
 export const STAMP_OPTIONS: {

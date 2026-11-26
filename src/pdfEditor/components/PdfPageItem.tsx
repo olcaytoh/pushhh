@@ -7,11 +7,13 @@ import {
   type PageMeta,
   type SelectedObject,
   type ShapeAnnotation,
+  type ShapeFillMode,
   type ShapeType,
   STAMP_OPTIONS,
   type StampType,
   type StrokeAnnotation,
   type StrokePoint,
+  type StrokeSmoothingLevel,
   type TextAnnotation,
   type ToolMode,
 } from '../types/pdf';
@@ -25,6 +27,8 @@ import {
   isPointInsideText,
   isPointNearShape,
   isPointNearStroke,
+  resolveShapeFill,
+  smoothCompletedStroke,
 } from '../utils/geometry';
 
 interface PdfPageItemProps {
@@ -37,8 +41,11 @@ interface PdfPageItemProps {
   activeFontSizeRatio: number;
   activeBold: boolean;
   activePenWidthRatio: number;
+  activeStrokeSmoothing: StrokeSmoothingLevel;
   activeShapeType: ShapeType;
-  activeShapeFilled: boolean;
+  activeShapeFillMode: ShapeFillMode;
+  activeShapeBorderColor: string;
+  activeShapeFillColor: string;
   activeStampType: StampType;
   activeStampSizeRatio: number;
   annotations: PageAnnotations;
@@ -80,8 +87,11 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
   activeFontSizeRatio,
   activeBold,
   activePenWidthRatio,
+  activeStrokeSmoothing,
   activeShapeType,
-  activeShapeFilled,
+  activeShapeFillMode,
+  activeShapeBorderColor,
+  activeShapeFillColor,
   activeStampType,
   activeStampSizeRatio,
   annotations,
@@ -108,6 +118,7 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
 
   const [draftStroke, setDraftStroke] = useState<StrokeAnnotation | null>(null);
   const draftStrokeRef = useRef<StrokeAnnotation | null>(null);
+  const lastRawPenPointRef = useRef<StrokePoint | null>(null);
   const [draftShape, setDraftShape] = useState<ShapeAnnotation | null>(null);
   const draftShapeRef = useRef<ShapeAnnotation | null>(null);
   const [draggingShape, setDraggingShape] = useState<{
@@ -427,6 +438,7 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         // Yoksay
       }
       isDrawingRef.current = true;
+      lastRawPenPointRef.current = pt;
       const newStroke: StrokeAnnotation = {
         id: createId('str'),
         points: [pt],
@@ -449,6 +461,7 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
       }
       isDrawingShapeRef.current = true;
       const isClosable = activeShapeType !== 'line' && activeShapeType !== 'arrow';
+      const effectiveFillMode: ShapeFillMode = isClosable ? activeShapeFillMode : 'none';
       const newShape: ShapeAnnotation = {
         id: createId('shp'),
         shapeType: activeShapeType,
@@ -456,9 +469,11 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         y1: pt.y,
         x2: pt.x,
         y2: pt.y,
-        color: activeColor,
+        color: activeShapeBorderColor,
+        fillColor: activeShapeFillColor,
+        fillMode: effectiveFillMode,
         widthRatio: activePenWidthRatio,
-        filled: isClosable ? activeShapeFilled : false,
+        filled: effectiveFillMode !== 'none',
       };
       draftShapeRef.current = newShape;
       setDraftShape(newShape);
@@ -538,7 +553,12 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
     if (isDrawingRef.current && draftStrokeRef.current) {
       e.preventDefault();
       const pt = getNormalizedPoint(e.clientX, e.clientY);
-      const nextPoints = appendSmoothedPoint(draftStrokeRef.current.points, pt);
+      lastRawPenPointRef.current = pt;
+      const nextPoints = appendSmoothedPoint(
+        draftStrokeRef.current.points,
+        pt,
+        activeStrokeSmoothing,
+      );
       if (nextPoints !== draftStrokeRef.current.points) {
         const updated = { ...draftStrokeRef.current, points: nextPoints };
         draftStrokeRef.current = updated;
@@ -655,10 +675,25 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         // Yoksay
       }
       const finalized = draftStrokeRef.current;
+      const lastRawPt = lastRawPenPointRef.current;
       draftStrokeRef.current = null;
+      lastRawPenPointRef.current = null;
       setDraftStroke(null);
       if (finalized && finalized.points.length > 0) {
-        onAddStroke(meta.pageNumber, finalized);
+        let pts = finalized.points;
+        if (lastRawPt && pts.length >= 2) {
+          const tail = pts[pts.length - 1];
+          if (Math.hypot(lastRawPt.x - tail.x, lastRawPt.y - tail.y) > 0.0015) {
+            pts = [...pts, lastRawPt];
+          }
+        }
+        const smoothedPoints = smoothCompletedStroke(
+          pts,
+          activeStrokeSmoothing,
+          pageWidthPx,
+          pageHeightPx,
+        );
+        onAddStroke(meta.pageNumber, { ...finalized, points: smoothedPoints });
       }
       return;
     }
@@ -979,6 +1014,7 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
     const pointsAttr = poly
       .map((pt) => `${(pt.x * pageWidthPx).toFixed(2)},${(pt.y * pageHeightPx).toFixed(2)}`)
       .join(' ');
+    const resolvedFill = resolveShapeFill(effectiveShape);
 
     return (
       <g key={shape.id} opacity={isDraft ? 0.85 : 1}>
@@ -994,8 +1030,8 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         )}
         <polygon
           points={pointsAttr}
-          fill={effectiveShape.filled ? effectiveShape.color : 'none'}
-          fillOpacity={effectiveShape.filled ? 0.16 : 0}
+          fill={resolvedFill.mode !== 'none' ? resolvedFill.fillColor : 'none'}
+          fillOpacity={resolvedFill.opacity}
           stroke={effectiveShape.color}
           strokeWidth={strokePx}
           strokeLinejoin="round"

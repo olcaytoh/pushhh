@@ -19,12 +19,14 @@ import {
   type PenWidthKey,
   type SelectedObject,
   type ShapeAnnotation,
+  type ShapeFillMode,
   type ShapeType,
   STAMP_OPTIONS,
   STAMP_SIZE_RATIOS,
   type StampSizeKey,
   type StampType,
   type StrokeAnnotation,
+  type StrokeSmoothingLevel,
   type TextAnnotation,
   type ToastNotice,
   type ToolMode,
@@ -103,8 +105,12 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const [fontSizeKey, setFontSizeKey] = useState<FontSizeKey>('medium');
   const [bold, setBold] = useState<boolean>(false);
   const [penWidthKey, setPenWidthKey] = useState<PenWidthKey>('medium');
+  const [strokeSmoothing, setStrokeSmoothing] = useState<StrokeSmoothingLevel>('normal');
   const [activeShapeType, setActiveShapeType] = useState<ShapeType>('rectangle');
-  const [activeShapeFilled, setActiveShapeFilled] = useState<boolean>(false);
+  const [activeShapeFillMode, setActiveShapeFillMode] = useState<ShapeFillMode>('solid');
+  const [activeShapeBorderColor, setActiveShapeBorderColor] = useState<string>('#2563eb');
+  const [activeShapeFillColor, setActiveShapeFillColor] = useState<string>('#2563eb');
+  const [syncShapeFillWithBorder, setSyncShapeFillWithBorder] = useState<boolean>(true);
   const [activeStampType, setActiveStampType] = useState<StampType>('check');
   const [stampSizeKey, setStampSizeKey] = useState<StampSizeKey>('medium');
 
@@ -573,15 +579,34 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const handleSelectColor = useCallback(
     (hex: string) => {
       setActiveColor(hex);
+      if (toolMode === 'shape') {
+        setActiveShapeBorderColor(hex);
+        if (syncShapeFillWithBorder) {
+          setActiveShapeFillColor(hex);
+        }
+      }
       if (selectedObject?.type === 'text') {
         handleUpdateText(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
       } else if (selectedObject?.type === 'stroke') {
         handleUpdateStroke(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
       } else if (selectedObject?.type === 'shape') {
-        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
+        setActiveShapeBorderColor(hex);
+        const patch: Partial<ShapeAnnotation> = { color: hex };
+        if (syncShapeFillWithBorder) {
+          setActiveShapeFillColor(hex);
+          patch.fillColor = hex;
+        }
+        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, patch, true);
       }
     },
-    [selectedObject, handleUpdateText, handleUpdateStroke, handleUpdateShape],
+    [
+      toolMode,
+      syncShapeFillWithBorder,
+      selectedObject,
+      handleUpdateText,
+      handleUpdateStroke,
+      handleUpdateShape,
+    ],
   );
 
   const handleSelectFontSize = useCallback(
@@ -631,15 +656,75 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     [selectedObject, handleUpdateStroke, handleUpdateShape],
   );
 
-  const handleToggleShapeFilled = useCallback(() => {
-    setActiveShapeFilled((prev) => {
-      const next = !prev;
+  const handleSelectShapeFillMode = useCallback(
+    (mode: ShapeFillMode) => {
+      setActiveShapeFillMode(mode);
       if (selectedObject?.type === 'shape') {
-        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, { filled: next }, true);
+        handleUpdateShape(
+          selectedObject.pageNumber,
+          selectedObject.id,
+          { fillMode: mode, filled: mode !== 'none' },
+          true,
+        );
+      }
+    },
+    [selectedObject, handleUpdateShape],
+  );
+
+  const handleSelectShapeBorderColor = useCallback(
+    (hex: string) => {
+      setActiveShapeBorderColor(hex);
+      if (syncShapeFillWithBorder) {
+        setActiveShapeFillColor(hex);
+      }
+      if (selectedObject?.type === 'shape') {
+        const patch: Partial<ShapeAnnotation> = { color: hex };
+        if (syncShapeFillWithBorder) {
+          patch.fillColor = hex;
+        }
+        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, patch, true);
+      }
+    },
+    [syncShapeFillWithBorder, selectedObject, handleUpdateShape],
+  );
+
+  const handleSelectShapeFillColor = useCallback(
+    (hex: string) => {
+      setActiveShapeFillColor(hex);
+      setSyncShapeFillWithBorder(hex === activeShapeBorderColor);
+      const nextMode: ShapeFillMode = activeShapeFillMode === 'none' ? 'solid' : activeShapeFillMode;
+      if (activeShapeFillMode === 'none') {
+        setActiveShapeFillMode('solid');
+      }
+      if (selectedObject?.type === 'shape') {
+        handleUpdateShape(
+          selectedObject.pageNumber,
+          selectedObject.id,
+          { fillColor: hex, fillMode: nextMode, filled: true },
+          true,
+        );
+      }
+    },
+    [activeShapeBorderColor, activeShapeFillMode, selectedObject, handleUpdateShape],
+  );
+
+  const handleToggleSyncShapeFill = useCallback(() => {
+    setSyncShapeFillWithBorder((prev) => {
+      const next = !prev;
+      if (next) {
+        setActiveShapeFillColor(activeShapeBorderColor);
+        if (selectedObject?.type === 'shape') {
+          handleUpdateShape(
+            selectedObject.pageNumber,
+            selectedObject.id,
+            { fillColor: activeShapeBorderColor },
+            true,
+          );
+        }
       }
       return next;
     });
-  }, [selectedObject, handleUpdateShape]);
+  }, [activeShapeBorderColor, selectedObject, handleUpdateShape]);
 
   const handleSelectStampType = useCallback((stamp: StampType) => {
     setActiveStampType(stamp);
@@ -703,7 +788,13 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         setActiveStampType(item.shapeType);
       } else {
         setActiveShapeType(item.shapeType);
-        setActiveShapeFilled(Boolean(item.filled));
+        const resolvedMode: ShapeFillMode =
+          item.fillMode ?? (item.filled ? 'translucent' : 'none');
+        const resolvedFill = item.fillColor || item.color;
+        setActiveShapeFillMode(resolvedMode);
+        setActiveShapeBorderColor(item.color);
+        setActiveShapeFillColor(resolvedFill);
+        setSyncShapeFillWithBorder(resolvedFill === item.color);
       }
       let bestKey: PenWidthKey = 'medium';
       let bestDiff = Infinity;
@@ -1124,6 +1215,14 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     (p) => p && (p.texts.length > 0 || p.strokes.length > 0 || (p.shapes?.length || 0) > 0),
   );
 
+  const isGeometricShapeSelected = (() => {
+    if (selectedObject?.type !== 'shape') return false;
+    const sh = (annotations[selectedObject.pageNumber]?.shapes || []).find(
+      (s) => s.id === selectedObject.id,
+    );
+    return Boolean(sh && !isStampShapeType(sh.shapeType));
+  })();
+
   const toastStyles: Record<ToastNotice['type'], string> = {
     info: 'bg-slate-800 text-white border-slate-700',
     success: 'bg-emerald-700 text-white border-emerald-600',
@@ -1168,8 +1267,13 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         fontSizeKey={fontSizeKey}
         bold={bold}
         penWidthKey={penWidthKey}
+        strokeSmoothing={strokeSmoothing}
         activeShapeType={activeShapeType}
-        activeShapeFilled={activeShapeFilled}
+        activeShapeFillMode={activeShapeFillMode}
+        activeShapeBorderColor={activeShapeBorderColor}
+        activeShapeFillColor={activeShapeFillColor}
+        syncShapeFillWithBorder={syncShapeFillWithBorder}
+        isGeometricShapeSelected={isGeometricShapeSelected}
         activeStampType={activeStampType}
         stampSizeKey={stampSizeKey}
         canUndo={undoStack.length > 0}
@@ -1191,8 +1295,12 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         onSelectFontSize={handleSelectFontSize}
         onToggleBold={handleToggleBold}
         onSelectPenWidth={handleSelectPenWidth}
+        onSelectStrokeSmoothing={setStrokeSmoothing}
         onSelectShapeType={setActiveShapeType}
-        onToggleShapeFilled={handleToggleShapeFilled}
+        onSelectShapeFillMode={handleSelectShapeFillMode}
+        onSelectShapeBorderColor={handleSelectShapeBorderColor}
+        onSelectShapeFillColor={handleSelectShapeFillColor}
+        onToggleSyncShapeFill={handleToggleSyncShapeFill}
         onSelectStampType={handleSelectStampType}
         onSelectStampSize={setStampSizeKey}
         onUndo={handleUndo}
@@ -1272,8 +1380,11 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
                 activeFontSizeRatio={FONT_SIZE_RATIOS[fontSizeKey].ratio}
                 activeBold={bold}
                 activePenWidthRatio={PEN_WIDTH_RATIOS[penWidthKey].ratio}
+                activeStrokeSmoothing={strokeSmoothing}
                 activeShapeType={activeShapeType}
-                activeShapeFilled={activeShapeFilled}
+                activeShapeFillMode={activeShapeFillMode}
+                activeShapeBorderColor={activeShapeBorderColor}
+                activeShapeFillColor={activeShapeFillColor}
                 activeStampType={activeStampType}
                 activeStampSizeRatio={STAMP_SIZE_RATIOS[stampSizeKey].ratio}
                 annotations={annotations[meta.pageNumber] || EMPTY_PAGE_ANNOTATIONS}

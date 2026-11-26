@@ -1,12 +1,29 @@
 // Çizim yumuşatma, geometrik şekil ve sembol hesapları, silgi/seçim çarpışma testi (hit-test) ve CropBox + /Rotate koordinat dönüşümleri
 import {
   isStampShapeType,
+  SHAPE_FILL_MODE_OPTIONS,
   type ShapeAnnotation,
+  type ShapeFillMode,
   type ShapeType,
   type StrokeAnnotation,
   type StrokePoint,
+  type StrokeSmoothingLevel,
   type TextAnnotation,
 } from '../types/pdf';
+
+/**
+ * Şeklin etkin dolgu modunu, opaklığını ve iç dolgu rengini (geriye dönük uyumlu olarak) çözer
+ */
+export function resolveShapeFill(shape: ShapeAnnotation): {
+  mode: ShapeFillMode;
+  opacity: number;
+  fillColor: string;
+} {
+  const mode: ShapeFillMode = shape.fillMode ?? (shape.filled ? 'translucent' : 'none');
+  const opacity = SHAPE_FILL_MODE_OPTIONS[mode].opacity;
+  const fillColor = shape.fillColor || shape.color;
+  return { mode, opacity, fillColor };
+}
 
 /**
  * Bir noktanın bir doğru parçasına olan en kısa mesafesini hesaplar (en-boy oranı düzeltmeli)
@@ -89,7 +106,8 @@ export function constrainShapeEndPoint(
   pageHeightPx: number,
   shiftKey: boolean,
 ): StrokePoint {
-  if (!shiftKey || pageWidthPx <= 0 || pageHeightPx <= 0) {
+  const forceSquareRatio = shapeType === 'square' || shapeType === 'circle';
+  if ((!shiftKey && !forceSquareRatio) || pageWidthPx <= 0 || pageHeightPx <= 0) {
     return end;
   }
 
@@ -168,6 +186,7 @@ export function getClosedShapeNormPolygon(
   const maxY = Math.max(shape.y1, shape.y2);
 
   switch (shape.shapeType) {
+    case 'square':
     case 'rectangle':
       return [
         { x: minX, y: minY },
@@ -187,6 +206,7 @@ export function getClosedShapeNormPolygon(
         { x: minX, y: maxY },
         { x: maxX, y: maxY },
       ];
+    case 'circle':
     case 'ellipse': {
       const cx = (minX + maxX) / 2;
       const cy = (minY + maxY) / 2;
@@ -413,7 +433,8 @@ export function isPointNearShape(
   const poly = getClosedShapeNormPolygon(shape, 40);
   if (poly.length < 3) return false;
 
-  if (shape.filled && isPointInPolygon(point, poly)) {
+  const { mode } = resolveShapeFill(shape);
+  if (mode !== 'none' && isPointInPolygon(point, poly)) {
     return true;
   }
 
@@ -463,26 +484,188 @@ export function isPointInsideText(
 }
 
 /**
- * Kalem noktalarını aşırı yoğunluktan arındırır (performans ve pürüzsüz eğriler için)
+ * Çizim sırasında gerçek zamanlı üstel hareketli ortalama (EMA) sabitleme ve mesafe filtreleme uygular.
+ * Titrek fare/dokunmatik hareketlerini anlık olarak yumuşatır.
  */
 export function appendSmoothedPoint(
   points: StrokePoint[],
   next: StrokePoint,
-  minNormDistance = 0.0022,
+  smoothing: StrokeSmoothingLevel = 'normal',
 ): StrokePoint[] {
   if (points.length === 0) {
     return [next];
   }
+
+  const minNormDistance =
+    smoothing === 'off' ? 0.0014 : smoothing === 'high' ? 0.0032 : 0.0022;
+
   const last = points[points.length - 1];
-  const dist = Math.hypot(next.x - last.x, next.y - last.y);
-  if (dist < minNormDistance) {
+  const rawDist = Math.hypot(next.x - last.x, next.y - last.y);
+  if (rawDist < minNormDistance) {
     return points;
   }
-  return [...points, next];
+
+  if (smoothing === 'off' || points.length === 1) {
+    return [...points, next];
+  }
+
+  // EMA ağırlığı (düşük alpha = daha güçlü el titremesi sönümleme)
+  const alpha = smoothing === 'high' ? 0.36 : 0.62;
+  const stabilized: StrokePoint = {
+    x: Math.max(0, Math.min(1, last.x + alpha * (next.x - last.x))),
+    y: Math.max(0, Math.min(1, last.y + alpha * (next.y - last.y))),
+  };
+
+  if (Math.hypot(stabilized.x - last.x, stabilized.y - last.y) < minNormDistance * 0.45) {
+    return points;
+  }
+
+  return [...points, stabilized];
 }
 
 /**
- * Normalize noktaları kuadratik Bezier eğrileriyle pürüzsüz SVG path dizgisine çevirir
+ * Ramer-Douglas-Peucker (RDP) sadeleştirme: el titremesinden kaynaklanan gereksiz mikro noktaları
+ * temizlerken gerçek şekil ve el yazısı köşelerini korur.
+ */
+function simplifyStrokeRDP(
+  points: StrokePoint[],
+  epsilon: number,
+  aspectRatio: number,
+): StrokePoint[] {
+  if (points.length <= 2) return points;
+
+  const first = points[0];
+  const last = points[points.length - 1];
+  let maxDist = -1;
+  let splitIdx = 0;
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const d = pointToSegmentDistance(
+      points[i].x,
+      points[i].y,
+      first.x,
+      first.y,
+      last.x,
+      last.y,
+      aspectRatio,
+    );
+    if (d > maxDist) {
+      maxDist = d;
+      splitIdx = i;
+    }
+  }
+
+  if (maxDist > epsilon) {
+    const left = simplifyStrokeRDP(points.slice(0, splitIdx + 1), epsilon, aspectRatio);
+    const right = simplifyStrokeRDP(points.slice(splitIdx), epsilon, aspectRatio);
+    return [...left.slice(0, -1), ...right];
+  }
+
+  return [first, last];
+}
+
+/**
+ * Köşe duyarlı Chaikin alt bölme (Corner-Preserving Chaikin Smoothing):
+ * Yumuşak eğrileri pürüzsüzleştirirken keskin harf/rakam köşelerinin (ör. M, Z, 7) ezilmesini önler.
+ */
+function chaikinCornerAwarePass(
+  points: StrokePoint[],
+  aspectRatio: number,
+  sharpAngleThresholdDeg = 72,
+): StrokePoint[] {
+  if (points.length < 3) return points;
+
+  const result: StrokePoint[] = [points[0]];
+  const cosSharpThreshold = Math.cos(((180 - sharpAngleThresholdDeg) * Math.PI) / 180);
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const next = points[i + 1];
+
+    const v1x = (curr.x - prev.x) * aspectRatio;
+    const v1y = curr.y - prev.y;
+    const v2x = (next.x - curr.x) * aspectRatio;
+    const v2y = next.y - curr.y;
+    const len1 = Math.hypot(v1x, v1y);
+    const len2 = Math.hypot(v2x, v2y);
+
+    let isSharpCorner = false;
+    if (len1 > 1e-6 && len2 > 1e-6) {
+      // cosTheta: 1 = düz devam, -1 = tam geri dönüş
+      const cosTheta = (v1x * v2x + v1y * v2y) / (len1 * len2);
+      if (cosTheta < cosSharpThreshold) {
+        isSharpCorner = true;
+      }
+    }
+
+    if (isSharpCorner) {
+      // Keskin el yazısı köşesini koru
+      result.push(curr);
+    } else {
+      const q: StrokePoint = {
+        x: 0.75 * curr.x + 0.25 * prev.x,
+        y: 0.75 * curr.y + 0.25 * prev.y,
+      };
+      const r: StrokePoint = {
+        x: 0.75 * curr.x + 0.25 * next.x,
+        y: 0.75 * curr.y + 0.25 * next.y,
+      };
+      result.push(q, r);
+    }
+  }
+
+  result.push(points[points.length - 1]);
+  return result;
+}
+
+/**
+ * Kalem kaldırıldığında (pointerUp) tamamlanan serbest çizime son iyileştirme uygular:
+ * 1) Ağırlıklı hareketli ortalama ile mikro titreme giderme
+ * 2) RDP ile gereksiz nokta sadeleştirme
+ * 3) Köşe duyarlı Chaikin eğri yumuşatma
+ */
+export function smoothCompletedStroke(
+  points: StrokePoint[],
+  smoothing: StrokeSmoothingLevel,
+  pageWidthPx: number,
+  pageHeightPx: number,
+): StrokePoint[] {
+  if (smoothing === 'off' || points.length < 3) {
+    return points;
+  }
+
+  const aspectRatio = pageWidthPx > 0 && pageHeightPx > 0 ? pageWidthPx / pageHeightPx : 1;
+
+  // 1. Hafif 3 noktalı ortalama geçişi (uç noktalar sabit)
+  let refined: StrokePoint[] = points.map((pt, idx) => {
+    if (idx === 0 || idx === points.length - 1) return pt;
+    const prev = points[idx - 1];
+    const next = points[idx + 1];
+    const wCenter = smoothing === 'high' ? 0.5 : 0.64;
+    const wSide = (1 - wCenter) / 2;
+    return {
+      x: prev.x * wSide + pt.x * wCenter + next.x * wSide,
+      y: prev.y * wSide + pt.y * wCenter + next.y * wSide,
+    };
+  });
+
+  // 2. RDP sadeleştirme (titreme noktalarını temizle)
+  const epsilon = smoothing === 'high' ? 0.0026 : 0.0013;
+  refined = simplifyStrokeRDP(refined, epsilon, aspectRatio);
+
+  // 3. Köşe duyarlı Chaikin yumuşatma
+  const passes = smoothing === 'high' ? 2 : 1;
+  for (let p = 0; p < passes; p++) {
+    refined = chaikinCornerAwarePass(refined, aspectRatio, smoothing === 'high' ? 62 : 76);
+  }
+
+  return refined;
+}
+
+/**
+ * Normalize noktaları Catmull-Rom -> Kübik Bezier eğrilerine çevirerek
+ * tüm kontrol noktalarından pürüzsüz (C1 sürekli) geçen profesyonel SVG path üretir
  */
 export function buildSmoothSvgPath(
   points: StrokePoint[],
@@ -504,20 +687,76 @@ export function buildSmoothSvgPath(
     return `M ${p0x.toFixed(2)} ${p0y.toFixed(2)} L ${p1x.toFixed(2)} ${p1y.toFixed(2)}`;
   }
 
+  const tension = 0.5;
   let d = `M ${p0x.toFixed(2)} ${p0y.toFixed(2)}`;
-  for (let i = 1; i < points.length - 1; i++) {
-    const currX = points[i].x * widthPx;
-    const currY = points[i].y * heightPx;
-    const nextX = points[i + 1].x * widthPx;
-    const nextY = points[i + 1].y * heightPx;
-    const midX = (currX + nextX) / 2;
-    const midY = (currY + nextY) / 2;
-    d += ` Q ${currX.toFixed(2)} ${currY.toFixed(2)} ${midX.toFixed(2)} ${midY.toFixed(2)}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+
+    const cp1x = (p1.x + ((p2.x - p0.x) * tension) / 3) * widthPx;
+    const cp1y = (p1.y + ((p2.y - p0.y) * tension) / 3) * heightPx;
+    const cp2x = (p2.x - ((p3.x - p1.x) * tension) / 3) * widthPx;
+    const cp2y = (p2.y - ((p3.y - p1.y) * tension) / 3) * heightPx;
+    const endX = p2.x * widthPx;
+    const endY = p2.y * heightPx;
+
+    d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${endX.toFixed(2)} ${endY.toFixed(2)}`;
   }
 
-  const last = points[points.length - 1];
-  d += ` L ${(last.x * widthPx).toFixed(2)} ${(last.y * heightPx).toFixed(2)}`;
   return d;
+}
+
+/**
+ * PDF dışa aktarımında serbest çizimlerin ekrandaki Catmull-Rom eğrileriyle aynı pürüzsüzlükte
+ * çıkması için normalize kübik Bezier noktalarını örnekler
+ */
+export function sampleSmoothStrokeForPdf(
+  points: StrokePoint[],
+  stepsPerSegment = 4,
+): StrokePoint[] {
+  if (points.length <= 2) return points;
+
+  const tension = 0.5;
+  const sampled: StrokePoint[] = [points[0]];
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+
+    const cp1x = p1.x + ((p2.x - p0.x) * tension) / 3;
+    const cp1y = p1.y + ((p2.y - p0.y) * tension) / 3;
+    const cp2x = p2.x - ((p3.x - p1.x) * tension) / 3;
+    const cp2y = p2.y - ((p3.y - p1.y) * tension) / 3;
+
+    const segDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const steps = segDist < 0.004 ? 1 : stepsPerSegment;
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      const mt = 1 - t;
+      const x =
+        mt * mt * mt * p1.x +
+        3 * mt * mt * t * cp1x +
+        3 * mt * t * t * cp2x +
+        t * t * t * p2.x;
+      const y =
+        mt * mt * mt * p1.y +
+        3 * mt * mt * t * cp1y +
+        3 * mt * t * t * cp2y +
+        t * t * t * p2.y;
+      sampled.push({
+        x: Math.max(0, Math.min(1, x)),
+        y: Math.max(0, Math.min(1, y)),
+      });
+    }
+  }
+
+  return sampled;
 }
 
 /**

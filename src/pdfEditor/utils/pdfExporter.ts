@@ -13,6 +13,7 @@ import {
   isStampShapeType,
   type PageAnnotations,
   type ShapeAnnotation,
+  type ShapeFillMode,
   type ShapeType,
   type StrokeAnnotation,
   type TextAnnotation,
@@ -22,6 +23,8 @@ import {
   getClosedShapeNormPolygon,
   getDisplayedPdfSize,
   getStampGeometry,
+  resolveShapeFill,
+  sampleSmoothStrokeForPdf,
   screenNormToPdfPoint,
 } from './geometry';
 
@@ -211,9 +214,10 @@ export async function exportAnnotatedPdf(
         continue;
       }
 
-      for (let j = 0; j < stroke.points.length - 1; j++) {
-        const start = screenNormToPdfPoint(stroke.points[j].x, stroke.points[j].y, cropBox, rotDeg);
-        const end = screenNormToPdfPoint(stroke.points[j + 1].x, stroke.points[j + 1].y, cropBox, rotDeg);
+      const smoothPts = sampleSmoothStrokeForPdf(stroke.points, 4);
+      for (let j = 0; j < smoothPts.length - 1; j++) {
+        const start = screenNormToPdfPoint(smoothPts[j].x, smoothPts[j].y, cropBox, rotDeg);
+        const end = screenNormToPdfPoint(smoothPts[j + 1].x, smoothPts[j + 1].y, cropBox, rotDeg);
         pdfPage.drawLine({
           start,
           end,
@@ -328,12 +332,14 @@ export async function exportAnnotatedPdf(
           pdfPts
             .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${(-p.y).toFixed(2)}`)
             .join(' ') + ' Z';
+        const resolvedFill = resolveShapeFill(shape);
+        const fillRgb = resolvedFill.mode !== 'none' ? hexToRgb(resolvedFill.fillColor) : undefined;
 
         pdfPage.drawSvgPath(svgPath, {
           x: 0,
           y: 0,
-          color: shape.filled ? shapeColor : undefined,
-          opacity: shape.filled ? 0.16 : undefined,
+          color: fillRgb,
+          opacity: resolvedFill.mode !== 'none' ? resolvedFill.opacity : undefined,
           borderColor: shapeColor,
           borderOpacity: 1,
           borderWidth: thickness,
@@ -512,7 +518,9 @@ function sanitizeStrokeList(raw: unknown): StrokeAnnotation[] {
 const VALID_SHAPE_TYPES = new Set<ShapeType>([
   'line',
   'arrow',
+  'square',
   'rectangle',
+  'circle',
   'ellipse',
   'triangle',
   'right-triangle',
@@ -523,6 +531,8 @@ const VALID_SHAPE_TYPES = new Set<ShapeType>([
   'exclamation',
   'heart',
 ]);
+
+const VALID_FILL_MODES = new Set<ShapeFillMode>(['none', 'translucent', 'solid']);
 
 function sanitizeShapeList(raw: unknown): ShapeAnnotation[] {
   if (!Array.isArray(raw)) return [];
@@ -546,6 +556,12 @@ function sanitizeShapeList(raw: unknown): ShapeAnnotation[] {
       typeof sh.widthRatio === 'number' &&
       Number.isFinite(sh.widthRatio)
     ) {
+      const fillMode: ShapeFillMode | undefined =
+        typeof sh.fillMode === 'string' && VALID_FILL_MODES.has(sh.fillMode as ShapeFillMode)
+          ? (sh.fillMode as ShapeFillMode)
+          : undefined;
+      const fillColor = typeof sh.fillColor === 'string' ? sh.fillColor : undefined;
+
       valid.push({
         id: sh.id,
         shapeType: sh.shapeType as ShapeType,
@@ -554,6 +570,8 @@ function sanitizeShapeList(raw: unknown): ShapeAnnotation[] {
         x2: Math.max(0, Math.min(1, sh.x2)),
         y2: Math.max(0, Math.min(1, sh.y2)),
         color: sh.color,
+        fillColor,
+        fillMode,
         widthRatio: Math.max(0.0005, Math.min(0.1, sh.widthRatio)),
         filled: Boolean(sh.filled),
       });

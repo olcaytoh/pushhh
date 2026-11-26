@@ -6,12 +6,17 @@ import {
   type FontSizeKey,
   PEN_WIDTH_RATIOS,
   type PenWidthKey,
+  SHAPE_COLOR_OPTIONS,
+  SHAPE_FILL_MODE_OPTIONS,
   SHAPE_OPTIONS,
+  type ShapeFillMode,
   type ShapeType,
   STAMP_OPTIONS,
   STAMP_SIZE_RATIOS,
   type StampSizeKey,
   type StampType,
+  STROKE_SMOOTHING_OPTIONS,
+  type StrokeSmoothingLevel,
   type ToolMode,
 } from '../types/pdf';
 import {
@@ -31,11 +36,13 @@ import {
   SaveIcon,
   SettingsIcon,
   ShapeArrowIcon,
+  ShapeCircleIcon,
   ShapeEllipseIcon,
   ShapeFillIcon,
   ShapeLineIcon,
   ShapeRectIcon,
   ShapeRightTriangleIcon,
+  ShapeSquareIcon,
   ShapeTriangleIcon,
   ShapesToolIcon,
   StampCheckIcon,
@@ -45,6 +52,7 @@ import {
   StampQuestionIcon,
   StampStarIcon,
   StampToolIcon,
+  StrokeSmoothIcon,
   TextToolIcon,
   TrashIcon,
   UndoIcon,
@@ -65,8 +73,13 @@ interface ToolbarProps {
   fontSizeKey: FontSizeKey;
   bold: boolean;
   penWidthKey: PenWidthKey;
+  strokeSmoothing: StrokeSmoothingLevel;
   activeShapeType: ShapeType;
-  activeShapeFilled: boolean;
+  activeShapeFillMode: ShapeFillMode;
+  activeShapeBorderColor: string;
+  activeShapeFillColor: string;
+  syncShapeFillWithBorder: boolean;
+  isGeometricShapeSelected: boolean;
   activeStampType: StampType;
   stampSizeKey: StampSizeKey;
   canUndo: boolean;
@@ -88,8 +101,12 @@ interface ToolbarProps {
   onSelectFontSize: (key: FontSizeKey) => void;
   onToggleBold: () => void;
   onSelectPenWidth: (key: PenWidthKey) => void;
+  onSelectStrokeSmoothing: (level: StrokeSmoothingLevel) => void;
   onSelectShapeType: (shape: ShapeType) => void;
-  onToggleShapeFilled: () => void;
+  onSelectShapeFillMode: (mode: ShapeFillMode) => void;
+  onSelectShapeBorderColor: (hex: string) => void;
+  onSelectShapeFillColor: (hex: string) => void;
+  onToggleSyncShapeFill: () => void;
   onSelectStampType: (stamp: StampType) => void;
   onSelectStampSize: (key: StampSizeKey) => void;
   onUndo: () => void;
@@ -178,8 +195,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   fontSizeKey,
   bold,
   penWidthKey,
+  strokeSmoothing,
   activeShapeType,
-  activeShapeFilled,
+  activeShapeFillMode,
+  activeShapeBorderColor,
+  activeShapeFillColor,
+  syncShapeFillWithBorder,
+  isGeometricShapeSelected,
   activeStampType,
   stampSizeKey,
   canUndo,
@@ -201,8 +223,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onSelectFontSize,
   onToggleBold,
   onSelectPenWidth,
+  onSelectStrokeSmoothing,
   onSelectShapeType,
-  onToggleShapeFilled,
+  onSelectShapeFillMode,
+  onSelectShapeBorderColor,
+  onSelectShapeFillColor,
+  onToggleSyncShapeFill,
   onSelectStampType,
   onSelectStampSize,
   onUndo,
@@ -245,17 +271,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   };
 
   const activeModeInfo = MODE_META[toolMode];
-  const activeColorLabel =
-    COLOR_OPTIONS.find((c) => c.value === activeColor)?.label ||
-    (activeColor === '#16a34a'
-      ? 'Yeşil'
-      : activeColor === '#eab308'
-        ? 'Sarı'
-        : activeColor === '#ea580c'
-          ? 'Turuncu'
-          : activeColor === '#e11d48'
-            ? 'Pembe'
-            : 'Özel');
+  const getColorLabel = (hex: string) =>
+    SHAPE_COLOR_OPTIONS.find((c) => c.value === hex)?.label ||
+    COLOR_OPTIONS.find((c) => c.value === hex)?.label ||
+    (hex === '#16a34a' ? 'Yeşil' : hex === '#e11d48' ? 'Pembe' : 'Özel');
+  const activeColorLabel = getColorLabel(activeColor);
   const activeShapeMeta =
     SHAPE_OPTIONS.find((s) => s.type === activeShapeType) || SHAPE_OPTIONS[0];
   const activeStampMeta =
@@ -267,8 +287,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         return <ShapeLineIcon className={className} />;
       case 'arrow':
         return <ShapeArrowIcon className={className} />;
+      case 'square':
+        return <ShapeSquareIcon className={className} />;
       case 'rectangle':
         return <ShapeRectIcon className={className} />;
+      case 'circle':
+        return <ShapeCircleIcon className={className} />;
       case 'ellipse':
         return <ShapeEllipseIcon className={className} />;
       case 'triangle':
@@ -720,53 +744,178 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       </div>
 
-      {/* Geometrik Şekil Seçim Alt Çubuğu (Şekiller modunda dokunmatik kolay seçim) */}
-      {hasDocument && toolMode === 'shape' && (
+      {/* Kalem Çizgi Yumuşatma (Stroke Smoothing) Alt Çubuğu */}
+      {hasDocument && toolMode === 'pen' && (
         <div
           role="group"
-          aria-label="Geometrik şekil seçimi"
-          className="px-3 py-2 bg-violet-50/75 border-t border-violet-200/80 flex flex-wrap items-center gap-2"
+          aria-label="Çizgi yumuşatma düzeyi"
+          className="px-3 py-2 bg-emerald-50/75 border-t border-emerald-200/80 flex flex-wrap items-center gap-2"
         >
-          <span className="text-xs font-bold text-violet-900 uppercase tracking-wide mr-1">
-            Şekil Seç:
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 uppercase tracking-wide mr-1">
+            <StrokeSmoothIcon className="w-4 h-4 shrink-0" />
+            <span>Çizgi Yumuşatma:</span>
           </span>
-          {SHAPE_OPTIONS.map((opt) => {
-            const isSelected = activeShapeType === opt.type;
+          {(Object.keys(STROKE_SMOOTHING_OPTIONS) as StrokeSmoothingLevel[]).map((level) => {
+            const opt = STROKE_SMOOTHING_OPTIONS[level];
+            const isSelected = strokeSmoothing === level;
             return (
               <button
-                key={opt.type}
+                key={level}
                 type="button"
                 aria-pressed={isSelected}
-                onClick={() => onSelectShapeType(opt.type)}
-                title={opt.label}
-                className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
+                onClick={() => onSelectStrokeSmoothing(level)}
+                title={opt.description}
+                className={`min-h-[38px] px-3 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
                   isSelected
-                    ? 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-sm'
-                    : 'bg-white text-slate-700 border-violet-200 hover:bg-violet-100/70'
+                    ? 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300 shadow-xs'
+                    : 'bg-white text-slate-700 border-emerald-200 hover:bg-emerald-100/70'
                 }`}
               >
-                {renderShapeIcon(opt.type, 'w-5 h-5 shrink-0')}
-                <span>{opt.label}</span>
+                {opt.label}
               </button>
             );
           })}
+          <span className="text-xs text-emerald-800/80 hidden sm:inline ml-1">
+            {STROKE_SMOOTHING_OPTIONS[strokeSmoothing].description}
+          </span>
+        </div>
+      )}
 
-          {activeShapeMeta.closable && (
-            <button
-              type="button"
-              aria-pressed={activeShapeFilled}
-              onClick={onToggleShapeFilled}
-              title="Kapalı şekiller için yarı saydam iç dolguyu aç/kapat"
-              className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ml-1 ${
-                activeShapeFilled
-                  ? 'bg-slate-800 text-white border-slate-900 shadow-sm'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-              }`}
-            >
-              <ShapeFillIcon className="w-4 h-4 shrink-0" />
-              <span>{activeShapeFilled ? 'Dolgu: Açık' : 'Dolgu: Kapalı'}</span>
-            </button>
+      {/* Geometrik Şekil Seçim & Kenar/İç Renk Alt Çubuğu */}
+      {hasDocument && (toolMode === 'shape' || isGeometricShapeSelected) && (
+        <div
+          role="group"
+          aria-label="Geometrik şekil, kenar rengi ve iç dolgu ayarları"
+          className="px-3 py-2 bg-violet-50/80 border-t border-violet-200/80 flex flex-col gap-2"
+        >
+          {/* Satır 1: Şekil Türleri (yalnızca Şekiller modunda göster) */}
+          {toolMode === 'shape' && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-bold text-violet-900 uppercase tracking-wide mr-1">
+                Şekil:
+              </span>
+              {SHAPE_OPTIONS.map((opt) => {
+                const isSelected = activeShapeType === opt.type;
+                return (
+                  <button
+                    key={opt.type}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => onSelectShapeType(opt.type)}
+                    title={opt.label}
+                    className={`min-h-[40px] px-2.5 rounded-xl inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
+                      isSelected
+                        ? 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-sm'
+                        : 'bg-white text-slate-700 border-violet-200 hover:bg-violet-100/70'
+                    }`}
+                  >
+                    {renderShapeIcon(opt.type, 'w-4 h-4 shrink-0')}
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           )}
+
+          {/* Satır 2: Dolgu Modu + Ayrı Kenar Rengi + Ayrı İç Rengi (ve Kenarla Aynı hızlı seçeneği) */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Kenar Rengi */}
+            <div className="flex items-center gap-1.5 bg-white/90 border border-violet-200 rounded-xl px-2 py-1">
+              <span className="text-[11px] font-bold text-slate-700 whitespace-nowrap">
+                Kenar:
+              </span>
+              {SHAPE_COLOR_OPTIONS.map((c) => {
+                const selected = activeShapeBorderColor === c.value;
+                return (
+                  <button
+                    key={`border-${c.value}`}
+                    type="button"
+                    onClick={() => onSelectShapeBorderColor(c.value)}
+                    title={`Kenar Rengi: ${c.label}`}
+                    aria-label={`Kenar Rengi ${c.label}`}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
+                      selected ? 'ring-2 ring-offset-1 ring-violet-600 scale-110' : 'hover:scale-105'
+                    }`}
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full border border-slate-400/70 block"
+                      style={{ backgroundColor: c.value }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dolgu Modu (Boş / Saydam / Tam Dolu) */}
+            {(activeShapeMeta.closable || isGeometricShapeSelected) && (
+              <>
+                <div className="flex items-center gap-1 bg-white/90 border border-violet-200 rounded-xl p-1">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 px-1.5">
+                    <ShapeFillIcon className="w-3.5 h-3.5" />
+                    <span>İç Dolgu:</span>
+                  </span>
+                  {(Object.keys(SHAPE_FILL_MODE_OPTIONS) as ShapeFillMode[]).map((modeKey) => {
+                    const isSelected = activeShapeFillMode === modeKey;
+                    return (
+                      <button
+                        key={modeKey}
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => onSelectShapeFillMode(modeKey)}
+                        className={`min-h-[34px] px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-violet-600 text-white shadow-xs'
+                            : 'text-slate-700 hover:bg-violet-100'
+                        }`}
+                      >
+                        {SHAPE_FILL_MODE_OPTIONS[modeKey].label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* İç Renk Paleti + Kenarla Aynı Seçeneği */}
+                <div className="flex flex-wrap items-center gap-1.5 bg-white/90 border border-violet-200 rounded-xl px-2 py-1">
+                  <span className="text-[11px] font-bold text-slate-700 whitespace-nowrap">
+                    İç Rengi:
+                  </span>
+                  <button
+                    type="button"
+                    aria-pressed={syncShapeFillWithBorder}
+                    onClick={onToggleSyncShapeFill}
+                    title="Açıkken iç dolgu rengi her zaman kenar rengiyle aynı kalır"
+                    className={`h-7 px-2 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                      syncShapeFillWithBorder
+                        ? 'bg-slate-800 text-white border-slate-900'
+                        : 'bg-slate-50 text-slate-600 border-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    Kenarla Aynı
+                  </button>
+                  {SHAPE_COLOR_OPTIONS.map((c) => {
+                    const selected = activeShapeFillColor === c.value && activeShapeFillMode !== 'none';
+                    return (
+                      <button
+                        key={`fill-${c.value}`}
+                        type="button"
+                        onClick={() => onSelectShapeFillColor(c.value)}
+                        title={`İç Dolgu Rengi: ${c.label}`}
+                        aria-label={`İç Dolgu Rengi ${c.label}`}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
+                          selected ? 'ring-2 ring-offset-1 ring-emerald-600 scale-110' : 'hover:scale-105'
+                        }`}
+                      >
+                        <span
+                          className="w-5 h-5 rounded-full border border-slate-400/70 block"
+                          style={{ backgroundColor: c.value }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -854,16 +1003,36 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               toolMode === 'stamp') && (
               <span className="inline-flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/25 font-semibold">
                 <span
-                  className="w-3 h-3 rounded-full border border-black/20 inline-block"
-                  style={{ backgroundColor: activeColor }}
+                  className="w-3 h-3 rounded-full border border-black/25 inline-block"
+                  style={{
+                    backgroundColor: toolMode === 'shape' ? activeShapeBorderColor : activeColor,
+                  }}
                 />
-                <span>{activeColorLabel}</span>
+                <span>
+                  {toolMode === 'shape'
+                    ? `Kenar: ${getColorLabel(activeShapeBorderColor)}`
+                    : activeColorLabel}
+                </span>
                 {(toolMode === 'pen' || toolMode === 'shape') && (
                   <span>· {PEN_WIDTH_RATIOS[penWidthKey].label}</span>
                 )}
+                {toolMode === 'pen' && (
+                  <span>· Yumuşatma: {STROKE_SMOOTHING_OPTIONS[strokeSmoothing].label}</span>
+                )}
                 {toolMode === 'stamp' && <span>· {STAMP_SIZE_RATIOS[stampSizeKey].label}</span>}
                 {toolMode === 'shape' && activeShapeMeta.closable && (
-                  <span>· {activeShapeFilled ? 'Dolgulu' : 'Çerçeve'}</span>
+                  <span className="inline-flex items-center gap-1">
+                    · İç: {SHAPE_FILL_MODE_OPTIONS[activeShapeFillMode].label}
+                    {activeShapeFillMode !== 'none' && (
+                      <>
+                        <span
+                          className="w-3 h-3 rounded-full border border-black/25 inline-block"
+                          style={{ backgroundColor: activeShapeFillColor }}
+                        />
+                        <span>{getColorLabel(activeShapeFillColor)}</span>
+                      </>
+                    )}
+                  </span>
                 )}
                 {toolMode === 'text' && (
                   <span>

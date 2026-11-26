@@ -6,7 +6,7 @@ import { halatCekmeTopics, sureliExtraTopics } from './halatCekmeTopics';
 
 export interface ActivityRegistryItem {
   id: string;
-  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'farkli_olani_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'pentago' | 'dortlu_sira' | 'trafikten_cikis' | 'hafiza_melodisi' | 'hanoi_kulesi' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume' | 'trafik_levhalari';
+  type: 'lesson_video' | 'grade_topic' | '3d_lab' | 'xox' | 'word_game' | 'aynisini_bul' | 'farkli_olani_bul' | 'onu_bul' | 'yirmiyi_bul' | 'geoboard' | 'geometric_nets' | 'kuralli_cumle' | 'sozluk_sirala' | 'kelime_sirala' | 'hece_sayisi' | 'geometrik_sekilleri_bul' | 'hece_makasi' | 'yazim_dedektifi' | 'dedektif_5n1k' | 'satir_sonu_hece' | 'noktalama_avcisi' | 'noktalama_surukle' | 'harf_corbasi' | 'geri_donusum' | 'saglikli_tabak' | 'istek_ihtiyac' | 'mevsim_gardirobu' | 'adresimi_biliyorum' | 'abluka' | 'kure' | 'pentago' | 'qbitz' | 'dortlu_sira' | 'trafikten_cikis' | 'hafiza_melodisi' | 'hanoi_kulesi' | 'sudoku' | 'gorselli_sudoku' | 'school_life' | 'sivi_tahmin_akvaryum' | 'onluk_birlik' | 'sivi_olcme_video' | 'sayi_basketi' | 'saat_zaman' | 'market_kasasi' | 'kesir_duvari_pizza' | 'es_sesli' | 'denge_terazisi' | 'kodlama_mutfagi' | 'ritmik_balon' | 'carpim_balon' | 'onluk_yuvarlama_oyunu' | 'guvenli_internet' | 'saglikli_buyume' | 'trafik_levhalari';
   grade?: 1 | 2 | 3 | 4;
   topicKey?: string;
   wordGameType?: 'zit_anlam' | 'es_anlam' | 'ingilizce';
@@ -872,6 +872,12 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     categoryLabel: 'Akıl ve Zeka Oyunları'
   },
   {
+    id: 'other_qbitz',
+    type: 'qbitz',
+    title: 'Q-Bitz (2 Kişilik Görsel Küp Yarışı)',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
     id: 'other_dortlu_sira',
     type: 'dortlu_sira',
     title: 'Dörtlü Sıra (Connect 4)',
@@ -948,6 +954,103 @@ export const OTHER_GAMES_HUB_LIST: ActivityRegistryItem[] = [
     type: 'denge_terazisi',
     title: 'Eşit Kollu Denge Terazisi (Tartma & Kütle)',
     categoryLabel: 'Diğer Oyunlar'
+  },
+  {
+    id: 'other_kodlama_mutfagi',
+    type: 'kodlama_mutfagi',
+    title: 'Kodlama & Algoritma Mutfağı',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  }
+];
+
+/**
+ * 8. Akıl ve Zeka Oyunları Hub'ındaki TÜM oyunların birebir ekran sırasına göre listesi.
+ * Üst araç çubuğundaki İleri / Geri butonları bu listede eksiksiz ve sırayla dolaşır.
+ */
+export const AKIL_ZEKA_GAMES_LIST: ActivityRegistryItem[] = [
+  {
+    id: 'other_qbitz',
+    type: 'qbitz',
+    title: 'Q-Bitz (2 Kişilik)',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_pentago',
+    type: 'pentago',
+    title: 'Pentago',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_dortlu_sira',
+    type: 'dortlu_sira',
+    title: 'Dörtlü Sıra',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_trafikten_cikis',
+    type: 'trafikten_cikis',
+    title: 'Trafikten Çıkış',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_hafiza_melodisi',
+    type: 'hafiza_melodisi',
+    title: 'Hafıza Melodisi',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_hanoi_kulesi',
+    type: 'hanoi_kulesi',
+    title: 'Hanoi Kulesi',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_kure',
+    type: 'kure',
+    title: 'Küre Zeka Oyunu',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_abluka',
+    type: 'abluka',
+    title: 'Abluka Zeka Oyunu',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_farkli_olani_bul',
+    type: 'farkli_olani_bul',
+    title: 'Farklı Olanı Bul',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_gorselli_sudoku',
+    type: 'gorselli_sudoku',
+    title: '2 Kişilik Görselli Sudoku',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_sudoku',
+    type: 'sudoku',
+    title: 'Sudoku Zeka Oyunu',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_kodlama_mutfagi',
+    type: 'kodlama_mutfagi',
+    title: 'Kodlama & Algoritma Mutfağı',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_aynisini_bul',
+    type: 'aynisini_bul',
+    title: 'Aynısını Bul',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
+  },
+  {
+    id: 'other_xox',
+    type: 'xox',
+    title: 'XOX & Zeka Düellosu',
+    categoryLabel: 'Akıl ve Zeka Oyunları'
   }
 ];
 

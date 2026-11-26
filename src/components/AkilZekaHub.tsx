@@ -9,9 +9,26 @@ import iconHanoiKulesi from '../assets/images/icon_hanoi_kulesi_1795634815180.jp
 
 const PENTAGO_ICON = '/assets/aistudio/Ekran_Resmi_2026-11-25_22.43.00_9e54085f.png';
 
+const QBITZ_ICON =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+      <rect width="96" height="96" rx="18" fill="#0f172a"/>
+      <rect x="8" y="8" width="37" height="37" rx="7" fill="#ffffff"/>
+      <polygon points="8,8 45,8 8,45" fill="#2563eb"/>
+      <rect x="51" y="8" width="37" height="37" rx="7" fill="#e11d48"/>
+      <circle cx="69.5" cy="26.5" r="11" fill="#ffffff"/>
+      <rect x="8" y="51" width="37" height="37" rx="7" fill="#2563eb"/>
+      <circle cx="26.5" cy="69.5" r="11" fill="#ffffff"/>
+      <rect x="51" y="51" width="37" height="37" rx="7" fill="#ffffff"/>
+      <polygon points="88,51 88,88 51,88" fill="#e11d48"/>
+    </svg>`
+  );
+
 interface AkilZekaHubProps {
   onClose: () => void;
   onGoHome?: () => void;
+  onOpenQBitz: () => void;
   onOpenPentago: () => void;
   onOpenDortluSira: () => void;
   onOpenTrafiktenCikis: () => void;
@@ -31,6 +48,7 @@ interface AkilZekaHubProps {
 export const AkilZekaHub: React.FC<AkilZekaHubProps> = ({
   onClose,
   onGoHome,
+  onOpenQBitz,
   onOpenPentago,
   onOpenDortluSira,
   onOpenTrafiktenCikis,
@@ -54,6 +72,16 @@ export const AkilZekaHub: React.FC<AkilZekaHubProps> = ({
   };
 
   const games = [
+    {
+      id: 'qbitz',
+      title: 'Q-Bitz (2 Kişilik)',
+      subtitle: '1 & 2 Kişilik · 3x3 & 4x4 Görsel Küp & Hafıza Yarışı',
+      icon: QBITZ_ICON,
+      isRoundedIcon: true,
+      sound: '/coin.mp3',
+      isNew: true,
+      action: onOpenQBitz,
+    },
     {
       id: 'pentago',
       title: 'Pentago',
