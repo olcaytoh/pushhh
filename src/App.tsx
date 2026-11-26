@@ -2783,7 +2783,7 @@ const getPlayerLevelInfo = (statsData: Record<string, StatRecord>, badgeCounts: 
   };
 };
 
-export default function App() {
+export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void } = {}) {
   const [isLandscape, setIsLandscape] = useState<boolean>(false);
   const [showOrientationToast, setShowOrientationToast] = useState<string | null>(null);
 
@@ -8557,29 +8557,39 @@ export default function App() {
         {/* AYIRICI ÇİZGİ */}
         <div className="h-7 sm:h-10 w-0.5 bg-slate-700/80 rounded-full mx-0.5 shrink-0" />
 
-        {/* ETKİNLİKLER ARASI GEÇİŞ BUTONLARI */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
+        {/* ÇEVRİMDIŞI PDF GÖRÜNTÜLEYİCİ VE NOT EDİTÖRÜ BUTONU */}
+        <div className="flex items-center bg-[#0f182c] p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-md shrink-0">
           <button
             onClick={() => {
               playMp3('/op.mp3');
-              handlePrevActivity();
+              if (onOpenPdfEditor) {
+                onOpenPdfEditor();
+              } else {
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', 'pdf');
+                window.location.href = url.toString();
+              }
             }}
-            title="Önceki Etkinliğe Geç"
-            aria-label="Önceki Etkinlik"
-            className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
+            title="PDF Görüntüleyici ve Not Editörü (Tertemiz ayrı ekranda açılır)"
+            aria-label="PDF"
+            className="relative group h-8 xs:h-9 sm:h-11 px-2.5 sm:px-3.5 rounded-lg sm:rounded-xl bg-gradient-to-b from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-95 border border-rose-400/70 flex items-center justify-center gap-1.5 shadow-[0_2px_8px_rgba(225,29,72,0.35)] transition-all cursor-pointer shrink-0 text-white font-black text-xs sm:text-sm tracking-wide"
           >
-            <SkipBack size={16} className="text-slate-300 group-hover:text-white transition-colors" />
-          </button>
-          <button
-            onClick={() => {
-              playMp3('/op.mp3');
-              handleNextActivity();
-            }}
-            title="Sonraki Etkinliğe Geç"
-            aria-label="Sonraki Etkinlik"
-            className="relative group w-7 h-7 min-[390px]:w-8 min-[390px]:h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 aspect-square rounded-lg sm:rounded-xl bg-[#121c2e] hover:bg-[#1a2842] active:bg-[#0c1424] border border-slate-700/80 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0"
-          >
-            <SkipForward size={16} className="text-slate-300 group-hover:text-white transition-colors" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0"
+              aria-hidden="true"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+              <path d="M14 2v6h6" />
+              <path d="M8 13h8" />
+              <path d="M8 17h5" />
+            </svg>
+            <span>PDF</span>
           </button>
         </div>
 
@@ -8778,20 +8788,107 @@ export default function App() {
                 <div className="flex justify-center lg:justify-end lg:pr-1">
                   <HeaderLanguageToggle variant="home" onPlayClick={() => playMp3('/op.mp3')} />
                 </div>
-                <div className="justify-self-center relative overflow-hidden flex items-center gap-2.5 sm:gap-4 px-5 sm:px-9 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#0e1729] via-[#1b2e52] to-[#0e1729] border-2 border-amber-400/95 border-l-4 border-l-amber-400 border-r-4 border-r-amber-400 shadow-[0_0_28px_rgba(245,158,11,0.38)]">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-amber-400/10 via-sky-400/10 to-emerald-400/10" />
-                  <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">🎓</span>
-                  <div className="relative flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
-                    <h2 className="font-black text-sm sm:text-base md:text-lg lg:text-xl uppercase tracking-wider drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center text-center">
-                      <span className="px-2 py-0.5 rounded-lg bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black tracking-widest shadow-[0_0_12px_rgba(251,191,36,0.55)] border border-yellow-100">
+                <div className="justify-self-center tymm-gold-bezel p-[4px] sm:p-[5px] rounded-[18px] sm:rounded-[22px] max-w-full">
+                  <div className="tymm-brushed-plate relative overflow-hidden flex items-center justify-center gap-2 sm:gap-3.5 px-3.5 sm:px-6 md:px-7 py-2 sm:py-2.5 rounded-[14px] sm:rounded-[17px]">
+                    {/* Sol 3D Mezuniyet Kepi & Altın Püskül SVG */}
+                    <svg
+                      viewBox="0 0 48 44"
+                      aria-hidden="true"
+                      className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 drop-shadow-[0_4px_5px_rgba(0,0,0,0.8)]"
+                    >
+                      <defs>
+                        <linearGradient id="tymmCapTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#64748b" />
+                          <stop offset="45%" stopColor="#334155" />
+                          <stop offset="100%" stopColor="#0f172a" />
+                        </linearGradient>
+                        <linearGradient id="tymmCapBase" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#334155" />
+                          <stop offset="100%" stopColor="#020617" />
+                        </linearGradient>
+                        <linearGradient id="tymmTasselGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#fef08a" />
+                          <stop offset="50%" stopColor="#f59e0b" />
+                          <stop offset="100%" stopColor="#92400e" />
+                        </linearGradient>
+                      </defs>
+                      {/* Alt başlık gövdesi */}
+                      <path
+                        d="M13 21.5 L13 30.5 C13 33.8 18 36 24.5 36 C31 36 36 33.8 36 30.5 L36 21.5 Z"
+                        fill="url(#tymmCapBase)"
+                        stroke="#475569"
+                        strokeWidth="0.7"
+                      />
+                      {/* Üst 3D kep plakası */}
+                      <path
+                        d="M24.5 6 L44 16.2 L24.5 26.4 L5 16.2 Z"
+                        fill="url(#tymmCapTop)"
+                        stroke="#94a3b8"
+                        strokeOpacity="0.45"
+                        strokeWidth="0.9"
+                        strokeLinejoin="round"
+                      />
+                      {/* Merkez düğme ve altın püskül ipi */}
+                      <circle cx="24.5" cy="16.2" r="2.1" fill="url(#tymmTasselGold)" />
+                      <path
+                        d="M24.5 16.2 Q15 17.5 11.2 23.2 L10.2 31.5"
+                        fill="none"
+                        stroke="url(#tymmTasselGold)"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      {/* Altın püskül ucu */}
+                      <path
+                        d="M10.2 30.5 L7.4 39.2 Q10.2 40.6 13 39.2 Z"
+                        fill="url(#tymmTasselGold)"
+                      />
+                    </svg>
+
+                    {/* Orta 3D TYMM + İki Tonlu Kabartmalı Başlık */}
+                    <h2 className="relative flex items-center justify-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap font-black text-sm sm:text-base md:text-lg lg:text-[21px] uppercase tracking-[0.04em] leading-none text-center">
+                      <span className="tymm-pill-3d inline-flex items-center justify-center px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-[10px] sm:rounded-[12px] text-[#1c1917] font-black tracking-[0.06em] [text-shadow:0_1px_0_rgba(255,255,255,0.45),0_-1px_0_rgba(0,0,0,0.4)] shrink-0">
                         TYMM
                       </span>
-                      <span className="bg-gradient-to-r from-white via-amber-100 to-yellow-300 bg-clip-text text-transparent">
-                        Uyumlu Sınıf Etkinlikleri
+                      <span className="inline-flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+                        <span className="tymm-text-silver-3d whitespace-nowrap">
+                          Uyumlu Sınıf
+                        </span>
+                        <span className="tymm-text-gold-3d whitespace-nowrap">
+                          Etkinlikleri
+                        </span>
                       </span>
                     </h2>
+
+                    {/* Sağ 3D Altın 4 Köşeli Yıldızlar SVG */}
+                    <svg
+                      viewBox="0 0 42 42"
+                      aria-hidden="true"
+                      className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 drop-shadow-[0_3px_5px_rgba(0,0,0,0.85)]"
+                    >
+                      <defs>
+                        <linearGradient id="tymmStarGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#fef9c3" />
+                          <stop offset="45%" stopColor="#facc15" />
+                          <stop offset="100%" stopColor="#b45309" />
+                        </linearGradient>
+                      </defs>
+                      {/* Ana büyük 4 köşeli altın yıldız */}
+                      <path
+                        d="M27 4 L30 16.5 L41 19.5 L30 22.5 L27 36 L24 22.5 L13 19.5 L24 16.5 Z"
+                        fill="url(#tymmStarGold)"
+                      />
+                      {/* Sol üst küçük altın yıldız */}
+                      <path
+                        d="M9 5 L10.7 11.3 L17 13 L10.7 14.7 L9 21 L7.3 14.7 L1 13 L7.3 11.3 Z"
+                        fill="url(#tymmStarGold)"
+                      />
+                      {/* Sol alt minik altın yıldız */}
+                      <path
+                        d="M13 26 L14.2 30.8 L19 32 L14.2 33.2 L13 38 L11.8 33.2 L7 32 L11.8 30.8 Z"
+                        fill="url(#tymmStarGold)"
+                      />
+                    </svg>
                   </div>
-                  <span className="relative text-amber-300 text-lg sm:text-2xl shrink-0 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]">✨</span>
                 </div>
 
                 {/* SAĞ KÖŞE: SON 15 GÜNDE EKLENEN KONULAR & ETKİNLİKLER */}

@@ -1239,7 +1239,7 @@ const SENTENCE_RULES: Record<string, SentenceRule> = {
   'neşeli yunuslar masmavi denizde birlikte dans etti': { chunks: [['neşeli', 'yunuslar'], ['masmavi', 'denizde'], ['birlikte']], verb: ['dans', 'etti'] },
   'bahçıvan özenle toprağa küçük fidanlar dikti': { chunks: [['bahçıvan'], ['özenle'], ['toprağa'], ['küçük', 'fidanlar']], verb: ['dikti'] },
   'kaptan fırtınalı denizde gemisini güvenle limana yanaştırdı': { chunks: [['kaptan'], ['fırtınalı', 'denizde'], ['gemisini'], ['güvenle'], ['limana']], verb: ['yanaştırdı'] },
-  'meraklı bilim insanı laboratuvarda buluşlar yaptı': { chunks: [['meraklı', 'bilim', 'insanı'], ['laboratuvarda']], verb: ['buluşlar', 'yaptı'] },
+  'meraklı bilim insanı laboratuvarda buluşlar yaptı': { chunks: [['meraklı', 'bilim', 'insanı'], ['laboratuvarda'], ['buluşlar']], verb: ['yaptı'] },
   'arkadaşımla oyuncaklarımı her zaman güzelce paylaşırım': { chunks: [['arkadaşımla'], ['oyuncaklarımı'], ['her', 'zaman'], ['güzelce']], verb: ['paylaşırım'] },
   'uzay aracı kızıl gezegen yüzeyine güvenle indi': { chunks: [['uzay', 'aracı'], ['kızıl', 'gezegen', 'yüzeyine'], ['güvenle']], verb: ['indi'] },
   'yaratıcı mimar orman yoluna yeşil köprü inşa etti': { chunks: [['yaratıcı', 'mimar'], ['orman', 'yoluna'], ['yeşil', 'köprü']], verb: ['inşa', 'etti'] },
@@ -1619,13 +1619,18 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     return copy;
   });
 
-  // Etkinlik açıldığında veya sınıf değiştiğinde her seferinde cümleleri baştan rastgele karıştır
+  // Sadece dışarıdan gelen initialGrade gerçekten değiştiğinde sınıfı ve havuzu sıfırla
+  const prevInitialGradeRef = useRef<number | undefined>(initialGrade);
   useEffect(() => {
-    const targetGrade = initialGrade && initialGrade >= 1 && initialGrade <= 4 ? (initialGrade as GradeLevel) : selectedGrade;
-    setSelectedGrade(targetGrade);
-    setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[targetGrade] || GRADE_SENTENCES[1]));
-    setCurrentSentenceIndex(0);
-    setSingleTimeLeft(100);
+    if (prevInitialGradeRef.current === initialGrade) return;
+    prevInitialGradeRef.current = initialGrade;
+    if (initialGrade && initialGrade >= 1 && initialGrade <= 4) {
+      const targetGrade = initialGrade as GradeLevel;
+      setSelectedGrade(targetGrade);
+      setShuffledGradeSentences(shuffleArray(GRADE_SENTENCES[targetGrade] || GRADE_SENTENCES[1]));
+      setCurrentSentenceIndex(0);
+      setSingleTimeLeft(100);
+    }
   }, [initialGrade, shuffleArray]);
 
   const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
@@ -1712,12 +1717,12 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
     setRoundWinner(null);
   }, []);
 
-  // Cümle veya seviye değişince kur
+  // Cümle her değiştiğinde (ilk açılış, sınıf değişimi, yeniden başlatma veya sonraki cümle) vagonları güncel cümleye göre kur
   useEffect(() => {
     if (currentSentence) {
       initRoundWords(currentSentence);
     }
-  }, [selectedGrade, currentSentenceIndex, initRoundWords]);
+  }, [currentSentence, initRoundWords]);
 
   // Sınıf değiştir (Yeni sınıftaki cümleleri de her seferinde karıştır)
   const handleGradeChange = (grade: GradeLevel) => {
@@ -1930,6 +1935,7 @@ export const KuralliCumleActivity: React.FC<KuralliCumleActivityProps> = ({
 
   const handleNextSentence = () => {
     triggerSound('/op.mp3');
+    setSingleTimeLeft(100);
     if (currentSentenceIndex < currentGradeSentences.length - 1) {
       setCurrentSentenceIndex(prev => prev + 1);
     } else {

@@ -70,6 +70,10 @@ const TITLE_PHRASES: Record<string, string> = {
   // Homepage Hero & Main Cards
   'Uyumlu Sınıf Etkinlikleri': 'Curriculum Classroom Activities',
   'TYMM Uyumlu Sınıf Etkinlikleri': 'TYMM Curriculum Classroom Activities',
+  'Uyumlu Sınıf': 'Curriculum Classroom',
+  'UYUMLU SINIF': 'CURRICULUM CLASSROOM',
+  'Etkinlikleri': 'Activities',
+  'ETKİNLİKLERİ': 'ACTIVITIES',
   'Başlangıç': 'Beginner',
   'Orta Seviye': 'Intermediate',
   'İleri Seviye': 'Advanced',

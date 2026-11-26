@@ -31,23 +31,30 @@ const CRITICAL_BUTTON_IMAGES = [
 ];
 
 if (typeof window !== 'undefined') {
-  // Arayüz görsellerini açılışı yavaşlatmadan, tarayıcı boşta kalınca ön belleğe al
-  const warmImages = () => {
-    CRITICAL_BUTTON_IMAGES.forEach((src) => {
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = src;
-    });
-  };
-  const startWarm = () => {
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(warmImages, { timeout: 3000 });
-    } else {
-      setTimeout(warmImages, 1500);
-    }
-  };
-  if (document.readyState === 'complete') startWarm();
-  else window.addEventListener('load', startWarm, { once: true });
+  const isInitialPdfUrl =
+    window.location.search.toLowerCase().includes('page=pdf') ||
+    window.location.hash.toLowerCase().includes('pdf-editor') ||
+    window.location.pathname.toLowerCase().endsWith('/pdf');
+
+  // Arayüz görsellerini açılışı yavaşlatmadan, tarayıcı boşta kalınca ön belleğe al (PDF modunda gereksiz yükleme yapma)
+  if (!isInitialPdfUrl) {
+    const warmImages = () => {
+      CRITICAL_BUTTON_IMAGES.forEach((src) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = src;
+      });
+    };
+    const startWarm = () => {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(warmImages, { timeout: 3000 });
+      } else {
+        setTimeout(warmImages, 1500);
+      }
+    };
+    if (document.readyState === 'complete') startWarm();
+    else window.addEventListener('load', startWarm, { once: true });
+  }
 
   // Sekme arka plandayken tüm CSS animasyonlarını durdur (CPU/GPU ve fan tasarrufu)
   const syncTabVisibility = () =>
@@ -153,18 +160,88 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
 import { HizmetSartlariPage } from './pages/HizmetSartlariPage';
 
+// PDF Editörü yalnızca kullanıcı PDF butonuna tıkladığında tembel yüklenir; açıkken ana site tamamen unmount edilir
+const LazyPdfEditorApp = React.lazy(() => import('./pdfEditor/PdfEditorApp'));
+
+function checkIsPdfLocation(): boolean {
+  if (typeof window === 'undefined') return false;
+  const path = window.location.pathname.toLowerCase();
+  const search = window.location.search.toLowerCase();
+  const hash = window.location.hash.toLowerCase();
+  return (
+    path.endsWith('/pdf') ||
+    path.endsWith('/pdf-editor') ||
+    search.includes('page=pdf') ||
+    hash === '#pdf' ||
+    hash.includes('pdf-editor')
+  );
+}
+
 function RootComponent() {
   const [currentPath, setCurrentPath] = React.useState(() => {
     return typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
   });
+  const [isPdfMode, setIsPdfMode] = React.useState<boolean>(() => checkIsPdfLocation());
 
   React.useEffect(() => {
-    const handlePopState = () => {
+    const handleNavChange = () => {
       setCurrentPath(window.location.pathname.toLowerCase());
+      setIsPdfMode(checkIsPdfLocation());
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleNavChange);
+    window.addEventListener('hashchange', handleNavChange);
+    return () => {
+      window.removeEventListener('popstate', handleNavChange);
+      window.removeEventListener('hashchange', handleNavChange);
+    };
   }, []);
+
+  const openPdfMode = React.useCallback(() => {
+    try {
+      document.querySelectorAll('audio, video').forEach((media) => {
+        const el = media as HTMLMediaElement;
+        if (!el.paused) el.pause();
+      });
+    } catch {
+      // Yoksay
+    }
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('page', 'pdf');
+      window.history.pushState({ pdfMode: true }, '', url.toString());
+    } catch {
+      // Kısıtlı ortamda state üzerinden açılmaya devam et
+    }
+    setIsPdfMode(true);
+  }, []);
+
+  const closePdfMode = React.useCallback(() => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('page');
+      if (url.hash.toLowerCase().includes('pdf')) {
+        url.hash = '';
+      }
+      window.history.pushState({}, '', url.toString());
+    } catch {
+      // Yoksay
+    }
+    setIsPdfMode(false);
+  }, []);
+
+  if (isPdfMode) {
+    return (
+      <React.Suspense
+        fallback={
+          <div className="h-screen w-screen bg-slate-200 flex items-center justify-center text-slate-700 font-semibold text-base">
+            PDF Editörü yükleniyor...
+          </div>
+        }
+      >
+        <LazyPdfEditorApp onExit={closePdfMode} />
+      </React.Suspense>
+    );
+  }
 
   const search = typeof window !== 'undefined' ? window.location.search.toLowerCase() : '';
   const hash = typeof window !== 'undefined' ? window.location.hash.toLowerCase() : '';
@@ -180,7 +257,7 @@ function RootComponent() {
     return <HizmetSartlariPage />;
   }
 
-  return <App />;
+  return <App onOpenPdfEditor={openPdfMode} />;
 }
 
 createRoot(document.getElementById('root')!).render(

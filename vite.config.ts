@@ -16,6 +16,7 @@ export default defineConfig(() => {
             if (!id.includes('node_modules')) return undefined;
             if (id.includes('/three/') || id.includes('@types/three')) return 'three';
             if (id.includes('/firebase/') || id.includes('/@firebase/')) return 'firebase';
+            if (id.includes('/pdfjs-dist/') || id.includes('/pdf-lib/') || id.includes('/@pdf-lib/')) return 'pdf-editor';
             if (id.includes('/recharts/') || id.includes('/d3-') || id.includes('/victory-vendor/')) return 'charts';
             if (id.includes('/motion/') || id.includes('/framer-motion/') || id.includes('/motion-dom/')) return 'motion';
             if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) return 'react';

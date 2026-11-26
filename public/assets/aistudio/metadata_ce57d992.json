@@ -1,0 +1,6 @@
+{
+  "name": "Çevrimdışı PDF Görüntüleyici ve Not Editörü",
+  "description": "İnternet bağlantısı olmadan tarayıcıda çalışan PDF görüntüleme, üzerine yazı yazma ve serbest çizim yapma uygulaması.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
