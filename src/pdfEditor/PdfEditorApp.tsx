@@ -12,11 +12,18 @@ import {
   type FileSystemFileHandleLike,
   type FontAssets,
   type FontSizeKey,
+  isStampShapeType,
   PEN_WIDTH_RATIOS,
   type PageAnnotations,
   type PageMeta,
   type PenWidthKey,
   type SelectedObject,
+  type ShapeAnnotation,
+  type ShapeType,
+  STAMP_OPTIONS,
+  STAMP_SIZE_RATIOS,
+  type StampSizeKey,
+  type StampType,
   type StrokeAnnotation,
   type TextAnnotation,
   type ToastNotice,
@@ -34,7 +41,7 @@ import { loadDefaultLocalFonts, readFontFileBytes } from './utils/fontManager';
 import { exportAnnotatedPdf, extractEditableAttachments } from './utils/pdfExporter';
 import { ensurePdfWorkerConfigured } from './utils/pdfWorker';
 
-const EMPTY_PAGE_ANNOTATIONS: PageAnnotations = { texts: [], strokes: [] };
+const EMPTY_PAGE_ANNOTATIONS: PageAnnotations = { texts: [], strokes: [], shapes: [] };
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
 const MAX_UNDO_STACK = 60;
@@ -51,6 +58,7 @@ function cloneAnnotationsMap(map: AnnotationsMap): AnnotationsMap {
         ...s,
         points: s.points.map((p) => ({ ...p })),
       })),
+      shapes: (entry.shapes || []).map((sh) => ({ ...sh })),
     };
   }
   return copy;
@@ -95,6 +103,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const [fontSizeKey, setFontSizeKey] = useState<FontSizeKey>('medium');
   const [bold, setBold] = useState<boolean>(false);
   const [penWidthKey, setPenWidthKey] = useState<PenWidthKey>('medium');
+  const [activeShapeType, setActiveShapeType] = useState<ShapeType>('rectangle');
+  const [activeShapeFilled, setActiveShapeFilled] = useState<boolean>(false);
+  const [activeStampType, setActiveStampType] = useState<StampType>('check');
+  const [stampSizeKey, setStampSizeKey] = useState<StampSizeKey>('medium');
 
   const [annotations, setAnnotations] = useState<AnnotationsMap>({});
   const [undoStack, setUndoStack] = useState<AnnotationsMap[]>([]);
@@ -483,11 +495,65 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     [mutateAnnotations],
   );
 
+  const handleAddShape = useCallback(
+    (pageNumber: number, shape: ShapeAnnotation) => {
+      mutateAnnotations((prev) => {
+        const page = prev[pageNumber] || EMPTY_PAGE_ANNOTATIONS;
+        return {
+          ...prev,
+          [pageNumber]: {
+            ...page,
+            shapes: [...(page.shapes || []), shape],
+          },
+        };
+      });
+    },
+    [mutateAnnotations],
+  );
+
+  const handleUpdateShape = useCallback(
+    (pageNumber: number, id: string, patch: Partial<ShapeAnnotation>, recordUndo = true) => {
+      mutateAnnotations((prev) => {
+        const page = prev[pageNumber];
+        if (!page) return prev;
+        return {
+          ...prev,
+          [pageNumber]: {
+            ...page,
+            shapes: (page.shapes || []).map((sh) => (sh.id === id ? { ...sh, ...patch } : sh)),
+          },
+        };
+      }, recordUndo);
+    },
+    [mutateAnnotations],
+  );
+
+  const handleDeleteShape = useCallback(
+    (pageNumber: number, id: string) => {
+      mutateAnnotations((prev) => {
+        const page = prev[pageNumber];
+        if (!page) return prev;
+        return {
+          ...prev,
+          [pageNumber]: {
+            ...page,
+            shapes: (page.shapes || []).filter((sh) => sh.id !== id),
+          },
+        };
+      });
+      setSelectedObject((sel) =>
+        sel && sel.type === 'shape' && sel.pageNumber === pageNumber && sel.id === id ? null : sel,
+      );
+    },
+    [mutateAnnotations],
+  );
+
   const handleEraseBatch = useCallback(
-    (pageNumber: number, textIds: string[], strokeIds: string[]) => {
-      if (textIds.length === 0 && strokeIds.length === 0) return;
+    (pageNumber: number, textIds: string[], strokeIds: string[], shapeIds: string[]) => {
+      if (textIds.length === 0 && strokeIds.length === 0 && shapeIds.length === 0) return;
       const textSet = new Set(textIds);
       const strokeSet = new Set(strokeIds);
+      const shapeSet = new Set(shapeIds);
       mutateAnnotations((prev) => {
         const page = prev[pageNumber];
         if (!page) return prev;
@@ -496,6 +562,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           [pageNumber]: {
             texts: page.texts.filter((t) => !textSet.has(t.id)),
             strokes: page.strokes.filter((s) => !strokeSet.has(s.id)),
+            shapes: (page.shapes || []).filter((sh) => !shapeSet.has(sh.id)),
           },
         };
       });
@@ -510,9 +577,11 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         handleUpdateText(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
       } else if (selectedObject?.type === 'stroke') {
         handleUpdateStroke(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
+      } else if (selectedObject?.type === 'shape') {
+        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, { color: hex }, true);
       }
     },
-    [selectedObject, handleUpdateText, handleUpdateStroke],
+    [selectedObject, handleUpdateText, handleUpdateStroke, handleUpdateShape],
   );
 
   const handleSelectFontSize = useCallback(
@@ -550,9 +619,46 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           { widthRatio: PEN_WIDTH_RATIOS[key].ratio },
           true,
         );
+      } else if (selectedObject?.type === 'shape') {
+        handleUpdateShape(
+          selectedObject.pageNumber,
+          selectedObject.id,
+          { widthRatio: PEN_WIDTH_RATIOS[key].ratio },
+          true,
+        );
       }
     },
-    [selectedObject, handleUpdateStroke],
+    [selectedObject, handleUpdateStroke, handleUpdateShape],
+  );
+
+  const handleToggleShapeFilled = useCallback(() => {
+    setActiveShapeFilled((prev) => {
+      const next = !prev;
+      if (selectedObject?.type === 'shape') {
+        handleUpdateShape(selectedObject.pageNumber, selectedObject.id, { filled: next }, true);
+      }
+      return next;
+    });
+  }, [selectedObject, handleUpdateShape]);
+
+  const handleSelectStampType = useCallback((stamp: StampType) => {
+    setActiveStampType(stamp);
+    const opt = STAMP_OPTIONS.find((s) => s.type === stamp);
+    if (opt) {
+      setActiveColor(opt.defaultColor);
+    }
+  }, []);
+
+  const handleSelectTool = useCallback(
+    (mode: ToolMode) => {
+      setToolMode(mode);
+      if (mode !== 'select') setSelectedObject(null);
+      if (mode === 'stamp') {
+        const opt = STAMP_OPTIONS.find((s) => s.type === activeStampType);
+        if (opt) setActiveColor(opt.defaultColor);
+      }
+    },
+    [activeStampType],
   );
 
   const handleSelectObject = useCallback((obj: SelectedObject | null) => {
@@ -579,6 +685,26 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       const item = page.strokes.find((s) => s.id === obj.id);
       if (!item) return;
       setActiveColor(item.color);
+      let bestKey: PenWidthKey = 'medium';
+      let bestDiff = Infinity;
+      (Object.keys(PEN_WIDTH_RATIOS) as PenWidthKey[]).forEach((k) => {
+        const diff = Math.abs(PEN_WIDTH_RATIOS[k].ratio - item.widthRatio);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          bestKey = k;
+        }
+      });
+      setPenWidthKey(bestKey);
+    } else if (obj.type === 'shape') {
+      const item = (page.shapes || []).find((sh) => sh.id === obj.id);
+      if (!item) return;
+      setActiveColor(item.color);
+      if (isStampShapeType(item.shapeType)) {
+        setActiveStampType(item.shapeType);
+      } else {
+        setActiveShapeType(item.shapeType);
+        setActiveShapeFilled(Boolean(item.filled));
+      }
       let bestKey: PenWidthKey = 'medium';
       let bestDiff = Infinity;
       (Object.keys(PEN_WIDTH_RATIOS) as PenWidthKey[]).forEach((k) => {
@@ -801,8 +927,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         e.preventDefault();
         if (selectedObject.type === 'text') {
           handleDeleteText(selectedObject.pageNumber, selectedObject.id);
-        } else {
+        } else if (selectedObject.type === 'stroke') {
           handleDeleteStroke(selectedObject.pageNumber, selectedObject.id);
+        } else if (selectedObject.type === 'shape') {
+          handleDeleteShape(selectedObject.pageNumber, selectedObject.id);
         }
         setSelectedObject(null);
       }
@@ -818,6 +946,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     selectedObject,
     handleDeleteText,
     handleDeleteStroke,
+    handleDeleteShape,
   ]);
 
   useEffect(() => {
@@ -988,9 +1117,11 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
   const currentPageData = annotations[currentPage] || EMPTY_PAGE_ANNOTATIONS;
   const hasCurrentPageAnnotations =
-    currentPageData.texts.length > 0 || currentPageData.strokes.length > 0;
+    currentPageData.texts.length > 0 ||
+    currentPageData.strokes.length > 0 ||
+    (currentPageData.shapes?.length || 0) > 0;
   const hasAnyAnnotations = Object.values(annotations).some(
-    (p) => p && (p.texts.length > 0 || p.strokes.length > 0),
+    (p) => p && (p.texts.length > 0 || p.strokes.length > 0 || (p.shapes?.length || 0) > 0),
   );
 
   const toastStyles: Record<ToastNotice['type'], string> = {
@@ -1037,6 +1168,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         fontSizeKey={fontSizeKey}
         bold={bold}
         penWidthKey={penWidthKey}
+        activeShapeType={activeShapeType}
+        activeShapeFilled={activeShapeFilled}
+        activeStampType={activeStampType}
+        stampSizeKey={stampSizeKey}
         canUndo={undoStack.length > 0}
         canRedo={redoStack.length > 0}
         hasCurrentPageAnnotations={hasCurrentPageAnnotations}
@@ -1051,14 +1186,15 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         onZoomIn={() => setZoom((z) => clampZoom(z + 0.2))}
         onZoomOut={() => setZoom((z) => clampZoom(z - 0.2))}
         onFitWidth={handleFitWidth}
-        onSelectTool={(mode) => {
-          setToolMode(mode);
-          if (mode !== 'select') setSelectedObject(null);
-        }}
+        onSelectTool={handleSelectTool}
         onSelectColor={handleSelectColor}
         onSelectFontSize={handleSelectFontSize}
         onToggleBold={handleToggleBold}
         onSelectPenWidth={handleSelectPenWidth}
+        onSelectShapeType={setActiveShapeType}
+        onToggleShapeFilled={handleToggleShapeFilled}
+        onSelectStampType={handleSelectStampType}
+        onSelectStampSize={setStampSizeKey}
         onUndo={handleUndo}
         onRedo={handleRedo}
         onRequestClearPage={() => setConfirmDialog({ kind: 'clear-page', pageNumber: currentPage })}
@@ -1136,6 +1272,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
                 activeFontSizeRatio={FONT_SIZE_RATIOS[fontSizeKey].ratio}
                 activeBold={bold}
                 activePenWidthRatio={PEN_WIDTH_RATIOS[penWidthKey].ratio}
+                activeShapeType={activeShapeType}
+                activeShapeFilled={activeShapeFilled}
+                activeStampType={activeStampType}
+                activeStampSizeRatio={STAMP_SIZE_RATIOS[stampSizeKey].ratio}
                 annotations={annotations[meta.pageNumber] || EMPTY_PAGE_ANNOTATIONS}
                 selectedObject={selectedObject}
                 onSelectObject={handleSelectObject}
@@ -1144,6 +1284,9 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
                 onDeleteText={handleDeleteText}
                 onAddStroke={handleAddStroke}
                 onDeleteStroke={handleDeleteStroke}
+                onAddShape={handleAddShape}
+                onUpdateShape={handleUpdateShape}
+                onDeleteShape={handleDeleteShape}
                 onEraseBatch={handleEraseBatch}
                 registerPageElement={registerPageElement}
               />

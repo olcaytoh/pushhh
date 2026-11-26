@@ -10,11 +10,20 @@ import {
   EMBEDDED_ORIGINAL_FILENAME,
   type EmbeddedNotesPayload,
   type FontAssets,
+  isStampShapeType,
   type PageAnnotations,
+  type ShapeAnnotation,
+  type ShapeType,
   type StrokeAnnotation,
   type TextAnnotation,
 } from '../types/pdf';
-import { getDisplayedPdfSize, screenNormToPdfPoint } from './geometry';
+import {
+  getArrowHeadNormPoints,
+  getClosedShapeNormPolygon,
+  getDisplayedPdfSize,
+  getStampGeometry,
+  screenNormToPdfPoint,
+} from './geometry';
 
 export interface ExportPdfOptions {
   /** true: orijinal.pdf + duzenlenebilir-notlar.json eklerini gömer; false: düz paylaşım PDF'i üretir */
@@ -117,10 +126,12 @@ function buildEmbeddedNotesPayload(annotations: AnnotationsMap, pageCount: numbe
   const sayfalar: Record<string, PageAnnotations> = {};
   for (let p = 1; p <= pageCount; p++) {
     const data = annotations[p];
-    if (data && (data.texts.length > 0 || data.strokes.length > 0)) {
+    const shapes = data?.shapes || [];
+    if (data && (data.texts.length > 0 || data.strokes.length > 0 || shapes.length > 0)) {
       sayfalar[String(p)] = {
         texts: data.texts,
         strokes: data.strokes,
+        shapes,
       };
     }
   }
@@ -209,6 +220,124 @@ export async function exportAnnotatedPdf(
           thickness,
           color: strokeColor,
           lineCap: LineCapStyle.Round,
+        });
+      }
+    }
+
+    // 1b. Geometrik şekilleri ve sembolleri işle (vektörel)
+    for (const shape of pageData.shapes || []) {
+      const shapeColor = hexToRgb(shape.color);
+      const thickness = Math.max(0.75, shape.widthRatio * dispWidth);
+
+      if (isStampShapeType(shape.shapeType)) {
+        const geom = getStampGeometry(shape);
+        const boxMinPt = Math.min(
+          Math.abs(shape.x2 - shape.x1) * dispWidth,
+          Math.abs(shape.y2 - shape.y1) * dispHeight,
+        );
+        const stampStrokePt = Math.max(thickness * 1.35, boxMinPt * 0.14);
+
+        for (const linePts of geom.polylines) {
+          for (let k = 0; k < linePts.length - 1; k++) {
+            const start = screenNormToPdfPoint(linePts[k].x, linePts[k].y, cropBox, rotDeg);
+            const end = screenNormToPdfPoint(linePts[k + 1].x, linePts[k + 1].y, cropBox, rotDeg);
+            pdfPage.drawLine({
+              start,
+              end,
+              thickness: stampStrokePt,
+              color: shapeColor,
+              lineCap: LineCapStyle.Round,
+            });
+          }
+        }
+
+        if (geom.polygon && geom.polygon.length >= 3) {
+          const pdfPts = geom.polygon.map((pt) => screenNormToPdfPoint(pt.x, pt.y, cropBox, rotDeg));
+          const svgPath =
+            pdfPts
+              .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${(-p.y).toFixed(2)}`)
+              .join(' ') + ' Z';
+          pdfPage.drawSvgPath(svgPath, {
+            x: 0,
+            y: 0,
+            color: geom.fillOpacity > 0 ? shapeColor : undefined,
+            opacity: geom.fillOpacity > 0 ? geom.fillOpacity : undefined,
+            borderColor: shapeColor,
+            borderOpacity: 1,
+            borderWidth: Math.max(1, boxMinPt * 0.065),
+            borderLineCap: LineCapStyle.Round,
+          });
+        }
+
+        for (const dotPoly of geom.dotPolygons) {
+          if (dotPoly.length < 3) continue;
+          const pdfPts = dotPoly.map((pt) => screenNormToPdfPoint(pt.x, pt.y, cropBox, rotDeg));
+          const svgPath =
+            pdfPts
+              .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${(-p.y).toFixed(2)}`)
+              .join(' ') + ' Z';
+          pdfPage.drawSvgPath(svgPath, {
+            x: 0,
+            y: 0,
+            color: shapeColor,
+            opacity: 1,
+          });
+        }
+        continue;
+      }
+
+      if (shape.shapeType === 'line' || shape.shapeType === 'arrow') {
+        const start = screenNormToPdfPoint(shape.x1, shape.y1, cropBox, rotDeg);
+        const end = screenNormToPdfPoint(shape.x2, shape.y2, cropBox, rotDeg);
+        pdfPage.drawLine({
+          start,
+          end,
+          thickness,
+          color: shapeColor,
+          lineCap: LineCapStyle.Round,
+        });
+
+        if (shape.shapeType === 'arrow') {
+          const wings = getArrowHeadNormPoints(shape, dispWidth, dispHeight);
+          if (wings) {
+            const leftPdf = screenNormToPdfPoint(wings[0].x, wings[0].y, cropBox, rotDeg);
+            const rightPdf = screenNormToPdfPoint(wings[1].x, wings[1].y, cropBox, rotDeg);
+            pdfPage.drawLine({
+              start: end,
+              end: leftPdf,
+              thickness,
+              color: shapeColor,
+              lineCap: LineCapStyle.Round,
+            });
+            pdfPage.drawLine({
+              start: end,
+              end: rightPdf,
+              thickness,
+              color: shapeColor,
+              lineCap: LineCapStyle.Round,
+            });
+          }
+        }
+        continue;
+      }
+
+      const normPoly = getClosedShapeNormPolygon(shape, 64);
+      if (normPoly.length >= 3) {
+        const pdfPts = normPoly.map((pt) => screenNormToPdfPoint(pt.x, pt.y, cropBox, rotDeg));
+        const svgPath =
+          pdfPts
+            .map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${(-p.y).toFixed(2)}`)
+            .join(' ') + ' Z';
+
+        pdfPage.drawSvgPath(svgPath, {
+          x: 0,
+          y: 0,
+          color: shape.filled ? shapeColor : undefined,
+          opacity: shape.filled ? 0.16 : undefined,
+          borderColor: shapeColor,
+          borderOpacity: 1,
+          borderWidth: thickness,
+          borderLineCap: LineCapStyle.Round,
         });
       }
     }
@@ -380,6 +509,59 @@ function sanitizeStrokeList(raw: unknown): StrokeAnnotation[] {
   return valid;
 }
 
+const VALID_SHAPE_TYPES = new Set<ShapeType>([
+  'line',
+  'arrow',
+  'rectangle',
+  'ellipse',
+  'triangle',
+  'right-triangle',
+  'check',
+  'cross',
+  'star',
+  'question',
+  'exclamation',
+  'heart',
+]);
+
+function sanitizeShapeList(raw: unknown): ShapeAnnotation[] {
+  if (!Array.isArray(raw)) return [];
+  const valid: ShapeAnnotation[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const sh = item as Record<string, unknown>;
+    if (
+      typeof sh.id === 'string' &&
+      typeof sh.shapeType === 'string' &&
+      VALID_SHAPE_TYPES.has(sh.shapeType as ShapeType) &&
+      typeof sh.x1 === 'number' &&
+      Number.isFinite(sh.x1) &&
+      typeof sh.y1 === 'number' &&
+      Number.isFinite(sh.y1) &&
+      typeof sh.x2 === 'number' &&
+      Number.isFinite(sh.x2) &&
+      typeof sh.y2 === 'number' &&
+      Number.isFinite(sh.y2) &&
+      typeof sh.color === 'string' &&
+      typeof sh.widthRatio === 'number' &&
+      Number.isFinite(sh.widthRatio)
+    ) {
+      valid.push({
+        id: sh.id,
+        shapeType: sh.shapeType as ShapeType,
+        x1: Math.max(0, Math.min(1, sh.x1)),
+        y1: Math.max(0, Math.min(1, sh.y1)),
+        x2: Math.max(0, Math.min(1, sh.x2)),
+        y2: Math.max(0, Math.min(1, sh.y2)),
+        color: sh.color,
+        widthRatio: Math.max(0.0005, Math.min(0.1, sh.widthRatio)),
+        filled: Boolean(sh.filled),
+      });
+    }
+  }
+  return valid;
+}
+
 export async function extractEditableAttachments(
   openedPdfDoc: PDFDocumentProxy,
 ): Promise<ExtractedEditableData> {
@@ -491,11 +673,12 @@ export async function extractEditableAttachments(
       const pageNum = Number(pageKey);
       if (!Number.isInteger(pageNum) || pageNum < 1 || pageNum > originalPdfPageCount) continue;
       if (!pageVal || typeof pageVal !== 'object') continue;
-      const pv = pageVal as { texts?: unknown; strokes?: unknown };
+      const pv = pageVal as { texts?: unknown; strokes?: unknown; shapes?: unknown };
       const texts = sanitizeTextList(pv.texts);
       const strokes = sanitizeStrokeList(pv.strokes);
-      if (texts.length > 0 || strokes.length > 0) {
-        restored[pageNum] = { texts, strokes };
+      const shapes = sanitizeShapeList(pv.shapes);
+      if (texts.length > 0 || strokes.length > 0 || shapes.length > 0) {
+        restored[pageNum] = { texts, strokes, shapes };
       }
     }
 

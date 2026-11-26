@@ -1,19 +1,29 @@
 // Tek bir PDF sayfasının tembel (lazy) canvas render'ı ve sayfaya gömülü SVG çizim + metin katmanı
 import React, { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist/types/src/display/api';
-import type {
-  PageAnnotations,
-  PageMeta,
-  SelectedObject,
-  StrokeAnnotation,
-  StrokePoint,
-  TextAnnotation,
-  ToolMode,
+import {
+  isStampShapeType,
+  type PageAnnotations,
+  type PageMeta,
+  type SelectedObject,
+  type ShapeAnnotation,
+  type ShapeType,
+  STAMP_OPTIONS,
+  type StampType,
+  type StrokeAnnotation,
+  type StrokePoint,
+  type TextAnnotation,
+  type ToolMode,
 } from '../types/pdf';
 import {
   appendSmoothedPoint,
   buildSmoothSvgPath,
+  constrainShapeEndPoint,
+  getArrowHeadNormPoints,
+  getClosedShapeNormPolygon,
+  getStampGeometry,
   isPointInsideText,
+  isPointNearShape,
   isPointNearStroke,
 } from '../utils/geometry';
 
@@ -27,6 +37,10 @@ interface PdfPageItemProps {
   activeFontSizeRatio: number;
   activeBold: boolean;
   activePenWidthRatio: number;
+  activeShapeType: ShapeType;
+  activeShapeFilled: boolean;
+  activeStampType: StampType;
+  activeStampSizeRatio: number;
   annotations: PageAnnotations;
   selectedObject: SelectedObject | null;
   onSelectObject: (obj: SelectedObject | null) => void;
@@ -35,7 +49,10 @@ interface PdfPageItemProps {
   onDeleteText: (pageNumber: number, id: string) => void;
   onAddStroke: (pageNumber: number, stroke: StrokeAnnotation) => void;
   onDeleteStroke: (pageNumber: number, id: string) => void;
-  onEraseBatch: (pageNumber: number, textIds: string[], strokeIds: string[]) => void;
+  onAddShape: (pageNumber: number, shape: ShapeAnnotation) => void;
+  onUpdateShape: (pageNumber: number, id: string, patch: Partial<ShapeAnnotation>, recordUndo?: boolean) => void;
+  onDeleteShape: (pageNumber: number, id: string) => void;
+  onEraseBatch: (pageNumber: number, textIds: string[], strokeIds: string[], shapeIds: string[]) => void;
   registerPageElement: (pageNumber: number, el: HTMLDivElement | null) => void;
 }
 
@@ -63,6 +80,10 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
   activeFontSizeRatio,
   activeBold,
   activePenWidthRatio,
+  activeShapeType,
+  activeShapeFilled,
+  activeStampType,
+  activeStampSizeRatio,
   annotations,
   selectedObject,
   onSelectObject,
@@ -71,6 +92,9 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
   onDeleteText,
   onAddStroke,
   onDeleteStroke,
+  onAddShape,
+  onUpdateShape,
+  onDeleteShape,
   onEraseBatch,
   registerPageElement,
 }) => {
@@ -84,11 +108,35 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
 
   const [draftStroke, setDraftStroke] = useState<StrokeAnnotation | null>(null);
   const draftStrokeRef = useRef<StrokeAnnotation | null>(null);
+  const [draftShape, setDraftShape] = useState<ShapeAnnotation | null>(null);
+  const draftShapeRef = useRef<ShapeAnnotation | null>(null);
+  const [draggingShape, setDraggingShape] = useState<{
+    id: string;
+    startPointerX: number;
+    startPointerY: number;
+    origX1: number;
+    origY1: number;
+    origX2: number;
+    origY2: number;
+    dx: number;
+    dy: number;
+    moved: boolean;
+  } | null>(null);
+  const draggingShapeRef = useRef<typeof draggingShape>(null);
+
   const isDrawingRef = useRef(false);
+  const isDrawingShapeRef = useRef(false);
+  const isPlacingStampRef = useRef(false);
+  const stampOriginRef = useRef<{ pt: StrokePoint; dragged: boolean } | null>(null);
   const isErasingRef = useRef(false);
-  const erasedInGestureRef = useRef<{ texts: Set<string>; strokes: Set<string> }>({
+  const erasedInGestureRef = useRef<{
+    texts: Set<string>;
+    strokes: Set<string>;
+    shapes: Set<string>;
+  }>({
     texts: new Set(),
     strokes: new Set(),
+    shapes: new Set(),
   });
 
   const [editingText, setEditingText] = useState<ActiveTextEditorState | null>(null);
@@ -287,6 +335,12 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         erasedInGestureRef.current.strokes.add(stroke.id);
       }
     }
+    for (const shape of annotations.shapes || []) {
+      if (erasedInGestureRef.current.shapes.has(shape.id)) continue;
+      if (isPointNearShape(pt, shape, pageWidthPx, pageHeightPx, 14)) {
+        erasedInGestureRef.current.shapes.add(shape.id);
+      }
+    }
     for (const txt of annotations.texts) {
       if (erasedInGestureRef.current.texts.has(txt.id)) continue;
       if (isPointInsideText(pt, txt, pageWidthPx, pageHeightPx)) {
@@ -306,6 +360,35 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
     const pt = getNormalizedPoint(e.clientX, e.clientY);
 
     if (toolMode === 'select') {
+      const shapes = annotations.shapes || [];
+      for (let i = shapes.length - 1; i >= 0; i--) {
+        const shape = shapes[i];
+        if (isPointNearShape(pt, shape, pageWidthPx, pageHeightPx, 12)) {
+          e.stopPropagation();
+          onSelectObject({ type: 'shape', pageNumber: meta.pageNumber, id: shape.id });
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch {
+            // Yoksay
+          }
+          const dragState = {
+            id: shape.id,
+            startPointerX: e.clientX,
+            startPointerY: e.clientY,
+            origX1: shape.x1,
+            origY1: shape.y1,
+            origX2: shape.x2,
+            origY2: shape.y2,
+            dx: 0,
+            dy: 0,
+            moved: false,
+          };
+          draggingShapeRef.current = dragState;
+          setDraggingShape(dragState);
+          return;
+        }
+      }
+
       for (let i = annotations.strokes.length - 1; i >= 0; i--) {
         const stroke = annotations.strokes[i];
         if (isPointNearStroke(pt, stroke, pageWidthPx, pageHeightPx, 12)) {
@@ -355,6 +438,66 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
       return;
     }
 
+    if (toolMode === 'shape') {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelectObject(null);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Yoksay
+      }
+      isDrawingShapeRef.current = true;
+      const isClosable = activeShapeType !== 'line' && activeShapeType !== 'arrow';
+      const newShape: ShapeAnnotation = {
+        id: createId('shp'),
+        shapeType: activeShapeType,
+        x1: pt.x,
+        y1: pt.y,
+        x2: pt.x,
+        y2: pt.y,
+        color: activeColor,
+        widthRatio: activePenWidthRatio,
+        filled: isClosable ? activeShapeFilled : false,
+      };
+      draftShapeRef.current = newShape;
+      setDraftShape(newShape);
+      return;
+    }
+
+    if (toolMode === 'stamp') {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelectObject(null);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // Yoksay
+      }
+      isPlacingStampRef.current = true;
+      stampOriginRef.current = { pt, dragged: false };
+      const stampOpt = STAMP_OPTIONS.find((s) => s.type === activeStampType);
+      const sizePx = Math.max(20, activeStampSizeRatio * pageWidthPx);
+      const halfW = sizePx / 2 / pageWidthPx;
+      const halfH = sizePx / 2 / pageHeightPx;
+      const clampedCx = Math.max(halfW, Math.min(1 - halfW, pt.x));
+      const clampedCy = Math.max(halfH, Math.min(1 - halfH, pt.y));
+      const newStamp: ShapeAnnotation = {
+        id: createId('stp'),
+        shapeType: activeStampType,
+        x1: Math.max(0, clampedCx - halfW),
+        y1: Math.max(0, clampedCy - halfH),
+        x2: Math.min(1, clampedCx + halfW),
+        y2: Math.min(1, clampedCy + halfH),
+        color: activeColor,
+        widthRatio: activePenWidthRatio,
+        filled: stampOpt ? stampOpt.filled : false,
+      };
+      draftShapeRef.current = newStamp;
+      setDraftShape(newStamp);
+      return;
+    }
+
     if (toolMode === 'eraser') {
       e.preventDefault();
       e.stopPropagation();
@@ -365,12 +508,33 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
         // Yoksay
       }
       isErasingRef.current = true;
-      erasedInGestureRef.current = { texts: new Set(), strokes: new Set() };
+      erasedInGestureRef.current = { texts: new Set(), strokes: new Set(), shapes: new Set() };
       eraseAtPoint(pt);
     }
   };
 
   const handleOverlayPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (draggingShapeRef.current) {
+      const ds = draggingShapeRef.current;
+      const dxPx = e.clientX - ds.startPointerX;
+      const dyPx = e.clientY - ds.startPointerY;
+      if (!ds.moved && Math.hypot(dxPx, dyPx) < 3) return;
+
+      const rawDx = dxPx / pageWidthPx;
+      const rawDy = dyPx / pageHeightPx;
+      const minX = Math.min(ds.origX1, ds.origX2);
+      const maxX = Math.max(ds.origX1, ds.origX2);
+      const minY = Math.min(ds.origY1, ds.origY2);
+      const maxY = Math.max(ds.origY1, ds.origY2);
+      const clampedDx = Math.max(-minX, Math.min(1 - maxX, rawDx));
+      const clampedDy = Math.max(-minY, Math.min(1 - maxY, rawDy));
+
+      const updated = { ...ds, dx: clampedDx, dy: clampedDy, moved: true };
+      draggingShapeRef.current = updated;
+      setDraggingShape(updated);
+      return;
+    }
+
     if (isDrawingRef.current && draftStrokeRef.current) {
       e.preventDefault();
       const pt = getNormalizedPoint(e.clientX, e.clientY);
@@ -383,23 +547,104 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
       return;
     }
 
+    if (isDrawingShapeRef.current && draftShapeRef.current) {
+      e.preventDefault();
+      const rawPt = getNormalizedPoint(e.clientX, e.clientY);
+      const constrained = constrainShapeEndPoint(
+        draftShapeRef.current.shapeType,
+        { x: draftShapeRef.current.x1, y: draftShapeRef.current.y1 },
+        rawPt,
+        pageWidthPx,
+        pageHeightPx,
+        e.shiftKey,
+      );
+      const updated: ShapeAnnotation = {
+        ...draftShapeRef.current,
+        x2: constrained.x,
+        y2: constrained.y,
+      };
+      draftShapeRef.current = updated;
+      setDraftShape(updated);
+      return;
+    }
+
+    if (isPlacingStampRef.current && stampOriginRef.current && draftShapeRef.current) {
+      e.preventDefault();
+      const rawPt = getNormalizedPoint(e.clientX, e.clientY);
+      const origin = stampOriginRef.current;
+      const distPx = Math.hypot(
+        (rawPt.x - origin.pt.x) * pageWidthPx,
+        (rawPt.y - origin.pt.y) * pageHeightPx,
+      );
+      if (origin.dragged || distPx >= 12) {
+        origin.dragged = true;
+        const constrained = constrainShapeEndPoint(
+          'rectangle',
+          origin.pt,
+          rawPt,
+          pageWidthPx,
+          pageHeightPx,
+          true,
+        );
+        const updated: ShapeAnnotation = {
+          ...draftShapeRef.current,
+          x1: origin.pt.x,
+          y1: origin.pt.y,
+          x2: constrained.x,
+          y2: constrained.y,
+        };
+        draftShapeRef.current = updated;
+        setDraftShape(updated);
+      }
+      return;
+    }
+
     if (isErasingRef.current) {
       e.preventDefault();
       const pt = getNormalizedPoint(e.clientX, e.clientY);
       eraseAtPoint(pt);
       if (
         erasedInGestureRef.current.texts.size > 0 ||
-        erasedInGestureRef.current.strokes.size > 0
+        erasedInGestureRef.current.strokes.size > 0 ||
+        erasedInGestureRef.current.shapes.size > 0
       ) {
         const textIds = Array.from(erasedInGestureRef.current.texts);
         const strokeIds = Array.from(erasedInGestureRef.current.strokes);
-        erasedInGestureRef.current = { texts: new Set(), strokes: new Set() };
-        onEraseBatch(meta.pageNumber, textIds, strokeIds);
+        const shapeIds = Array.from(erasedInGestureRef.current.shapes);
+        erasedInGestureRef.current = { texts: new Set(), strokes: new Set(), shapes: new Set() };
+        onEraseBatch(meta.pageNumber, textIds, strokeIds, shapeIds);
       }
     }
   };
 
   const finishOverlayPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (draggingShapeRef.current) {
+      const finished = draggingShapeRef.current;
+      draggingShapeRef.current = null;
+      setDraggingShape(null);
+      try {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Yoksay
+      }
+      if (finished.moved) {
+        onUpdateShape(
+          meta.pageNumber,
+          finished.id,
+          {
+            x1: finished.origX1 + finished.dx,
+            y1: finished.origY1 + finished.dy,
+            x2: finished.origX2 + finished.dx,
+            y2: finished.origY2 + finished.dy,
+          },
+          true,
+        );
+      }
+      return;
+    }
+
     if (isDrawingRef.current) {
       isDrawingRef.current = false;
       try {
@@ -418,6 +663,49 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
       return;
     }
 
+    if (isDrawingShapeRef.current) {
+      isDrawingShapeRef.current = false;
+      try {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Yoksay
+      }
+      const finalized = draftShapeRef.current;
+      draftShapeRef.current = null;
+      setDraftShape(null);
+      if (finalized) {
+        const spanPx = Math.hypot(
+          (finalized.x2 - finalized.x1) * pageWidthPx,
+          (finalized.y2 - finalized.y1) * pageHeightPx,
+        );
+        if (spanPx >= 5) {
+          onAddShape(meta.pageNumber, finalized);
+        }
+      }
+      return;
+    }
+
+    if (isPlacingStampRef.current) {
+      isPlacingStampRef.current = false;
+      stampOriginRef.current = null;
+      try {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Yoksay
+      }
+      const finalized = draftShapeRef.current;
+      draftShapeRef.current = null;
+      setDraftShape(null);
+      if (finalized) {
+        onAddShape(meta.pageNumber, finalized);
+      }
+      return;
+    }
+
     if (isErasingRef.current) {
       isErasingRef.current = false;
       try {
@@ -429,9 +717,10 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
       }
       const textIds = Array.from(erasedInGestureRef.current.texts);
       const strokeIds = Array.from(erasedInGestureRef.current.strokes);
-      erasedInGestureRef.current = { texts: new Set(), strokes: new Set() };
-      if (textIds.length > 0 || strokeIds.length > 0) {
-        onEraseBatch(meta.pageNumber, textIds, strokeIds);
+      const shapeIds = Array.from(erasedInGestureRef.current.shapes);
+      erasedInGestureRef.current = { texts: new Set(), strokes: new Set(), shapes: new Set() };
+      if (textIds.length > 0 || strokeIds.length > 0 || shapeIds.length > 0) {
+        onEraseBatch(meta.pageNumber, textIds, strokeIds, shapeIds);
       }
     }
   };
@@ -520,15 +809,201 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
   };
 
   const overlayCursorClass =
-    toolMode === 'pen'
+    toolMode === 'pen' || toolMode === 'shape' || toolMode === 'stamp'
       ? 'cursor-crosshair'
       : toolMode === 'text'
         ? 'cursor-text'
         : toolMode === 'eraser'
           ? 'cursor-cell'
-          : 'cursor-default';
+          : draggingShape
+            ? 'cursor-grabbing'
+            : 'cursor-default';
 
-  const blockTouchScroll = toolMode === 'pen' || toolMode === 'eraser';
+  const blockTouchScroll =
+    toolMode === 'pen' ||
+    toolMode === 'shape' ||
+    toolMode === 'stamp' ||
+    toolMode === 'eraser' ||
+    Boolean(draggingShape);
+
+  const renderSvgShape = (shape: ShapeAnnotation, isSelected: boolean, isDraft = false) => {
+    const strokePx = Math.max(1.2, shape.widthRatio * pageWidthPx);
+    const dx = draggingShape?.id === shape.id ? draggingShape.dx : 0;
+    const dy = draggingShape?.id === shape.id ? draggingShape.dy : 0;
+    const effectiveShape: ShapeAnnotation =
+      dx !== 0 || dy !== 0
+        ? {
+            ...shape,
+            x1: shape.x1 + dx,
+            y1: shape.y1 + dy,
+            x2: shape.x2 + dx,
+            y2: shape.y2 + dy,
+          }
+        : shape;
+
+    if (isStampShapeType(effectiveShape.shapeType)) {
+      const geom = getStampGeometry(effectiveShape);
+      const boxMinPx = Math.min(
+        Math.abs(effectiveShape.x2 - effectiveShape.x1) * pageWidthPx,
+        Math.abs(effectiveShape.y2 - effectiveShape.y1) * pageHeightPx,
+      );
+      const stampStrokePx = Math.max(strokePx * 1.35, boxMinPx * 0.14);
+      const minX = Math.min(effectiveShape.x1, effectiveShape.x2) * pageWidthPx;
+      const minY = Math.min(effectiveShape.y1, effectiveShape.y2) * pageHeightPx;
+      const boxW = Math.abs(effectiveShape.x2 - effectiveShape.x1) * pageWidthPx;
+      const boxH = Math.abs(effectiveShape.y2 - effectiveShape.y1) * pageHeightPx;
+
+      return (
+        <g key={shape.id} opacity={isDraft ? 0.85 : 1}>
+          {isSelected && (
+            <rect
+              x={minX - 5}
+              y={minY - 5}
+              width={boxW + 10}
+              height={boxH + 10}
+              rx={8}
+              fill="#3b82f6"
+              fillOpacity={0.08}
+              stroke="#3b82f6"
+              strokeWidth={2}
+              strokeDasharray="5 3"
+            />
+          )}
+
+          {geom.polygon && geom.polygon.length >= 3 && (
+            <polygon
+              points={geom.polygon
+                .map((pt) => `${(pt.x * pageWidthPx).toFixed(2)},${(pt.y * pageHeightPx).toFixed(2)}`)
+                .join(' ')}
+              fill={geom.fillOpacity > 0 ? effectiveShape.color : 'none'}
+              fillOpacity={geom.fillOpacity}
+              stroke={effectiveShape.color}
+              strokeWidth={Math.max(1.5, boxMinPx * 0.065)}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          )}
+
+          {geom.polylines.map((linePts, idx) => (
+            <polyline
+              key={idx}
+              points={linePts
+                .map((pt) => `${(pt.x * pageWidthPx).toFixed(2)},${(pt.y * pageHeightPx).toFixed(2)}`)
+                .join(' ')}
+              fill="none"
+              stroke={effectiveShape.color}
+              strokeWidth={stampStrokePx}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ))}
+
+          {geom.dotPolygons.map((dotPts, idx) => (
+            <polygon
+              key={idx}
+              points={dotPts
+                .map((pt) => `${(pt.x * pageWidthPx).toFixed(2)},${(pt.y * pageHeightPx).toFixed(2)}`)
+                .join(' ')}
+              fill={effectiveShape.color}
+            />
+          ))}
+        </g>
+      );
+    }
+
+    if (effectiveShape.shapeType === 'line' || effectiveShape.shapeType === 'arrow') {
+      const x1 = effectiveShape.x1 * pageWidthPx;
+      const y1 = effectiveShape.y1 * pageHeightPx;
+      const x2 = effectiveShape.x2 * pageWidthPx;
+      const y2 = effectiveShape.y2 * pageHeightPx;
+      const wings =
+        effectiveShape.shapeType === 'arrow'
+          ? getArrowHeadNormPoints(effectiveShape, pageWidthPx, pageHeightPx)
+          : null;
+      const wingPoints = wings
+        ? `${(wings[0].x * pageWidthPx).toFixed(2)},${(wings[0].y * pageHeightPx).toFixed(2)} ${x2.toFixed(2)},${y2.toFixed(2)} ${(wings[1].x * pageWidthPx).toFixed(2)},${(wings[1].y * pageHeightPx).toFixed(2)}`
+        : '';
+
+      return (
+        <g key={shape.id} opacity={isDraft ? 0.85 : 1}>
+          {isSelected && (
+            <>
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="#3b82f6"
+                strokeOpacity={0.35}
+                strokeWidth={strokePx + 8}
+                strokeLinecap="round"
+              />
+              {wingPoints && (
+                <polyline
+                  points={wingPoints}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeOpacity={0.35}
+                  strokeWidth={strokePx + 8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </>
+          )}
+          <line
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={effectiveShape.color}
+            strokeWidth={strokePx}
+            strokeLinecap="round"
+          />
+          {wingPoints && (
+            <polyline
+              points={wingPoints}
+              fill="none"
+              stroke={effectiveShape.color}
+              strokeWidth={strokePx}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+        </g>
+      );
+    }
+
+    const poly = getClosedShapeNormPolygon(effectiveShape, 64);
+    if (poly.length < 3) return null;
+    const pointsAttr = poly
+      .map((pt) => `${(pt.x * pageWidthPx).toFixed(2)},${(pt.y * pageHeightPx).toFixed(2)}`)
+      .join(' ');
+
+    return (
+      <g key={shape.id} opacity={isDraft ? 0.85 : 1}>
+        {isSelected && (
+          <polygon
+            points={pointsAttr}
+            fill="none"
+            stroke="#3b82f6"
+            strokeOpacity={0.35}
+            strokeWidth={strokePx + 8}
+            strokeLinejoin="round"
+          />
+        )}
+        <polygon
+          points={pointsAttr}
+          fill={effectiveShape.filled ? effectiveShape.color : 'none'}
+          fillOpacity={effectiveShape.filled ? 0.16 : 0}
+          stroke={effectiveShape.color}
+          strokeWidth={strokePx}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  };
 
   return (
     <div
@@ -600,6 +1075,15 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
               </g>
             );
           })}
+
+          {(annotations.shapes || []).map((shape) => {
+            const isSelectedShape =
+              selectedObject?.type === 'shape' &&
+              selectedObject.pageNumber === meta.pageNumber &&
+              selectedObject.id === shape.id;
+            return renderSvgShape(shape, isSelectedShape, false);
+          })}
+
           {draftStroke && (
             <path
               d={buildSmoothSvgPath(draftStroke.points, pageWidthPx, pageHeightPx)}
@@ -610,6 +1094,8 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
               strokeLinejoin="round"
             />
           )}
+
+          {draftShape && renderSvgShape(draftShape, false, true)}
         </svg>
 
         {annotations.texts.map((item) => {
@@ -702,6 +1188,37 @@ export const PdfPageItem: React.FC<PdfPageItemProps> = ({
                 }}
               >
                 Çizimi Sil ✕
+              </button>
+            );
+          })()}
+
+        {selectedObject?.type === 'shape' &&
+          selectedObject.pageNumber === meta.pageNumber &&
+          toolMode === 'select' &&
+          (() => {
+            const sh = (annotations.shapes || []).find((s) => s.id === selectedObject.id);
+            if (!sh) return null;
+            const dx = draggingShape?.id === sh.id ? draggingShape.dx : 0;
+            const dy = draggingShape?.id === sh.id ? draggingShape.dy : 0;
+            const anchorX = (sh.x1 + sh.x2) / 2 + dx;
+            const anchorY = Math.min(sh.y1, sh.y2) + dy;
+            return (
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteShape(meta.pageNumber, sh.id);
+                  onSelectObject(null);
+                }}
+                title="Seçili şekli sil (Delete)"
+                className="absolute z-20 -translate-x-1/2 -translate-y-full px-2.5 py-1 rounded-full bg-rose-600 text-white text-xs font-semibold shadow-md hover:bg-rose-700 cursor-pointer"
+                style={{
+                  left: `${Math.max(0.06, Math.min(0.94, anchorX)) * 100}%`,
+                  top: `${Math.max(0.04, anchorY - 0.01) * 100}%`,
+                }}
+              >
+                {isStampShapeType(sh.shapeType) ? 'Sembolü Sil ✕' : 'Şekli Sil ✕'}
               </button>
             );
           })()}

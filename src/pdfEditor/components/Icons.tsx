@@ -176,3 +176,101 @@ export const PdfDocIcon: React.FC<IconProps> = ({ className = 'w-12 h-12' }) => 
     <path d="M8 17h5" />
   </svg>
 );
+
+export const ShapesToolIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8.5 3.5 3.5 12h10l-5-8.5Z" />
+    <rect x="13" y="13" width="7.5" height="7.5" rx="1" />
+    <circle cx="17.5" cy="7" r="3.5" />
+  </svg>
+);
+
+export const ShapeLineIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 20 20 4" />
+  </svg>
+);
+
+export const ShapeArrowIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5 19 19 5" />
+    <path d="M11 5h8v8" />
+  </svg>
+);
+
+export const ShapeRectIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="4" y="5" width="16" height="14" rx="1.5" />
+  </svg>
+);
+
+export const ShapeEllipseIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="8" />
+  </svg>
+);
+
+export const ShapeTriangleIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 4 3.5 19.5h17L12 4Z" />
+  </svg>
+);
+
+export const ShapeRightTriangleIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5 4v16h15L5 4Z" />
+    <path d="M5 15.5h4.5V20" strokeWidth="1.5" />
+  </svg>
+);
+
+export const ShapeFillIcon: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" fillOpacity="0.28" />
+  </svg>
+);
+
+export const StampToolIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8.2 12.4 2.6 2.7 5.2-5.7" />
+  </svg>
+);
+
+export const StampCheckIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4.5 13.2 9.8 18.5 19.8 5.8" />
+  </svg>
+);
+
+export const StampCrossIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5.5 5.5 18.5 18.5" />
+    <path d="M18.5 5.5 5.5 18.5" />
+  </svg>
+);
+
+export const StampStarIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" fillOpacity="0.28" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2L12 17.2 6.3 20.2l1.1-6.2-4.5-4.4 6.3-.9L12 3Z" />
+  </svg>
+);
+
+export const StampQuestionIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8.8 8.8a3.4 3.4 0 0 1 6.5 1.1c0 2.2-3.3 2.7-3.3 4.9" />
+    <circle cx="12" cy="19.2" r="1.2" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const StampExclamationIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 4.5v10" />
+    <circle cx="12" cy="19.2" r="1.3" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const StampHeartIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" fillOpacity="0.28" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 20.5s-7.5-4.7-9.2-9.2C1.6 8 3.8 4.8 7.2 4.8c2 0 3.7 1.1 4.8 2.8 1.1-1.7 2.8-2.8 4.8-2.8 3.4 0 5.6 3.2 4.4 6.5-1.7 4.5-9.2 9.2-9.2 9.2Z" />
+  </svg>
+);

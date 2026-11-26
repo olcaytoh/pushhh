@@ -6,6 +6,12 @@ import {
   type FontSizeKey,
   PEN_WIDTH_RATIOS,
   type PenWidthKey,
+  SHAPE_OPTIONS,
+  type ShapeType,
+  STAMP_OPTIONS,
+  STAMP_SIZE_RATIOS,
+  type StampSizeKey,
+  type StampType,
   type ToolMode,
 } from '../types/pdf';
 import {
@@ -24,6 +30,21 @@ import {
   SaveAsIcon,
   SaveIcon,
   SettingsIcon,
+  ShapeArrowIcon,
+  ShapeEllipseIcon,
+  ShapeFillIcon,
+  ShapeLineIcon,
+  ShapeRectIcon,
+  ShapeRightTriangleIcon,
+  ShapeTriangleIcon,
+  ShapesToolIcon,
+  StampCheckIcon,
+  StampCrossIcon,
+  StampExclamationIcon,
+  StampHeartIcon,
+  StampQuestionIcon,
+  StampStarIcon,
+  StampToolIcon,
   TextToolIcon,
   TrashIcon,
   UndoIcon,
@@ -44,6 +65,10 @@ interface ToolbarProps {
   fontSizeKey: FontSizeKey;
   bold: boolean;
   penWidthKey: PenWidthKey;
+  activeShapeType: ShapeType;
+  activeShapeFilled: boolean;
+  activeStampType: StampType;
+  stampSizeKey: StampSizeKey;
   canUndo: boolean;
   canRedo: boolean;
   hasCurrentPageAnnotations: boolean;
@@ -63,6 +88,10 @@ interface ToolbarProps {
   onSelectFontSize: (key: FontSizeKey) => void;
   onToggleBold: () => void;
   onSelectPenWidth: (key: PenWidthKey) => void;
+  onSelectShapeType: (shape: ShapeType) => void;
+  onToggleShapeFilled: () => void;
+  onSelectStampType: (stamp: StampType) => void;
+  onSelectStampSize: (key: StampSizeKey) => void;
   onUndo: () => void;
   onRedo: () => void;
   onRequestClearPage: () => void;
@@ -110,10 +139,26 @@ const MODE_META: Record<
     badgeBg: 'bg-emerald-50 text-emerald-900 border-emerald-300',
     dotColor: 'bg-emerald-600',
   },
+  shape: {
+    shortLabel: 'Şekiller',
+    fullLabel: 'Geometrik Şekil',
+    hint: 'Sürükleyerek şekil çiz (Shift ile düzgün kare/çember)',
+    activeBtn: 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-md',
+    badgeBg: 'bg-violet-50 text-violet-900 border-violet-300',
+    dotColor: 'bg-violet-600',
+  },
+  stamp: {
+    shortLabel: 'Sembol',
+    fullLabel: 'Sembol Ekle',
+    hint: 'Tek dokunuşla ekle veya sürükleyerek boyutlandır',
+    activeBtn: 'bg-teal-600 text-white border-teal-700 ring-2 ring-teal-300 shadow-md',
+    badgeBg: 'bg-teal-50 text-teal-900 border-teal-300',
+    dotColor: 'bg-teal-600',
+  },
   eraser: {
     shortLabel: 'Silgi',
     fullLabel: 'Silgi Modu',
-    hint: 'Silmek için notların üzerinden geç',
+    hint: 'Silmek için notların, şekillerin veya sembollerin üzerinden geç',
     activeBtn: 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-300 shadow-md',
     badgeBg: 'bg-rose-50 text-rose-900 border-rose-300',
     dotColor: 'bg-rose-600',
@@ -133,6 +178,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   fontSizeKey,
   bold,
   penWidthKey,
+  activeShapeType,
+  activeShapeFilled,
+  activeStampType,
+  stampSizeKey,
   canUndo,
   canRedo,
   hasCurrentPageAnnotations,
@@ -152,6 +201,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onSelectFontSize,
   onToggleBold,
   onSelectPenWidth,
+  onSelectShapeType,
+  onToggleShapeFilled,
+  onSelectStampType,
+  onSelectStampSize,
   onUndo,
   onRedo,
   onRequestClearPage,
@@ -193,7 +246,58 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   const activeModeInfo = MODE_META[toolMode];
   const activeColorLabel =
-    COLOR_OPTIONS.find((c) => c.value === activeColor)?.label || 'Özel';
+    COLOR_OPTIONS.find((c) => c.value === activeColor)?.label ||
+    (activeColor === '#16a34a'
+      ? 'Yeşil'
+      : activeColor === '#eab308'
+        ? 'Sarı'
+        : activeColor === '#ea580c'
+          ? 'Turuncu'
+          : activeColor === '#e11d48'
+            ? 'Pembe'
+            : 'Özel');
+  const activeShapeMeta =
+    SHAPE_OPTIONS.find((s) => s.type === activeShapeType) || SHAPE_OPTIONS[0];
+  const activeStampMeta =
+    STAMP_OPTIONS.find((s) => s.type === activeStampType) || STAMP_OPTIONS[0];
+
+  const renderShapeIcon = (shapeType: ShapeType, className = 'w-5 h-5') => {
+    switch (shapeType) {
+      case 'line':
+        return <ShapeLineIcon className={className} />;
+      case 'arrow':
+        return <ShapeArrowIcon className={className} />;
+      case 'rectangle':
+        return <ShapeRectIcon className={className} />;
+      case 'ellipse':
+        return <ShapeEllipseIcon className={className} />;
+      case 'triangle':
+        return <ShapeTriangleIcon className={className} />;
+      case 'right-triangle':
+        return <ShapeRightTriangleIcon className={className} />;
+      default:
+        return <ShapeRectIcon className={className} />;
+    }
+  };
+
+  const renderStampIcon = (stampType: StampType, className = 'w-5 h-5') => {
+    switch (stampType) {
+      case 'check':
+        return <StampCheckIcon className={className} />;
+      case 'cross':
+        return <StampCrossIcon className={className} />;
+      case 'star':
+        return <StampStarIcon className={className} />;
+      case 'question':
+        return <StampQuestionIcon className={className} />;
+      case 'exclamation':
+        return <StampExclamationIcon className={className} />;
+      case 'heart':
+        return <StampHeartIcon className={className} />;
+      default:
+        return <StampCheckIcon className={className} />;
+    }
+  };
 
   const renderActiveModeIcon = (mode: ToolMode, className = 'w-4 h-4') => {
     switch (mode) {
@@ -201,6 +305,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         return <TextToolIcon className={className} />;
       case 'pen':
         return <PenToolIcon className={className} />;
+      case 'shape':
+        return renderShapeIcon(activeShapeType, className);
+      case 'stamp':
+        return renderStampIcon(activeStampType, className);
       case 'eraser':
         return <EraserToolIcon className={className} />;
       case 'select':
@@ -371,9 +479,39 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button
             type="button"
             disabled={!hasDocument}
+            aria-pressed={toolMode === 'shape'}
+            onClick={() => onSelectTool('shape')}
+            title="Geometrik Şekiller: Çizgi, ok, dikdörtgen, çember, üçgen ve dik üçgen çiz"
+            className={modeBtnClass('shape')}
+          >
+            <ShapesToolIcon className="w-5 h-5" />
+            <span className="hidden md:inline">Şekiller</span>
+            {toolMode === 'shape' && (
+              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-violet-200" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={!hasDocument}
+            aria-pressed={toolMode === 'stamp'}
+            onClick={() => onSelectTool('stamp')}
+            title="Semboller: Yeşil tik, kırmızı çarpı, yıldız, soru işareti, ünlem ve kalp damgala"
+            className={modeBtnClass('stamp')}
+          >
+            <StampToolIcon className="w-5 h-5" />
+            <span className="hidden md:inline">Sembol</span>
+            {toolMode === 'stamp' && (
+              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-teal-200" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            disabled={!hasDocument}
             aria-pressed={toolMode === 'eraser'}
             onClick={() => onSelectTool('eraser')}
-            title="Silgi: Tıklanan veya üzerinden geçilen yazı ve çizimleri sil"
+            title="Silgi: Tıklanan veya üzerinden geçilen yazı, çizim, şekil ve sembolleri sil"
             className={modeBtnClass('eraser')}
           >
             <EraserToolIcon className="w-5 h-5" />
@@ -582,6 +720,113 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       </div>
 
+      {/* Geometrik Şekil Seçim Alt Çubuğu (Şekiller modunda dokunmatik kolay seçim) */}
+      {hasDocument && toolMode === 'shape' && (
+        <div
+          role="group"
+          aria-label="Geometrik şekil seçimi"
+          className="px-3 py-2 bg-violet-50/75 border-t border-violet-200/80 flex flex-wrap items-center gap-2"
+        >
+          <span className="text-xs font-bold text-violet-900 uppercase tracking-wide mr-1">
+            Şekil Seç:
+          </span>
+          {SHAPE_OPTIONS.map((opt) => {
+            const isSelected = activeShapeType === opt.type;
+            return (
+              <button
+                key={opt.type}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => onSelectShapeType(opt.type)}
+                title={opt.label}
+                className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
+                  isSelected
+                    ? 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-sm'
+                    : 'bg-white text-slate-700 border-violet-200 hover:bg-violet-100/70'
+                }`}
+              >
+                {renderShapeIcon(opt.type, 'w-5 h-5 shrink-0')}
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+
+          {activeShapeMeta.closable && (
+            <button
+              type="button"
+              aria-pressed={activeShapeFilled}
+              onClick={onToggleShapeFilled}
+              title="Kapalı şekiller için yarı saydam iç dolguyu aç/kapat"
+              className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ml-1 ${
+                activeShapeFilled
+                  ? 'bg-slate-800 text-white border-slate-900 shadow-sm'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+              }`}
+            >
+              <ShapeFillIcon className="w-4 h-4 shrink-0" />
+              <span>{activeShapeFilled ? 'Dolgu: Açık' : 'Dolgu: Kapalı'}</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Hızlı Sembol Seçim Alt Çubuğu (Yeşil Tik, Kırmızı Çarpı, Yıldız, Soru, Ünlem, Kalp) */}
+      {hasDocument && toolMode === 'stamp' && (
+        <div
+          role="group"
+          aria-label="Sembol ve damga seçimi"
+          className="px-3 py-2 bg-teal-50/80 border-t border-teal-200/80 flex flex-wrap items-center gap-2"
+        >
+          <span className="text-xs font-bold text-teal-900 uppercase tracking-wide mr-1">
+            Sembol Seç:
+          </span>
+          {STAMP_OPTIONS.map((opt) => {
+            const isSelected = activeStampType === opt.type;
+            return (
+              <button
+                key={opt.type}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => onSelectStampType(opt.type)}
+                title={`${opt.label}: Sayfaya tek dokunuşla ekle veya sürükle`}
+                className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
+                  isSelected
+                    ? 'bg-white text-slate-900 border-teal-600 ring-2 ring-teal-400 shadow-sm'
+                    : 'bg-white/90 text-slate-700 border-teal-200 hover:bg-white'
+                }`}
+              >
+                <span style={{ color: opt.defaultColor }} className="inline-flex shrink-0">
+                  {renderStampIcon(opt.type, 'w-5 h-5')}
+                </span>
+                <span>{opt.label}</span>
+              </button>
+            );
+          })}
+
+          <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-teal-200">
+            <span className="text-xs font-bold text-teal-900">Boyut:</span>
+            {(Object.keys(STAMP_SIZE_RATIOS) as StampSizeKey[]).map((sizeKey) => {
+              const isSelected = stampSizeKey === sizeKey;
+              return (
+                <button
+                  key={sizeKey}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => onSelectStampSize(sizeKey)}
+                  className={`min-h-[38px] px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-teal-600 text-white border-teal-700 shadow-xs'
+                      : 'bg-white text-slate-700 border-teal-200 hover:bg-teal-100/70'
+                  }`}
+                >
+                  {STAMP_SIZE_RATIOS[sizeKey].label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Aktif Mod İndikatörü ve Belge Durum Şeridi */}
       <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
         {/* Sol: Net Aktif Mod İndikatörü */}
@@ -592,16 +837,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border font-bold shadow-2xs transition-colors ${activeModeInfo.badgeBg}`}
           >
             <span className={`w-2.5 h-2.5 rounded-full ${activeModeInfo.dotColor} shrink-0`} />
-            {renderActiveModeIcon(toolMode, 'w-4 h-4 shrink-0')}
-            <span>Aktif Mod: {activeModeInfo.fullLabel}</span>
-            {(toolMode === 'pen' || toolMode === 'text') && (
+            <span style={toolMode === 'stamp' ? { color: activeColor } : undefined}>
+              {renderActiveModeIcon(toolMode, 'w-4 h-4 shrink-0')}
+            </span>
+            <span>
+              Aktif Mod:{' '}
+              {toolMode === 'shape'
+                ? `${activeModeInfo.fullLabel} (${activeShapeMeta.label})`
+                : toolMode === 'stamp'
+                  ? `${activeModeInfo.fullLabel} (${activeStampMeta.label})`
+                  : activeModeInfo.fullLabel}
+            </span>
+            {(toolMode === 'pen' ||
+              toolMode === 'text' ||
+              toolMode === 'shape' ||
+              toolMode === 'stamp') && (
               <span className="inline-flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/25 font-semibold">
                 <span
                   className="w-3 h-3 rounded-full border border-black/20 inline-block"
                   style={{ backgroundColor: activeColor }}
                 />
                 <span>{activeColorLabel}</span>
-                {toolMode === 'pen' && <span>· {PEN_WIDTH_RATIOS[penWidthKey].label}</span>}
+                {(toolMode === 'pen' || toolMode === 'shape') && (
+                  <span>· {PEN_WIDTH_RATIOS[penWidthKey].label}</span>
+                )}
+                {toolMode === 'stamp' && <span>· {STAMP_SIZE_RATIOS[stampSizeKey].label}</span>}
+                {toolMode === 'shape' && activeShapeMeta.closable && (
+                  <span>· {activeShapeFilled ? 'Dolgulu' : 'Çerçeve'}</span>
+                )}
                 {toolMode === 'text' && (
                   <span>
                     · {FONT_SIZE_RATIOS[fontSizeKey].label}

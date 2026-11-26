@@ -1,6 +1,23 @@
 // PDF görüntüleyici, not editörü ve düzenlenebilir kayıt biçimi için veri tipleri ve sabitler
 
-export type ToolMode = 'select' | 'text' | 'pen' | 'eraser';
+export type ToolMode = 'select' | 'text' | 'pen' | 'shape' | 'stamp' | 'eraser';
+
+export type ShapeType =
+  | 'line'
+  | 'arrow'
+  | 'rectangle'
+  | 'ellipse'
+  | 'triangle'
+  | 'right-triangle'
+  | 'check'
+  | 'cross'
+  | 'star'
+  | 'question'
+  | 'exclamation'
+  | 'heart';
+
+export type StampType = 'check' | 'cross' | 'star' | 'question' | 'exclamation' | 'heart';
+export type StampSizeKey = 'small' | 'medium' | 'large';
 
 export type FontSizeKey = 'small' | 'medium' | 'large';
 export type PenWidthKey = 'thin' | 'medium' | 'thick';
@@ -33,9 +50,26 @@ export interface StrokeAnnotation {
   widthRatio: number;
 }
 
+export interface ShapeAnnotation {
+  id: string;
+  shapeType: ShapeType;
+  /** Başlangıç noktası (0-1 normalize) */
+  x1: number;
+  y1: number;
+  /** Bitiş noktası (0-1 normalize) */
+  x2: number;
+  y2: number;
+  color: string;
+  /** Sayfa genişliğine oranlı çizgi kalınlığı */
+  widthRatio: number;
+  /** Kapalı şekillerde yarı saydam dolgu */
+  filled?: boolean;
+}
+
 export interface PageAnnotations {
   texts: TextAnnotation[];
   strokes: StrokeAnnotation[];
+  shapes: ShapeAnnotation[];
 }
 
 /** Sayfa numarası (1 tabanlı) -> sayfa not katmanı eşlemesi */
@@ -48,9 +82,9 @@ export interface EmbeddedNotesPayload {
   sayfalar: Record<string, PageAnnotations>;
 }
 
-/** Seçili nesne (Seç aracında metin veya çizim seçimi) */
+/** Seçili nesne (Seç aracında metin, çizim veya geometrik şekil seçimi) */
 export interface SelectedObject {
-  type: 'text' | 'stroke';
+  type: 'text' | 'stroke' | 'shape';
   pageNumber: number;
   id: string;
 }
@@ -116,6 +150,51 @@ export const PEN_WIDTH_RATIOS: Record<PenWidthKey, { label: string; ratio: numbe
   medium: { label: 'Orta', ratio: 0.0052 },
   thick: { label: 'Kalın', ratio: 0.0092 },
 };
+
+/** Geometrik şekil seçenekleri */
+export const SHAPE_OPTIONS: { type: ShapeType; label: string; closable: boolean }[] = [
+  { type: 'line', label: 'Çizgi', closable: false },
+  { type: 'arrow', label: 'Ok', closable: false },
+  { type: 'rectangle', label: 'Dikdörtgen', closable: true },
+  { type: 'ellipse', label: 'Çember / Elips', closable: true },
+  { type: 'triangle', label: 'Üçgen', closable: true },
+  { type: 'right-triangle', label: 'Dik Üçgen', closable: true },
+];
+
+/** Hızlı değerlendirme ve işaretleme sembolleri (damgalar) */
+export const STAMP_OPTIONS: {
+  type: StampType;
+  label: string;
+  defaultColor: string;
+  filled: boolean;
+}[] = [
+  { type: 'check', label: 'Yeşil Tik', defaultColor: '#16a34a', filled: false },
+  { type: 'cross', label: 'Kırmızı Çarpı', defaultColor: '#dc2626', filled: false },
+  { type: 'star', label: 'Yıldız', defaultColor: '#eab308', filled: true },
+  { type: 'question', label: 'Soru İşareti', defaultColor: '#2563eb', filled: false },
+  { type: 'exclamation', label: 'Ünlem', defaultColor: '#ea580c', filled: false },
+  { type: 'heart', label: 'Kalp', defaultColor: '#e11d48', filled: true },
+];
+
+/** Sayfa genişliğine oranlı tek tık sembol boyutları */
+export const STAMP_SIZE_RATIOS: Record<StampSizeKey, { label: string; ratio: number }> = {
+  small: { label: 'Küçük', ratio: 0.045 },
+  medium: { label: 'Orta', ratio: 0.072 },
+  large: { label: 'Büyük', ratio: 0.11 },
+};
+
+const STAMP_TYPE_SET = new Set<ShapeType>([
+  'check',
+  'cross',
+  'star',
+  'question',
+  'exclamation',
+  'heart',
+]);
+
+export function isStampShapeType(type: ShapeType): type is StampType {
+  return STAMP_TYPE_SET.has(type);
+}
 
 /** Düzenlenebilir PDF kayıt ekleri sabitleri */
 export const EMBEDDED_ORIGINAL_FILENAME = 'orijinal.pdf';
