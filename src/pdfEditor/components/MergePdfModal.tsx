@@ -29,6 +29,8 @@ export interface MergePdfModalProps {
   isMerging: boolean;
   onClose: () => void;
   onConfirmMerge: (entries: MergeSourceEntry[]) => Promise<void>;
+  onBeforeFileDialog?: () => void;
+  onAfterFileDialog?: () => void;
 }
 
 function createMergeId(): string {
@@ -51,6 +53,8 @@ export const MergePdfModal: React.FC<MergePdfModalProps> = ({
   isMerging,
   onClose,
   onConfirmMerge,
+  onBeforeFileDialog,
+  onAfterFileDialog,
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [entries, setEntries] = useState<MergeSourceEntry[]>([]);
@@ -202,6 +206,7 @@ export const MergePdfModal: React.FC<MergePdfModalProps> = ({
             multiple
             className="hidden"
             onChange={(e) => {
+              onAfterFileDialog?.();
               if (e.target.files && e.target.files.length > 0) {
                 void appendPdfFiles(e.target.files);
               }
@@ -239,7 +244,10 @@ export const MergePdfModal: React.FC<MergePdfModalProps> = ({
               <button
                 type="button"
                 disabled={isReadingFiles || isMerging}
-                onClick={() => inputRef.current?.click()}
+                onClick={() => {
+                  onBeforeFileDialog?.();
+                  inputRef.current?.click();
+                }}
                 className="min-h-[42px] px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 <FolderOpenIcon className="w-4 h-4" />

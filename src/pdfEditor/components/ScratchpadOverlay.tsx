@@ -1,5 +1,5 @@
 // PDF üzerinde tek tıkla açılıp kapanabilen etkileşimli Boş / Kareli sayfa katmanı (çevrimdışı)
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   isStampShapeType,
   type PageAnnotations,
@@ -16,7 +16,7 @@ import {
   type ToolMode,
 } from '../types/pdf';
 import {
-  appendSmoothedPoint,
+  appendSmoothedPointInPlace,
   buildSmoothSvgPath,
   constrainShapeEndPoint,
   getArrowHeadNormPoints,
@@ -155,6 +155,7 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
 }) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const liveStrokePathRef = useRef<SVGPathElement | null>(null);
   const [boardSize, setBoardSize] = useState<{ width: number; height: number }>({
     width: 1000,
     height: 700,
@@ -165,8 +166,13 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
   const [draggingShape, setDraggingShape] = useState<DraggingShapeState | null>(null);
   const draggingShapeRef = useRef<DraggingShapeState | null>(null);
 
-  const [draftStroke, setDraftStroke] = useState<StrokeAnnotation | null>(null);
-  const draftStrokeRef = useRef<StrokeAnnotation | null>(null);
+  // Akıllı tahtada avuç içi / ikinci dokunuşun çizimi kesmemesi için aktif işaretçi kilidi
+  const activePointerIdRef = useRef<number | null>(null);
+  const activeRectRef = useRef<DOMRect | null>(null);
+
+  const liveStrokeMetaRef = useRef<{ id: string; color: string; widthRatio: number } | null>(null);
+  const liveStrokePointsRef = useRef<StrokePoint[]>([]);
+  const liveRafRef = useRef<number | null>(null);
   const lastRawPenPointRef = useRef<StrokePoint | null>(null);
   const isDrawingRef = useRef<boolean>(false);
 
@@ -216,8 +222,47 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     }
   }, [editingText?.id, editingText?.x, editingText?.y]);
 
-  const getNormalizedPoint = (clientX: number, clientY: number): StrokePoint => {
-    const rect = boardRef.current?.getBoundingClientRect();
+  useEffect(() => {
+    return () => {
+      if (liveRafRef.current !== null) {
+        window.cancelAnimationFrame(liveRafRef.current);
+        liveRafRef.current = null;
+      }
+    };
+  }, []);
+
+  const flushLiveStrokePath = () => {
+    liveRafRef.current = null;
+    const pathEl = liveStrokePathRef.current;
+    const pts = liveStrokePointsRef.current;
+    if (!pathEl || pts.length === 0) return;
+    pathEl.setAttribute('d', buildSmoothSvgPath(pts, boardWidthPx, boardHeightPx));
+  };
+
+  const scheduleLiveStrokeRender = () => {
+    if (liveRafRef.current !== null) return;
+    liveRafRef.current = window.requestAnimationFrame(flushLiveStrokePath);
+  };
+
+  const clearLiveStrokePath = () => {
+    if (liveRafRef.current !== null) {
+      window.cancelAnimationFrame(liveRafRef.current);
+      liveRafRef.current = null;
+    }
+    const pathEl = liveStrokePathRef.current;
+    if (pathEl) {
+      pathEl.setAttribute('visibility', 'hidden');
+      pathEl.setAttribute('d', '');
+    }
+  };
+
+  const getNormalizedPoint = (
+    clientX: number,
+    clientY: number,
+    useCachedRect = false,
+  ): StrokePoint => {
+    const rect =
+      (useCachedRect ? activeRectRef.current : null) ?? boardRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
     const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
@@ -271,12 +316,20 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
   const handleOverlayPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
+    // Zaten aktif bir kalem/şekil/silgi/sürükleme dokunuşu varsa avuç içi / ikinci dokunuşu yoksay
+    if (activePointerIdRef.current !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     if (editingText) {
       commitEditingText();
       return;
     }
 
-    const pt = getNormalizedPoint(e.clientX, e.clientY);
+    activeRectRef.current = boardRef.current?.getBoundingClientRect() ?? null;
+    const pt = getNormalizedPoint(e.clientX, e.clientY, true);
 
     if (toolMode === 'select') {
       const shapes = annotations.shapes || [];
@@ -285,6 +338,7 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
         if (isPointNearShape(pt, shape, boardWidthPx, boardHeightPx, 12)) {
           e.stopPropagation();
           onSelectObject({ type: 'shape', pageNumber: OVERLAY_PAGE_NUMBER, id: shape.id });
+          activePointerIdRef.current = e.pointerId;
           try {
             e.currentTarget.setPointerCapture(e.pointerId);
           } catch {
@@ -313,9 +367,11 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
         if (isPointNearStroke(pt, stroke, boardWidthPx, boardHeightPx, 12)) {
           e.stopPropagation();
           onSelectObject({ type: 'stroke', pageNumber: OVERLAY_PAGE_NUMBER, id: stroke.id });
+          activeRectRef.current = null;
           return;
         }
       }
+      activeRectRef.current = null;
       onSelectObject(null);
       return;
     }
@@ -323,6 +379,7 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     if (toolMode === 'text') {
       e.preventDefault();
       e.stopPropagation();
+      activeRectRef.current = null;
       onSelectObject(null);
       setEditingText({
         id: null,
@@ -339,7 +396,8 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     if (toolMode === 'pen') {
       e.preventDefault();
       e.stopPropagation();
-      onSelectObject(null);
+      if (selectedObject) onSelectObject(null);
+      activePointerIdRef.current = e.pointerId;
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {
@@ -347,21 +405,32 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
       }
       isDrawingRef.current = true;
       lastRawPenPointRef.current = pt;
-      const newStroke: StrokeAnnotation = {
+      liveStrokeMetaRef.current = {
         id: createId('ovl-str'),
-        points: [pt],
         color: activeColor,
         widthRatio: activePenWidthRatio,
       };
-      draftStrokeRef.current = newStroke;
-      setDraftStroke(newStroke);
+      liveStrokePointsRef.current = [pt];
+
+      const pathEl = liveStrokePathRef.current;
+      if (pathEl) {
+        const strokePx = Math.max(
+          1.2,
+          activePenWidthRatio * Math.min(boardWidthPx, boardHeightPx * 1.15),
+        );
+        pathEl.setAttribute('stroke', activeColor);
+        pathEl.setAttribute('stroke-width', String(strokePx));
+        pathEl.setAttribute('d', buildSmoothSvgPath(liveStrokePointsRef.current, boardWidthPx, boardHeightPx));
+        pathEl.setAttribute('visibility', 'visible');
+      }
       return;
     }
 
     if (toolMode === 'shape') {
       e.preventDefault();
       e.stopPropagation();
-      onSelectObject(null);
+      if (selectedObject) onSelectObject(null);
+      activePointerIdRef.current = e.pointerId;
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {
@@ -391,7 +460,8 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     if (toolMode === 'stamp') {
       e.preventDefault();
       e.stopPropagation();
-      onSelectObject(null);
+      if (selectedObject) onSelectObject(null);
+      activePointerIdRef.current = e.pointerId;
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {
@@ -424,7 +494,8 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     if (toolMode === 'eraser') {
       e.preventDefault();
       e.stopPropagation();
-      onSelectObject(null);
+      if (selectedObject) onSelectObject(null);
+      activePointerIdRef.current = e.pointerId;
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {
@@ -437,6 +508,10 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
   };
 
   const handleOverlayPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointerIdRef.current === null || e.pointerId !== activePointerIdRef.current) {
+      return;
+    }
+
     if (draggingShapeRef.current) {
       const ds = draggingShapeRef.current;
       const dxPx = e.clientX - ds.startPointerX;
@@ -458,26 +533,34 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
       return;
     }
 
-    if (isDrawingRef.current && draftStrokeRef.current) {
+    if (isDrawingRef.current && liveStrokeMetaRef.current) {
       e.preventDefault();
-      const pt = getNormalizedPoint(e.clientX, e.clientY);
-      lastRawPenPointRef.current = pt;
-      const nextPoints = appendSmoothedPoint(
-        draftStrokeRef.current.points,
-        pt,
-        activeStrokeSmoothing,
-      );
-      if (nextPoints !== draftStrokeRef.current.points) {
-        const updated = { ...draftStrokeRef.current, points: nextPoints };
-        draftStrokeRef.current = updated;
-        setDraftStroke(updated);
+      const nativeEvt = e.nativeEvent;
+      const coalesced =
+        typeof nativeEvt.getCoalescedEvents === 'function'
+          ? nativeEvt.getCoalescedEvents()
+          : null;
+      const samples = coalesced && coalesced.length > 0 ? coalesced : [nativeEvt];
+
+      let addedAny = false;
+      for (let i = 0; i < samples.length; i++) {
+        const sample = samples[i];
+        const pt = getNormalizedPoint(sample.clientX, sample.clientY, true);
+        lastRawPenPointRef.current = pt;
+        if (appendSmoothedPointInPlace(liveStrokePointsRef.current, pt, activeStrokeSmoothing)) {
+          addedAny = true;
+        }
+      }
+
+      if (addedAny) {
+        scheduleLiveStrokeRender();
       }
       return;
     }
 
     if (isDrawingShapeRef.current && draftShapeRef.current) {
       e.preventDefault();
-      const rawPt = getNormalizedPoint(e.clientX, e.clientY);
+      const rawPt = getNormalizedPoint(e.clientX, e.clientY, true);
       const constrained = constrainShapeEndPoint(
         draftShapeRef.current.shapeType,
         { x: draftShapeRef.current.x1, y: draftShapeRef.current.y1 },
@@ -498,7 +581,7 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
 
     if (isPlacingStampRef.current && stampOriginRef.current && draftShapeRef.current) {
       e.preventDefault();
-      const rawPt = getNormalizedPoint(e.clientX, e.clientY);
+      const rawPt = getNormalizedPoint(e.clientX, e.clientY, true);
       const origin = stampOriginRef.current;
       const distPx = Math.hypot(
         (rawPt.x - origin.pt.x) * boardWidthPx,
@@ -529,8 +612,16 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
 
     if (isErasingRef.current) {
       e.preventDefault();
-      const pt = getNormalizedPoint(e.clientX, e.clientY);
-      eraseAtPoint(pt);
+      const nativeEvt = e.nativeEvent;
+      const coalesced =
+        typeof nativeEvt.getCoalescedEvents === 'function'
+          ? nativeEvt.getCoalescedEvents()
+          : null;
+      const samples = coalesced && coalesced.length > 0 ? coalesced : [nativeEvt];
+      for (let i = 0; i < samples.length; i++) {
+        const pt = getNormalizedPoint(samples[i].clientX, samples[i].clientY, true);
+        eraseAtPoint(pt);
+      }
       if (
         erasedInGestureRef.current.texts.size > 0 ||
         erasedInGestureRef.current.strokes.size > 0 ||
@@ -546,17 +637,24 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
   };
 
   const finishOverlayPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointerIdRef.current === null || e.pointerId !== activePointerIdRef.current) {
+      return;
+    }
+    activePointerIdRef.current = null;
+    activeRectRef.current = null;
+
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Yoksay
+    }
+
     if (draggingShapeRef.current) {
       const finished = draggingShapeRef.current;
       draggingShapeRef.current = null;
       setDraggingShape(null);
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Yoksay
-      }
       if (finished.moved) {
         onUpdateShape(
           OVERLAY_PAGE_NUMBER,
@@ -575,24 +673,21 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
 
     if (isDrawingRef.current) {
       isDrawingRef.current = false;
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Yoksay
-      }
-      const finalized = draftStrokeRef.current;
+      clearLiveStrokePath();
+
+      const strokeMeta = liveStrokeMetaRef.current;
+      const rawPoints = liveStrokePointsRef.current;
       const lastRawPt = lastRawPenPointRef.current;
-      draftStrokeRef.current = null;
+      liveStrokeMetaRef.current = null;
+      liveStrokePointsRef.current = [];
       lastRawPenPointRef.current = null;
-      setDraftStroke(null);
-      if (finalized && finalized.points.length > 0) {
-        let pts = finalized.points;
+
+      if (strokeMeta && rawPoints.length > 0) {
+        const pts = rawPoints.slice();
         if (lastRawPt && pts.length >= 2) {
           const tail = pts[pts.length - 1];
-          if (Math.hypot(lastRawPt.x - tail.x, lastRawPt.y - tail.y) > 0.0015) {
-            pts = [...pts, lastRawPt];
+          if (Math.hypot(lastRawPt.x - tail.x, lastRawPt.y - tail.y) > 0.0012) {
+            pts.push(lastRawPt);
           }
         }
         const smoothedPoints = smoothCompletedStroke(
@@ -601,20 +696,18 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
           boardWidthPx,
           boardHeightPx,
         );
-        onAddStroke(OVERLAY_PAGE_NUMBER, { ...finalized, points: smoothedPoints });
+        onAddStroke(OVERLAY_PAGE_NUMBER, {
+          id: strokeMeta.id,
+          color: strokeMeta.color,
+          widthRatio: strokeMeta.widthRatio,
+          points: smoothedPoints,
+        });
       }
       return;
     }
 
     if (isDrawingShapeRef.current) {
       isDrawingShapeRef.current = false;
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Yoksay
-      }
       const finalized = draftShapeRef.current;
       draftShapeRef.current = null;
       setDraftShape(null);
@@ -633,13 +726,6 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     if (isPlacingStampRef.current) {
       isPlacingStampRef.current = false;
       stampOriginRef.current = null;
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Yoksay
-      }
       const finalized = draftShapeRef.current;
       draftShapeRef.current = null;
       setDraftShape(null);
@@ -651,13 +737,6 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
 
     if (isErasingRef.current) {
       isErasingRef.current = false;
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Yoksay
-      }
       const textIds = Array.from(erasedInGestureRef.current.texts);
       const strokeIds = Array.from(erasedInGestureRef.current.strokes);
       const shapeIds = Array.from(erasedInGestureRef.current.shapes);
@@ -947,6 +1026,48 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
     );
   };
 
+  const selectedStrokeId =
+    selectedObject?.type === 'stroke' && selectedObject.pageNumber === OVERLAY_PAGE_NUMBER
+      ? selectedObject.id
+      : null;
+
+  const committedStrokesSvg = useMemo(
+    () =>
+      annotations.strokes.map((stroke) => {
+        const pathD = buildSmoothSvgPath(stroke.points, boardWidthPx, boardHeightPx);
+        const strokePx = Math.max(
+          1.2,
+          stroke.widthRatio * Math.min(boardWidthPx, boardHeightPx * 1.15),
+        );
+        const isSelectedStroke = selectedStrokeId === stroke.id;
+
+        return (
+          <g key={stroke.id}>
+            {isSelectedStroke && (
+              <path
+                d={pathD}
+                fill="none"
+                stroke="#3b82f6"
+                strokeOpacity={0.35}
+                strokeWidth={strokePx + 8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
+            <path
+              d={pathD}
+              fill="none"
+              stroke={stroke.color}
+              strokeWidth={strokePx}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        );
+      }),
+    [annotations.strokes, boardWidthPx, boardHeightPx, selectedStrokeId],
+  );
+
   return (
     <div
       role="region"
@@ -1003,8 +1124,16 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
           onPointerMove={handleOverlayPointerMove}
           onPointerUp={finishOverlayPointer}
           onPointerCancel={finishOverlayPointer}
+          onLostPointerCapture={finishOverlayPointer}
+          onContextMenu={(e) => {
+            if (!editingText) e.preventDefault();
+          }}
           className={`absolute inset-0 ${overlayCursorClass}`}
-          style={{ touchAction: 'none' }}
+          style={{
+            touchAction: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+          }}
         >
           <svg
             width={boardWidthPx}
@@ -1012,41 +1141,7 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
             viewBox={`0 0 ${boardWidthPx} ${boardHeightPx}`}
             className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
           >
-            {annotations.strokes.map((stroke) => {
-              const pathD = buildSmoothSvgPath(stroke.points, boardWidthPx, boardHeightPx);
-              const strokePx = Math.max(
-                1.2,
-                stroke.widthRatio * Math.min(boardWidthPx, boardHeightPx * 1.15),
-              );
-              const isSelectedStroke =
-                selectedObject?.type === 'stroke' &&
-                selectedObject.pageNumber === OVERLAY_PAGE_NUMBER &&
-                selectedObject.id === stroke.id;
-
-              return (
-                <g key={stroke.id}>
-                  {isSelectedStroke && (
-                    <path
-                      d={pathD}
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeOpacity={0.35}
-                      strokeWidth={strokePx + 8}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  )}
-                  <path
-                    d={pathD}
-                    fill="none"
-                    stroke={stroke.color}
-                    strokeWidth={strokePx}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-              );
-            })}
+            {committedStrokesSvg}
 
             {(annotations.shapes || []).map((shape) => {
               const isSelectedShape =
@@ -1056,19 +1151,13 @@ export const ScratchpadOverlay: React.FC<ScratchpadOverlayProps> = ({
               return renderSvgShape(shape, isSelectedShape, false);
             })}
 
-            {draftStroke && (
-              <path
-                d={buildSmoothSvgPath(draftStroke.points, boardWidthPx, boardHeightPx)}
-                fill="none"
-                stroke={draftStroke.color}
-                strokeWidth={Math.max(
-                  1.2,
-                  draftStroke.widthRatio * Math.min(boardWidthPx, boardHeightPx * 1.15),
-                )}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
+            <path
+              ref={liveStrokePathRef}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              visibility="hidden"
+            />
 
             {draftShape && renderSvgShape(draftShape, false, true)}
           </svg>

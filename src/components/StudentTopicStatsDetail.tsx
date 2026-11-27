@@ -181,10 +181,10 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
                 ? 'bg-cyan-500 text-slate-950 border-cyan-300'
                 : 'bg-cyan-950/70 hover:bg-cyan-900 border-cyan-500/40 text-cyan-200'
             }`}
-            title={`${student.name} için zaman içindeki başarı ve gelişim grafiğini aç (recharts)`}
+            title={`${student.name} için haftalık ve aylık başarı ivmesi çizgi grafiğini aç`}
           >
             <TrendingUp size={12} className={showPerformanceChart ? 'text-slate-950' : 'text-cyan-300'} />
-            <span>{showPerformanceChart ? 'Grafiği Gizle' : 'Gelişim Grafiği'}</span>
+            <span>{showPerformanceChart ? 'Grafiği Gizle' : 'Başarı İvmesi'}</span>
           </button>
 
           <button
@@ -235,13 +235,15 @@ export const StudentTopicStatsDetail: React.FC<StudentTopicStatsDetailProps> = (
         </div>
       </div>
 
-      {/* 1.5. ZAMAN İÇİNDEKİ GELİŞİM GRAFİĞİ (RECHARTS) */}
+      {/* 1.5. ZAMAN İÇİNDEKİ BAŞARI İVMESİ GRAFİĞİ */}
       {showPerformanceChart && (
         <div className="pt-2 animate-in fade-in duration-200">
           <StudentPerformanceChart
             students={[student]}
             initialSelectedStudentIds={[student.id]}
             initialGrade={student.grade}
+            singleStudentMode
+            compact
             onClose={() => setShowPerformanceChart(false)}
           />
         </div>

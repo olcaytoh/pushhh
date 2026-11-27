@@ -524,6 +524,49 @@ export function appendSmoothedPoint(
 }
 
 /**
+ * Akıllı tahta / dokunmatik kalem için O(1) yerinde (in-place) nokta ekleme ve hafif EMA sabitleme.
+ * Her pointermove olayında dizi kopyalamadan yüksek frekanslı (coalesced) örnekleri işler.
+ */
+export function appendSmoothedPointInPlace(
+  points: StrokePoint[],
+  next: StrokePoint,
+  smoothing: StrokeSmoothingLevel = 'normal',
+): boolean {
+  if (points.length === 0) {
+    points.push(next);
+    return true;
+  }
+
+  const minNormDistance =
+    smoothing === 'off' ? 0.0009 : smoothing === 'high' ? 0.0022 : 0.0014;
+
+  const last = points[points.length - 1];
+  const rawDist = Math.hypot(next.x - last.x, next.y - last.y);
+  if (rawDist < minNormDistance) {
+    return false;
+  }
+
+  if (smoothing === 'off' || points.length === 1) {
+    points.push(next);
+    return true;
+  }
+
+  // Dokunmatik tahtada gecikme hissini önlemek için daha tepkisel EMA ağırlığı
+  const alpha = smoothing === 'high' ? 0.42 : 0.72;
+  const stabilized: StrokePoint = {
+    x: Math.max(0, Math.min(1, last.x + alpha * (next.x - last.x))),
+    y: Math.max(0, Math.min(1, last.y + alpha * (next.y - last.y))),
+  };
+
+  if (Math.hypot(stabilized.x - last.x, stabilized.y - last.y) < minNormDistance * 0.4) {
+    return false;
+  }
+
+  points.push(stabilized);
+  return true;
+}
+
+/**
  * Ramer-Douglas-Peucker (RDP) sadeleştirme: el titremesinden kaynaklanan gereksiz mikro noktaları
  * temizlerken gerçek şekil ve el yazısı köşelerini korur.
  */

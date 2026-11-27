@@ -1,10 +1,17 @@
 // Çevrimdışı PDF Görüntüleyici, Yazı ve Serbest Çizim Editörü (sıfır harici istek, düzenlenebilir PDF kayıt)
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
-import { BlankPageAddIcon, GridPageAddIcon, MergePdfIcon, PdfDocIcon } from './components/Icons';
+import {
+  BlankPageAddIcon,
+  FullscreenEnterIcon,
+  GridPageAddIcon,
+  MergePdfIcon,
+  PdfDocIcon,
+} from './components/Icons';
 import { LeftToolSidebar } from './components/LeftToolSidebar';
 import { MergePdfModal, type MergeSourceEntry } from './components/MergePdfModal';
 import { PdfPageItem } from './components/PdfPageItem';
+import { PdfPickerModal } from './components/PdfPickerModal';
 import { OVERLAY_PAGE_NUMBER, ScratchpadOverlay } from './components/ScratchpadOverlay';
 import { SettingsModal } from './components/SettingsModal';
 import { ThumbnailSidebar } from './components/ThumbnailSidebar';
@@ -51,6 +58,7 @@ import {
   insertCustomPageIntoPdf,
   mergePdfByteArrays,
 } from './utils/pdfExporter';
+import { listLibraryPdfs, listLinkedFolders, savePdfToLibrary } from './utils/pdfLibrary';
 import { ensurePdfWorkerConfigured } from './utils/pdfWorker';
 
 const EMPTY_PAGE_ANNOTATIONS: PageAnnotations = { texts: [], strokes: [], shapes: [] };
@@ -269,7 +277,17 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const [selectedObject, setSelectedObject] = useState<SelectedObject | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
 
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false;
+    const doc = document as Document & { webkitFullscreenElement?: Element | null };
+    return Boolean(document.fullscreenElement || doc.webkitFullscreenElement);
+  });
+  const [isPdfPickerOpen, setIsPdfPickerOpen] = useState<boolean>(false);
+  const hasLibraryItemsRef = useRef<boolean>(false);
+  const [needsFullscreenRestore, setNeedsFullscreenRestore] = useState<boolean>(false);
+  const pendingFullscreenRestoreRef = useRef<boolean>(false);
+  const restoringFullscreenRef = useRef<boolean>(false);
+  const fileDialogFocusCleanupRef = useRef<(() => void) | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>(null);
@@ -319,6 +337,15 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     loadDefaultLocalFonts().then((assets) => {
       if (active) setFontAssets(assets);
     });
+    Promise.all([listLibraryPdfs(), listLinkedFolders()])
+      .then(([pdfs, folders]) => {
+        if (active) {
+          hasLibraryItemsRef.current = pdfs.length > 0 || folders.length > 0;
+        }
+      })
+      .catch(() => {
+        // Yoksay
+      });
     return () => {
       active = false;
     };
@@ -328,6 +355,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     return () => {
       if (toastTimerRef.current) {
         window.clearTimeout(toastTimerRef.current);
+      }
+      if (fileDialogFocusCleanupRef.current) {
+        fileDialogFocusCleanupRef.current();
+        fileDialogFocusCleanupRef.current = null;
       }
       if (pdfDocRef.current) {
         try {
@@ -430,10 +461,104 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  const isDocumentFullscreen = useCallback((): boolean => {
+    const doc = document as Document & { webkitFullscreenElement?: Element | null };
+    return Boolean(document.fullscreenElement || doc.webkitFullscreenElement);
+  }, []);
+
+  const requestEditorFullscreen = useCallback(
+    async (silent = false): Promise<boolean> => {
+      try {
+        if (isDocumentFullscreen()) return true;
+        const target = (document.documentElement || appRootRef.current) as HTMLElement & {
+          webkitRequestFullscreen?: () => Promise<void> | void;
+        };
+        if (typeof target.requestFullscreen === 'function') {
+          await target.requestFullscreen();
+          return isDocumentFullscreen();
+        }
+        if (typeof target.webkitRequestFullscreen === 'function') {
+          await target.webkitRequestFullscreen();
+          return isDocumentFullscreen();
+        }
+        if (!silent) {
+          showToast(
+            'warning',
+            'Önizlemede tam ekran kısıtlı olabilir, uygulamayı yeni sekmede aç.',
+            5000,
+          );
+        }
+        return false;
+      } catch {
+        if (!silent) {
+          showToast(
+            'warning',
+            'Önizlemede tam ekran kısıtlı olabilir, uygulamayı yeni sekmede aç.',
+            5000,
+          );
+        }
+        return false;
+      }
+    },
+    [isDocumentFullscreen, showToast],
+  );
+
+  const attemptRestoreFullscreen = useCallback(async () => {
+    if (!pendingFullscreenRestoreRef.current) return;
+    if (isDocumentFullscreen()) {
+      pendingFullscreenRestoreRef.current = false;
+      setNeedsFullscreenRestore(false);
+      return;
+    }
+    if (restoringFullscreenRef.current) return;
+    restoringFullscreenRef.current = true;
+    try {
+      const restored = await requestEditorFullscreen(true);
+      if (restored || isDocumentFullscreen()) {
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+      } else if (pendingFullscreenRestoreRef.current) {
+        setNeedsFullscreenRestore(true);
+      }
+    } finally {
+      restoringFullscreenRef.current = false;
+    }
+  }, [isDocumentFullscreen, requestEditorFullscreen]);
+
+  const markFullscreenBeforeFileDialog = useCallback((watchWindowFocus = false) => {
+    if (!isDocumentFullscreen() && !pendingFullscreenRestoreRef.current) return;
+    pendingFullscreenRestoreRef.current = true;
+
+    if (watchWindowFocus) {
+      if (fileDialogFocusCleanupRef.current) {
+        fileDialogFocusCleanupRef.current();
+        fileDialogFocusCleanupRef.current = null;
+      }
+      const handleWindowFocus = () => {
+        window.removeEventListener('focus', handleWindowFocus);
+        fileDialogFocusCleanupRef.current = null;
+        window.setTimeout(() => {
+          void attemptRestoreFullscreen();
+        }, 120);
+      };
+      window.addEventListener('focus', handleWindowFocus);
+      fileDialogFocusCleanupRef.current = () => {
+        window.removeEventListener('focus', handleWindowFocus);
+      };
+    }
+  }, [attemptRestoreFullscreen, isDocumentFullscreen]);
+
   useEffect(() => {
     const syncFullscreen = () => {
-      const doc = document as Document & { webkitFullscreenElement?: Element | null };
-      setIsFullscreen(Boolean(document.fullscreenElement || doc.webkitFullscreenElement));
+      const active = isDocumentFullscreen();
+      setIsFullscreen(active);
+      if (active) {
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+      } else if (pendingFullscreenRestoreRef.current) {
+        // Sistem dosya penceresi tarayıcıyı tam ekrandan çıkardığında geri dönüş bilgisini hemen etkinleştir
+        setNeedsFullscreenRestore(true);
+      }
     };
     document.addEventListener('fullscreenchange', syncFullscreen);
     document.addEventListener('webkitfullscreenchange', syncFullscreen);
@@ -441,7 +566,50 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       document.removeEventListener('fullscreenchange', syncFullscreen);
       document.removeEventListener('webkitfullscreenchange', syncFullscreen);
     };
-  }, []);
+  }, [isDocumentFullscreen]);
+
+  // Modern tarayıcılarda <input type="file"> iptal edildiğinde (cancel) tam ekrana geri dönüşü dene
+  useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+    const handleNativeCancel = () => {
+      void attemptRestoreFullscreen();
+    };
+    input.addEventListener('cancel', handleNativeCancel);
+    return () => {
+      input.removeEventListener('cancel', handleNativeCancel);
+    };
+  }, [attemptRestoreFullscreen]);
+
+  // Dosya penceresi uzun süre açık kalırsa tarayıcı otomatik tam ekranı engelleyebilir;
+  // ilk ekrana dokunma/tıklama bırakıldığında tam ekrana kesintisiz geri dön
+  useEffect(() => {
+    if (!needsFullscreenRestore) return;
+
+    const handleGestureRestore = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-dismiss-fs-restore="true"]')) {
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+        return;
+      }
+      if (e instanceof KeyboardEvent && e.key === 'Escape') {
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+        return;
+      }
+      void attemptRestoreFullscreen();
+    };
+
+    window.addEventListener('pointerup', handleGestureRestore, { capture: true });
+    window.addEventListener('click', handleGestureRestore, { capture: true });
+    window.addEventListener('keydown', handleGestureRestore, { capture: true });
+    return () => {
+      window.removeEventListener('pointerup', handleGestureRestore, { capture: true });
+      window.removeEventListener('click', handleGestureRestore, { capture: true });
+      window.removeEventListener('keydown', handleGestureRestore, { capture: true });
+    };
+  }, [needsFullscreenRestore, attemptRestoreFullscreen]);
 
   const computeFitWidthZoom = useCallback((firstPageWidth: number): number => {
     const container = scrollContainerRef.current;
@@ -580,6 +748,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         }
         setOverlayBoardMode(null);
 
+        // Tam ekrandan çıkmadan tekrar açabilmek için PDF'i yerel çevrimdışı kütüphaneye kaydet
+        hasLibraryItemsRef.current = true;
+        void savePdfToLibrary(file.name, rawBytes, activeDoc.numPages, handle);
+
         if (openedBanner) {
           let finalMsg = openedBanner.msg;
           if (restoredPage > 1) {
@@ -623,17 +795,31 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     [computeFitWidthZoom, showToast],
   );
 
-  const handleOpenPdfClick = useCallback(async () => {
+  const handleOpenNativePdfPicker = useCallback(async () => {
+    markFullscreenBeforeFileDialog(false);
     const picker = await pickPdfWithFileSystemAccess();
     if (picker.status === 'opened' && picker.file) {
+      void attemptRestoreFullscreen();
       await loadPdfFile(picker.file, picker.handle || null);
+      void attemptRestoreFullscreen();
       return;
     }
     if (picker.status === 'cancelled') {
+      void attemptRestoreFullscreen();
       return;
     }
+    markFullscreenBeforeFileDialog(true);
     fileInputRef.current?.click();
-  }, [loadPdfFile]);
+  }, [attemptRestoreFullscreen, loadPdfFile, markFullscreenBeforeFileDialog]);
+
+  const handleOpenPdfClick = useCallback(() => {
+    // Tam ekrandayken veya kayıtlı PDF/klasör varken tam ekrandan çıkarmayan uygulama içi PDF seçiciyi aç
+    if (isDocumentFullscreen() || hasLibraryItemsRef.current) {
+      setIsPdfPickerOpen(true);
+      return;
+    }
+    void handleOpenNativePdfPicker();
+  }, [handleOpenNativePdfPicker, isDocumentFullscreen]);
 
   // Mevcut sayfadan hemen sonra (veya belge açık değilse yeni belge olarak) Boş / Kareli sayfa ekle
   const handleInsertPage = useCallback(
@@ -1524,6 +1710,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     const cleanBytes = cleanOriginalBytesRef.current;
     if (!cleanBytes || isExporting) return;
 
+    markFullscreenBeforeFileDialog(false);
     setIsExporting(true);
     try {
       const savedPage = currentPageRef.current;
@@ -1534,6 +1721,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
       const suggested = buildSuggestedName(fileName || 'belge.pdf', '-notlu');
       const saveRes = await savePdfBytesAs(result.bytes, suggested);
+      void attemptRestoreFullscreen();
 
       if (saveRes.status === 'cancelled') {
         return;
@@ -1563,12 +1751,22 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     } finally {
       setIsExporting(false);
     }
-  }, [fileName, fontAssets, isExporting, notifyCanvasFallbackOnce, pagesMeta.length, showToast]);
+  }, [
+    attemptRestoreFullscreen,
+    fileName,
+    fontAssets,
+    isExporting,
+    markFullscreenBeforeFileDialog,
+    notifyCanvasFallbackOnce,
+    pagesMeta.length,
+    showToast,
+  ]);
 
   const handleExportFlatPdf = useCallback(async () => {
     const cleanBytes = cleanOriginalBytesRef.current;
     if (!cleanBytes || isExporting) return;
 
+    markFullscreenBeforeFileDialog(false);
     setIsExporting(true);
     try {
       const savedPage = currentPageRef.current;
@@ -1577,6 +1775,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       });
 
       const saveRes = await savePdfBytesAs(result.bytes, 'duzenlenmis_dosya.pdf');
+      void attemptRestoreFullscreen();
 
       if (saveRes.status === 'cancelled') {
         return;
@@ -1591,7 +1790,15 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     } finally {
       setIsExporting(false);
     }
-  }, [fontAssets, isExporting, notifyCanvasFallbackOnce, pagesMeta.length, showToast]);
+  }, [
+    attemptRestoreFullscreen,
+    fontAssets,
+    isExporting,
+    markFullscreenBeforeFileDialog,
+    notifyCanvasFallbackOnce,
+    pagesMeta.length,
+    showToast,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1759,30 +1966,22 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const handleToggleFullscreen = useCallback(async () => {
     try {
       const doc = document as Document & {
-        webkitFullscreenElement?: Element | null;
         webkitExitFullscreen?: () => Promise<void> | void;
       };
-      const isCurrentlyFs = Boolean(document.fullscreenElement || doc.webkitFullscreenElement);
+      const isCurrentlyFs = isDocumentFullscreen();
 
       if (!isCurrentlyFs) {
-        const target = (appRootRef.current || document.documentElement) as HTMLElement & {
-          webkitRequestFullscreen?: () => Promise<void> | void;
-        };
-        if (typeof target.requestFullscreen === 'function') {
-          await target.requestFullscreen();
-        } else if (typeof target.webkitRequestFullscreen === 'function') {
-          await target.webkitRequestFullscreen();
-        } else {
-          showToast(
-            'warning',
-            'Önizlemede tam ekran kısıtlı olabilir, uygulamayı yeni sekmede aç.',
-            5000,
-          );
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+        await requestEditorFullscreen(false);
+      } else {
+        pendingFullscreenRestoreRef.current = false;
+        setNeedsFullscreenRestore(false);
+        if (typeof document.exitFullscreen === 'function') {
+          await document.exitFullscreen();
+        } else if (typeof doc.webkitExitFullscreen === 'function') {
+          await doc.webkitExitFullscreen();
         }
-      } else if (typeof document.exitFullscreen === 'function') {
-        await document.exitFullscreen();
-      } else if (typeof doc.webkitExitFullscreen === 'function') {
-        await doc.webkitExitFullscreen();
       }
     } catch {
       showToast(
@@ -1791,7 +1990,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         5000,
       );
     }
-  }, [showToast]);
+  }, [isDocumentFullscreen, requestEditorFullscreen, showToast]);
 
   const handleSelectFontFile = useCallback(
     async (weight: 'regular' | 'bold', file: File) => {
@@ -1913,7 +2112,12 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) void loadPdfFile(file, null);
+          void attemptRestoreFullscreen();
+          if (file) {
+            void loadPdfFile(file, null).then(() => {
+              void attemptRestoreFullscreen();
+            });
+          }
           e.target.value = '';
         }}
       />
@@ -2032,7 +2236,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           <main
             ref={scrollContainerRef}
             onScroll={handleWorkspaceScroll}
-            className="flex-1 overflow-auto workspace-scroll relative px-4 py-6"
+            className="flex-1 overflow-auto overscroll-contain workspace-scroll relative px-4 py-6"
           >
         {isLoadingPdf && (
           <div className="fixed inset-0 z-40 bg-slate-900/30 flex items-center justify-center">
@@ -2130,7 +2334,9 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
                 activeStampType={activeStampType}
                 activeStampSizeRatio={STAMP_SIZE_RATIOS[stampSizeKey].ratio}
                 annotations={annotations[meta.pageNumber] || EMPTY_PAGE_ANNOTATIONS}
-                selectedObject={selectedObject}
+                selectedObject={
+                  selectedObject?.pageNumber === meta.pageNumber ? selectedObject : null
+                }
                 onSelectObject={handleSelectObject}
                 onAddText={handleAddText}
                 onUpdateText={handleUpdateText}
@@ -2194,6 +2400,31 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           <div className="bg-white rounded-2xl shadow-2xl px-8 py-5 text-blue-700 font-bold text-lg">
             Açmak için PDF dosyasını buraya bırakın
           </div>
+        </div>
+      )}
+
+      {needsFullscreenRestore && !isFullscreen && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 bg-slate-900/95 text-white px-3.5 py-2 rounded-xl shadow-2xl border border-slate-700">
+          <button
+            type="button"
+            onClick={() => void attemptRestoreFullscreen()}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white hover:text-sky-200 cursor-pointer"
+          >
+            <FullscreenEnterIcon className="w-4 h-4 text-sky-400" />
+            <span>Tam Ekrana Dön</span>
+          </button>
+          <button
+            type="button"
+            data-dismiss-fs-restore="true"
+            onClick={() => {
+              pendingFullscreenRestoreRef.current = false;
+              setNeedsFullscreenRestore(false);
+            }}
+            aria-label="Kapat"
+            className="ml-1.5 w-6 h-6 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 inline-flex items-center justify-center text-xs font-bold cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -2386,6 +2617,18 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         isMerging={isMergingPdfs}
         onClose={() => setIsMergeModalOpen(false)}
         onConfirmMerge={handleConfirmMerge}
+        onBeforeFileDialog={() => markFullscreenBeforeFileDialog(true)}
+        onAfterFileDialog={() => void attemptRestoreFullscreen()}
+      />
+
+      <PdfPickerModal
+        isOpen={isPdfPickerOpen}
+        isFullscreen={isFullscreen}
+        onClose={() => setIsPdfPickerOpen(false)}
+        onOpenLoadedFile={loadPdfFile}
+        onOpenNativePicker={() => void handleOpenNativePdfPicker()}
+        onBeforeNativeDialog={() => markFullscreenBeforeFileDialog(false)}
+        onAfterNativeDialog={() => void attemptRestoreFullscreen()}
       />
     </div>
   );

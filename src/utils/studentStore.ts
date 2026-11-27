@@ -1,4 +1,84 @@
-import { Student, AvatarOption } from '../types/student';
+import { Student, AvatarOption, StudentDailyRecord } from '../types/student';
+
+function getLocalDateKey(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function mergeDailyHistory(
+  a?: Record<string, StudentDailyRecord>,
+  b?: Record<string, StudentDailyRecord>
+): Record<string, StudentDailyRecord> | undefined {
+  if (!a && !b) return undefined;
+  const merged: Record<string, StudentDailyRecord> = {};
+  const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+  keys.forEach((dayKey) => {
+    const recA = a?.[dayKey];
+    const recB = b?.[dayKey];
+    if (!recA && recB) {
+      merged[dayKey] = {
+        correct: recB.correct || 0,
+        wrong: recB.wrong || 0,
+        ...(recB.topics ? { topics: { ...recB.topics } } : {})
+      };
+    } else if (recA && !recB) {
+      merged[dayKey] = {
+        correct: recA.correct || 0,
+        wrong: recA.wrong || 0,
+        ...(recA.topics ? { topics: { ...recA.topics } } : {})
+      };
+    } else if (recA && recB) {
+      const mergedTopics: Record<string, { correct: number; wrong: number }> = {};
+      const topicKeys = new Set([
+        ...Object.keys(recA.topics || {}),
+        ...Object.keys(recB.topics || {})
+      ]);
+      topicKeys.forEach((tk) => {
+        const ta = recA.topics?.[tk];
+        const tb = recB.topics?.[tk];
+        mergedTopics[tk] = {
+          correct: Math.max(ta?.correct || 0, tb?.correct || 0),
+          wrong: Math.max(ta?.wrong || 0, tb?.wrong || 0)
+        };
+      });
+      merged[dayKey] = {
+        correct: Math.max(recA.correct || 0, recB.correct || 0),
+        wrong: Math.max(recA.wrong || 0, recB.wrong || 0),
+        ...(topicKeys.size > 0 ? { topics: mergedTopics } : {})
+      };
+    }
+  });
+  return merged;
+}
+
+function removeTopicFromDailyHistory(
+  dailyHistory: Record<string, StudentDailyRecord> | undefined,
+  topicKey: string
+): Record<string, StudentDailyRecord> | undefined {
+  if (!dailyHistory) return undefined;
+  const next: Record<string, StudentDailyRecord> = {};
+  Object.entries(dailyHistory).forEach(([dayKey, rec]) => {
+    if (!rec.topics || !rec.topics[topicKey]) {
+      next[dayKey] = rec;
+      return;
+    }
+    const removed = rec.topics[topicKey];
+    const nextTopics = { ...rec.topics };
+    delete nextTopics[topicKey];
+    const nextCorrect = Math.max(0, (rec.correct || 0) - (removed.correct || 0));
+    const nextWrong = Math.max(0, (rec.wrong || 0) - (removed.wrong || 0));
+    if (nextCorrect > 0 || nextWrong > 0 || Object.keys(nextTopics).length > 0) {
+      next[dayKey] = {
+        correct: nextCorrect,
+        wrong: nextWrong,
+        ...(Object.keys(nextTopics).length > 0 ? { topics: nextTopics } : {})
+      };
+    }
+  });
+  return next;
+}
 
 export const AVATAR_OPTIONS: AvatarOption[] = [
   { id: 'lion', emoji: '🦁', label: 'Cesur Aslan', bg: 'from-amber-500 to-yellow-600', border: 'border-amber-400' },
@@ -105,7 +185,8 @@ export function promoteStudentsGrade(
         totalWrong: resetStats ? 0 : (s.totalWrong || 0),
         gamesPlayed: resetStats ? 0 : (s.gamesPlayed || 0),
         gamesWon: resetStats ? 0 : (s.gamesWon || 0),
-        topicStats: resetStats ? {} : (s.topicStats || {})
+        topicStats: resetStats ? {} : (s.topicStats || {}),
+        dailyHistory: resetStats ? {} : s.dailyHistory
       };
     }
     return s;
@@ -490,6 +571,7 @@ export function deduplicateStudents(students: Student[] = [], userEmail?: string
         gamesPlayed: Math.max(existing.gamesPlayed || 0, s.gamesPlayed || 0),
         gamesWon: Math.max(existing.gamesWon || 0, s.gamesWon || 0),
         topicStats: mergedTopicStats,
+        dailyHistory: mergeDailyHistory(existing.dailyHistory, s.dailyHistory),
         createdAt: existing.createdAt || s.createdAt || new Date().toISOString()
       };
 
@@ -1065,8 +1147,12 @@ export function recordStudentAnswer(
   if (idx === -1) return students;
 
   const student = students[idx];
-  const now = new Date().toISOString();
+  const nowDate = new Date();
+  const now = nowDate.toISOString();
+  const todayKey = getLocalDateKey(nowDate);
   const currentTopicStat = student.topicStats?.[topicKey] || { correct: 0, wrong: 0 };
+  const prevDay = student.dailyHistory?.[todayKey] || { correct: 0, wrong: 0 };
+  const prevDayTopic = prevDay.topics?.[topicKey] || { correct: 0, wrong: 0 };
 
   const updatedStudent: Student = {
     ...student,
@@ -1078,6 +1164,20 @@ export function recordStudentAnswer(
         correct: (currentTopicStat.correct || 0) + (isCorrect ? 1 : 0),
         wrong: (currentTopicStat.wrong || 0) + (isCorrect ? 0 : 1),
         lastPlayed: now
+      }
+    },
+    dailyHistory: {
+      ...(student.dailyHistory || {}),
+      [todayKey]: {
+        correct: (prevDay.correct || 0) + (isCorrect ? 1 : 0),
+        wrong: (prevDay.wrong || 0) + (isCorrect ? 0 : 1),
+        topics: {
+          ...(prevDay.topics || {}),
+          [topicKey]: {
+            correct: (prevDayTopic.correct || 0) + (isCorrect ? 1 : 0),
+            wrong: (prevDayTopic.wrong || 0) + (isCorrect ? 0 : 1)
+          }
+        }
       }
     }
   };
@@ -1122,7 +1222,8 @@ export function resetAllStudentStats(userId?: string | null, userEmail?: string 
     totalWrong: 0,
     gamesPlayed: 0,
     gamesWon: 0,
-    topicStats: {}
+    topicStats: {},
+    dailyHistory: {}
   }));
   saveStudents(reset, uid);
 
@@ -1157,7 +1258,8 @@ export function resetGradeStudentStats(grade: number, userId?: string | null, us
         totalWrong: 0,
         gamesPlayed: 0,
         gamesWon: 0,
-        topicStats: {}
+        topicStats: {},
+        dailyHistory: {}
       };
     }
     return s;
@@ -1184,7 +1286,8 @@ export function resetSingleStudentStat(studentId: string): Student[] {
     totalWrong: 0,
     gamesPlayed: 0,
     gamesWon: 0,
-    topicStats: {}
+    topicStats: {},
+    dailyHistory: {}
   };
   saveStudents(students);
   return students;
@@ -1212,7 +1315,8 @@ export function resetSingleStudentTopicStat(studentId: string, topicKey: string)
     ...student,
     totalCorrect: Math.max(0, (student.totalCorrect || 0) - topicCorrect),
     totalWrong: Math.max(0, (student.totalWrong || 0) - topicWrong),
-    topicStats: newTopicStats
+    topicStats: newTopicStats,
+    dailyHistory: removeTopicFromDailyHistory(student.dailyHistory, topicKey)
   };
   saveStudents(students);
   return students;
@@ -1241,7 +1345,8 @@ export function resetTopicStatsForAllStudents(topicKey: string, grade?: number):
       ...s,
       totalCorrect: Math.max(0, (studentCorrectFallback(s.totalCorrect) - topicCorrect)),
       totalWrong: Math.max(0, (studentWrongFallback(s.totalWrong) - topicWrong)),
-      topicStats: newTopicStats
+      topicStats: newTopicStats,
+      dailyHistory: removeTopicFromDailyHistory(s.dailyHistory, topicKey)
     };
   });
 

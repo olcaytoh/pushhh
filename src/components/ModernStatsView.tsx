@@ -346,6 +346,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   }, [groupStatsData]);
 
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
+  const [chartFocusedStudentIds, setChartFocusedStudentIds] = useState<string[] | undefined>(undefined);
   const [studentSearch, setStudentSearch] = useState<string>('');
   const [homeworkMap, setHomeworkMap] = useState<Record<string, any>>(() => 
     loadHomeworkData(currentUser?.uid || auth?.currentUser?.uid, currentUser?.email || auth?.currentUser?.email)
@@ -472,8 +473,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
   // Switch grade tab helper
   const handleGradeChange = (grade: number) => {
     setCurrentGrade(grade);
-    // When in 2nd grade, default to 'dogru_yanlis'; other grades default to 'gruplar'
-    setViewMode(grade === 2 ? 'dogru_yanlis' : 'gruplar');
+    setChartFocusedStudentIds(undefined);
+    if (viewMode !== 'gelisim_grafigi' && viewMode !== 'ogrenciler') {
+      setViewMode(grade === 2 ? 'dogru_yanlis' : 'gruplar');
+    }
     setCategoryFilter('hepsi');
     setConfirmReset(false);
   };
@@ -747,6 +750,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                   ? 'Konulara göre doğru ve yanlış cevap analizi'
                   : viewMode === 'gruplar'
                   ? 'Grupların yarışma skorları ve konu başarıları'
+                  : viewMode === 'gelisim_grafigi'
+                  ? 'Öğrencilerin haftalık ve aylık başarı ivmesi çizgi grafiği'
                   : 'Öğrenci bazlı detaylı konu performans karnesi'}
               </p>
             </div>
@@ -875,6 +880,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
             <button
               onClick={() => {
+                setChartFocusedStudentIds(undefined);
                 setViewMode('gelisim_grafigi');
                 setExpandedStudentId(null);
               }}
@@ -883,10 +889,10 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow ring-2 ring-cyan-300 scale-105'
                   : 'text-cyan-200/90 hover:text-white bg-cyan-950/40 border border-cyan-400/30 hover:bg-cyan-900/40'
               }`}
-              title="Öğrencilerin Zaman İçindeki Gelişim Grafiğini Gör (recharts)"
+              title="Öğrencilerin haftalık ve aylık başarı ivmesi çizgi grafiğini gör"
             >
               <TrendingUp size={13} className="text-cyan-300 shrink-0" />
-              <span>📈 Gelişim Grafiği</span>
+              <span>Başarı İvmesi Grafiği</span>
             </button>
 
             {localStudents.length > 0 && (
@@ -970,7 +976,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
           </div>
         </div>
 
-        {/* 3. ROW: COMPACT SUMMARY CARDS (SHRUNK TO FREE UP MAXIMUM SPACE FOR TOPICS BELOW) */}
+        {/* 3. ROW: COMPACT SUMMARY CARDS (HIDDEN IN CHART MODE SO LINE CHART HAS FULL HEIGHT) */}
+        {viewMode !== 'gelisim_grafigi' && (
         <div className="px-3 sm:px-4 py-1 shrink-0">
           {viewMode === 'tek_kisilik' ? (
             <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
@@ -1121,6 +1128,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
             </div>
           )}
         </div>
+        )}
 
         {/* 4. MAIN SCROLLABLE CONTENT: EXPANDED TOPIC LIST WITH MIN-H-0 */}
         <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-2 space-y-2">
@@ -1130,6 +1138,7 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
               <StudentPerformanceChart
                 students={localStudents}
                 initialGrade={currentGrade}
+                initialSelectedStudentIds={chartFocusedStudentIds}
               />
             </div>
           ) : viewMode === 'ogrenciler' ? (
@@ -1231,6 +1240,21 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
 
                           {/* STATS CAPSULES */}
                           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setChartFocusedStudentIds([student.id]);
+                                setViewMode('gelisim_grafigi');
+                                setExpandedStudentId(null);
+                              }}
+                              className="px-2 py-1 rounded-xl bg-sky-950/80 hover:bg-sky-900 border border-sky-500/40 text-sky-300 flex items-center gap-1 text-[10px] sm:text-xs font-bold cursor-pointer transition active:scale-95"
+                              title={`${student.name} için haftalık/aylık başarı ivmesi grafiğini aç`}
+                            >
+                              <TrendingUp size={12} className="shrink-0" />
+                              <span className="hidden md:inline">İvme</span>
+                            </button>
+
                             {[1, 2, 3, 4].includes(student.grade) && (
                               <div
                                 onClick={(e) => {
@@ -1785,7 +1809,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                           totalWrong: 0,
                           gamesPlayed: 0,
                           gamesWon: 0,
-                          topicStats: {}
+                          topicStats: {},
+                          dailyHistory: {}
                         } : s));
                       } else {
                         if (onResetStats) {
@@ -1800,7 +1825,8 @@ export const ModernStatsView: React.FC<ModernStatsViewProps> = ({
                           totalWrong: 0,
                           gamesPlayed: 0,
                           gamesWon: 0,
-                          topicStats: {}
+                          topicStats: {},
+                          dailyHistory: {}
                         })));
                       }
                       setConfirmReset(false);

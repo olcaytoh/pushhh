@@ -4,6 +4,12 @@ export interface StudentTopicStat {
   lastPlayed?: string;
 }
 
+export interface StudentDailyRecord {
+  correct: number;
+  wrong: number;
+  topics?: Record<string, { correct: number; wrong: number }>;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -16,6 +22,7 @@ export interface Student {
   gamesPlayed: number;
   gamesWon: number;
   topicStats: Record<string, StudentTopicStat>;
+  dailyHistory?: Record<string, StudentDailyRecord>; // YYYY-MM-DD keyed daily solution history
   createdAt: string;
 }
 
