@@ -70,6 +70,107 @@ function clampZoom(val: number): number {
   return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(val * 100) / 100));
 }
 
+const PDF_LAST_PAGES_STORAGE_KEY = 'pdfEditor_lastPages_v1';
+const MAX_STORED_PDF_BOOKMARKS = 120;
+
+interface StoredPageBookmark {
+  page: number;
+  updatedAt: number;
+}
+
+/**
+ * Çevrimdışı, hızlı FNV-1a parmak izi: aynı PDF yeniden adlandırılsa bile içeriğinden tanınır.
+ */
+function computePdfFingerprint(bytes: Uint8Array, numPages: number): string {
+  let hash = 0x811c9dc5;
+  const len = bytes.length;
+  const headEnd = Math.min(len, 16384);
+  for (let i = 0; i < headEnd; i++) {
+    hash ^= bytes[i];
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const tailStart = Math.max(headEnd, len - 16384);
+  for (let i = tailStart; i < len; i++) {
+    hash ^= bytes[i];
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `fp_${len}_${numPages}_${(hash >>> 0).toString(16)}`;
+}
+
+function buildNamePageKey(fileName: string, numPages: number): string {
+  return `fn_${fileName.trim().toLowerCase()}::${numPages}`;
+}
+
+function readStoredBookmarks(): Record<string, StoredPageBookmark> {
+  try {
+    const raw = window.localStorage.getItem(PDF_LAST_PAGES_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+    return parsed as Record<string, StoredPageBookmark>;
+  } catch {
+    return {};
+  }
+}
+
+function saveLastPageRecord(
+  fingerprint: string | null,
+  fileName: string,
+  numPages: number,
+  page: number,
+): void {
+  if (numPages < 1 || !Number.isInteger(page)) return;
+  const clamped = Math.max(1, Math.min(numPages, page));
+  try {
+    const map = readStoredBookmarks();
+    const now = Date.now();
+    if (fingerprint) {
+      map[fingerprint] = { page: clamped, updatedAt: now };
+    }
+    if (fileName.trim()) {
+      map[buildNamePageKey(fileName, numPages)] = { page: clamped, updatedAt: now };
+    }
+    // En fazla 120 kayıt tut (eski kayıtları temizle)
+    const keys = Object.keys(map);
+    if (keys.length > MAX_STORED_PDF_BOOKMARKS) {
+      keys
+        .sort((a, b) => (map[a]?.updatedAt || 0) - (map[b]?.updatedAt || 0))
+        .slice(0, keys.length - MAX_STORED_PDF_BOOKMARKS)
+        .forEach((k) => {
+          delete map[k];
+        });
+    }
+    window.localStorage.setItem(PDF_LAST_PAGES_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // localStorage kısıtlıysa sessizce yoksay
+  }
+}
+
+function readLastPageRecord(
+  fingerprint: string | null,
+  fileName: string,
+  numPages: number,
+): number | null {
+  if (numPages < 1) return null;
+  const map = readStoredBookmarks();
+  const candidates = [
+    fingerprint ? map[fingerprint] : undefined,
+    fileName.trim() ? map[buildNamePageKey(fileName, numPages)] : undefined,
+  ];
+  for (const item of candidates) {
+    if (
+      item &&
+      typeof item.page === 'number' &&
+      Number.isInteger(item.page) &&
+      item.page >= 1 &&
+      item.page <= numPages
+    ) {
+      return item.page;
+    }
+  }
+  return null;
+}
+
 export interface PdfEditorAppProps {
   onExit?: () => void;
 }
@@ -141,6 +242,11 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const toastTimerRef = useRef<number | null>(null);
   const annotationsRef = useRef<AnnotationsMap>(annotations);
   annotationsRef.current = annotations;
+  const currentPageRef = useRef<number>(currentPage);
+  currentPageRef.current = currentPage;
+  const docFingerprintRef = useRef<string | null>(null);
+  const pendingRestorePageRef = useRef<number | null>(null);
+  const suppressScrollUntilRef = useRef<number>(0);
 
   const showToast = useCallback((type: ToastNotice['type'], message: string, durationMs = 4500) => {
     if (toastTimerRef.current) {
@@ -308,16 +414,27 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           }
         }
 
+        const fingerprint = computePdfFingerprint(cleanBytes, activeDoc.numPages);
+        const embeddedLastPage = extracted.status === 'loaded' ? extracted.lastPage : undefined;
+        const localLastPage = readLastPageRecord(fingerprint, file.name, activeDoc.numPages);
+        const rawTargetPage = embeddedLastPage ?? localLastPage ?? 1;
+        const restoredPage = Math.max(1, Math.min(activeDoc.numPages, rawTargetPage));
+
         pdfDocRef.current = activeDoc;
         cleanOriginalBytesRef.current = cleanBytes;
         rawOpenedBytesRef.current = rawBytes.slice();
+        docFingerprintRef.current = fingerprint;
         overwriteConfirmedRef.current = false;
+        pendingRestorePageRef.current = restoredPage > 1 ? restoredPage : null;
+        if (restoredPage > 1) {
+          suppressScrollUntilRef.current = Date.now() + 900;
+        }
 
         setPdfDoc(activeDoc);
         setFileName(file.name);
         setFileHandle(handle);
         setPagesMeta(metas);
-        setCurrentPage(1);
+        setCurrentPage(restoredPage);
         setAnnotations(initialAnnotations);
         setUndoStack([]);
         setRedoStack([]);
@@ -329,12 +446,20 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         setZoom(initialZoom);
         setRenderZoom(initialZoom);
 
-        if (scrollContainerRef.current) {
+        if (restoredPage <= 1 && scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = 0;
         }
 
         if (openedBanner) {
-          showToast(openedBanner.type, openedBanner.msg, openedBanner.type === 'warning' ? 6500 : 4500);
+          let finalMsg = openedBanner.msg;
+          if (restoredPage > 1) {
+            if (extracted.status === 'loaded') {
+              finalMsg = `Notlar düzenlenebilir olarak yüklendi · Son kaldığınız ${restoredPage}. sayfada açıldı.`;
+            } else if (extracted.status === 'none') {
+              finalMsg = `"${file.name}" son kaldığınız ${restoredPage}. sayfada açıldı (${activeDoc.numPages} sayfa).`;
+            }
+          }
+          showToast(openedBanner.type, finalMsg, openedBanner.type === 'warning' ? 6500 : 4800);
         }
       } catch (err) {
         if (initialDoc) {
@@ -873,8 +998,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
     setIsExporting(true);
     try {
+      const savedPage = currentPageRef.current;
       const result = await exportAnnotatedPdf(cleanBytes, annotationsRef.current, fontAssets, {
         includeEditableAttachments: true,
+        lastPage: savedPage,
       });
 
       const writeRes = await overwritePdfFileHandle(
@@ -883,15 +1010,16 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         fileName || 'belge.pdf',
       );
 
+      saveLastPageRecord(docFingerprintRef.current, fileName || 'belge.pdf', pagesMeta.length, savedPage);
       setHasUnsavedChanges(false);
       hasCorruptAttachmentRef.current = false;
 
       if (writeRes.status === 'overwritten') {
-        showToast('success', `"${fileName}" düzenlenebilir olarak güncellendi.`);
+        showToast('success', `"${fileName}" güncellendi (Sayfa ${savedPage} kaydedildi).`);
       } else {
         showToast(
           'warning',
-          'Bu tarayıcıda orijinal dosyanın üzerine yazılamıyor, kopya indirildi.',
+          `Bu tarayıcıda orijinal dosyanın üzerine yazılamıyor, kopya indirildi (Sayfa ${savedPage} kaydedildi).`,
           5500,
         );
       }
@@ -903,7 +1031,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     } finally {
       setIsExporting(false);
     }
-  }, [fileHandle, fileName, fontAssets, notifyCanvasFallbackOnce, showToast]);
+  }, [fileHandle, fileName, fontAssets, notifyCanvasFallbackOnce, pagesMeta.length, showToast]);
 
   const handleSaveOverwriteClick = useCallback(() => {
     if (!cleanOriginalBytesRef.current || isExporting) return;
@@ -925,8 +1053,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
     setIsExporting(true);
     try {
+      const savedPage = currentPageRef.current;
       const result = await exportAnnotatedPdf(cleanBytes, annotationsRef.current, fontAssets, {
         includeEditableAttachments: true,
+        lastPage: savedPage,
       });
 
       const suggested = buildSuggestedName(fileName || 'belge.pdf', '-notlu');
@@ -936,6 +1066,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         return;
       }
 
+      saveLastPageRecord(docFingerprintRef.current, saveRes.fileName, pagesMeta.length, savedPage);
+      if (fileName && fileName !== saveRes.fileName) {
+        saveLastPageRecord(docFingerprintRef.current, fileName, pagesMeta.length, savedPage);
+      }
       setHasUnsavedChanges(false);
       hasCorruptAttachmentRef.current = false;
       setFileName(saveRes.fileName);
@@ -943,10 +1077,10 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       if (saveRes.status === 'saved' && saveRes.handle) {
         setFileHandle(saveRes.handle);
         overwriteConfirmedRef.current = true;
-        showToast('success', `"${saveRes.fileName}" düzenlenebilir olarak kaydedildi.`);
+        showToast('success', `"${saveRes.fileName}" kaydedildi (Sayfa ${savedPage} hatırlandı).`);
       } else {
         setFileHandle(null);
-        showToast('success', `"${saveRes.fileName}" düzenlenebilir kopya olarak indirildi.`);
+        showToast('success', `"${saveRes.fileName}" düzenlenebilir kopya olarak indirildi (Sayfa ${savedPage} hatırlandı).`);
       }
 
       notifyCanvasFallbackOnce(result.usedCanvasFallback);
@@ -956,7 +1090,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     } finally {
       setIsExporting(false);
     }
-  }, [fileName, fontAssets, isExporting, notifyCanvasFallbackOnce, showToast]);
+  }, [fileName, fontAssets, isExporting, notifyCanvasFallbackOnce, pagesMeta.length, showToast]);
 
   const handleExportFlatPdf = useCallback(async () => {
     const cleanBytes = cleanOriginalBytesRef.current;
@@ -964,6 +1098,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
     setIsExporting(true);
     try {
+      const savedPage = currentPageRef.current;
       const result = await exportAnnotatedPdf(cleanBytes, annotationsRef.current, fontAssets, {
         includeEditableAttachments: false,
       });
@@ -974,6 +1109,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         return;
       }
 
+      saveLastPageRecord(docFingerprintRef.current, saveRes.fileName, pagesMeta.length, savedPage);
       showToast('success', `"${saveRes.fileName}" düz PDF olarak dışa aktarıldı.`);
       notifyCanvasFallbackOnce(result.usedCanvasFallback);
     } catch (err) {
@@ -982,7 +1118,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     } finally {
       setIsExporting(false);
     }
-  }, [fontAssets, isExporting, notifyCanvasFallbackOnce, showToast]);
+  }, [fontAssets, isExporting, notifyCanvasFallbackOnce, pagesMeta.length, showToast]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1057,6 +1193,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   }, [pdfDoc]);
 
   const handleWorkspaceScroll = useCallback(() => {
+    if (Date.now() < suppressScrollUntilRef.current) return;
     const container = scrollContainerRef.current;
     if (!container || pagesMeta.length === 0) return;
 
@@ -1089,13 +1226,56 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     }
   }, []);
 
-  const scrollToPage = useCallback((pageNum: number) => {
-    const el = pageElementsRef.current.get(pageNum);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setCurrentPage(pageNum);
+  const scrollToPage = useCallback((pageNum: number, instant = false) => {
+    const clamped = Math.max(1, Math.min(pagesMeta.length || 1, pageNum));
+    const el = pageElementsRef.current.get(clamped);
+    const container = scrollContainerRef.current;
+    setCurrentPage(clamped);
+
+    if (el && container) {
+      const pageDistance = Math.abs(clamped - currentPageRef.current);
+      const useInstant = instant || pageDistance > 10;
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const targetTop = Math.max(0, container.scrollTop + (elRect.top - containerRect.top) - 16);
+
+      suppressScrollUntilRef.current = Date.now() + (useInstant ? 250 : 650);
+      container.scrollTo({
+        top: targetTop,
+        behavior: useInstant ? 'auto' : 'smooth',
+      });
+    } else if (el) {
+      suppressScrollUntilRef.current = Date.now() + (instant ? 250 : 650);
+      el.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
     }
-  }, []);
+  }, [pagesMeta.length]);
+
+  // Açılan PDF'in son kaldığı sayfaya yerleşim tamamlandıktan hemen sonra kaydır
+  useEffect(() => {
+    const targetPage = pendingRestorePageRef.current;
+    if (!pdfDoc || pagesMeta.length === 0 || !targetPage) return;
+
+    let raf2 = 0;
+    const raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
+        if (pendingRestorePageRef.current === targetPage) {
+          scrollToPage(targetPage, true);
+          pendingRestorePageRef.current = null;
+        }
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      if (raf2) window.cancelAnimationFrame(raf2);
+    };
+  }, [pdfDoc, pagesMeta, scrollToPage]);
+
+  // Açık PDF'te sayfa değiştikçe son kalınan sayfayı tarayıcıda da yerel olarak hatırla
+  useEffect(() => {
+    if (!pdfDoc || pagesMeta.length === 0) return;
+    saveLastPageRecord(docFingerprintRef.current, fileName, pagesMeta.length, currentPage);
+  }, [pdfDoc, fileName, pagesMeta.length, currentPage]);
 
   const handleFitWidth = useCallback(() => {
     if (pagesMeta.length === 0) return;

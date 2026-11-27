@@ -242,18 +242,35 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onExportFlatPdf,
 }) => {
   const [pageInput, setPageInput] = useState(String(currentPage));
+  const [isEditingPage, setIsEditingPage] = useState(false);
 
   useEffect(() => {
-    setPageInput(String(currentPage));
-  }, [currentPage]);
+    if (!isEditingPage) {
+      setPageInput(String(currentPage));
+    }
+  }, [currentPage, isEditingPage]);
+
+  const commitPageJump = (rawValue: string) => {
+    if (!hasDocument || numPages < 1) {
+      setPageInput(String(currentPage));
+      return;
+    }
+    const parsed = parseInt(rawValue.trim(), 10);
+    if (!Number.isNaN(parsed) && parsed >= 1) {
+      const clamped = Math.max(1, Math.min(numPages, parsed));
+      setPageInput(String(clamped));
+      onJumpToPage(clamped);
+    } else {
+      setPageInput(String(currentPage));
+    }
+  };
 
   const handlePageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = parseInt(pageInput, 10);
-    if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= numPages) {
-      onJumpToPage(parsed);
-    } else {
-      setPageInput(String(currentPage));
+    setIsEditingPage(false);
+    commitPageJump(pageInput);
+    if (document.activeElement instanceof HTMLInputElement) {
+      document.activeElement.blur();
     }
   };
 
@@ -390,15 +407,48 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               disabled={!hasDocument}
               value={hasDocument ? pageInput : ''}
               placeholder="-"
+              onFocus={(e) => {
+                setIsEditingPage(true);
+                e.currentTarget.select();
+              }}
               onChange={(e) => setPageInput(e.target.value.replace(/[^\d]/g, ''))}
-              onBlur={handlePageSubmit}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setIsEditingPage(false);
+                  setPageInput(String(currentPage));
+                  e.currentTarget.blur();
+                }
+              }}
+              onBlur={() => {
+                setIsEditingPage(false);
+                if (pageInput.trim() !== '' && pageInput.trim() !== String(currentPage)) {
+                  commitPageJump(pageInput);
+                } else {
+                  setPageInput(String(currentPage));
+                }
+              }}
               aria-label="Sayfa numarası"
-              title="Gitmek istediğiniz sayfa numarasını yazıp Enter'a basın"
-              className="w-13 h-[44px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+              title="Gitmek istediğiniz sayfa numarasını yazıp Enter'a veya Git butonuna basın"
+              className="w-14 h-[44px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
             />
             <span className="text-sm text-slate-500 font-semibold whitespace-nowrap">
               / {hasDocument ? numPages : 0}
             </span>
+            <button
+              type="submit"
+              disabled={!hasDocument}
+              onMouseDown={(e) => e.preventDefault()}
+              title="Yazılan sayfa numarasına doğrudan git"
+              aria-label="Sayfaya Git"
+              className={`h-[44px] px-3 rounded-xl text-xs font-bold border transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+                hasDocument && pageInput.trim() !== '' && pageInput.trim() !== String(currentPage)
+                  ? 'bg-blue-600 text-white border-blue-700 shadow-sm hover:bg-blue-700'
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              Git
+            </button>
           </form>
 
           <button

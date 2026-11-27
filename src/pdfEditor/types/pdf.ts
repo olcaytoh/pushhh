@@ -88,6 +88,8 @@ export type AnnotationsMap = Record<number, PageAnnotations>;
 export interface EmbeddedNotesPayload {
   surum: 1;
   sayfaSayisi: number;
+  /** Kayıt anında kullanıcının kaldığı son sayfa numarası (1 tabanlı) */
+  sonSayfa?: number;
   sayfalar: Record<string, PageAnnotations>;
 }
 

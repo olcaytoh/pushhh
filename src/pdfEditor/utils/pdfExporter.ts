@@ -31,6 +31,8 @@ import {
 export interface ExportPdfOptions {
   /** true: orijinal.pdf + duzenlenebilir-notlar.json eklerini gömer; false: düz paylaşım PDF'i üretir */
   includeEditableAttachments: boolean;
+  /** Kayıt sırasında açık olan son sayfa numarası (1 tabanlı) */
+  lastPage?: number;
 }
 
 export interface ExportPdfResult {
@@ -42,6 +44,8 @@ export interface ExtractedEditableData {
   status: 'none' | 'loaded' | 'corrupt';
   cleanOriginalBytes?: Uint8Array;
   annotations?: AnnotationsMap;
+  /** PDF kaydedilirken kaydedilmiş son sayfa numarası (1 tabanlı) */
+  lastPage?: number;
   warningMessage?: string;
 }
 
@@ -125,7 +129,11 @@ function renderTextToHighResPng(
   return { pngBytes, widthPt, heightPt, padLeftPt, padTopPt };
 }
 
-function buildEmbeddedNotesPayload(annotations: AnnotationsMap, pageCount: number): EmbeddedNotesPayload {
+function buildEmbeddedNotesPayload(
+  annotations: AnnotationsMap,
+  pageCount: number,
+  lastPage?: number,
+): EmbeddedNotesPayload {
   const sayfalar: Record<string, PageAnnotations> = {};
   for (let p = 1; p <= pageCount; p++) {
     const data = annotations[p];
@@ -138,9 +146,14 @@ function buildEmbeddedNotesPayload(annotations: AnnotationsMap, pageCount: numbe
       };
     }
   }
+  const normalizedLastPage =
+    typeof lastPage === 'number' && Number.isInteger(lastPage)
+      ? Math.max(1, Math.min(pageCount, lastPage))
+      : undefined;
   return {
     surum: EMBEDDED_NOTES_VERSION,
     sayfaSayisi: pageCount,
+    sonSayfa: normalizedLastPage,
     sayfalar,
   };
 }
@@ -420,7 +433,7 @@ export async function exportAnnotatedPdf(
 
   // 3. Düzenlenebilir kayıt modunda tek bir orijinal.pdf ve tek bir duzenlenebilir-notlar.json göm
   if (options.includeEditableAttachments) {
-    const payload = buildEmbeddedNotesPayload(annotations, pages.length);
+    const payload = buildEmbeddedNotesPayload(annotations, pages.length, options.lastPage);
     const jsonBytes = new TextEncoder().encode(JSON.stringify(payload));
     const now = new Date();
 
@@ -700,10 +713,19 @@ export async function extractEditableAttachments(
       }
     }
 
+    const restoredLastPage =
+      typeof payload.sonSayfa === 'number' &&
+      Number.isInteger(payload.sonSayfa) &&
+      payload.sonSayfa >= 1 &&
+      payload.sonSayfa <= originalPdfPageCount
+        ? payload.sonSayfa
+        : undefined;
+
     return {
       status: 'loaded',
       cleanOriginalBytes: cleanCopy,
       annotations: restored,
+      lastPage: restoredLastPage,
     };
   } catch {
     return { status: 'none' };
