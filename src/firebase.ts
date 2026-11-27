@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   User 
 } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer, disableNetwork } from 'firebase/firestore';
 import firebaseConfigData from '../firebase-applet-config.json';
 
 const firebaseConfig = {
@@ -36,11 +36,36 @@ export const db = firebaseConfigData.firestoreDatabaseId
   ? getFirestore(app, firebaseConfigData.firestoreDatabaseId)
   : getFirestore(app);
 
+function isQuotaLockedAtBoot(): boolean {
+  try {
+    const raw = localStorage.getItem('olcico_firestore_quota_exceeded_until');
+    return Boolean(raw && Date.now() < Number(raw));
+  } catch {
+    return false;
+  }
+}
+
 // Connection test as mandated by Firebase Integration Skill
 export async function testConnection(): Promise<void> {
+  if (isQuotaLockedAtBoot()) {
+    await disableNetwork(db).catch(() => {});
+    return;
+  }
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
+  } catch (error: any) {
+    const code = String(error?.code || '').toLowerCase();
+    const msg = String(error?.message || '').toLowerCase();
+    if (code === 'resource-exhausted' || msg.includes('quota')) {
+      try {
+        localStorage.setItem(
+          'olcico_firestore_quota_exceeded_until',
+          String(Date.now() + 3600000 * 6)
+        );
+      } catch {}
+      await disableNetwork(db).catch(() => {});
+      return;
+    }
     if (error instanceof Error && error.message.includes('the client is offline')) {
       console.warn('Firebase connection: client appears offline or connecting.');
     }

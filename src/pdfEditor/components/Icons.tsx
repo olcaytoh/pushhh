@@ -294,3 +294,59 @@ export const StrokeSmoothIcon: React.FC<IconProps> = ({ className = 'w-4 h-4' })
     <circle cx="21" cy="11" r="1.4" fill="currentColor" stroke="none" />
   </svg>
 );
+
+export const BlankPageAddIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+    <path d="M14 2v6h6" />
+    <path d="M12 11v6" />
+    <path d="M9 14h6" />
+  </svg>
+);
+
+export const GridPageAddIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3.5" y="3" width="14.5" height="18" rx="1.8" />
+    <path d="M8.3 3v18" strokeOpacity="0.65" />
+    <path d="M13.1 3v18" strokeOpacity="0.65" />
+    <path d="M3.5 7.5H18" strokeOpacity="0.65" />
+    <path d="M3.5 12H18" strokeOpacity="0.65" />
+    <path d="M3.5 16.5H18" strokeOpacity="0.65" />
+    <circle cx="18.2" cy="18.2" r="4.2" fill="white" stroke="currentColor" strokeWidth="1.7" />
+    <path d="M18.2 16.2v4" strokeWidth="1.9" />
+    <path d="M16.2 18.2h4" strokeWidth="1.9" />
+  </svg>
+);
+
+export const MergePdfIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4" />
+    <rect x="9" y="5" width="12" height="16" rx="2" />
+    <path d="M15 10v6" />
+    <path d="M12 13h6" />
+  </svg>
+);
+
+export const ThumbnailsSidebarIcon: React.FC<IconProps> = ({ className = 'w-5 h-5' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M9.5 4v16" />
+    <rect x="5" y="6.8" width="2.5" height="3.2" rx="0.5" fill="currentColor" stroke="none" />
+    <rect x="5" y="11.5" width="2.5" height="3.2" rx="0.5" fill="currentColor" stroke="none" />
+    <rect x="5" y="16" width="2.5" height="2" rx="0.4" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const ArrowUpIcon: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m18 15-6-6-6 6" />
+  </svg>
+);
+
+export const ArrowDownIcon: React.FC<IconProps> = ({ className = 'w-4 h-4' }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+

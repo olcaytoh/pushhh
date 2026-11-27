@@ -731,3 +731,139 @@ export async function extractEditableAttachments(
     return { status: 'none' };
   }
 }
+
+export type InsertPageKind = 'blank' | 'grid';
+
+/**
+ * Mevcut temiz PDF baytlarına (veya sıfırdan yeni belgeye) Boş Sayfa veya Kareli Defter Sayfası ekler.
+ * Kareli sayfa çizgileri pdf-lib vektör çizgileriyle çizildiği için her yakınlaştırmada keskin görünür.
+ */
+export async function insertCustomPageIntoPdf(
+  existingCleanBytes: Uint8Array | null,
+  kind: InsertPageKind,
+  insertAfterPageNumber: number,
+): Promise<{ bytes: Uint8Array; insertedPageNumber: number }> {
+  const DEFAULT_A4_WIDTH = 595.28;
+  const DEFAULT_A4_HEIGHT = 841.89;
+
+  let pdfDoc: PDFDocument;
+  let width = DEFAULT_A4_WIDTH;
+  let height = DEFAULT_A4_HEIGHT;
+  let insertIndex = 0;
+
+  if (existingCleanBytes && existingCleanBytes.length > 0) {
+    pdfDoc = await PDFDocument.load(existingCleanBytes, { ignoreEncryption: true });
+    const pageCount = pdfDoc.getPageCount();
+    insertIndex = Math.max(0, Math.min(pageCount, insertAfterPageNumber));
+    if (pageCount > 0) {
+      const refIdx = Math.max(0, Math.min(pageCount - 1, insertIndex - 1));
+      const refPage = pdfDoc.getPage(refIdx);
+      const { dispWidth, dispHeight } = getDisplayedPdfSize(
+        refPage.getCropBox(),
+        refPage.getRotation().angle,
+      );
+      if (dispWidth > 50 && dispHeight > 50) {
+        width = dispWidth;
+        height = dispHeight;
+      }
+    }
+  } else {
+    pdfDoc = await PDFDocument.create();
+    insertIndex = 0;
+  }
+
+  const page = pdfDoc.insertPage(insertIndex, [width, height]);
+
+  // Temiz beyaz sayfa zemini
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width,
+    height,
+    color: rgb(1, 1, 1),
+  });
+
+  if (kind === 'grid') {
+    const margin = Math.max(16, Math.min(28, Math.round(Math.min(width, height) * 0.032)));
+    const step = 20; // Yaklaşık 7mm okul kareli defter ölçüsü (akıllı tahtada rahat yazım için)
+    const usableW = Math.max(step, width - margin * 2);
+    const usableH = Math.max(step, height - margin * 2);
+    const cols = Math.floor(usableW / step);
+    const rows = Math.floor(usableH / step);
+    const gridW = cols * step;
+    const gridH = rows * step;
+    const startX = (width - gridW) / 2;
+    const startY = (height - gridH) / 2;
+    const endX = startX + gridW;
+    const endY = startY + gridH;
+
+    const minorColor = rgb(0.75, 0.85, 0.95);
+    const majorColor = rgb(0.56, 0.72, 0.89);
+
+    for (let c = 0; c <= cols; c++) {
+      const x = startX + c * step;
+      const isMajor = c === 0 || c === cols || c % 5 === 0;
+      page.drawLine({
+        start: { x, y: startY },
+        end: { x, y: endY },
+        thickness: isMajor ? 0.85 : 0.5,
+        color: isMajor ? majorColor : minorColor,
+      });
+    }
+
+    for (let r = 0; r <= rows; r++) {
+      const y = endY - r * step;
+      const isMajor = r === 0 || r === rows || r % 5 === 0;
+      page.drawLine({
+        start: { x: startX, y },
+        end: { x: endX, y },
+        thickness: isMajor ? 0.85 : 0.5,
+        color: isMajor ? majorColor : minorColor,
+      });
+    }
+  }
+
+  const bytes = await pdfDoc.save({ useObjectStreams: false });
+  return {
+    bytes,
+    insertedPageNumber: insertIndex + 1,
+  };
+}
+
+/**
+ * Bir PDF dosyasının geçerli olup olmadığını doğrular ve sayfa sayısını döndürür.
+ */
+export async function inspectPdfPageCount(bytes: Uint8Array): Promise<number> {
+  const doc = await PDFDocument.load(bytes, { ignoreEncryption: false });
+  return doc.getPageCount();
+}
+
+/**
+ * Birden fazla PDF belgesini verilen sırayla uç uca ekleyerek tek bir PDF belgesinde birleştirir.
+ */
+export async function mergePdfByteArrays(
+  sources: Uint8Array[],
+): Promise<{ bytes: Uint8Array; pageCounts: number[]; totalPages: number }> {
+  if (sources.length === 0) {
+    throw new Error('Birleştirilecek en az bir PDF belgesi gereklidir.');
+  }
+
+  const mergedDoc = await PDFDocument.create();
+  const pageCounts: number[] = [];
+
+  for (const srcBytes of sources) {
+    const srcDoc = await PDFDocument.load(srcBytes, { ignoreEncryption: true });
+    const indices = srcDoc.getPageIndices();
+    const copiedPages = await mergedDoc.copyPages(srcDoc, indices);
+    for (const page of copiedPages) {
+      mergedDoc.addPage(page);
+    }
+    pageCounts.push(copiedPages.length);
+  }
+
+  const bytes = await mergedDoc.save({ useObjectStreams: false });
+  const totalPages = pageCounts.reduce((acc, n) => acc + n, 0);
+  return { bytes, pageCounts, totalPages };
+}
+
+

@@ -1,9 +1,15 @@
 import { User, db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { Student } from '../types/student';
 import { ClassCountersData } from '../utils/counterStorage';
 import { loadHomeworkData } from '../utils/homeworkStore';
-import { saveUserDataToCloud, isFirestoreQuotaExceeded } from './cloudSyncService';
+import {
+  saveUserDataToCloud,
+  isFirestoreQuotaExceeded,
+  safeSetDocWithQuotaGuard,
+  isQuotaError,
+  setFirestoreQuotaExceeded
+} from './cloudSyncService';
 import { saveToMultiUserVault } from '../utils/studentStore';
 
 const AUTO_BACKUP_PREFIX = 'olcico_auto_backup_done_';
@@ -98,18 +104,23 @@ export async function executeDailyAutoBackup(
         const hwData = loadHomeworkData(user.uid, user.email);
         await saveUserDataToCloud(user.uid, students, counters, selectedStudentIds, user.email, hwData, true);
 
-        // Dedicated daily backup document in Firestore subcollection
-        const dailyRef = doc(db, 'users', user.uid, 'daily_backups', today);
-        await setDoc(dailyRef, {
-          date: today,
-          backedUpAt: nowIso,
-          scheduledTarget: '10:00',
-          studentsCount: students.length,
-          studentsJson: JSON.stringify(students),
-          countersJson: JSON.stringify(counters),
-          userEmail: email
-        }, { merge: true });
+        // Dedicated daily backup document in Firestore subcollection (skip if quota tripped above)
+        if (!isFirestoreQuotaExceeded()) {
+          const dailyRef = doc(db, 'users', user.uid, 'daily_backups', today);
+          await safeSetDocWithQuotaGuard(dailyRef, {
+            date: today,
+            backedUpAt: nowIso,
+            scheduledTarget: '10:00',
+            studentsCount: students.length,
+            studentsJson: JSON.stringify(students),
+            countersJson: JSON.stringify(counters),
+            userEmail: email
+          }, { merge: true });
+        }
       } catch (cloudErr) {
+        if (isQuotaError(cloudErr)) {
+          setFirestoreQuotaExceeded();
+        }
         console.warn('Auto backup cloud push warning:', cloudErr);
       }
     }

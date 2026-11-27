@@ -1,4 +1,4 @@
-// Sabit (sticky) üst araç çubuğu: sayfa gezinme, yakınlaştırma, temizleme, çizgi yumuşatma, sadece simgeli aktif mod göstergesi ve kayıt kontrolleri
+// Sabit (sticky) tek satırlık üst araç çubuğu: sayfa gezinme, boş/kareli sayfa ekleme, yakınlaştırma, çizgi yumuşatma, sadece simgeli aktif mod ve kayıt kontrolleri
 import React, { useEffect, useState } from 'react';
 import {
   COLOR_OPTIONS,
@@ -20,6 +20,7 @@ import {
   type ToolMode,
 } from '../types/pdf';
 import {
+  BlankPageAddIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CursorSelectIcon,
@@ -29,7 +30,9 @@ import {
   FolderOpenIcon,
   FullscreenEnterIcon,
   FullscreenExitIcon,
+  GridPageAddIcon,
   HomeBackIcon,
+  MergePdfIcon,
   PenToolIcon,
   RedoIcon,
   SaveAsIcon,
@@ -38,7 +41,6 @@ import {
   ShapeArrowIcon,
   ShapeCircleIcon,
   ShapeEllipseIcon,
-  ShapeFillIcon,
   ShapeLineIcon,
   ShapeRectIcon,
   ShapeRightTriangleIcon,
@@ -52,14 +54,19 @@ import {
   StampStarIcon,
   StrokeSmoothIcon,
   TextToolIcon,
+  ThumbnailsSidebarIcon,
   TrashIcon,
   UndoIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from './Icons';
 
+import type { InsertPageKind } from '../utils/pdfExporter';
+
 interface ToolbarProps {
   hasDocument: boolean;
+  hasInteractiveCanvas: boolean;
+  overlayBoardMode: InsertPageKind | null;
   fileName: string;
   hasUnsavedChanges: boolean;
   canOverwriteHandle: boolean;
@@ -76,8 +83,6 @@ interface ToolbarProps {
   activeShapeFillMode: ShapeFillMode;
   activeShapeBorderColor: string;
   activeShapeFillColor: string;
-  syncShapeFillWithBorder: boolean;
-  isGeometricShapeSelected: boolean;
   activeStampType: StampType;
   stampSizeKey: StampSizeKey;
   canUndo: boolean;
@@ -86,22 +91,22 @@ interface ToolbarProps {
   hasAnyAnnotations: boolean;
   isFullscreen: boolean;
   isExporting: boolean;
+  isInsertingPage: boolean;
+  isMergingPdfs: boolean;
+  isThumbnailSidebarOpen: boolean;
   onExitToSite?: () => void;
   onOpenPdfClick: () => void;
+  onOpenMergeModal: () => void;
+  onToggleThumbnailSidebar: () => void;
   onPrevPage: () => void;
   onNextPage: () => void;
   onJumpToPage: (pageNum: number) => void;
+  onToggleBlankOverlay: () => void;
+  onToggleGridOverlay: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFitWidth: () => void;
   onSelectStrokeSmoothing: (level: StrokeSmoothingLevel) => void;
-  onSelectShapeType: (shape: ShapeType) => void;
-  onSelectShapeFillMode: (mode: ShapeFillMode) => void;
-  onSelectShapeBorderColor: (hex: string) => void;
-  onSelectShapeFillColor: (hex: string) => void;
-  onToggleSyncShapeFill: () => void;
-  onSelectStampType: (stamp: StampType) => void;
-  onSelectStampSize: (key: StampSizeKey) => void;
   onUndo: () => void;
   onRedo: () => void;
   onRequestClearPage: () => void;
@@ -162,6 +167,8 @@ const ACTIVE_DOT_PX: Record<PenWidthKey, number> = {
 
 export const Toolbar: React.FC<ToolbarProps> = ({
   hasDocument,
+  hasInteractiveCanvas,
+  overlayBoardMode,
   fileName,
   hasUnsavedChanges,
   canOverwriteHandle,
@@ -178,8 +185,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   activeShapeFillMode,
   activeShapeBorderColor,
   activeShapeFillColor,
-  syncShapeFillWithBorder,
-  isGeometricShapeSelected,
   activeStampType,
   stampSizeKey,
   canUndo,
@@ -188,22 +193,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   hasAnyAnnotations,
   isFullscreen,
   isExporting,
+  isInsertingPage,
+  isMergingPdfs,
+  isThumbnailSidebarOpen,
   onExitToSite,
   onOpenPdfClick,
+  onOpenMergeModal,
+  onToggleThumbnailSidebar,
   onPrevPage,
   onNextPage,
   onJumpToPage,
+  onToggleBlankOverlay,
+  onToggleGridOverlay,
   onZoomIn,
   onZoomOut,
   onFitWidth,
   onSelectStrokeSmoothing,
-  onSelectShapeType,
-  onSelectShapeFillMode,
-  onSelectShapeBorderColor,
-  onSelectShapeFillColor,
-  onToggleSyncShapeFill,
-  onSelectStampType,
-  onSelectStampSize,
   onUndo,
   onRedo,
   onRequestClearPage,
@@ -362,7 +367,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Tek Satırlık Kompakt Ana Üst Araç Çubuğu */}
       <div className="px-2.5 py-1.5 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
         {/* Siteye Dön + PDF Aç */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {onExitToSite && (
             <button
               type="button"
@@ -388,12 +393,44 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             className={`${baseBtn} bg-slate-900 text-white hover:bg-slate-800 px-3 shadow-sm`}
           >
             <FolderOpenIcon className="w-5 h-5" />
-            <span className="hidden lg:inline">PDF Aç</span>
+            <span className="hidden xl:inline">PDF Aç</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={isMergingPdfs || isExporting || isInsertingPage}
+            onClick={onOpenMergeModal}
+            title="Birden fazla PDF dosyasını seçip tek bir belgede uç uca birleştir"
+            aria-label="PDF Birleştir"
+            className={`${baseBtn} bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100`}
+          >
+            <MergePdfIcon className="w-5 h-5" />
+            <span className="hidden xl:inline">Birleştir</span>
           </button>
         </div>
 
-        {/* Sayfa Gezinme Grubu */}
+        {/* Sayfa Gezinme + Boş/Kareli Sayfa Ekleme Grubu */}
         <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 shrink-0">
+          <button
+            type="button"
+            disabled={!hasDocument}
+            aria-pressed={hasDocument && isThumbnailSidebarOpen}
+            onClick={onToggleThumbnailSidebar}
+            title={
+              isThumbnailSidebarOpen
+                ? 'Sayfa önizleme sütununu gizle'
+                : 'Sayfa önizleme sütununu göster'
+            }
+            aria-label="Sayfa Önizlemeleri"
+            className={`${iconOnlyBtn} border ${
+              hasDocument && isThumbnailSidebarOpen
+                ? 'bg-blue-600 border-blue-700 text-white shadow-xs'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+          >
+            <ThumbnailsSidebarIcon className="w-5 h-5" />
+          </button>
+
           <button
             type="button"
             disabled={!hasDocument || currentPage <= 1}
@@ -435,7 +472,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               }}
               aria-label="Sayfa numarası"
               title="Gitmek istediğiniz sayfa numarasını yazıp Enter'a veya Git butonuna basın"
-              className="w-12 h-[40px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+              className="w-11 h-[40px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
             />
             <span className="text-xs sm:text-sm text-slate-500 font-semibold whitespace-nowrap">
               / {hasDocument ? numPages : 0}
@@ -446,7 +483,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               onMouseDown={(e) => e.preventDefault()}
               title="Yazılan sayfa numarasına doğrudan git"
               aria-label="Sayfaya Git"
-              className={`h-[40px] px-2.5 rounded-xl text-xs font-bold border transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`h-[40px] px-2 rounded-xl text-xs font-bold border transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
                 hasDocument && pageInput.trim() !== '' && pageInput.trim() !== String(currentPage)
                   ? 'bg-blue-600 text-white border-blue-700 shadow-sm hover:bg-blue-700'
                   : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
@@ -465,6 +502,46 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <ChevronRightIcon className="w-5 h-5" />
+          </button>
+
+          <button
+            type="button"
+            disabled={isInsertingPage || isExporting}
+            aria-pressed={overlayBoardMode === 'blank'}
+            onClick={onToggleBlankOverlay}
+            title={
+              overlayBoardMode === 'blank'
+                ? "Boş Sayfa katmanını kapat ve PDF'e dön"
+                : 'PDF üzerine Boş Sayfa aç (tekrar tıklayınca kapanır)'
+            }
+            aria-label="Boş Sayfa Aç / Kapat"
+            className={`${iconOnlyBtn} border ${
+              overlayBoardMode === 'blank'
+                ? 'bg-amber-500 border-amber-600 text-white ring-2 ring-amber-300 shadow-sm'
+                : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+            }`}
+          >
+            <BlankPageAddIcon className="w-5 h-5" />
+          </button>
+
+          <button
+            type="button"
+            disabled={isInsertingPage || isExporting}
+            aria-pressed={overlayBoardMode === 'grid'}
+            onClick={onToggleGridOverlay}
+            title={
+              overlayBoardMode === 'grid'
+                ? "Kareli Sayfa katmanını kapat ve PDF'e dön"
+                : 'PDF üzerine Kareli Sayfa aç (tekrar tıklayınca kapanır)'
+            }
+            aria-label="Kareli Sayfa Aç / Kapat"
+            className={`${iconOnlyBtn} border ${
+              overlayBoardMode === 'grid'
+                ? 'bg-sky-600 border-sky-700 text-white ring-2 ring-sky-300 shadow-sm'
+                : 'bg-sky-50 border-sky-200 text-sky-800 hover:bg-sky-100'
+            }`}
+          >
+            <GridPageAddIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -486,9 +563,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument}
             onClick={onFitWidth}
             title="Genişliğe Sığdır"
-            className={`${baseBtn} bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 min-w-[64px] px-2 text-xs font-bold`}
+            className={`${baseBtn} bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 min-w-[60px] px-2 text-xs font-bold`}
           >
-            <FitWidthIcon className="w-4 h-4 hidden xl:inline" />
+            <FitWidthIcon className="w-4 h-4 hidden 2xl:inline" />
             <span>%{Math.round(zoom * 100)}</span>
           </button>
 
@@ -530,9 +607,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
           <button
             type="button"
-            disabled={!hasDocument || !hasCurrentPageAnnotations}
+            disabled={!hasInteractiveCanvas || !hasCurrentPageAnnotations}
             onClick={onRequestClearPage}
-            title="Bu Sayfadaki Notları Temizle (geri alınabilir)"
+            title={
+              overlayBoardMode
+                ? 'Açık Boş/Kareli Sayfadaki Çizimleri Temizle (geri alınabilir)'
+                : 'Bu Sayfadaki Notları Temizle (geri alınabilir)'
+            }
             aria-label="Sayfayı Temizle"
             className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-xs`}
           >
@@ -542,9 +623,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
           <button
             type="button"
-            disabled={!hasDocument || !hasAnyAnnotations}
+            disabled={!hasDocument || Boolean(overlayBoardMode) || !hasAnyAnnotations}
             onClick={onRequestClearAll}
-            title="Tüm Notları Temizle (geri alınabilir)"
+            title="Tüm PDF Notlarını Temizle (geri alınabilir)"
             aria-label="Tümünü Temizle"
             className={`${baseBtn} bg-white border border-slate-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300 text-xs`}
           >
@@ -558,7 +639,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             aria-label="Çizgi yumuşatma düzeyi"
             title={`Çizgi Yumuşatma: ${STROKE_SMOOTHING_OPTIONS[strokeSmoothing].description}`}
             className={`h-[40px] px-1 rounded-xl bg-emerald-50/85 border border-emerald-200 inline-flex items-center gap-0.5 shrink-0 ${
-              !hasDocument ? 'opacity-45 pointer-events-none' : ''
+              !hasInteractiveCanvas ? 'opacity-45 pointer-events-none' : ''
             }`}
           >
             <span
@@ -574,7 +655,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 <button
                   key={level}
                   type="button"
-                  disabled={!hasDocument}
+                  disabled={!hasInteractiveCanvas}
                   aria-pressed={isSelected}
                   onClick={() => onSelectStrokeSmoothing(level)}
                   title={`Çizgi Yumuşatma — ${opt.label}: ${opt.description}`}
@@ -713,201 +794,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Geometrik Şekil Seçim & Kenar/İç Renk Alt Çubuğu */}
-      {hasDocument && (toolMode === 'shape' || isGeometricShapeSelected) && (
-        <div
-          role="group"
-          aria-label="Geometrik şekil, kenar rengi ve iç dolgu ayarları"
-          className="px-3 py-2 bg-violet-50/80 border-t border-violet-200/80 flex flex-col gap-2"
-        >
-          {/* Satır 1: Şekil Türleri (yalnızca Şekiller modunda göster) */}
-          {toolMode === 'shape' && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-bold text-violet-900 uppercase tracking-wide mr-1">
-                Şekil:
-              </span>
-              {SHAPE_OPTIONS.map((opt) => {
-                const isSelected = activeShapeType === opt.type;
-                return (
-                  <button
-                    key={opt.type}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => onSelectShapeType(opt.type)}
-                    title={opt.label}
-                    className={`min-h-[40px] px-2.5 rounded-xl inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
-                      isSelected
-                        ? 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-sm'
-                        : 'bg-white text-slate-700 border-violet-200 hover:bg-violet-100/70'
-                    }`}
-                  >
-                    {renderShapeIcon(opt.type, 'w-4 h-4 shrink-0')}
-                    <span>{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Satır 2: Dolgu Modu + Ayrı Kenar Rengi + Ayrı İç Rengi (ve Kenarla Aynı hızlı seçeneği) */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Kenar Rengi */}
-            <div className="flex items-center gap-1.5 bg-white/90 border border-violet-200 rounded-xl px-2 py-1">
-              <span className="text-[11px] font-bold text-slate-700 whitespace-nowrap">
-                Kenar:
-              </span>
-              {SHAPE_COLOR_OPTIONS.map((c) => {
-                const selected = activeShapeBorderColor === c.value;
-                return (
-                  <button
-                    key={`border-${c.value}`}
-                    type="button"
-                    onClick={() => onSelectShapeBorderColor(c.value)}
-                    title={`Kenar Rengi: ${c.label}`}
-                    aria-label={`Kenar Rengi ${c.label}`}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
-                      selected ? 'ring-2 ring-offset-1 ring-violet-600 scale-110' : 'hover:scale-105'
-                    }`}
-                  >
-                    <span
-                      className="w-5 h-5 rounded-full border border-slate-400/70 block"
-                      style={{ backgroundColor: c.value }}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Dolgu Modu (Boş / Saydam / Tam Dolu) */}
-            {(activeShapeMeta.closable || isGeometricShapeSelected) && (
-              <>
-                <div className="flex items-center gap-1 bg-white/90 border border-violet-200 rounded-xl p-1">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 px-1.5">
-                    <ShapeFillIcon className="w-3.5 h-3.5" />
-                    <span>İç Dolgu:</span>
-                  </span>
-                  {(Object.keys(SHAPE_FILL_MODE_OPTIONS) as ShapeFillMode[]).map((modeKey) => {
-                    const isSelected = activeShapeFillMode === modeKey;
-                    return (
-                      <button
-                        key={modeKey}
-                        type="button"
-                        aria-pressed={isSelected}
-                        onClick={() => onSelectShapeFillMode(modeKey)}
-                        className={`min-h-[34px] px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-violet-600 text-white shadow-xs'
-                            : 'text-slate-700 hover:bg-violet-100'
-                        }`}
-                      >
-                        {SHAPE_FILL_MODE_OPTIONS[modeKey].label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* İç Renk Paleti + Kenarla Aynı Seçeneği */}
-                <div className="flex flex-wrap items-center gap-1.5 bg-white/90 border border-violet-200 rounded-xl px-2 py-1">
-                  <span className="text-[11px] font-bold text-slate-700 whitespace-nowrap">
-                    İç Rengi:
-                  </span>
-                  <button
-                    type="button"
-                    aria-pressed={syncShapeFillWithBorder}
-                    onClick={onToggleSyncShapeFill}
-                    title="Açıkken iç dolgu rengi her zaman kenar rengiyle aynı kalır"
-                    className={`h-7 px-2 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
-                      syncShapeFillWithBorder
-                        ? 'bg-slate-800 text-white border-slate-900'
-                        : 'bg-slate-50 text-slate-600 border-slate-300 hover:bg-slate-100'
-                    }`}
-                  >
-                    Kenarla Aynı
-                  </button>
-                  {SHAPE_COLOR_OPTIONS.map((c) => {
-                    const selected = activeShapeFillColor === c.value && activeShapeFillMode !== 'none';
-                    return (
-                      <button
-                        key={`fill-${c.value}`}
-                        type="button"
-                        onClick={() => onSelectShapeFillColor(c.value)}
-                        title={`İç Dolgu Rengi: ${c.label}`}
-                        aria-label={`İç Dolgu Rengi ${c.label}`}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
-                          selected ? 'ring-2 ring-offset-1 ring-emerald-600 scale-110' : 'hover:scale-105'
-                        }`}
-                      >
-                        <span
-                          className="w-5 h-5 rounded-full border border-slate-400/70 block"
-                          style={{ backgroundColor: c.value }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Hızlı Sembol Seçim Alt Çubuğu (Yeşil Tik, Kırmızı Çarpı, Yıldız, Soru, Ünlem, Kalp) */}
-      {hasDocument && toolMode === 'stamp' && (
-        <div
-          role="group"
-          aria-label="Sembol ve damga seçimi"
-          className="px-3 py-2 bg-teal-50/80 border-t border-teal-200/80 flex flex-wrap items-center gap-2"
-        >
-          <span className="text-xs font-bold text-teal-900 uppercase tracking-wide mr-1">
-            Sembol Seç:
-          </span>
-          {STAMP_OPTIONS.map((opt) => {
-            const isSelected = activeStampType === opt.type;
-            return (
-              <button
-                key={opt.type}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => onSelectStampType(opt.type)}
-                title={`${opt.label}: Sayfaya tek dokunuşla ekle veya sürükle`}
-                className={`min-h-[42px] px-3 rounded-xl inline-flex items-center gap-2 text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
-                  isSelected
-                    ? 'bg-white text-slate-900 border-teal-600 ring-2 ring-teal-400 shadow-sm'
-                    : 'bg-white/90 text-slate-700 border-teal-200 hover:bg-white'
-                }`}
-              >
-                <span style={{ color: opt.defaultColor }} className="inline-flex shrink-0">
-                  {renderStampIcon(opt.type, 'w-5 h-5')}
-                </span>
-                <span>{opt.label}</span>
-              </button>
-            );
-          })}
-
-          <div className="flex items-center gap-1.5 pl-2 ml-1 border-l border-teal-200">
-            <span className="text-xs font-bold text-teal-900">Boyut:</span>
-            {(Object.keys(STAMP_SIZE_RATIOS) as StampSizeKey[]).map((sizeKey) => {
-              const isSelected = stampSizeKey === sizeKey;
-              return (
-                <button
-                  key={sizeKey}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => onSelectStampSize(sizeKey)}
-                  className={`min-h-[38px] px-2.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-teal-600 text-white border-teal-700 shadow-xs'
-                      : 'bg-white text-slate-700 border-teal-200 hover:bg-teal-100/70'
-                  }`}
-                >
-                  {STAMP_SIZE_RATIOS[sizeKey].label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </header>
   );
 };

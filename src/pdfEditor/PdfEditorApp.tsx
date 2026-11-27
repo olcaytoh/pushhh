@@ -1,10 +1,13 @@
 // Çevrimdışı PDF Görüntüleyici, Yazı ve Serbest Çizim Editörü (sıfır harici istek, düzenlenebilir PDF kayıt)
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
-import { PdfDocIcon } from './components/Icons';
+import { BlankPageAddIcon, GridPageAddIcon, MergePdfIcon, PdfDocIcon } from './components/Icons';
 import { LeftToolSidebar } from './components/LeftToolSidebar';
+import { MergePdfModal, type MergeSourceEntry } from './components/MergePdfModal';
 import { PdfPageItem } from './components/PdfPageItem';
+import { OVERLAY_PAGE_NUMBER, ScratchpadOverlay } from './components/ScratchpadOverlay';
 import { SettingsModal } from './components/SettingsModal';
+import { ThumbnailSidebar } from './components/ThumbnailSidebar';
 import { Toolbar } from './components/Toolbar';
 import {
   type AnnotationsMap,
@@ -41,7 +44,13 @@ import {
   savePdfBytesAs,
 } from './utils/fileSave';
 import { loadDefaultLocalFonts, readFontFileBytes } from './utils/fontManager';
-import { exportAnnotatedPdf, extractEditableAttachments } from './utils/pdfExporter';
+import {
+  type InsertPageKind,
+  exportAnnotatedPdf,
+  extractEditableAttachments,
+  insertCustomPageIntoPdf,
+  mergePdfByteArrays,
+} from './utils/pdfExporter';
 import { ensurePdfWorkerConfigured } from './utils/pdfWorker';
 
 const EMPTY_PAGE_ANNOTATIONS: PageAnnotations = { texts: [], strokes: [], shapes: [] };
@@ -49,13 +58,41 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
 const MAX_UNDO_STACK = 60;
 
+function clonePageAnnotations(entry: PageAnnotations): PageAnnotations {
+  return {
+    texts: entry.texts.map((t) => ({ ...t })),
+    strokes: entry.strokes.map((s) => ({
+      ...s,
+      points: s.points.map((p) => ({ ...p })),
+    })),
+    shapes: (entry.shapes || []).map((sh) => ({ ...sh })),
+  };
+}
+
 function cloneAnnotationsMap(map: AnnotationsMap): AnnotationsMap {
   const copy: AnnotationsMap = {};
   for (const key of Object.keys(map)) {
     const pageNum = Number(key);
     const entry = map[pageNum];
     if (!entry) continue;
-    copy[pageNum] = {
+    copy[pageNum] = clonePageAnnotations(entry);
+  }
+  return copy;
+}
+
+function clampZoom(val: number): number {
+  return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(val * 100) / 100));
+}
+
+/** Yeni sayfa eklendiğinde eklendiği konum ve sonrasındaki sayfaların not anahtarlarını +1 kaydırır */
+function shiftAnnotationsAfterInsert(map: AnnotationsMap, insertedPageNumber: number): AnnotationsMap {
+  const shifted: AnnotationsMap = {};
+  for (const key of Object.keys(map)) {
+    const pageNum = Number(key);
+    const entry = map[pageNum];
+    if (!entry) continue;
+    const nextPageNum = pageNum >= insertedPageNumber ? pageNum + 1 : pageNum;
+    shifted[nextPageNum] = {
       texts: entry.texts.map((t) => ({ ...t })),
       strokes: entry.strokes.map((s) => ({
         ...s,
@@ -64,11 +101,7 @@ function cloneAnnotationsMap(map: AnnotationsMap): AnnotationsMap {
       shapes: (entry.shapes || []).map((sh) => ({ ...sh })),
     };
   }
-  return copy;
-}
-
-function clampZoom(val: number): number {
-  return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(val * 100) / 100));
+  return shifted;
 }
 
 const PDF_LAST_PAGES_STORAGE_KEY = 'pdfEditor_lastPages_v1';
@@ -185,11 +218,17 @@ type ConfirmDialogState =
 
 export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const [pdfDoc, setPdfDoc] = useState<PDFDocumentProxy | null>(null);
+  const [docRevision, setDocRevision] = useState<number>(0);
   const [fileName, setFileName] = useState<string>('');
   const [pagesMeta, setPagesMeta] = useState<PageMeta[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
+  const [isInsertingPage, setIsInsertingPage] = useState<boolean>(false);
+  const [isMergingPdfs, setIsMergingPdfs] = useState<boolean>(false);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState<boolean>(false);
+  const [isThumbnailSidebarOpen, setIsThumbnailSidebarOpen] = useState<boolean>(true);
   const [isDraggingFile, setIsDraggingFile] = useState<boolean>(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(true);
 
   const cleanOriginalBytesRef = useRef<Uint8Array | null>(null);
   const rawOpenedBytesRef = useRef<Uint8Array | null>(null);
@@ -219,6 +258,14 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const [annotations, setAnnotations] = useState<AnnotationsMap>({});
   const [undoStack, setUndoStack] = useState<AnnotationsMap[]>([]);
   const [redoStack, setRedoStack] = useState<AnnotationsMap[]>([]);
+  const [overlayBoardMode, setOverlayBoardMode] = useState<InsertPageKind | null>(null);
+  const [overlayAnnotations, setOverlayAnnotations] = useState<PageAnnotations>(
+    EMPTY_PAGE_ANNOTATIONS,
+  );
+  const [overlayUndoStack, setOverlayUndoStack] = useState<PageAnnotations[]>([]);
+  const [overlayRedoStack, setOverlayRedoStack] = useState<PageAnnotations[]>([]);
+  const overlayAnnotationsRef = useRef<PageAnnotations>(overlayAnnotations);
+  overlayAnnotationsRef.current = overlayAnnotations;
   const [selectedObject, setSelectedObject] = useState<SelectedObject | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
 
@@ -512,6 +559,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         }
 
         setPdfDoc(activeDoc);
+        setDocRevision((r) => r + 1);
         setFileName(file.name);
         setFileHandle(handle);
         setPagesMeta(metas);
@@ -530,6 +578,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         if (restoredPage <= 1 && scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = 0;
         }
+        setOverlayBoardMode(null);
 
         if (openedBanner) {
           let finalMsg = openedBanner.msg;
@@ -586,6 +635,310 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     fileInputRef.current?.click();
   }, [loadPdfFile]);
 
+  // Mevcut sayfadan hemen sonra (veya belge açık değilse yeni belge olarak) Boş / Kareli sayfa ekle
+  const handleInsertPage = useCallback(
+    async (kind: InsertPageKind) => {
+      if (isInsertingPage || isExporting || isLoadingPdf) return;
+      setIsInsertingPage(true);
+
+      let nextDoc: PDFDocumentProxy | null = null;
+      try {
+        const hadExistingDoc = Boolean(pdfDocRef.current && cleanOriginalBytesRef.current);
+        const insertAfter = hadExistingDoc ? currentPageRef.current : 0;
+
+        const { bytes: updatedCleanBytes, insertedPageNumber } = await insertCustomPageIntoPdf(
+          hadExistingDoc ? cleanOriginalBytesRef.current : null,
+          kind,
+          insertAfter,
+        );
+
+        const pdfjsLib = ensurePdfWorkerConfigured();
+        const loadingTask = pdfjsLib.getDocument({
+          data: updatedCleanBytes.slice(),
+          useSystemFonts: true,
+        });
+        nextDoc = await loadingTask.promise;
+
+        const metas: PageMeta[] = [];
+        for (let i = 1; i <= nextDoc.numPages; i++) {
+          const page = await nextDoc.getPage(i);
+          const vp = page.getViewport({ scale: 1 });
+          metas.push({
+            pageNumber: i,
+            baseWidth: vp.width,
+            baseHeight: vp.height,
+          });
+        }
+
+        const prevDoc = pdfDocRef.current;
+        pdfDocRef.current = nextDoc;
+        cleanOriginalBytesRef.current = updatedCleanBytes;
+        if (!hadExistingDoc) {
+          rawOpenedBytesRef.current = updatedCleanBytes.slice();
+          docFingerprintRef.current = computePdfFingerprint(updatedCleanBytes, nextDoc.numPages);
+          setFileName(kind === 'grid' ? 'kareli-defter.pdf' : 'bos-defter.pdf');
+          setFileHandle(null);
+          overwriteConfirmedRef.current = false;
+          hasCorruptAttachmentRef.current = false;
+        }
+
+        if (prevDoc) {
+          try {
+            await prevDoc.destroy();
+          } catch {
+            // Yoksay
+          }
+        }
+
+        pendingRestorePageRef.current = insertedPageNumber;
+        suppressScrollUntilRef.current = Date.now() + 900;
+
+        setPdfDoc(nextDoc);
+        setDocRevision((r) => r + 1);
+        setPagesMeta(metas);
+        setCurrentPage(insertedPageNumber);
+        setSelectedObject(null);
+        setHasUnsavedChanges(true);
+
+        if (hadExistingDoc) {
+          setAnnotations((prev) => shiftAnnotationsAfterInsert(prev, insertedPageNumber));
+          setUndoStack((stack) =>
+            stack.map((snap) => shiftAnnotationsAfterInsert(snap, insertedPageNumber)),
+          );
+          setRedoStack((stack) =>
+            stack.map((snap) => shiftAnnotationsAfterInsert(snap, insertedPageNumber)),
+          );
+        } else {
+          setAnnotations({});
+          setUndoStack([]);
+          setRedoStack([]);
+          setToolMode('pen');
+          const initialZoom = metas.length > 0 ? computeFitWidthZoom(metas[0].baseWidth) : 1;
+          setZoom(initialZoom);
+          setRenderZoom(initialZoom);
+        }
+
+        const label = kind === 'grid' ? 'kareli sayfa' : 'boş sayfa';
+        showToast(
+          'success',
+          hadExistingDoc
+            ? `${insertedPageNumber}. sayfa olarak yeni ${label} eklendi.`
+            : `Yeni ${label} oluşturuldu. Çizmeye başlayabilirsiniz.`,
+        );
+      } catch {
+        if (nextDoc && nextDoc !== pdfDocRef.current) {
+          try {
+            await nextDoc.destroy();
+          } catch {
+            // Yoksay
+          }
+        }
+        showToast('error', 'Yeni sayfa eklenirken bir hata oluştu.');
+      } finally {
+        setIsInsertingPage(false);
+      }
+    },
+    [computeFitWidthZoom, isExporting, isInsertingPage, isLoadingPdf, showToast],
+  );
+
+  // Birden fazla PDF dosyasını seçilen sıraya göre uç uca birleştirir (düzenlenebilir notları korur)
+  const handleConfirmMerge = useCallback(
+    async (entries: MergeSourceEntry[]) => {
+      if (isMergingPdfs || isExporting || isInsertingPage || isLoadingPdf || entries.length === 0) {
+        return;
+      }
+      setIsMergingPdfs(true);
+
+      let nextDoc: PDFDocumentProxy | null = null;
+      try {
+        const hadExistingDoc = Boolean(pdfDocRef.current && cleanOriginalBytesRef.current);
+        const pdfjsLib = ensurePdfWorkerConfigured();
+
+        const sourceByteList: Uint8Array[] = [];
+        const mergedAnnotations: AnnotationsMap = {};
+        let pageOffset = 0;
+        let includedCurrentDoc = false;
+        let currentDocFirstPageCount = 0;
+
+        for (let idx = 0; idx < entries.length; idx++) {
+          const entry = entries[idx];
+
+          if (entry.isCurrentDoc && cleanOriginalBytesRef.current) {
+            sourceByteList.push(cleanOriginalBytesRef.current);
+            includedCurrentDoc = true;
+
+            const currentAnns = annotationsRef.current;
+            for (const key of Object.keys(currentAnns)) {
+              const pNum = Number(key);
+              const pageEntry = currentAnns[pNum];
+              if (pageEntry) {
+                mergedAnnotations[pNum + pageOffset] = clonePageAnnotations(pageEntry);
+              }
+            }
+
+            const entryPageCount = pdfDocRef.current?.numPages || entry.pageCount;
+            if (idx === 0) {
+              currentDocFirstPageCount = entryPageCount;
+            }
+            pageOffset += entryPageCount;
+            continue;
+          }
+
+          if (!entry.bytes) continue;
+
+          let tempDoc: PDFDocumentProxy | null = null;
+          let resolvedBytes: Uint8Array = entry.bytes;
+          let entryPageCount = entry.pageCount;
+
+          try {
+            const tempTask = pdfjsLib.getDocument({
+              data: entry.bytes.slice(),
+              useSystemFonts: true,
+            });
+            tempDoc = await tempTask.promise;
+            entryPageCount = tempDoc.numPages;
+
+            const extracted = await extractEditableAttachments(tempDoc);
+            if (extracted.status === 'loaded' && extracted.cleanOriginalBytes) {
+              resolvedBytes = extracted.cleanOriginalBytes;
+              if (extracted.annotations) {
+                for (const key of Object.keys(extracted.annotations)) {
+                  const pNum = Number(key);
+                  const pageEntry = extracted.annotations[pNum];
+                  if (pageEntry) {
+                    mergedAnnotations[pNum + pageOffset] = clonePageAnnotations(pageEntry);
+                  }
+                }
+              }
+            }
+          } finally {
+            if (tempDoc) {
+              try {
+                await tempDoc.destroy();
+              } catch {
+                // Yoksay
+              }
+            }
+          }
+
+          sourceByteList.push(resolvedBytes);
+          pageOffset += entryPageCount;
+        }
+
+        if (sourceByteList.length === 0) {
+          showToast('error', 'Birleştirilecek geçerli bir PDF dosyası bulunamadı.');
+          return;
+        }
+
+        const { bytes: mergedBytes, totalPages } = await mergePdfByteArrays(sourceByteList);
+
+        const loadingTask = pdfjsLib.getDocument({
+          data: mergedBytes.slice(),
+          useSystemFonts: true,
+        });
+        nextDoc = await loadingTask.promise;
+
+        const metas: PageMeta[] = [];
+        for (let i = 1; i <= nextDoc.numPages; i++) {
+          const page = await nextDoc.getPage(i);
+          const vp = page.getViewport({ scale: 1 });
+          metas.push({
+            pageNumber: i,
+            baseWidth: vp.width,
+            baseHeight: vp.height,
+          });
+        }
+
+        const prevDoc = pdfDocRef.current;
+        pdfDocRef.current = nextDoc;
+        cleanOriginalBytesRef.current = mergedBytes;
+        rawOpenedBytesRef.current = mergedBytes.slice();
+        docFingerprintRef.current = computePdfFingerprint(mergedBytes, nextDoc.numPages);
+        overwriteConfirmedRef.current = false;
+        hasCorruptAttachmentRef.current = false;
+
+        if (prevDoc) {
+          try {
+            await prevDoc.destroy();
+          } catch {
+            // Yoksay
+          }
+        }
+
+        const targetPage =
+          includedCurrentDoc &&
+          currentDocFirstPageCount > 0 &&
+          currentDocFirstPageCount < nextDoc.numPages
+            ? currentDocFirstPageCount + 1
+            : 1;
+
+        pendingRestorePageRef.current = targetPage > 1 ? targetPage : null;
+        if (targetPage > 1) {
+          suppressScrollUntilRef.current = Date.now() + 900;
+        } else if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+
+        const baseSourceName =
+          includedCurrentDoc && fileName
+            ? fileName
+            : entries[0]?.name || 'birlestirilmis-belge.pdf';
+        const cleanBase = baseSourceName.replace(/\.pdf$/i, '').replace(/-birlesik$/i, '');
+        const nextFileName = `${cleanBase}-birlesik.pdf`;
+
+        setPdfDoc(nextDoc);
+        setDocRevision((r) => r + 1);
+        setFileName(nextFileName);
+        setFileHandle(null);
+        setPagesMeta(metas);
+        setCurrentPage(targetPage);
+        setAnnotations(mergedAnnotations);
+        setUndoStack([]);
+        setRedoStack([]);
+        setSelectedObject(null);
+        setHasUnsavedChanges(true);
+        setOverlayBoardMode(null);
+        setIsMergeModalOpen(false);
+        setIsThumbnailSidebarOpen(true);
+
+        if (!hadExistingDoc) {
+          setToolMode('select');
+          const initialZoom = metas.length > 0 ? computeFitWidthZoom(metas[0].baseWidth) : 1;
+          setZoom(initialZoom);
+          setRenderZoom(initialZoom);
+        }
+
+        showToast(
+          'success',
+          `${sourceByteList.length} PDF birleştirildi (Toplam ${totalPages} sayfa).`,
+        );
+      } catch {
+        if (nextDoc && nextDoc !== pdfDocRef.current) {
+          try {
+            await nextDoc.destroy();
+          } catch {
+            // Yoksay
+          }
+        }
+        showToast(
+          'error',
+          'PDF dosyaları birleştirilirken bir hata oluştu. Şifreli veya bozuk bir dosya olabilir.',
+        );
+      } finally {
+        setIsMergingPdfs(false);
+      }
+    },
+    [
+      computeFitWidthZoom,
+      fileName,
+      isExporting,
+      isInsertingPage,
+      isLoadingPdf,
+      isMergingPdfs,
+      showToast,
+    ],
+  );
+
   const mutateAnnotations = useCallback(
     (updater: (prev: AnnotationsMap) => AnnotationsMap, recordUndo = true) => {
       setAnnotations((prev) => {
@@ -601,163 +954,169 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     [],
   );
 
-  const handleAddText = useCallback(
-    (pageNumber: number, item: TextAnnotation) => {
+  const mutateTargetPage = useCallback(
+    (
+      pageNumber: number,
+      pageUpdater: (page: PageAnnotations) => PageAnnotations,
+      recordUndo = true,
+    ) => {
+      if (pageNumber === OVERLAY_PAGE_NUMBER) {
+        setOverlayAnnotations((prev) => {
+          if (recordUndo) {
+            const snapshot = clonePageAnnotations(prev);
+            setOverlayUndoStack((stack) => [...stack.slice(-(MAX_UNDO_STACK - 1)), snapshot]);
+            setOverlayRedoStack([]);
+          }
+          return pageUpdater(prev);
+        });
+        return;
+      }
       mutateAnnotations((prev) => {
         const page = prev[pageNumber] || EMPTY_PAGE_ANNOTATIONS;
         return {
           ...prev,
-          [pageNumber]: {
-            ...page,
-            texts: [...page.texts, item],
-          },
+          [pageNumber]: pageUpdater(page),
         };
-      });
+      }, recordUndo);
     },
     [mutateAnnotations],
+  );
+
+  const handleToggleOverlayBoard = useCallback((kind: InsertPageKind) => {
+    setSelectedObject(null);
+    setOverlayBoardMode((prev) => {
+      if (prev === kind) {
+        return null;
+      }
+      setToolMode((currentTool) => (currentTool === 'select' ? 'pen' : currentTool));
+      return kind;
+    });
+  }, []);
+
+  const handleInsertFromOverlay = useCallback(
+    async (kind: InsertPageKind) => {
+      setOverlayBoardMode(null);
+      setSelectedObject(null);
+      await handleInsertPage(kind);
+    },
+    [handleInsertPage],
+  );
+
+  const handleClearOverlayBoard = useCallback(() => {
+    mutateTargetPage(OVERLAY_PAGE_NUMBER, () => EMPTY_PAGE_ANNOTATIONS, true);
+    setSelectedObject(null);
+    showToast('info', 'Açık sayfadaki çizimler temizlendi (Ctrl+Z ile geri alınabilir).');
+  }, [mutateTargetPage, showToast]);
+
+  const handleAddText = useCallback(
+    (pageNumber: number, item: TextAnnotation) => {
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        texts: [...page.texts, item],
+      }));
+    },
+    [mutateTargetPage],
   );
 
   const handleUpdateText = useCallback(
     (pageNumber: number, id: string, patch: Partial<TextAnnotation>, recordUndo = true) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            texts: page.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)),
-          },
-        };
-      }, recordUndo);
+      mutateTargetPage(
+        pageNumber,
+        (page) => ({
+          ...page,
+          texts: page.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+        }),
+        recordUndo,
+      );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleDeleteText = useCallback(
     (pageNumber: number, id: string) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            texts: page.texts.filter((t) => t.id !== id),
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        texts: page.texts.filter((t) => t.id !== id),
+      }));
       setSelectedObject((sel) =>
         sel && sel.type === 'text' && sel.pageNumber === pageNumber && sel.id === id ? null : sel,
       );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleAddStroke = useCallback(
     (pageNumber: number, stroke: StrokeAnnotation) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber] || EMPTY_PAGE_ANNOTATIONS;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            strokes: [...page.strokes, stroke],
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        strokes: [...page.strokes, stroke],
+      }));
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleUpdateStroke = useCallback(
     (pageNumber: number, id: string, patch: Partial<StrokeAnnotation>, recordUndo = true) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            strokes: page.strokes.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-          },
-        };
-      }, recordUndo);
+      mutateTargetPage(
+        pageNumber,
+        (page) => ({
+          ...page,
+          strokes: page.strokes.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+        }),
+        recordUndo,
+      );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleDeleteStroke = useCallback(
     (pageNumber: number, id: string) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            strokes: page.strokes.filter((s) => s.id !== id),
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        strokes: page.strokes.filter((s) => s.id !== id),
+      }));
       setSelectedObject((sel) =>
         sel && sel.type === 'stroke' && sel.pageNumber === pageNumber && sel.id === id ? null : sel,
       );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleAddShape = useCallback(
     (pageNumber: number, shape: ShapeAnnotation) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber] || EMPTY_PAGE_ANNOTATIONS;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            shapes: [...(page.shapes || []), shape],
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        shapes: [...(page.shapes || []), shape],
+      }));
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleUpdateShape = useCallback(
     (pageNumber: number, id: string, patch: Partial<ShapeAnnotation>, recordUndo = true) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            shapes: (page.shapes || []).map((sh) => (sh.id === id ? { ...sh, ...patch } : sh)),
-          },
-        };
-      }, recordUndo);
+      mutateTargetPage(
+        pageNumber,
+        (page) => ({
+          ...page,
+          shapes: (page.shapes || []).map((sh) => (sh.id === id ? { ...sh, ...patch } : sh)),
+        }),
+        recordUndo,
+      );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleDeleteShape = useCallback(
     (pageNumber: number, id: string) => {
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            ...page,
-            shapes: (page.shapes || []).filter((sh) => sh.id !== id),
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        ...page,
+        shapes: (page.shapes || []).filter((sh) => sh.id !== id),
+      }));
       setSelectedObject((sel) =>
         sel && sel.type === 'shape' && sel.pageNumber === pageNumber && sel.id === id ? null : sel,
       );
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleEraseBatch = useCallback(
@@ -766,20 +1125,13 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       const textSet = new Set(textIds);
       const strokeSet = new Set(strokeIds);
       const shapeSet = new Set(shapeIds);
-      mutateAnnotations((prev) => {
-        const page = prev[pageNumber];
-        if (!page) return prev;
-        return {
-          ...prev,
-          [pageNumber]: {
-            texts: page.texts.filter((t) => !textSet.has(t.id)),
-            strokes: page.strokes.filter((s) => !strokeSet.has(s.id)),
-            shapes: (page.shapes || []).filter((sh) => !shapeSet.has(sh.id)),
-          },
-        };
-      });
+      mutateTargetPage(pageNumber, (page) => ({
+        texts: page.texts.filter((t) => !textSet.has(t.id)),
+        strokes: page.strokes.filter((s) => !strokeSet.has(s.id)),
+        shapes: (page.shapes || []).filter((sh) => !shapeSet.has(sh.id)),
+      }));
     },
-    [mutateAnnotations],
+    [mutateTargetPage],
   );
 
   const handleSelectColor = useCallback(
@@ -944,6 +1296,9 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     (mode: ToolMode) => {
       setToolMode(mode);
       if (mode !== 'select') setSelectedObject(null);
+      if (mode === 'stamp' || mode === 'shape') {
+        setIsSidePanelOpen(true);
+      }
       if (mode === 'stamp') {
         const opt = STAMP_OPTIONS.find((s) => s.type === activeStampType);
         if (opt) setActiveColor(opt.defaultColor);
@@ -955,8 +1310,17 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const handleSelectObject = useCallback((obj: SelectedObject | null) => {
     setSelectedObject(obj);
     if (!obj) return;
-    const page = annotationsRef.current[obj.pageNumber];
+    const page =
+      obj.pageNumber === OVERLAY_PAGE_NUMBER
+        ? overlayAnnotationsRef.current
+        : annotationsRef.current[obj.pageNumber];
     if (!page) return;
+    if (obj.type === 'shape') {
+      const sh = (page.shapes || []).find((item) => item.id === obj.id);
+      if (sh && !isStampShapeType(sh.shapeType)) {
+        setIsSidePanelOpen(true);
+      }
+    }
     if (obj.type === 'text') {
       const item = page.texts.find((t) => t.id === obj.id);
       if (!item) return;
@@ -1016,6 +1380,20 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   }, []);
 
   const handleUndo = useCallback(() => {
+    if (overlayBoardMode !== null) {
+      setOverlayUndoStack((stack) => {
+        if (stack.length === 0) return stack;
+        const previous = stack[stack.length - 1];
+        setOverlayRedoStack((rStack) => [
+          ...rStack,
+          clonePageAnnotations(overlayAnnotationsRef.current),
+        ]);
+        setOverlayAnnotations(previous);
+        setSelectedObject(null);
+        return stack.slice(0, -1);
+      });
+      return;
+    }
     setUndoStack((stack) => {
       if (stack.length === 0) return stack;
       const previous = stack[stack.length - 1];
@@ -1025,9 +1403,23 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       setHasUnsavedChanges(true);
       return stack.slice(0, -1);
     });
-  }, []);
+  }, [overlayBoardMode]);
 
   const handleRedo = useCallback(() => {
+    if (overlayBoardMode !== null) {
+      setOverlayRedoStack((stack) => {
+        if (stack.length === 0) return stack;
+        const next = stack[stack.length - 1];
+        setOverlayUndoStack((uStack) => [
+          ...uStack,
+          clonePageAnnotations(overlayAnnotationsRef.current),
+        ]);
+        setOverlayAnnotations(next);
+        setSelectedObject(null);
+        return stack.slice(0, -1);
+      });
+      return;
+    }
     setRedoStack((stack) => {
       if (stack.length === 0) return stack;
       const next = stack[stack.length - 1];
@@ -1037,7 +1429,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       setHasUnsavedChanges(true);
       return stack.slice(0, -1);
     });
-  }, []);
+  }, [overlayBoardMode]);
 
   const executeClearCurrentPage = useCallback(
     (pageNumber: number) => {
@@ -1430,6 +1822,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    if (isMergeModalOpen) return;
     if (!isDraggingFile) setIsDraggingFile(true);
   };
 
@@ -1442,6 +1835,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingFile(false);
+    if (isMergeModalOpen) return;
     const handle = await extractDropFileHandle(e.dataTransfer);
     if (handle) {
       try {
@@ -1467,20 +1861,29 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
     onExit();
   }, [hasUnsavedChanges, onExit]);
 
+  const hasInteractiveCanvas = Boolean(pdfDoc) || overlayBoardMode !== null;
   const currentPageData = annotations[currentPage] || EMPTY_PAGE_ANNOTATIONS;
-  const hasCurrentPageAnnotations =
+  const hasPdfCurrentPageAnnotations =
     currentPageData.texts.length > 0 ||
     currentPageData.strokes.length > 0 ||
     (currentPageData.shapes?.length || 0) > 0;
+  const hasOverlayAnnotations =
+    overlayAnnotations.texts.length > 0 ||
+    overlayAnnotations.strokes.length > 0 ||
+    (overlayAnnotations.shapes?.length || 0) > 0;
+  const hasCurrentPageAnnotations =
+    overlayBoardMode !== null ? hasOverlayAnnotations : hasPdfCurrentPageAnnotations;
   const hasAnyAnnotations = Object.values(annotations).some(
     (p) => p && (p.texts.length > 0 || p.strokes.length > 0 || (p.shapes?.length || 0) > 0),
   );
 
   const isGeometricShapeSelected = (() => {
     if (selectedObject?.type !== 'shape') return false;
-    const sh = (annotations[selectedObject.pageNumber]?.shapes || []).find(
-      (s) => s.id === selectedObject.id,
-    );
+    const targetPage =
+      selectedObject.pageNumber === OVERLAY_PAGE_NUMBER
+        ? overlayAnnotations
+        : annotations[selectedObject.pageNumber];
+    const sh = (targetPage?.shapes || []).find((s) => s.id === selectedObject.id);
     return Boolean(sh && !isStampShapeType(sh.shapeType));
   })();
 
@@ -1517,6 +1920,8 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
       <Toolbar
         hasDocument={Boolean(pdfDoc)}
+        hasInteractiveCanvas={hasInteractiveCanvas}
+        overlayBoardMode={overlayBoardMode}
         fileName={fileName}
         hasUnsavedChanges={hasUnsavedChanges}
         canOverwriteHandle={Boolean(fileHandle)}
@@ -1533,35 +1938,39 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         activeShapeFillMode={activeShapeFillMode}
         activeShapeBorderColor={activeShapeBorderColor}
         activeShapeFillColor={activeShapeFillColor}
-        syncShapeFillWithBorder={syncShapeFillWithBorder}
-        isGeometricShapeSelected={isGeometricShapeSelected}
         activeStampType={activeStampType}
         stampSizeKey={stampSizeKey}
-        canUndo={undoStack.length > 0}
-        canRedo={redoStack.length > 0}
+        canUndo={overlayBoardMode !== null ? overlayUndoStack.length > 0 : undoStack.length > 0}
+        canRedo={overlayBoardMode !== null ? overlayRedoStack.length > 0 : redoStack.length > 0}
         hasCurrentPageAnnotations={hasCurrentPageAnnotations}
         hasAnyAnnotations={hasAnyAnnotations}
         isFullscreen={isFullscreen}
         isExporting={isExporting}
+        isInsertingPage={isInsertingPage}
+        isMergingPdfs={isMergingPdfs}
+        isThumbnailSidebarOpen={isThumbnailSidebarOpen}
         onExitToSite={onExit ? handleRequestExit : undefined}
         onOpenPdfClick={handleOpenPdfClick}
+        onOpenMergeModal={() => setIsMergeModalOpen(true)}
+        onToggleThumbnailSidebar={() => setIsThumbnailSidebarOpen((prev) => !prev)}
         onPrevPage={() => scrollToPage(Math.max(1, currentPage - 1))}
         onNextPage={() => scrollToPage(Math.min(pagesMeta.length, currentPage + 1))}
         onJumpToPage={scrollToPage}
+        onToggleBlankOverlay={() => handleToggleOverlayBoard('blank')}
+        onToggleGridOverlay={() => handleToggleOverlayBoard('grid')}
         onZoomIn={() => applyZoom((z) => z + 0.2)}
         onZoomOut={() => applyZoom((z) => z - 0.2)}
         onFitWidth={handleFitWidth}
         onSelectStrokeSmoothing={setStrokeSmoothing}
-        onSelectShapeType={setActiveShapeType}
-        onSelectShapeFillMode={handleSelectShapeFillMode}
-        onSelectShapeBorderColor={handleSelectShapeBorderColor}
-        onSelectShapeFillColor={handleSelectShapeFillColor}
-        onToggleSyncShapeFill={handleToggleSyncShapeFill}
-        onSelectStampType={handleSelectStampType}
-        onSelectStampSize={setStampSizeKey}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        onRequestClearPage={() => setConfirmDialog({ kind: 'clear-page', pageNumber: currentPage })}
+        onRequestClearPage={() => {
+          if (overlayBoardMode !== null) {
+            handleClearOverlayBoard();
+            return;
+          }
+          setConfirmDialog({ kind: 'clear-page', pageNumber: currentPage });
+        }}
         onRequestClearAll={() => setConfirmDialog({ kind: 'clear-all' })}
         onToggleFullscreen={handleToggleFullscreen}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -1572,24 +1981,59 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
         <LeftToolSidebar
-          hasDocument={Boolean(pdfDoc)}
+          hasDocument={hasInteractiveCanvas}
           toolMode={toolMode}
           activeColor={activeColor}
           fontSizeKey={fontSizeKey}
           bold={bold}
           penWidthKey={penWidthKey}
+          activeShapeType={activeShapeType}
+          activeShapeFillMode={activeShapeFillMode}
+          activeShapeBorderColor={activeShapeBorderColor}
+          activeShapeFillColor={activeShapeFillColor}
+          syncShapeFillWithBorder={syncShapeFillWithBorder}
+          isGeometricShapeSelected={isGeometricShapeSelected}
+          activeStampType={activeStampType}
+          stampSizeKey={stampSizeKey}
+          isSidePanelOpen={isSidePanelOpen}
+          onCloseSidePanel={() => setIsSidePanelOpen(false)}
           onSelectTool={handleSelectTool}
           onSelectColor={handleSelectColor}
           onSelectFontSize={handleSelectFontSize}
           onToggleBold={handleToggleBold}
           onSelectPenWidth={handleSelectPenWidth}
+          onSelectShapeType={setActiveShapeType}
+          onSelectShapeFillMode={handleSelectShapeFillMode}
+          onSelectShapeBorderColor={handleSelectShapeBorderColor}
+          onSelectShapeFillColor={handleSelectShapeFillColor}
+          onToggleSyncShapeFill={handleToggleSyncShapeFill}
+          onSelectStampType={handleSelectStampType}
+          onSelectStampSize={setStampSizeKey}
         />
 
-        <main
-          ref={scrollContainerRef}
-          onScroll={handleWorkspaceScroll}
-          className="flex-1 overflow-auto workspace-scroll relative px-4 py-6"
-        >
+        {pdfDoc && pagesMeta.length > 0 && isThumbnailSidebarOpen && (
+          <ThumbnailSidebar
+            pdfDoc={pdfDoc}
+            docRevision={docRevision}
+            pagesMeta={pagesMeta}
+            currentPage={currentPage}
+            annotations={annotations}
+            onSelectPage={(pageNumber) => {
+              if (overlayBoardMode !== null) {
+                setOverlayBoardMode(null);
+              }
+              scrollToPage(pageNumber);
+            }}
+            onClose={() => setIsThumbnailSidebarOpen(false)}
+          />
+        )}
+
+        <div className="flex-1 relative min-w-0 h-full flex">
+          <main
+            ref={scrollContainerRef}
+            onScroll={handleWorkspaceScroll}
+            className="flex-1 overflow-auto workspace-scroll relative px-4 py-6"
+          >
         {isLoadingPdf && (
           <div className="fixed inset-0 z-40 bg-slate-900/30 flex items-center justify-center">
             <div className="bg-white rounded-xl shadow-xl px-6 py-4 text-slate-800 font-medium border border-slate-200">
@@ -1609,17 +2053,44 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
                   Çevrimdışı PDF Görüntüleyici ve Not Editörü
                 </h1>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  PDF dosyanızı bu alana sürükleyip bırakın veya aşağıdan seçin. Tüm işlemler
-                  yalnızca tarayıcınızda gerçekleşir; internetsiz ve yüksek hızda çalışır.
+                  PDF dosyanızı bu alana sürükleyip bırakın, aşağıdan seçin veya doğrudan boş /
+                  kareli sayfa ile başlayın. Tüm işlemler yalnızca tarayıcınızda gerçekleşir.
                 </p>
               </div>
-              <div className="pt-1 flex flex-wrap items-center justify-center gap-3">
+              <div className="pt-1 flex flex-wrap items-center justify-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleOpenPdfClick}
-                  className="min-h-[44px] px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-colors cursor-pointer"
+                  className="min-h-[44px] px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition-colors cursor-pointer"
                 >
                   PDF Dosyası Aç
+                </button>
+                <button
+                  type="button"
+                  disabled={isMergingPdfs}
+                  onClick={() => setIsMergeModalOpen(true)}
+                  className="min-h-[44px] px-4 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+                >
+                  <MergePdfIcon className="w-4 h-4" />
+                  <span>PDF Birleştir</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isInsertingPage}
+                  onClick={() => void handleInsertPage('blank')}
+                  className="min-h-[44px] px-4 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+                >
+                  <BlankPageAddIcon className="w-4 h-4" />
+                  <span>Boş Sayfa</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={isInsertingPage}
+                  onClick={() => void handleInsertPage('grid')}
+                  className="min-h-[44px] px-4 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+                >
+                  <GridPageAddIcon className="w-4 h-4" />
+                  <span>Kareli Sayfa</span>
                 </button>
                 <button
                   type="button"
@@ -1641,7 +2112,7 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
           <div className="flex flex-col items-center gap-5 pb-12 min-w-fit">
             {pagesMeta.map((meta) => (
               <PdfPageItem
-                key={meta.pageNumber}
+                key={`${docRevision}-${meta.pageNumber}`}
                 pdfDoc={pdfDoc}
                 meta={meta}
                 zoom={zoom}
@@ -1675,7 +2146,47 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
             ))}
           </div>
         )}
-        </main>
+          </main>
+
+          {overlayBoardMode !== null && (
+            <ScratchpadOverlay
+              mode={overlayBoardMode}
+              hasPdfDocument={Boolean(pdfDoc)}
+              isInsertingPage={isInsertingPage}
+              toolMode={toolMode}
+              activeColor={activeColor}
+              activeFontSizeRatio={FONT_SIZE_RATIOS[fontSizeKey].ratio}
+              activeBold={bold}
+              activePenWidthRatio={PEN_WIDTH_RATIOS[penWidthKey].ratio}
+              activeStrokeSmoothing={strokeSmoothing}
+              activeShapeType={activeShapeType}
+              activeShapeFillMode={activeShapeFillMode}
+              activeShapeBorderColor={activeShapeBorderColor}
+              activeShapeFillColor={activeShapeFillColor}
+              activeStampType={activeStampType}
+              activeStampSizeRatio={STAMP_SIZE_RATIOS[stampSizeKey].ratio}
+              annotations={overlayAnnotations}
+              selectedObject={selectedObject}
+              onSelectObject={handleSelectObject}
+              onAddText={handleAddText}
+              onUpdateText={handleUpdateText}
+              onDeleteText={handleDeleteText}
+              onAddStroke={handleAddStroke}
+              onDeleteStroke={handleDeleteStroke}
+              onAddShape={handleAddShape}
+              onUpdateShape={handleUpdateShape}
+              onDeleteShape={handleDeleteShape}
+              onEraseBatch={handleEraseBatch}
+              onSwitchMode={(nextKind) => setOverlayBoardMode(nextKind)}
+              onInsertIntoPdf={(kind) => void handleInsertFromOverlay(kind)}
+              onClearBoard={handleClearOverlayBoard}
+              onClose={() => {
+                setOverlayBoardMode(null);
+                setSelectedObject((sel) => (sel?.pageNumber === OVERLAY_PAGE_NUMBER ? null : sel));
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {isDraggingFile && (
@@ -1864,6 +2375,17 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         fontAssets={fontAssets}
         onSelectFontFile={handleSelectFontFile}
         onResetFonts={handleResetFonts}
+      />
+
+      <MergePdfModal
+        isOpen={isMergeModalOpen}
+        hasOpenDocument={Boolean(pdfDoc)}
+        currentFileName={fileName || 'mevcut-belge.pdf'}
+        currentPageCount={pagesMeta.length}
+        currentSizeBytes={cleanOriginalBytesRef.current?.byteLength || 0}
+        isMerging={isMergingPdfs}
+        onClose={() => setIsMergeModalOpen(false)}
+        onConfirmMerge={handleConfirmMerge}
       />
     </div>
   );

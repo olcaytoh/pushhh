@@ -3552,6 +3552,8 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   const isInitialCloudSyncDone = useRef(false);
   const currentLoadedUserRef = useRef<string | null>(null);
   const cloudSubscriptionRef = useRef<(() => void) | null>(null);
+  const isApplyingCloudUpdateRef = useRef(false);
+  const lastTabCloudRefreshRef = useRef(0);
 
   // Check for Google redirect sign-in result and listen to Firebase Auth state
   useEffect(() => {
@@ -3661,7 +3663,12 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
           }
         } finally {
           setIsCloudSyncing(false);
+          // Mark initial load complete on next tick so initial setStudents doesn't immediately echo-write back to Firestore
+          isApplyingCloudUpdateRef.current = true;
           isInitialCloudSyncDone.current = true;
+          setTimeout(() => {
+            isApplyingCloudUpdateRef.current = false;
+          }, 0);
         }
 
         // 4. Attach real-time cloud listener so smartboard, school PC, and home MacBook stay 100% in sync
@@ -3674,10 +3681,12 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
           user.email,
           (incomingCloudData) => {
             if (!auth.currentUser || auth.currentUser.uid !== user.uid) return;
+            isApplyingCloudUpdateRef.current = true;
 
             if (incomingCloudData.students && Array.isArray(incomingCloudData.students) && incomingCloudData.students.length > 0) {
               setStudents(prev => {
                 const merged = mergeStudentLists(prev, incomingCloudData.students, user.email);
+                if (JSON.stringify(merged) === JSON.stringify(prev)) return prev;
                 saveStudents(merged, user.uid);
                 return merged;
               });
@@ -3731,6 +3740,9 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
             if (incomingCloudData.lastSyncedAt) {
               setLastCloudSyncedAt(incomingCloudData.lastSyncedAt);
             }
+            setTimeout(() => {
+              isApplyingCloudUpdateRef.current = false;
+            }, 0);
           }
         );
       } else {
@@ -3782,13 +3794,19 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   // veya ekran kilidi açıldığında buluttan en son verileri anında ve sessizce günceller.
   useEffect(() => {
     const handleTabReactivation = () => {
-      if (document.visibilityState === 'visible' && auth.currentUser) {
+      if (document.visibilityState === 'visible' && auth.currentUser && !isFirestoreQuotaExceeded()) {
+        const now = Date.now();
+        // En fazla 5 dakikada bir buluttan yenile (kota tasarrufu)
+        if (now - lastTabCloudRefreshRef.current < 300000) return;
+        lastTabCloudRefreshRef.current = now;
         const u = auth.currentUser;
         loadUserDataFromCloud(u.uid, u.email).then(cData => {
           if (!cData) return;
+          isApplyingCloudUpdateRef.current = true;
           if (cData.students && Array.isArray(cData.students) && cData.students.length > 0) {
             setStudents(prev => {
               const merged = mergeStudentLists(prev, cData.students, u.email);
+              if (JSON.stringify(merged) === JSON.stringify(prev)) return prev;
               saveStudents(merged, u.uid);
               return merged;
             });
@@ -3822,6 +3840,9 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
           if (cData.lastSyncedAt) {
             setLastCloudSyncedAt(cData.lastSyncedAt);
           }
+          setTimeout(() => {
+            isApplyingCloudUpdateRef.current = false;
+          }, 0);
         }).catch(() => {});
       }
     };
@@ -3892,7 +3913,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
       } finally {
         setIsCloudSyncing(false);
       }
-    }, 4000);
+    }, 15000);
   };
 
   // KOTA OPTİMİZASYONU:
@@ -3901,6 +3922,7 @@ export default function App({ onOpenPdfEditor }: { onOpenPdfEditor?: () => void 
   useEffect(() => {
     if (!currentUser) return;
     if (!isInitialCloudSyncDone.current) return;
+    if (isApplyingCloudUpdateRef.current) return;
     if (cloudSyncMode === 'manual') return;
     if (isFirestoreQuotaExceeded()) return;
     triggerImmediateCloudSync(students, countersData, selectedStudentIds);

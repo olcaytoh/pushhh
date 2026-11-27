@@ -9,7 +9,18 @@ import {
   db, 
   User 
 } from '../firebase';
-import { doc, getDoc, getDocFromServer, setDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  getDocFromServer,
+  setDoc,
+  onSnapshot,
+  Unsubscribe,
+  disableNetwork,
+  enableNetwork,
+  DocumentReference,
+  SetOptions
+} from 'firebase/firestore';
 import { Student } from '../types/student';
 import { StatRecord, GroupStatsRecord, SinglePlayerStatsRecord } from '../types';
 import { ClassCountersData, loadCounters, sanitizeCountersForUser } from '../utils/counterStorage';
@@ -187,6 +198,17 @@ export function setLocalLastSyncedAt(timestamp: string, userId?: string | null):
 
 const QUOTA_EXCEEDED_STORAGE_KEY = 'olcico_firestore_quota_exceeded_until';
 
+export function isQuotaError(err: any): boolean {
+  const code = String(err?.code || '').toLowerCase();
+  const msg = String(err?.message || '').toLowerCase();
+  return (
+    code === 'resource-exhausted' ||
+    code.includes('resource-exhausted') ||
+    msg.includes('quota') ||
+    msg.includes('resource-exhausted')
+  );
+}
+
 export function isFirestoreQuotaExceeded(): boolean {
   try {
     const raw = localStorage.getItem(QUOTA_EXCEEDED_STORAGE_KEY);
@@ -206,12 +228,59 @@ export function setFirestoreQuotaExceeded(durationMs: number = 3600000 * 6): voi
   try {
     localStorage.setItem(QUOTA_EXCEEDED_STORAGE_KEY, String(Date.now() + durationMs));
   } catch {}
+  // Terminate Firestore's internal WriteStream backoff retry loop immediately
+  disableNetwork(db).catch(() => {});
 }
 
 export function clearFirestoreQuotaExceeded(): void {
   try {
     localStorage.removeItem(QUOTA_EXCEEDED_STORAGE_KEY);
   } catch {}
+  enableNetwork(db).catch(() => {});
+}
+
+/**
+ * Wraps setDoc so that if Firestore's WriteStream hits resource-exhausted (daily write quota)
+ * and silently enters an infinite exponential backoff loop without rejecting immediately,
+ * we detect the stall, trip the quota breaker, and call disableNetwork(db) to halt retries.
+ */
+export async function safeSetDocWithQuotaGuard(
+  ref: DocumentReference,
+  data: Record<string, any>,
+  options: SetOptions = { merge: true },
+  timeoutMs: number = 10000
+): Promise<boolean> {
+  if (isFirestoreQuotaExceeded()) return false;
+
+  const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine !== false;
+  if (!isOnline) {
+    return false;
+  }
+
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    const writePromise = setDoc(ref, data, options).then(() => 'ok' as const);
+    const timeoutPromise = new Promise<'timeout'>((resolve) => {
+      timer = setTimeout(() => resolve('timeout'), timeoutMs);
+    });
+
+    const outcome = await Promise.race([writePromise, timeoutPromise]);
+    if (outcome === 'timeout') {
+      setFirestoreQuotaExceeded();
+      console.warn('Firestore yazma isteği zaman aşımına uğradı (günlük yazma kotası dolmuş olabilir). Yerel moda geçildi.');
+      return false;
+    }
+    return true;
+  } catch (err: any) {
+    if (isQuotaError(err)) {
+      setFirestoreQuotaExceeded();
+      console.warn('Firebase günlük yazma kotası aşıldı. Veriler yerel hafızada güvenle tutuluyor.');
+      return false;
+    }
+    throw err;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 let isSignInInProgress = false;
@@ -220,7 +289,7 @@ async function recordUserProfile(user: User): Promise<void> {
   if (!user || isFirestoreQuotaExceeded()) return;
   try {
     const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
+    await safeSetDocWithQuotaGuard(userRef, {
       id: user.uid,
       email: user.email || '',
       displayName: user.displayName || 'Öğretmen',
@@ -228,7 +297,7 @@ async function recordUserProfile(user: User): Promise<void> {
       updatedAt: new Date().toISOString()
     }, { merge: true });
   } catch (profileErr: any) {
-    if (profileErr?.code === 'resource-exhausted' || profileErr?.message?.includes('Quota')) {
+    if (isQuotaError(profileErr)) {
       setFirestoreQuotaExceeded();
       console.warn('Firestore write quota limit reached. Using local persistence.');
     }
@@ -421,20 +490,13 @@ export async function saveUserDataToCloud(
   }
 
   try {
-    await setDoc(classroomRef, payload, { merge: true });
-
-    // Ayrıca e-posta ile erişim için email belgesine de ayna kopya kaydet
-    if (userEmail && userEmail.trim()) {
-      try {
-        const emailRef = doc(db, 'users', userEmail.trim().toLowerCase(), 'data', 'classroom');
-        await setDoc(emailRef, payload, { merge: true });
-      } catch {}
+    const written = await safeSetDocWithQuotaGuard(classroomRef, payload, { merge: true });
+    if (written) {
+      lastSyncedDataSignature = currentSignature;
     }
-
-    lastSyncedDataSignature = currentSignature;
     setLocalLastSyncedAt(timestamp, userId);
   } catch (err: any) {
-    if (err?.code === 'resource-exhausted' || err?.message?.includes('Quota limit exceeded') || err?.message?.includes('quota')) {
+    if (isQuotaError(err)) {
       setFirestoreQuotaExceeded();
       setLocalLastSyncedAt(timestamp, userId);
       console.warn('Firebase günlük yazma kotası aşıldı. Veriler yerel hafızada güvenle tutuluyor.');
@@ -472,6 +534,20 @@ export async function loadUserDataFromCloud(
     candidateRefs.push(doc(db, 'users', cleanEmail));
   }
 
+  if (isFirestoreQuotaExceeded()) {
+    const localStudentsFromVault =
+      loadFromMultiUserVault(userId) ||
+      (cleanEmail ? loadFromMultiUserVault(cleanEmail) : null) ||
+      [];
+    if (localStudentsFromVault.length === 0) return null;
+    return {
+      userId,
+      students: deduplicateStudents(sanitizeStudentsForUser(localStudentsFromVault, cleanEmail), cleanEmail),
+      counters: loadCounters(cleanEmail),
+      lastSyncedAt: getLocalLastSyncedAt(userId) || new Date().toISOString()
+    };
+  }
+
   let mergedStudents: Student[] = [];
   let mergedCounters: ClassCountersData | null = null;
   let mergedSelectedStudentIds: (string | null)[] | undefined = undefined;
@@ -482,11 +558,19 @@ export async function loadUserDataFromCloud(
   let latestTimestamp = '';
   let foundAnyDoc = false;
 
-  for (const ref of candidateRefs) {
+  for (let i = 0; i < candidateRefs.length; i++) {
+    // Primary UID classroom doc already found with students -> skip legacy fallback reads to save quota
+    if (i > 0 && foundAnyDoc && mergedStudents.length > 0) break;
+
+    const ref = candidateRefs[i];
     let snap: any = null;
     try {
       snap = await getDocFromServer(ref);
-    } catch {
+    } catch (readErr: any) {
+      if (isQuotaError(readErr)) {
+        setFirestoreQuotaExceeded();
+        break;
+      }
       try {
         snap = await getDoc(ref);
       } catch {}
@@ -625,15 +709,36 @@ export async function loadUserDataFromCloud(
     return null;
   }
 
+  const finalDedupedStudents = deduplicateStudents(mergedStudents, cleanEmail);
+  const finalHw = Object.keys(mergedHomeworkData).length > 0 ? mergedHomeworkData : undefined;
+  const finalSingle =
+    mergedSingleStats.dogru > 0 ||
+    mergedSingleStats.yanlis > 0 ||
+    Object.keys(mergedSingleStats.topicStats || {}).length > 0
+      ? mergedSingleStats
+      : undefined;
+  const finalStats = Object.keys(mergedStatsData).length > 0 ? mergedStatsData : undefined;
+  const finalGroup = Object.keys(mergedGroupStats).length > 0 ? mergedGroupStats : undefined;
+
+  // Seed dirty-check signature so loading from cloud never immediately triggers a redundant write back
+  const localStatsForSig = loadLocalGameStats();
+  lastSyncedDataSignature = `${userId}::${JSON.stringify(finalDedupedStudents)}::${JSON.stringify(
+    finalSingle || localStatsForSig.singleStats
+  )}::${JSON.stringify(finalStats || localStatsForSig.statsData)}::${JSON.stringify(
+    finalGroup || localStatsForSig.groupStats
+  )}::${mergedSelectedStudentIds ? JSON.stringify(mergedSelectedStudentIds) : '[]'}::${
+    finalHw ? JSON.stringify(finalHw) : ''
+  }`;
+
   return {
     userId,
-    students: deduplicateStudents(mergedStudents, cleanEmail),
+    students: finalDedupedStudents,
     counters: mergedCounters || loadCounters(cleanEmail),
     selectedStudentIds: mergedSelectedStudentIds,
-    homeworkData: Object.keys(mergedHomeworkData).length > 0 ? mergedHomeworkData : undefined,
-    singleStatsData: (mergedSingleStats.dogru > 0 || mergedSingleStats.yanlis > 0 || Object.keys(mergedSingleStats.topicStats || {}).length > 0) ? mergedSingleStats : undefined,
-    statsData: Object.keys(mergedStatsData).length > 0 ? mergedStatsData : undefined,
-    groupStatsData: Object.keys(mergedGroupStats).length > 0 ? mergedGroupStats : undefined,
+    homeworkData: finalHw,
+    singleStatsData: finalSingle,
+    statsData: finalStats,
+    groupStatsData: finalGroup,
     lastSyncedAt: latestTimestamp || new Date().toISOString()
   };
 }
@@ -649,12 +754,18 @@ export function subscribeToUserDataInCloud(
   onData: (data: CloudClassroomData) => void,
   onError?: (err: any) => void
 ): Unsubscribe {
+  if (isFirestoreQuotaExceeded()) {
+    return () => {};
+  }
+
   const cleanEmail = userEmail ? userEmail.trim().toLowerCase() : null;
   const classroomRef = doc(db, 'users', userId, 'data', 'classroom');
 
   return onSnapshot(
     classroomRef,
     (snapshot) => {
+      // Ignore local pending writes so our own saves don't echo back into React state
+      if (snapshot.metadata.hasPendingWrites) return;
       if (!snapshot.exists()) return;
       const data = snapshot.data();
       if (!data) return;
@@ -731,6 +842,9 @@ export function subscribeToUserDataInCloud(
       }
     },
     (error) => {
+      if (isQuotaError(error)) {
+        setFirestoreQuotaExceeded();
+      }
       console.warn('Realtime cloud sync listener warning:', error);
       if (onError) onError(error);
     }
