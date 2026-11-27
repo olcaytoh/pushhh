@@ -1,4 +1,4 @@
-// Sabit (sticky) üst araç çubuğu: akıllı tahta/dokunmatik ekranlar için geniş aralıklı ikonlar, belirgin Aktif Mod indikatörü ve Tam Ekran kontrolü
+// Sabit (sticky) üst araç çubuğu: sayfa gezinme, yakınlaştırma, temizleme, çizgi yumuşatma, sadece simgeli aktif mod göstergesi ve kayıt kontrolleri
 import React, { useEffect, useState } from 'react';
 import {
   COLOR_OPTIONS,
@@ -44,14 +44,12 @@ import {
   ShapeRightTriangleIcon,
   ShapeSquareIcon,
   ShapeTriangleIcon,
-  ShapesToolIcon,
   StampCheckIcon,
   StampCrossIcon,
   StampExclamationIcon,
   StampHeartIcon,
   StampQuestionIcon,
   StampStarIcon,
-  StampToolIcon,
   StrokeSmoothIcon,
   TextToolIcon,
   TrashIcon,
@@ -96,11 +94,6 @@ interface ToolbarProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFitWidth: () => void;
-  onSelectTool: (mode: ToolMode) => void;
-  onSelectColor: (hex: string) => void;
-  onSelectFontSize: (key: FontSizeKey) => void;
-  onToggleBold: () => void;
-  onSelectPenWidth: (key: PenWidthKey) => void;
   onSelectStrokeSmoothing: (level: StrokeSmoothingLevel) => void;
   onSelectShapeType: (shape: ShapeType) => void;
   onSelectShapeFillMode: (mode: ShapeFillMode) => void;
@@ -124,62 +117,47 @@ interface ToolbarProps {
 const MODE_META: Record<
   ToolMode,
   {
-    shortLabel: string;
     fullLabel: string;
-    hint: string;
-    activeBtn: string;
     badgeBg: string;
     dotColor: string;
   }
 > = {
   select: {
-    shortLabel: 'İmleç',
     fullLabel: 'İmleç / Seç',
-    hint: 'Seç, sürükle veya çift tıkla düzenle',
-    activeBtn: 'bg-blue-600 text-white border-blue-700 ring-2 ring-blue-300 shadow-md',
-    badgeBg: 'bg-blue-50 text-blue-900 border-blue-300',
+    badgeBg: 'bg-blue-50 text-blue-800 border-blue-300',
     dotColor: 'bg-blue-600',
   },
   text: {
-    shortLabel: 'Yazı',
     fullLabel: 'Yazı Ekle (T)',
-    hint: 'Yazmak için sayfada bir yere dokun',
-    activeBtn: 'bg-indigo-600 text-white border-indigo-700 ring-2 ring-indigo-300 shadow-md',
-    badgeBg: 'bg-indigo-50 text-indigo-900 border-indigo-300',
+    badgeBg: 'bg-indigo-50 text-indigo-800 border-indigo-300',
     dotColor: 'bg-indigo-600',
   },
   pen: {
-    shortLabel: 'Kalem',
     fullLabel: 'Serbest Kalem',
-    hint: 'Basılı tutarak serbest çizim yap',
-    activeBtn: 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300 shadow-md',
-    badgeBg: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+    badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-300',
     dotColor: 'bg-emerald-600',
   },
   shape: {
-    shortLabel: 'Şekiller',
     fullLabel: 'Geometrik Şekil',
-    hint: 'Sürükleyerek şekil çiz (Shift ile düzgün kare/çember)',
-    activeBtn: 'bg-violet-600 text-white border-violet-700 ring-2 ring-violet-300 shadow-md',
-    badgeBg: 'bg-violet-50 text-violet-900 border-violet-300',
+    badgeBg: 'bg-violet-50 text-violet-800 border-violet-300',
     dotColor: 'bg-violet-600',
   },
   stamp: {
-    shortLabel: 'Sembol',
     fullLabel: 'Sembol Ekle',
-    hint: 'Tek dokunuşla ekle veya sürükleyerek boyutlandır',
-    activeBtn: 'bg-teal-600 text-white border-teal-700 ring-2 ring-teal-300 shadow-md',
-    badgeBg: 'bg-teal-50 text-teal-900 border-teal-300',
+    badgeBg: 'bg-teal-50 text-teal-800 border-teal-300',
     dotColor: 'bg-teal-600',
   },
   eraser: {
-    shortLabel: 'Silgi',
     fullLabel: 'Silgi Modu',
-    hint: 'Silmek için notların, şekillerin veya sembollerin üzerinden geç',
-    activeBtn: 'bg-rose-600 text-white border-rose-700 ring-2 ring-rose-300 shadow-md',
-    badgeBg: 'bg-rose-50 text-rose-900 border-rose-300',
+    badgeBg: 'bg-rose-50 text-rose-800 border-rose-300',
     dotColor: 'bg-rose-600',
   },
+};
+
+const ACTIVE_DOT_PX: Record<PenWidthKey, number> = {
+  thin: 5,
+  medium: 8,
+  thick: 12,
 };
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -218,11 +196,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onZoomIn,
   onZoomOut,
   onFitWidth,
-  onSelectTool,
-  onSelectColor,
-  onSelectFontSize,
-  onToggleBold,
-  onSelectPenWidth,
   onSelectStrokeSmoothing,
   onSelectShapeType,
   onSelectShapeFillMode,
@@ -274,18 +247,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
-  // Dokunmatik ekran ve akıllı tahta konforu için geniş 44-46px butonlar ve ferah aralıklar
+  // Tek satırda maksimum PDF alanı açan, dokunmatik dostu 40px butonlar
   const baseBtn =
-    'min-w-[44px] min-h-[44px] px-3 rounded-xl inline-flex items-center justify-center gap-2 text-sm font-semibold transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100';
-
-  const modeBtnClass = (mode: ToolMode) => {
-    const active = toolMode === mode;
-    return `${baseBtn} relative border ${
-      active
-        ? `${MODE_META[mode].activeBtn} scale-[1.02]`
-        : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
-    }`;
-  };
+    'min-w-[40px] h-[40px] px-2.5 rounded-xl inline-flex items-center justify-center gap-1.5 text-sm font-semibold transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 shrink-0';
+  const iconOnlyBtn =
+    'w-[40px] h-[40px] rounded-xl inline-flex items-center justify-center transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 shrink-0';
 
   const activeModeInfo = MODE_META[toolMode];
   const getColorLabel = (hex: string) =>
@@ -340,7 +306,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
-  const renderActiveModeIcon = (mode: ToolMode, className = 'w-4 h-4') => {
+  const renderActiveModeIcon = (mode: ToolMode, className = 'w-5 h-5') => {
     switch (mode) {
       case 'text':
         return <TextToolIcon className={className} />;
@@ -358,49 +324,88 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  // Sadece simge gösteren Aktif Mod göstergesinin erişilebilirlik ve ipucu (tooltip) metni
+  const activeModeTooltip = (() => {
+    const base =
+      toolMode === 'shape'
+        ? `Aktif Mod: ${activeModeInfo.fullLabel} (${activeShapeMeta.label})`
+        : toolMode === 'stamp'
+          ? `Aktif Mod: ${activeModeInfo.fullLabel} (${activeStampMeta.label})`
+          : `Aktif Mod: ${activeModeInfo.fullLabel}`;
+
+    if (toolMode === 'pen') {
+      return `${base} · ${activeColorLabel} · ${PEN_WIDTH_RATIOS[penWidthKey].label} · Yumuşatma: ${STROKE_SMOOTHING_OPTIONS[strokeSmoothing].label}`;
+    }
+    if (toolMode === 'text') {
+      return `${base} · ${activeColorLabel} · ${FONT_SIZE_RATIOS[fontSizeKey].label}${bold ? ' · Kalın' : ''}`;
+    }
+    if (toolMode === 'shape') {
+      const fillPart = activeShapeMeta.closable
+        ? ` · İç: ${SHAPE_FILL_MODE_OPTIONS[activeShapeFillMode].label}${
+            activeShapeFillMode !== 'none' ? ` (${getColorLabel(activeShapeFillColor)})` : ''
+          }`
+        : '';
+      return `${base} · Kenar: ${getColorLabel(activeShapeBorderColor)} · ${PEN_WIDTH_RATIOS[penWidthKey].label}${fillPart}`;
+    }
+    if (toolMode === 'stamp') {
+      return `${base} · ${activeColorLabel} · ${STAMP_SIZE_RATIOS[stampSizeKey].label}`;
+    }
+    return base;
+  })();
+
+  const saveTitle = canOverwriteHandle
+    ? `${fileName ? `${fileName} — ` : ''}Kaydet (Ctrl+S): Açılan dosyanın üzerine düzenlenebilir olarak yazar`
+    : `${fileName ? `${fileName} — ` : ''}Kaydet (Ctrl+S): Düzenlenebilir kopya indirir`;
+
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm text-slate-800">
-      {/* Ana Araç Çubuğu: Dokunmatik dostu geniş aralıklı buton grupları */}
-      <div className="px-3 py-2.5 flex flex-wrap items-center gap-2.5">
+      {/* Tek Satırlık Kompakt Ana Üst Araç Çubuğu */}
+      <div className="px-2.5 py-1.5 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
         {/* Siteye Dön + PDF Aç */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {onExitToSite && (
             <button
               type="button"
               onClick={onExitToSite}
               title="Ana siteye geri dön"
+              aria-label="Siteye Dön"
               className={`${baseBtn} bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300`}
             >
               <HomeBackIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Siteye Dön</span>
+              <span className="hidden 2xl:inline">Siteye Dön</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={onOpenPdfClick}
-            title="Yerel PDF dosyası seç (Chrome'da üzerine yazma destekli)"
-            className={`${baseBtn} bg-slate-900 text-white hover:bg-slate-800 px-3.5 shadow-sm`}
+            title={
+              fileName
+                ? `Açık dosya: ${fileName} (Yeni PDF seçmek için tıklayın)`
+                : "Yerel PDF dosyası seç (Chrome'da üzerine yazma destekli)"
+            }
+            aria-label="PDF Aç"
+            className={`${baseBtn} bg-slate-900 text-white hover:bg-slate-800 px-3 shadow-sm`}
           >
             <FolderOpenIcon className="w-5 h-5" />
-            <span className="hidden sm:inline">PDF Aç</span>
+            <span className="hidden lg:inline">PDF Aç</span>
           </button>
         </div>
 
         {/* Sayfa Gezinme Grubu */}
-        <div className="flex items-center gap-2 pl-2.5 border-l border-slate-200">
+        <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 shrink-0">
           <button
             type="button"
             disabled={!hasDocument || currentPage <= 1}
             onClick={onPrevPage}
             title="Önceki Sayfa"
             aria-label="Önceki Sayfa"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
 
-          <form onSubmit={handlePageSubmit} className="flex items-center gap-1.5 px-0.5">
+          <form onSubmit={handlePageSubmit} className="flex items-center gap-1 px-0.5">
             <input
               type="text"
               inputMode="numeric"
@@ -430,9 +435,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               }}
               aria-label="Sayfa numarası"
               title="Gitmek istediğiniz sayfa numarasını yazıp Enter'a veya Git butonuna basın"
-              className="w-14 h-[44px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
+              className="w-12 h-[40px] text-center text-sm font-bold rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100"
             />
-            <span className="text-sm text-slate-500 font-semibold whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-slate-500 font-semibold whitespace-nowrap">
               / {hasDocument ? numPages : 0}
             </span>
             <button
@@ -441,7 +446,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               onMouseDown={(e) => e.preventDefault()}
               title="Yazılan sayfa numarasına doğrudan git"
               aria-label="Sayfaya Git"
-              className={`h-[44px] px-3 rounded-xl text-xs font-bold border transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`h-[40px] px-2.5 rounded-xl text-xs font-bold border transition-all select-none cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
                 hasDocument && pageInput.trim() !== '' && pageInput.trim() !== String(currentPage)
                   ? 'bg-blue-600 text-white border-blue-700 shadow-sm hover:bg-blue-700'
                   : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
@@ -457,21 +462,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onNextPage}
             title="Sonraki Sayfa"
             aria-label="Sonraki Sayfa"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <ChevronRightIcon className="w-5 h-5" />
           </button>
         </div>
 
         {/* Yakınlaştırma Grubu */}
-        <div className="flex items-center gap-2 pl-2.5 border-l border-slate-200">
+        <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 shrink-0">
           <button
             type="button"
             disabled={!hasDocument || zoom <= 0.501}
             onClick={onZoomOut}
             title="Uzaklaştır (−)"
             aria-label="Uzaklaştır"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <ZoomOutIcon className="w-5 h-5" />
           </button>
@@ -481,9 +486,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument}
             onClick={onFitWidth}
             title="Genişliğe Sığdır"
-            className={`${baseBtn} bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 min-w-[74px] text-xs font-bold`}
+            className={`${baseBtn} bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 min-w-[64px] px-2 text-xs font-bold`}
           >
-            <FitWidthIcon className="w-4 h-4 hidden md:inline" />
+            <FitWidthIcon className="w-4 h-4 hidden xl:inline" />
             <span>%{Math.round(zoom * 100)}</span>
           </button>
 
@@ -493,190 +498,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onZoomIn}
             title="Yakınlaştır (+)"
             aria-label="Yakınlaştır"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <ZoomInIcon className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Araç Modları (İmleç / Yazı / Kalem / Silgi) - Geniş dokunma aralıklı ve renk kodlu */}
-        <div
-          role="group"
-          aria-label="Çizim ve düzenleme modları"
-          className="flex items-center gap-2 pl-2.5 border-l border-slate-200"
-        >
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'select'}
-            onClick={() => onSelectTool('select')}
-            title="İmleç / Seç: Yazıları seç, sürükle, çift tıkla düzenle; çizimleri seç ve Delete ile sil"
-            className={modeBtnClass('select')}
-          >
-            <CursorSelectIcon className="w-5 h-5" />
-            <span className="hidden md:inline">İmleç</span>
-            {toolMode === 'select' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-blue-200" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'text'}
-            onClick={() => onSelectTool('text')}
-            title="Yazı (T): Sayfada tıklanan noktaya yazı ekle"
-            className={modeBtnClass('text')}
-          >
-            <TextToolIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Yazı</span>
-            {toolMode === 'text' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-indigo-200" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'pen'}
-            onClick={() => onSelectTool('pen')}
-            title="Kalem: Fare, kalem veya dokunmatik ekranla serbest çizim"
-            className={modeBtnClass('pen')}
-          >
-            <PenToolIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Kalem</span>
-            {toolMode === 'pen' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-emerald-200" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'shape'}
-            onClick={() => onSelectTool('shape')}
-            title="Geometrik Şekiller: Çizgi, ok, dikdörtgen, çember, üçgen ve dik üçgen çiz"
-            className={modeBtnClass('shape')}
-          >
-            <ShapesToolIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Şekiller</span>
-            {toolMode === 'shape' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-violet-200" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'stamp'}
-            onClick={() => onSelectTool('stamp')}
-            title="Semboller: Yeşil tik, kırmızı çarpı, yıldız, soru işareti, ünlem ve kalp damgala"
-            className={modeBtnClass('stamp')}
-          >
-            <StampToolIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Sembol</span>
-            {toolMode === 'stamp' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-teal-200" />
-            )}
-          </button>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            aria-pressed={toolMode === 'eraser'}
-            onClick={() => onSelectTool('eraser')}
-            title="Silgi: Tıklanan veya üzerinden geçilen yazı, çizim, şekil ve sembolleri sil"
-            className={modeBtnClass('eraser')}
-          >
-            <EraserToolIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Silgi</span>
-            {toolMode === 'eraser' && (
-              <span className="absolute -bottom-1 left-2.5 right-2.5 h-1 rounded-full bg-rose-200" />
-            )}
-          </button>
-        </div>
-
-        {/* Stil Ayarları (Renk, Yazı Boyutu, Kalın, Kalem Kalınlığı) */}
-        <div className="flex items-center gap-2 pl-2.5 border-l border-slate-200">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-2 h-[44px]">
-            {COLOR_OPTIONS.map((c) => {
-              const selected = activeColor === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  disabled={!hasDocument}
-                  onClick={() => onSelectColor(c.value)}
-                  title={`Renk: ${c.label}`}
-                  aria-label={`Renk ${c.label}`}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform cursor-pointer disabled:opacity-40 ${
-                    selected ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'hover:scale-105'
-                  }`}
-                >
-                  <span
-                    className="w-6 h-6 rounded-full border border-black/15 block"
-                    style={{ backgroundColor: c.value }}
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          <select
-            disabled={!hasDocument}
-            value={fontSizeKey}
-            onChange={(e) => onSelectFontSize(e.target.value as FontSizeKey)}
-            title="Yazı boyutu (yeni ve seçili metinlere uygulanır)"
-            aria-label="Yazı boyutu"
-            className="h-[44px] px-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40"
-          >
-            {(Object.keys(FONT_SIZE_RATIOS) as FontSizeKey[]).map((key) => (
-              <option key={key} value={key}>
-                Yazı: {FONT_SIZE_RATIOS[key].label}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
-            disabled={!hasDocument}
-            onClick={onToggleBold}
-            title="Kalın Yazı (Bold)"
-            aria-label="Kalın"
-            className={`${baseBtn} font-extrabold text-base border ${
-              bold
-                ? 'bg-slate-800 text-white border-slate-800 shadow-sm'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            K
-          </button>
-
-          <select
-            disabled={!hasDocument}
-            value={penWidthKey}
-            onChange={(e) => onSelectPenWidth(e.target.value as PenWidthKey)}
-            title="Kalem kalınlığı (yeni ve seçili çizimlere uygulanır)"
-            aria-label="Kalem kalınlığı"
-            className="h-[44px] px-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-40"
-          >
-            {(Object.keys(PEN_WIDTH_RATIOS) as PenWidthKey[]).map((key) => (
-              <option key={key} value={key}>
-                Kalem: {PEN_WIDTH_RATIOS[key].label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Geri Al / Yinele ve Toplu Temizleme */}
-        <div className="flex items-center gap-2 pl-2.5 border-l border-slate-200">
+        {/* Geri Al / Yinele, Temizleme, Çizgi Yumuşatma ve Sadece Simgeli Aktif Mod */}
+        <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 shrink-0">
           <button
             type="button"
             disabled={!canUndo}
             onClick={onUndo}
             title="Geri Al (Ctrl+Z)"
             aria-label="Geri Al"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <UndoIcon className="w-5 h-5" />
           </button>
@@ -687,7 +523,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             onClick={onRedo}
             title="Yinele (Ctrl+Y veya Ctrl+Shift+Z)"
             aria-label="Yinele"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <RedoIcon className="w-5 h-5" />
           </button>
@@ -697,10 +533,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument || !hasCurrentPageAnnotations}
             onClick={onRequestClearPage}
             title="Bu Sayfadaki Notları Temizle (geri alınabilir)"
+            aria-label="Sayfayı Temizle"
             className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-xs`}
           >
             <TrashIcon className="w-5 h-5" />
-            <span className="hidden xl:inline">Sayfayı Temizle</span>
+            <span className="hidden 2xl:inline">Sayfayı Temizle</span>
           </button>
 
           <button
@@ -708,21 +545,111 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument || !hasAnyAnnotations}
             onClick={onRequestClearAll}
             title="Tüm Notları Temizle (geri alınabilir)"
+            aria-label="Tümünü Temizle"
             className={`${baseBtn} bg-white border border-slate-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300 text-xs`}
           >
             <TrashIcon className="w-5 h-5" />
-            <span className="hidden xl:inline">Tümünü Temizle</span>
+            <span className="hidden 2xl:inline">Tümünü Temizle</span>
           </button>
+
+          {/* Çizgi Yumuşatma: Doğrudan Tümünü Temizle'nin yanında */}
+          <div
+            role="group"
+            aria-label="Çizgi yumuşatma düzeyi"
+            title={`Çizgi Yumuşatma: ${STROKE_SMOOTHING_OPTIONS[strokeSmoothing].description}`}
+            className={`h-[40px] px-1 rounded-xl bg-emerald-50/85 border border-emerald-200 inline-flex items-center gap-0.5 shrink-0 ${
+              !hasDocument ? 'opacity-45 pointer-events-none' : ''
+            }`}
+          >
+            <span
+              title="Çizgi Yumuşatma"
+              className="w-7 h-7 rounded-lg text-emerald-800 inline-flex items-center justify-center shrink-0"
+            >
+              <StrokeSmoothIcon className="w-4 h-4" />
+            </span>
+            {(Object.keys(STROKE_SMOOTHING_OPTIONS) as StrokeSmoothingLevel[]).map((level) => {
+              const opt = STROKE_SMOOTHING_OPTIONS[level];
+              const isSelected = strokeSmoothing === level;
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  disabled={!hasDocument}
+                  aria-pressed={isSelected}
+                  onClick={() => onSelectStrokeSmoothing(level)}
+                  title={`Çizgi Yumuşatma — ${opt.label}: ${opt.description}`}
+                  className={`h-[30px] px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
+                    isSelected
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-900 hover:bg-emerald-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Aktif Mod Göstergesi (Sadece Simgeler): Doğrudan Çizgi Yumuşatma'nın yanında */}
+          <div
+            role="status"
+            aria-live="polite"
+            aria-label={activeModeTooltip}
+            title={activeModeTooltip}
+            className={`h-[40px] px-2 rounded-xl border inline-flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors ${activeModeInfo.badgeBg}`}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full ${activeModeInfo.dotColor} shrink-0`} />
+            <span
+              className="inline-flex items-center justify-center shrink-0"
+              style={toolMode === 'stamp' ? { color: activeColor } : undefined}
+            >
+              {renderActiveModeIcon(toolMode, 'w-5 h-5')}
+            </span>
+
+            {(toolMode === 'pen' ||
+              toolMode === 'text' ||
+              toolMode === 'shape' ||
+              toolMode === 'stamp') && (
+              <span
+                className="w-3.5 h-3.5 rounded-full border border-black/25 shrink-0"
+                style={{
+                  backgroundColor: toolMode === 'shape' ? activeShapeBorderColor : activeColor,
+                }}
+              />
+            )}
+
+            {(toolMode === 'pen' || toolMode === 'shape') && (
+              <span
+                className="rounded-full bg-current shrink-0"
+                style={{
+                  width: `${ACTIVE_DOT_PX[penWidthKey]}px`,
+                  height: `${ACTIVE_DOT_PX[penWidthKey]}px`,
+                }}
+              />
+            )}
+
+            {toolMode === 'shape' &&
+              activeShapeMeta.closable &&
+              activeShapeFillMode !== 'none' && (
+                <span
+                  className="w-3.5 h-3.5 rounded-sm border border-black/25 shrink-0"
+                  style={{
+                    backgroundColor: activeShapeFillColor,
+                    opacity: activeShapeFillMode === 'translucent' ? 0.45 : 1,
+                  }}
+                />
+              )}
+          </div>
         </div>
 
-        {/* Sağ Bölüm: Ayarlar, Belirgin Tam Ekran Modu ve 3 Kaydetme Seçeneği */}
-        <div className="flex flex-wrap items-center gap-2 ml-auto pl-2.5 border-l border-slate-200">
+        {/* Sağ Bölüm: Ayarlar, Tam Ekran, Kaydet, Farklı Kaydet ve Düz PDF — En üstte sağda sadece simge */}
+        <div className="flex items-center gap-1 ml-auto pl-1.5 border-l border-slate-200 shrink-0">
           <button
             type="button"
             onClick={onOpenSettings}
             title="Ayarlar, Türkçe Font Seçimi ve Yardım"
             aria-label="Ayarlar"
-            className={`${baseBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
+            className={`${iconOnlyBtn} bg-white border border-slate-200 text-slate-700 hover:bg-slate-100`}
           >
             <SettingsIcon className="w-5 h-5" />
           </button>
@@ -733,7 +660,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             aria-pressed={isFullscreen}
             title={isFullscreen ? 'Tam Ekrandan Çık (Esc)' : 'Tam Ekran Moduna Geç'}
             aria-label={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
-            className={`${baseBtn} border ${
+            className={`${iconOnlyBtn} border ${
               isFullscreen
                 ? 'bg-amber-500 text-white border-amber-600 ring-2 ring-amber-300 shadow-sm'
                 : 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200'
@@ -744,28 +671,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             ) : (
               <FullscreenEnterIcon className="w-5 h-5" />
             )}
-            <span className="hidden sm:inline">
-              {isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
-            </span>
           </button>
 
           <button
             type="button"
             disabled={!hasDocument || isExporting}
             onClick={onSaveOverwrite}
-            title={
-              canOverwriteHandle
-                ? 'Kaydet (Ctrl+S): Açılan dosyanın üzerine düzenlenebilir olarak yazar'
-                : 'Kaydet (Ctrl+S): Düzenlenebilir kopya indirir'
-            }
-            className={`${baseBtn} bg-emerald-600 text-white hover:bg-emerald-700 px-3.5 shadow-sm relative`}
+            title={isExporting ? 'Kaydediliyor...' : saveTitle}
+            aria-label={isExporting ? 'Kaydediliyor...' : 'Kaydet'}
+            className={`${iconOnlyBtn} bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm relative`}
           >
-            <SaveIcon className="w-5 h-5" />
-            <span>{isExporting ? 'Kaydediliyor...' : 'Kaydet'}</span>
+            <SaveIcon className={`w-5 h-5 ${isExporting ? 'animate-pulse' : ''}`} />
             {hasUnsavedChanges && !isExporting && (
               <span
                 title="Kaydedilmemiş değişiklikler var"
-                className="w-2.5 h-2.5 rounded-full bg-amber-300 inline-block"
+                className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-300 ring-1 ring-emerald-700"
               />
             )}
           </button>
@@ -775,10 +695,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument || isExporting}
             onClick={onSaveAsEditable}
             title="Farklı Kaydet: Notları düzenlenebilir olarak yeni PDF dosyasına kaydeder"
-            className={`${baseBtn} bg-blue-600 text-white hover:bg-blue-700 px-3.5 shadow-sm`}
+            aria-label="Farklı Kaydet"
+            className={`${iconOnlyBtn} bg-blue-600 text-white hover:bg-blue-700 shadow-sm`}
           >
             <SaveAsIcon className="w-5 h-5" />
-            <span className="hidden md:inline">Farklı Kaydet</span>
           </button>
 
           <button
@@ -786,50 +706,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             disabled={!hasDocument || isExporting}
             onClick={onExportFlatPdf}
             title="Düz PDF Olarak Dışa Aktar: Notlar kalıcı işlenir, ek gömülmez (paylaşıma uygun)"
-            className={`${baseBtn} bg-slate-700 text-white hover:bg-slate-800 px-3.5 shadow-sm`}
+            aria-label="Düz PDF Olarak Dışa Aktar"
+            className={`${iconOnlyBtn} bg-slate-700 text-white hover:bg-slate-800 shadow-sm`}
           >
             <ExportFlatIcon className="w-5 h-5" />
-            <span className="hidden lg:inline">Düz PDF</span>
           </button>
         </div>
       </div>
-
-      {/* Kalem Çizgi Yumuşatma (Stroke Smoothing) Alt Çubuğu */}
-      {hasDocument && toolMode === 'pen' && (
-        <div
-          role="group"
-          aria-label="Çizgi yumuşatma düzeyi"
-          className="px-3 py-2 bg-emerald-50/75 border-t border-emerald-200/80 flex flex-wrap items-center gap-2"
-        >
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 uppercase tracking-wide mr-1">
-            <StrokeSmoothIcon className="w-4 h-4 shrink-0" />
-            <span>Çizgi Yumuşatma:</span>
-          </span>
-          {(Object.keys(STROKE_SMOOTHING_OPTIONS) as StrokeSmoothingLevel[]).map((level) => {
-            const opt = STROKE_SMOOTHING_OPTIONS[level];
-            const isSelected = strokeSmoothing === level;
-            return (
-              <button
-                key={level}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => onSelectStrokeSmoothing(level)}
-                title={opt.description}
-                className={`min-h-[38px] px-3 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer active:scale-95 ${
-                  isSelected
-                    ? 'bg-emerald-600 text-white border-emerald-700 ring-2 ring-emerald-300 shadow-xs'
-                    : 'bg-white text-slate-700 border-emerald-200 hover:bg-emerald-100/70'
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-          <span className="text-xs text-emerald-800/80 hidden sm:inline ml-1">
-            {STROKE_SMOOTHING_OPTIONS[strokeSmoothing].description}
-          </span>
-        </div>
-      )}
 
       {/* Geometrik Şekil Seçim & Kenar/İç Renk Alt Çubuğu */}
       {hasDocument && (toolMode === 'shape' || isGeometricShapeSelected) && (
@@ -1025,99 +908,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </div>
         </div>
       )}
-
-      {/* Aktif Mod İndikatörü ve Belge Durum Şeridi */}
-      <div className="px-3 py-1.5 bg-slate-50 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-        {/* Sol: Net Aktif Mod İndikatörü */}
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <div
-            role="status"
-            aria-live="polite"
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border font-bold shadow-2xs transition-colors ${activeModeInfo.badgeBg}`}
-          >
-            <span className={`w-2.5 h-2.5 rounded-full ${activeModeInfo.dotColor} shrink-0`} />
-            <span style={toolMode === 'stamp' ? { color: activeColor } : undefined}>
-              {renderActiveModeIcon(toolMode, 'w-4 h-4 shrink-0')}
-            </span>
-            <span>
-              Aktif Mod:{' '}
-              {toolMode === 'shape'
-                ? `${activeModeInfo.fullLabel} (${activeShapeMeta.label})`
-                : toolMode === 'stamp'
-                  ? `${activeModeInfo.fullLabel} (${activeStampMeta.label})`
-                  : activeModeInfo.fullLabel}
-            </span>
-            {(toolMode === 'pen' ||
-              toolMode === 'text' ||
-              toolMode === 'shape' ||
-              toolMode === 'stamp') && (
-              <span className="inline-flex items-center gap-1 pl-1.5 ml-0.5 border-l border-current/25 font-semibold">
-                <span
-                  className="w-3 h-3 rounded-full border border-black/25 inline-block"
-                  style={{
-                    backgroundColor: toolMode === 'shape' ? activeShapeBorderColor : activeColor,
-                  }}
-                />
-                <span>
-                  {toolMode === 'shape'
-                    ? `Kenar: ${getColorLabel(activeShapeBorderColor)}`
-                    : activeColorLabel}
-                </span>
-                {(toolMode === 'pen' || toolMode === 'shape') && (
-                  <span>· {PEN_WIDTH_RATIOS[penWidthKey].label}</span>
-                )}
-                {toolMode === 'pen' && (
-                  <span>· Yumuşatma: {STROKE_SMOOTHING_OPTIONS[strokeSmoothing].label}</span>
-                )}
-                {toolMode === 'stamp' && <span>· {STAMP_SIZE_RATIOS[stampSizeKey].label}</span>}
-                {toolMode === 'shape' && activeShapeMeta.closable && (
-                  <span className="inline-flex items-center gap-1">
-                    · İç: {SHAPE_FILL_MODE_OPTIONS[activeShapeFillMode].label}
-                    {activeShapeFillMode !== 'none' && (
-                      <>
-                        <span
-                          className="w-3 h-3 rounded-full border border-black/25 inline-block"
-                          style={{ backgroundColor: activeShapeFillColor }}
-                        />
-                        <span>{getColorLabel(activeShapeFillColor)}</span>
-                      </>
-                    )}
-                  </span>
-                )}
-                {toolMode === 'text' && (
-                  <span>
-                    · {FONT_SIZE_RATIOS[fontSizeKey].label}
-                    {bold ? ' · Kalın' : ''}
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
-
-          <span className="text-slate-500 hidden md:inline">{activeModeInfo.hint}</span>
-        </div>
-
-        {/* Sağ: Dosya adı ve kayıt durumu */}
-        {hasDocument && (
-          <div className="flex items-center gap-2.5 min-w-0 ml-auto text-slate-500">
-            <span className="truncate max-w-[200px] sm:max-w-[280px] font-medium text-slate-700">
-              {fileName}
-            </span>
-            {canOverwriteHandle && (
-              <span className="shrink-0 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                Üzerine Yazma Hazır
-              </span>
-            )}
-            <span className="shrink-0">
-              {hasUnsavedChanges ? (
-                <span className="text-amber-700 font-semibold">● Kaydedilmemiş</span>
-              ) : (
-                <span className="text-emerald-700 font-medium">Güncel</span>
-              )}
-            </span>
-          </div>
-        )}
-      </div>
     </header>
   );
 };

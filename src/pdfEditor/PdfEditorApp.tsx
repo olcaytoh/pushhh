@@ -1,7 +1,8 @@
 // Çevrimdışı PDF Görüntüleyici, Yazı ve Serbest Çizim Editörü (sıfır harici istek, düzenlenebilir PDF kayıt)
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
 import { PdfDocIcon } from './components/Icons';
+import { LeftToolSidebar } from './components/LeftToolSidebar';
 import { PdfPageItem } from './components/PdfPageItem';
 import { SettingsModal } from './components/SettingsModal';
 import { Toolbar } from './components/Toolbar';
@@ -247,6 +248,13 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const docFingerprintRef = useRef<string | null>(null);
   const pendingRestorePageRef = useRef<number | null>(null);
   const suppressScrollUntilRef = useRef<number>(0);
+  const zoomAnchorRef = useRef<{
+    pageNumber: number;
+    relY: number;
+    viewportOffsetY: number;
+    relX: number;
+    viewportOffsetX: number;
+  } | null>(null);
 
   const showToast = useCallback((type: ToastNotice['type'], message: string, durationMs = 4500) => {
     if (toastTimerRef.current) {
@@ -284,6 +292,79 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       }
     };
   }, []);
+
+  // Yakınlaştırma / uzaklaştırma sırasında mevcut sayfayı ve görünür okuma konumunu sabitle
+  const applyZoom = useCallback((nextZoomOrUpdater: number | ((prev: number) => number)) => {
+    const container = scrollContainerRef.current;
+    const anchorPage = currentPageRef.current;
+    const el = pageElementsRef.current.get(anchorPage);
+
+    if (container && el) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+
+      const visTop = Math.max(elRect.top, containerRect.top);
+      const visBottom = Math.min(elRect.bottom, containerRect.bottom);
+      const anchorScreenY =
+        visBottom > visTop ? (visTop + visBottom) / 2 : containerRect.top + containerRect.height / 2;
+      const viewportOffsetY = anchorScreenY - containerRect.top;
+      const relY = Math.max(0, Math.min(1, (anchorScreenY - elRect.top) / Math.max(1, elRect.height)));
+
+      const visLeft = Math.max(elRect.left, containerRect.left);
+      const visRight = Math.min(elRect.right, containerRect.right);
+      const anchorScreenX =
+        visRight > visLeft ? (visLeft + visRight) / 2 : containerRect.left + containerRect.width / 2;
+      const viewportOffsetX = anchorScreenX - containerRect.left;
+      const relX = Math.max(0, Math.min(1, (anchorScreenX - elRect.left) / Math.max(1, elRect.width)));
+
+      zoomAnchorRef.current = {
+        pageNumber: anchorPage,
+        relY,
+        viewportOffsetY,
+        relX,
+        viewportOffsetX,
+      };
+    } else if (anchorPage >= 1) {
+      zoomAnchorRef.current = {
+        pageNumber: anchorPage,
+        relY: 0.5,
+        viewportOffsetY: (container?.clientHeight || 600) / 2,
+        relX: 0.5,
+        viewportOffsetX: (container?.clientWidth || 800) / 2,
+      };
+    }
+
+    suppressScrollUntilRef.current = Date.now() + 500;
+    setZoom((prev) =>
+      clampZoom(
+        typeof nextZoomOrUpdater === 'function' ? nextZoomOrUpdater(prev) : nextZoomOrUpdater,
+      ),
+    );
+  }, []);
+
+  // Zoom DOM boyutları güncellendikten hemen sonra (boyamadan önce) kaydırma konumunu aynı sayfaya kilitle
+  useLayoutEffect(() => {
+    const anchor = zoomAnchorRef.current;
+    if (!anchor) return;
+    zoomAnchorRef.current = null;
+
+    const container = scrollContainerRef.current;
+    const el = pageElementsRef.current.get(anchor.pageNumber);
+    if (!container || !el) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+
+    const newElTop = container.scrollTop + (elRect.top - containerRect.top);
+    const targetScrollTop = newElTop + anchor.relY * elRect.height - anchor.viewportOffsetY;
+    container.scrollTop = Math.max(0, targetScrollTop);
+
+    const newElLeft = container.scrollLeft + (elRect.left - containerRect.left);
+    const targetScrollLeft = newElLeft + anchor.relX * elRect.width - anchor.viewportOffsetX;
+    container.scrollLeft = Math.max(0, targetScrollLeft);
+
+    setCurrentPage(anchor.pageNumber);
+  }, [zoom]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -1185,12 +1266,12 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
       e.preventDefault();
       if (!pdfDoc) return;
       const delta = e.deltaY < 0 ? 0.15 : -0.15;
-      setZoom((prev) => clampZoom(prev + delta));
+      applyZoom((prev) => prev + delta);
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
     return () => container.removeEventListener('wheel', handleWheel);
-  }, [pdfDoc]);
+  }, [pdfDoc, applyZoom]);
 
   const handleWorkspaceScroll = useCallback(() => {
     if (Date.now() < suppressScrollUntilRef.current) return;
@@ -1280,8 +1361,8 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
   const handleFitWidth = useCallback(() => {
     if (pagesMeta.length === 0) return;
     const currentMeta = pagesMeta[currentPage - 1] || pagesMeta[0];
-    setZoom(computeFitWidthZoom(currentMeta.baseWidth));
-  }, [pagesMeta, currentPage, computeFitWidthZoom]);
+    applyZoom(computeFitWidthZoom(currentMeta.baseWidth));
+  }, [pagesMeta, currentPage, computeFitWidthZoom, applyZoom]);
 
   const handleToggleFullscreen = useCallback(async () => {
     try {
@@ -1467,14 +1548,9 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         onPrevPage={() => scrollToPage(Math.max(1, currentPage - 1))}
         onNextPage={() => scrollToPage(Math.min(pagesMeta.length, currentPage + 1))}
         onJumpToPage={scrollToPage}
-        onZoomIn={() => setZoom((z) => clampZoom(z + 0.2))}
-        onZoomOut={() => setZoom((z) => clampZoom(z - 0.2))}
+        onZoomIn={() => applyZoom((z) => z + 0.2)}
+        onZoomOut={() => applyZoom((z) => z - 0.2)}
         onFitWidth={handleFitWidth}
-        onSelectTool={handleSelectTool}
-        onSelectColor={handleSelectColor}
-        onSelectFontSize={handleSelectFontSize}
-        onToggleBold={handleToggleBold}
-        onSelectPenWidth={handleSelectPenWidth}
         onSelectStrokeSmoothing={setStrokeSmoothing}
         onSelectShapeType={setActiveShapeType}
         onSelectShapeFillMode={handleSelectShapeFillMode}
@@ -1494,11 +1570,26 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
         onExportFlatPdf={handleExportFlatPdf}
       />
 
-      <main
-        ref={scrollContainerRef}
-        onScroll={handleWorkspaceScroll}
-        className="flex-1 overflow-auto workspace-scroll relative px-4 py-6"
-      >
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        <LeftToolSidebar
+          hasDocument={Boolean(pdfDoc)}
+          toolMode={toolMode}
+          activeColor={activeColor}
+          fontSizeKey={fontSizeKey}
+          bold={bold}
+          penWidthKey={penWidthKey}
+          onSelectTool={handleSelectTool}
+          onSelectColor={handleSelectColor}
+          onSelectFontSize={handleSelectFontSize}
+          onToggleBold={handleToggleBold}
+          onSelectPenWidth={handleSelectPenWidth}
+        />
+
+        <main
+          ref={scrollContainerRef}
+          onScroll={handleWorkspaceScroll}
+          className="flex-1 overflow-auto workspace-scroll relative px-4 py-6"
+        >
         {isLoadingPdf && (
           <div className="fixed inset-0 z-40 bg-slate-900/30 flex items-center justify-center">
             <div className="bg-white rounded-xl shadow-xl px-6 py-4 text-slate-800 font-medium border border-slate-200">
@@ -1584,7 +1675,8 @@ export const PdfEditorApp: React.FC<PdfEditorAppProps> = ({ onExit }) => {
             ))}
           </div>
         )}
-      </main>
+        </main>
+      </div>
 
       {isDraggingFile && (
         <div className="fixed inset-0 z-50 bg-blue-600/20 backdrop-blur-[1px] border-4 border-dashed border-blue-600 flex items-center justify-center pointer-events-none">
